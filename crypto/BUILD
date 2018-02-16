@@ -1,1 +1,1 @@
-#automaton crypto library
+#automaton crypto library, Creating conflicts
