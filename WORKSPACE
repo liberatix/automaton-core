@@ -6,3 +6,9 @@ new_http_archive(
     build_file = "gtest.BUILD",
     strip_prefix = "googletest-" + GTEST_LABEL,
 )
+
+http_archive(
+    name = "protobufs",
+    urls = ["https://github.com/google/protobuf/releases/download/v3.5.1/protobuf-cpp-3.5.1.zip"],
+    sha256 = "706ac3cbd4504f34c5b991e1b4567e35d7fa883c417e1644de594a169e193af8",
+)
