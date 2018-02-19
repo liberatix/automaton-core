@@ -104,16 +104,6 @@ TEST(FactorialTest, Zero) {
   EXPECT_EQ(1, Factorial(0));
 }
 
-// Tests factorial of 0.
-TEST(SlowTest, Slow) {
-  int s = 0;
-  for(int z = 0; z < 10; z++) {
-    for(int i = 0; i < 1 << 30; i++) {
-      s ^= i;
-    }
-  }
-}
-
 // Tests factorial of positive numbers.
 TEST(FactorialTest, Positive) {
   EXPECT_EQ(1, Factorial(1));
