@@ -1,2 +1,2 @@
-
+# automaton data serialization library
 
