@@ -9,7 +9,7 @@ using namespace std;
 // Base class for hash functions
 class hash_transformation {
 public:
-  // A function pointer given to the register_class_factory to register.
+  // A function pointer given to the register_factory to register.
   // The function will be used by create() to instantiate a hash_transformation
   // derived class implementing this interface
   typedef hash_transformation * (*factory_function_type)();
@@ -51,7 +51,7 @@ public:
   // IN:      name:      a string name that will be used to call this function.
   //          func:      function pointers used to instantiate classes
   //                     implementing the interface.
-  static void register_class_factory(string name, factory_function_type func);
+  static void register_factory(string name, factory_function_type func);
 
   // Instantiate a class using the registered function in the factory.
   // Returns: Pointer to hash_transformation derived class implementing the
