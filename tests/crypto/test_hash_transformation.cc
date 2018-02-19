@@ -31,7 +31,8 @@ const char* DUMMY_BAD = "dummy/bad";
 
 // Tests hash transformation registration.
 TEST(HashTranformation, Registration) {
-  hash_transformation::register_class_factory(DUMMY, [] {return (hash_transformation*)new dummy_hash(); });
+  hash_transformation::register_class_factory(DUMMY,
+            [] {return (hash_transformation*)new dummy_hash(); });
   hash_transformation * d = hash_transformation::create(DUMMY);
   EXPECT_NE(d, nullptr);
 }
