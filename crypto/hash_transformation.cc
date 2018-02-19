@@ -1,4 +1,5 @@
 #include "hash_transformation.h"
+
 using namespace std;
 
 void hash_transformation::calculate_digest(const unsigned char * input,
@@ -10,8 +11,8 @@ void hash_transformation::calculate_digest(const unsigned char * input,
 
 map<string, hash_transformation::factory_function_type>
     hash_transformation::hash_transformation_factory;
-    
-void hash_transformation::register_class_factory(string name,
+
+void hash_transformation::register_factory(string name,
                                                  factory_function_type func) {
   // TODO(samir): decide what to do if function is already registered
   // auto it = hash_transformation_factory.find(name);
