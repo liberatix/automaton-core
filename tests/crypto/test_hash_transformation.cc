@@ -7,13 +7,13 @@ private:
 public:
   dummy_hash():hash(0) {}
 
-  void update(const unsigned char* input, const size_t length) {
+  void update(const unsigned char * input, const size_t length) {
     for (unsigned int i = 0; i < length; i++) {
       hash ^= input[i];
     }
   }
 
-  void final(unsigned char* digest) {
+  void final(unsigned char * digest) {
     *digest = hash;
   }
 

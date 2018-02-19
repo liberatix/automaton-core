@@ -1,4 +1,6 @@
-#pragma once
+#ifndef AUTOMATON_CORE_CRYPTO_HASH_TRANSFORMATION_H__
+#define AUTOMATON_CORE_CRYPTO_HASH_TRANSFORMATION_H__
+
 #include <iostream>
 #include <map>
 
@@ -53,9 +55,11 @@ public:
 
   // Instantiate a class using the registered function in the factory.
   // Returns: Pointer to hash_transformation derived class implementing the
-  //          interface or nullptr if there is no registered function with this name.
-  //
-  // IN:      name:      The registered name of the function used to instantiate an implementation of this interface.
+  //          interface or nullptr if there is no registered
+  //          function with this name.
+  // IN:      name:      The registered name of the function used to
+  //                     instantiate an implementation of this interface.
   static hash_transformation * create(const string name);
-
 };
+
+#endif // AUTOMATON_CORE_CRYPTO_HASH_TRANSFORMATION_H__
