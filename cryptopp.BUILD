@@ -1,3 +1,4 @@
+package(default_visibility = ["//visibility:public"])
 
 cc_library(
   name = "cryptopp",
@@ -6,6 +7,7 @@ cc_library(
       glob(
         ["*.cpp"],
         exclude = [
+          // SRCS in GNUMakefile exclude the following.
           "cryptlib.cpp",
           "cpu.cpp",
           "integer.cpp",
@@ -14,6 +16,23 @@ cc_library(
           "winpipes.cpp",
           "cryptlib_bds.cpp",
           "dll.cpp",
+          "adhoc.cpp",
+
+          // Exclude tests.
+          "test.cpp",
+          "bench1.cpp",
+          "bench2.cpp",
+          "validat0.cpp",
+          "validat1.cpp",
+          "validat2.cpp",
+          "validat3.cpp",
+          "validat4.cpp",
+          "datatest.cpp",
+          "regtest1.cpp",
+          "regtest2.cpp",
+          "regtest3.cpp",
+          "dlltest.cpp",
+          "fipsalgt.cpp",
         ],
       ),
   hdrs = 
@@ -24,7 +43,13 @@ cc_library(
           "eprecomp.cpp",
           "polynomi.cpp",
         ],
-        exclude = ["resource.h"],
+        exclude = [
+          "resource.h",
+          // Exclude TESTINCL as specified in GNUMakefile
+          "bench.h",
+          "factory.h",
+          "validate.h",
+        ],
       ),
   defines = [
     "NDEBUG",
