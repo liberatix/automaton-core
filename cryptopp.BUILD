@@ -2,12 +2,12 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
   name = "cryptopp",
-  srcs = 
+  srcs =
       ["cryptlib.cpp", "cpu.cpp", "integer.cpp"] +
       glob(
         ["*.cpp"],
         exclude = [
-          // SRCS in GNUMakefile exclude the following.
+          # SRCS in GNUMakefile exclude the following.
           "cryptlib.cpp",
           "cpu.cpp",
           "integer.cpp",
@@ -18,7 +18,7 @@ cc_library(
           "dll.cpp",
           "adhoc.cpp",
 
-          // Exclude tests.
+          # Exclude tests.
           "test.cpp",
           "bench1.cpp",
           "bench2.cpp",
@@ -35,7 +35,7 @@ cc_library(
           "fipsalgt.cpp",
         ],
       ),
-  hdrs = 
+  hdrs =
       glob(
         [
           "*.h",
@@ -45,7 +45,7 @@ cc_library(
         ],
         exclude = [
           "resource.h",
-          // Exclude TESTINCL as specified in GNUMakefile
+          # Exclude TESTINCL as specified in GNUMakefile
           "bench.h",
           "factory.h",
           "validate.h",
