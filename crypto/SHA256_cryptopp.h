@@ -1,0 +1,32 @@
+#ifndef AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
+#define AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
+
+#include "hash_transformation.h"
+
+namespace CryptoPP {
+  class SHA256;
+}
+
+class SHA256_cryptoPP : public hash_transformation {
+private:
+  CryptoPP::SHA256* hash;
+public:
+  SHA256_cryptoPP();
+
+  void calculate_digest(const unsigned char* input, const size_t length, unsigned char* digest);
+
+  void update(const unsigned char* input, const size_t length);
+
+  void final(unsigned char* digest);
+
+  void restart();
+
+  unsigned int digest_size() const;
+
+  static bool registerSelf();
+
+private:
+  const static int _digest_size = 32;
+};
+extern bool registration;
+#endif // AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
