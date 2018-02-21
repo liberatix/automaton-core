@@ -11,6 +11,7 @@ cc_test(
 
 cc_test(
     name = "sha_test",
+    linkstatic = 1,
     srcs = ["test_SHA256_cryptopp.cc"],
     size = "small",
     deps = [
