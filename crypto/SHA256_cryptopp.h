@@ -28,5 +28,5 @@ public:
 private:
   const static int _digest_size = 32;
 };
-extern bool registration;
+
 #endif // AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__

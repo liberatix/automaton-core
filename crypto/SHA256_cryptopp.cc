@@ -33,4 +33,4 @@ bool SHA256_cryptoPP::registerSelf() {
   return true;
 }
 
-bool registration = SHA256_cryptoPP::registerSelf();
+static bool registration = SHA256_cryptoPP::registerSelf();
