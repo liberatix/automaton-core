@@ -157,7 +157,6 @@ cc_library(
       "*.cpp",
     ]),
   defines = [
-    "NDEBUG",
     "NO_OS_DEPENDENCE",
     "CRYPTOPP_DISABLE_ASM",
     "CRYPTOPP_DISABLE_AESNI",
