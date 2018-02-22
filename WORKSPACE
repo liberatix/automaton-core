@@ -29,41 +29,12 @@ new_git_repository(
     name = "com_github_boost_asio",
     commit = "6814d260d02300a97521c1a93d02e30877fb8ff5",
     remote = "https://github.com/boostorg/asio.git",
-    build_file_content = """
-cc_library(
- name = "asio",
- visibility = ["//visibility:public"],
- includes = [
-  "include/",
- ],
- hdrs = glob([
-   "include/boost/**/*.h",
-   "include/boost/**/*.hpp",
-   "include/boost/**/*.ipp",
- ]),
- srcs = [],
- linkopts = ["-lpthread"],
- deps = ["@com_github_boost_system//:system"],
-)""",
+    build_file = "boost_asio.BUILD",
 )
 
 new_git_repository(
     name = "com_github_boost_system",
     commit = "6ea02e2668c16218c7881f36908dafdbabd3c8a7",
     remote = "https://github.com/boostorg/system.git",
-    build_file_content = """
-cc_library(
- name = "system",
- visibility = ["//visibility:public"],
- includes = [
-  "include/",
- ],
- hdrs = glob([
-  "include/boost/**/*.h",
-  "include/boost/**/*.hpp",
- ]),
- srcs = glob([
-  "src/*.cpp"
- ]),
-)""",  
+    build_file = "boost_system.BUILD",  
 )
