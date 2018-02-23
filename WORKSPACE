@@ -23,3 +23,18 @@ new_http_archive(
   build_file = "cryptopp.BUILD",
   strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
 )
+
+# boost::asio
+new_git_repository(
+  name = "com_github_boost_asio",
+  commit = "6814d260d02300a97521c1a93d02e30877fb8ff5",
+  remote = "https://github.com/boostorg/asio.git",
+  build_file = "boost_asio.BUILD",
+)
+
+new_git_repository(
+  name = "com_github_boost_system",
+  commit = "6ea02e2668c16218c7881f36908dafdbabd3c8a7",
+  remote = "https://github.com/boostorg/system.git",
+  build_file = "boost_system.BUILD",  
+)
