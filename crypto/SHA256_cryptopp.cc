@@ -1,8 +1,7 @@
-#include "SHA256_cryptopp.h"
-#include "hash_transformation.h"
-
-#include "cryptlib.h"
-#include "sha.h"
+#include "crypto/SHA256_cryptopp.h"
+#include "crypto/hash_transformation.h"
+#include "cryptlib.h"  // NOLINT
+#include "sha.h"  // NOLINT
 
 SHA256_cryptopp::SHA256_cryptopp() {
   hash = new CryptoPP::SHA256;
@@ -32,7 +31,8 @@ unsigned int SHA256_cryptopp::digest_size() const {
 }
 
 bool SHA256_cryptopp::registerSelf() {
-  //  hash_transformation::register_factory("SHA256", [] {return (hash_transformation*)new SHA256_cryptopp(); });
+  //  hash_transformation::register_factory("SHA256",
+  //  [] {return (hash_transformation*)new SHA256_cryptopp(); });
   return true;
 }
 

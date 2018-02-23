@@ -27,8 +27,8 @@ class SHA256_cryptopp : public hash_transformation {
 
   static bool registerSelf();
 
-private:
-  const static int _digest_size = 32;
+ private:
+   const static int _digest_size = 32;
 };
 
-#endif // AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
+#endif  // AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
