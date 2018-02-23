@@ -28,9 +28,9 @@ const unsigned char * TEST2 = (const unsigned char*)"test";
 // Tests hash transformation registration.
 TEST(HashTranformation, Registration) {
   hash_transformation::register_factory(DUMMY1,
-            [] {return reinterpret_cast<hash_transformation*>(new dummy_hash<1>()); });
+      [] {return reinterpret_cast<hash_transformation*>(new dummy_hash<1>()); });  // NOLINT
   hash_transformation::register_factory(DUMMY2,
-            [] {return reinterpret_cast<hash_transformation*>(new dummy_hash<2>()); });
+      [] {return reinterpret_cast<hash_transformation*>(new dummy_hash<2>()); });  // NOLINT 
 
   unsigned char digest[1];
 

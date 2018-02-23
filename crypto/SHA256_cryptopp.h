@@ -1,19 +1,21 @@
 #ifndef AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
 #define AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
 
-#include "hash_transformation.h"
+#include "crypto/hash_transformation.h"
 
 namespace CryptoPP {
-  class SHA256;
+class SHA256;
 }
 
 class SHA256_cryptopp : public hash_transformation {
-private:
+ private:
   CryptoPP::SHA256* hash;
-public:
+ public:
   SHA256_cryptopp();
 
-  void calculate_digest(const unsigned char* input, const size_t length, unsigned char* digest);
+  void calculate_digest(const unsigned char* input,
+                        const size_t length
+                        unsigned char* digest);
 
   void update(const unsigned char* input, const size_t length);
 

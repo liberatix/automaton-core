@@ -8,11 +8,14 @@ SHA256_cryptopp::SHA256_cryptopp() {
   hash = new CryptoPP::SHA256;
 }
 
-void SHA256_cryptopp::calculate_digest(const unsigned char * input, const size_t length, unsigned char * digest) {
+void SHA256_cryptopp::calculate_digest(const unsigned char * input,
+                                      const size_t length,
+                                      unsigned char * digest) {
   hash->CalculateDigest(digest, input, length);
 }
 
-void SHA256_cryptopp::update(const unsigned char * input, const size_t length) {
+void SHA256_cryptopp::update(const unsigned char * input,
+                             const size_t length) {
   hash->Update(input, length);
 }
 
