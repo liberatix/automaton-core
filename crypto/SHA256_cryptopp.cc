@@ -1,8 +1,8 @@
 #include "SHA256_cryptopp.h"
 #include "hash_transformation.h"
 
-#include "cryptopp/cryptlib.h"
-#include "cryptopp/sha.h"
+#include "cryptlib.h"
+#include "sha.h"
 
 SHA256_cryptoPP::SHA256_cryptoPP() {
   hash = new CryptoPP::SHA256;

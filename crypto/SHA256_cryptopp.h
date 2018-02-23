@@ -28,4 +28,5 @@ public:
 private:
   const static int _digest_size = 32;
 };
+
 #endif // AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__

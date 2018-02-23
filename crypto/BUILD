@@ -4,7 +4,6 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "crypto",
-    linkstatic = 1,
     srcs = [
         "hash_transformation.cc",
         "hash_transformation.h",
@@ -15,6 +14,5 @@ cc_library(
       "hash_transformation.h",
       "SHA256_cryptopp.h",
       ],
-    #deps = ["@cryptopp//:cryptopp"],
-    deps = ["//crypto/cryptopp:cryptopplib"]
+    deps = ["@cryptopp//:cryptopp"],
 )
