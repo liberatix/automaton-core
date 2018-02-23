@@ -1,14 +1,14 @@
 #ifndef AUTOMATON_CORE_NET_ACCEPTOR_H__
 #define AUTOMATON_CORE_NET_ACCEPTOR_H__
 
-#include "connection.h"
-
-#include <string>
 #include <map>
+#include <string>
+
+#include "network/connection.h"
 
 // Class that is used to listen for and accept incoming connections. (Server)
 class acceptor {
-public:
+ public:
   /**
     Handler class used to inform the client for events.
       - on_requested will be invoked when a peer wants to connect; it passes
@@ -20,16 +20,11 @@ public:
         accepting.
   **/
   class acceptor_handler {
-  public:
+   public:
     virtual bool on_requested(const std::string& address) = 0;
     virtual void on_connected(connection* c) = 0;
     virtual void on_error(connection::error e) = 0;
   };
-
-  /**
-    Class constructor.
-  **/
-  acceptor(acceptor_handler* _handler);
 
   /**
     Function that defines how the acceptor works. It should specify the way
@@ -62,7 +57,12 @@ public:
   static void register_acceptor_type(const std::string& type,
       factory_function func);
 
-protected:
+ protected:
+  /**
+    Class constructor.
+  **/
+  explicit acceptor(acceptor_handler* _handler);
+
   /**
     Handler object that must be set so the client could be informed for events.
     If no handler or a handler with empty function implementations is provided,
@@ -71,7 +71,7 @@ protected:
   **/
   acceptor_handler* handler;
 
-private:
+ private:
   /**
     Map that stores registered child classes and pointers to funtions that are
     used to create objects.
@@ -79,4 +79,4 @@ private:
   static std::map<std::string, factory_function> acceptor_factory;
 };
 
-#endif // AUTOMATON_CORE_NET_ACCEPTOR_H__
+#endif  // AUTOMATON_CORE_NET_ACCEPTOR_H__
