@@ -1,5 +1,5 @@
 cc_library(
-  name = "automaton_core_net",
+  name = "automaton_core_network",
   srcs = [
 	  "acceptor.cpp",
 	  "connection.cpp",		

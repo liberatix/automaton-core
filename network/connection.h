@@ -1,8 +1,8 @@
 #ifndef AUTOMATON_CORE_NET_CONNECTION_H__
 #define AUTOMATON_CORE_NET_CONNECTION_H__
 
-#include <string>
 #include <map>
+#include <string>
 
 // TODO(kari): add state as a member and get_state
 // TODO(kari): think about `send and disconnect`
@@ -14,7 +14,7 @@
 **/
 
 class connection {
-public:
+ public:
   /**
     TODO(kari)
   **/
@@ -53,7 +53,7 @@ public:
         accepting.
   **/
   class connection_handler {
-  public:
+   public:
     virtual void on_message_received(connection* c, const std::string&
         message) = 0;
     virtual void on_message_sent(connection* c, int id,
@@ -62,11 +62,6 @@ public:
     virtual void on_disconnected(connection* c) = 0;
     virtual void on_error(connection::error e) = 0;
   };
-
-  /**
-    Class constructor.
-  **/
-  connection(connection_handler* _handler);
 
   /**
     Function that is used to send message to the remote peer. Id shows the
@@ -98,17 +93,21 @@ public:
   static void register_connection_type(const std::string& type,
       factory_function func);
 
-protected:
+ protected:
+  /**
+  Class constructor.
+  **/
+  explicit connection(connection_handler* _handler);
+
   /**
     Handler object that must be set so the client could be informed for events.
     If no handler or a handler with empty function implementations is provided,
     client will not have access to events information like connect/ disconnect,
     received messages or an error that happend.
   **/
-
   connection_handler* handler;
 
-private:
+ private:
   /**
     Map that stores registered child classes and pointers to funtions that are
     used to create objects.
@@ -116,4 +115,4 @@ private:
   static std::map<std::string, factory_function> connection_factory;
 };
 
-#endif // AUTOMATON_CORE_NET_CONNECTION_H__
+#endif  // AUTOMATON_CORE_NET_CONNECTION_H__

@@ -1,15 +1,14 @@
-#include "connection.h"
+#include "network/connection.h"
 
 connection::connection(connection::connection_handler* _handler):
-    handler(_handler) {};
+    handler(_handler) {}
 
 connection* connection::create(const std::string& type, const std::string&
-    address, const std::string& port, connection::connection_handler* handler){
+    address, const std::string& port, connection::connection_handler* handler) {
   auto it = connection_factory.find(type);
   if (it == connection_factory.end()) {
     return nullptr;
-  }
-  else {
+  } else {
     return it -> second(address, port, handler);
   }
 }
