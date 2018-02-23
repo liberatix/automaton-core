@@ -1,6 +1,7 @@
 #include "crypto/hash_transformation.h"
 #include "gtest/gtest.h"
 
+
 template<unsigned char C>
 class dummy_hash : public hash_transformation {
  public:

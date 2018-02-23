@@ -11,12 +11,12 @@
 // Each byte is converted to 2 hex values, encoding the left and
 // right 4 bits of each byte.
 std::string toHex(unsigned char * digest, size_t size) {
-	CryptoPP::HexEncoder encoder;
-	std::string output;
-	encoder.Attach(new CryptoPP::StringSink(output));
-	encoder.Put(digest, size);
-	encoder.MessageEnd();
-	return output;
+  CryptoPP::HexEncoder encoder;
+  std::string output;
+  encoder.Attach(new CryptoPP::StringSink(output));
+  encoder.Put(digest, size);
+  encoder.MessageEnd();
+  return output;
 }
 
 
@@ -24,7 +24,6 @@ TEST(SHA256_cryptopp, calculate_digest) {
   SHA256_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   unsigned char* digest = new unsigned char[digest_size];
-  unsigned char* test_input;
   constexpr unsigned int test_cases = 6;
   std::string long_a_string(1000000, 'a');
 
@@ -40,41 +39,42 @@ TEST(SHA256_cryptopp, calculate_digest) {
 		 "CDC76E5C9914FB9281A1C7E284D73E67F1809A48A497200E046D39CCC7112CD0"}
   };
 
-  for(unsigned int i = 0; i < test_cases; i++) {
-    hasher.calculate_digest((unsigned char*)test[i][0].c_str(), test[i][0].length(), digest);
+  for (unsigned int i = 0; i < test_cases; i++) {
+    hasher.calculate_digest((unsigned char*)test[i][0].c_str(),
+        test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
-
 }
 
 TEST(SHA256_cryptopp, update_and_finish) {
-	SHA256_cryptopp hasher;
+  SHA256_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   unsigned char* digest = new unsigned char[digest_size];
-	std::string test_input("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
+  std::string test_input(
+      "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
   unsigned char* p_test_input = (unsigned char*) test_input.c_str();
-	size_t len = test_input.length();
+  size_t len = test_input.length();
 
-	for(unsigned int i = 0; i <  16777216; i++) {
+  for(unsigned int i = 0; i <  16777216; i++) {
 		hasher.update(p_test_input, len);
-	}
-	hasher.final(digest);
-	EXPECT_EQ(toHex(digest, digest_size),
+  }
+  hasher.final(digest);
+  EXPECT_EQ(toHex(digest, digest_size),
 			"50E72A0E26442FE2552DC3938AC58658228C0CBFB1D2CA872AE435266FCD055E");
 
 	// Try to hash a new string to see if everything restarted as intended
-	unsigned char* a = (unsigned char*) "a";
-	unsigned char* b = (unsigned char*) "b";
-	unsigned char* c = (unsigned char*) "c";
-	hasher.update(a, 1);
-	hasher.update(b, 1);
-	hasher.update(c, 1);
-	hasher.final(digest);
-	EXPECT_EQ(toHex(digest, digest_size),
+  unsigned char* a = (unsigned char*) "a";
+  unsigned char* b = (unsigned char*) "b";
+  unsigned char* c = (unsigned char*) "c";
+  hasher.update(a, 1);
+  hasher.update(b, 1);
+  hasher.update(c, 1);
+  hasher.final(digest);
+  EXPECT_EQ(toHex(digest, digest_size),
 			"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
 }
 
 TEST(SHA256_cryptopp, digest_size) {
   SHA256_cryptopp hasher;
-	EXPECT_EQ(hasher.digest_size(), CryptoPP::SHA256::DIGESTSIZE);
+  EXPECT_EQ(hasher.digest_size(), CryptoPP::SHA256::DIGESTSIZE);
 }
