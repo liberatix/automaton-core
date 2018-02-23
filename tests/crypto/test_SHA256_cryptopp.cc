@@ -55,7 +55,7 @@ TEST(SHA256_cryptopp, update_and_finish) {
   unsigned char* p_test_input = (unsigned char*) test_input.c_str();
   size_t len = test_input.length();
 
-  for(unsigned int i = 0; i <  16777216; i++) {
+  for (unsigned int i = 0; i <  16777216; i++) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);
