@@ -3,23 +3,23 @@
 
 #include <iostream>
 #include <map>
-
-using namespace std;
+#include <string>
 
 // Base class for hash functions
 class hash_transformation {
-public:
+ public:
   // A function pointer given to the register_factory to register.
   // The function will be used by create() to instantiate a hash_transformation
   // derived class implementing this interface
   typedef hash_transformation * (*factory_function_type)();
 
-private:
+ private:
   // Map holding the function pointers used to instantiate classes implementing
   // the interface.
-  static map<string, factory_function_type> hash_transformation_factory;
+  static std::map<std::string, factory_function_type>
+      hash_transformation_factory;
 
-public:
+ public:
   // Updates the hash with additional input and computes the hash of the current
   // message.
   // Precondition digest_size == digest in bytes.
@@ -37,7 +37,7 @@ public:
 
   // Computes the hash of the current message.
   // Precondition digest_size == digest in bytes.
-  // OUT:  digest: 	a pointer to the buffer to receive the hash.
+  // OUT:  digest:  a pointer to the buffer to receive the hash.
   virtual void final(unsigned char * digest) = 0;
 
   // Restarts the hash, by discarding and re-initializing the state.
@@ -51,7 +51,7 @@ public:
   // IN:      name:      a string name that will be used to call this function.
   //          func:      function pointers used to instantiate classes
   //                     implementing the interface.
-  static void register_factory(string name, factory_function_type func);
+  static void register_factory(std::string name, factory_function_type func);
 
   // Instantiate a class using the registered function in the factory.
   // Returns: Pointer to hash_transformation derived class implementing the
@@ -59,7 +59,7 @@ public:
   //          function with this name.
   // IN:      name:      The registered name of the function used to
   //                     instantiate an implementation of this interface.
-  static hash_transformation * create(const string name);
+  static hash_transformation * create(const std::string name);
 };
 
-#endif // AUTOMATON_CORE_CRYPTO_HASH_TRANSFORMATION_H__
+#endif  // AUTOMATON_CORE_CRYPTO_HASH_TRANSFORMATION_H__

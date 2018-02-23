@@ -7,6 +7,12 @@ cc_library(
     srcs = [
         "hash_transformation.cc",
         "hash_transformation.h",
+        "SHA256_cryptopp.cc",
+        "SHA256_cryptopp.h",
     ],
-    hdrs = ["hash_transformation.h"],
+    hdrs = [
+      "hash_transformation.h",
+      "SHA256_cryptopp.h",
+      ],
+    deps = ["@cryptopp//:cryptopp"],
 )

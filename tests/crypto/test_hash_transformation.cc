@@ -1,9 +1,10 @@
 #include "crypto/hash_transformation.h"
 #include "gtest/gtest.h"
 
+
 template<unsigned char C>
 class dummy_hash : public hash_transformation {
-public:
+ public:
   void update(const unsigned char * input, const size_t length) {}
 
   void final(unsigned char * digest) {
@@ -27,9 +28,13 @@ const unsigned char * TEST2 = (const unsigned char*)"test";
 // Tests hash transformation registration.
 TEST(HashTranformation, Registration) {
   hash_transformation::register_factory(DUMMY1,
-            [] {return (hash_transformation*)new dummy_hash<1>(); });
+      [] {
+        return reinterpret_cast<hash_transformation*>(new dummy_hash<1>());
+      });
   hash_transformation::register_factory(DUMMY2,
-            [] {return (hash_transformation*)new dummy_hash<2>(); });
+      [] {
+        return reinterpret_cast<hash_transformation*>(new dummy_hash<2>());
+      });
 
   unsigned char digest[1];
 
