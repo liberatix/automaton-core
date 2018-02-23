@@ -36,7 +36,7 @@ class hash_transformation {
 
   // Computes the hash of the current message.
   // Precondition digest_size == digest in bytes.
-  // OUT:  digest: 	a pointer to the buffer to receive the hash.
+  // OUT:  digest:  a pointer to the buffer to receive the hash.
   virtual void final(unsigned char * digest) = 0;
 
   // Restarts the hash, by discarding and re-initializing the state.
