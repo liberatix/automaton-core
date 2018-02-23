@@ -34,7 +34,7 @@ TEST(SHA256_cryptopp, calculate_digest) {
     {"", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"},
     {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
      "248D6A61D20638B8E5C026930C3E6039A33CE45964FF2167F6ECEDD419DB06C1"},
-    // NOLINTNEXTLINE 
+    // NOLINTNEXTLINE
     {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
      "CF5B16A778AF8380036CE59E7B0492370B249B11E8F07A51AFAC45037AFEE9D1"},
     {long_a_string,

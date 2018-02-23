@@ -17,7 +17,7 @@ class hash_transformation {
   // Map holding the function pointers used to instantiate classes implementing
   // the interface.
   static std::map<std::string, factory_function_type>
-      hash_transformation_factory; 
+      hash_transformation_factory;
 
  public:
   // Updates the hash with additional input and computes the hash of the current
