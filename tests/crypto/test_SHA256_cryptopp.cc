@@ -1,9 +1,9 @@
 #include "crypto/hash_transformation.h"
 #include "crypto/SHA256_cryptopp.h"
+#include <string>
 #include "cryptlib.h"
 #include "sha.h"
 #include "gtest/gtest.h"
-
 #include "hex.h"
 #include "filters.h"
 
@@ -12,7 +12,7 @@
 // right 4 bits of each byte.
 std::string toHex(unsigned char * digest, size_t size) {
 	CryptoPP::HexEncoder encoder;
-	string output;
+	std::string output;
 	encoder.Attach(new CryptoPP::StringSink(output));
 	encoder.Put(digest, size);
 	encoder.MessageEnd();
@@ -28,7 +28,7 @@ TEST(SHA256_cryptopp, calculate_digest) {
   constexpr unsigned int test_cases = 6;
   std::string long_a_string(1000000, 'a');
 
-  string test[test_cases][2] = {
+  std::string test[test_cases][2] = {
     {"a", "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB"},
     {"abc", "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"},
     {"", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"},
