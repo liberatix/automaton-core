@@ -14,7 +14,7 @@ class SHA256_cryptopp : public hash_transformation {
   SHA256_cryptopp();
 
   void calculate_digest(const unsigned char* input,
-                        const size_t length
+                        const size_t length,
                         unsigned char* digest);
 
   void update(const unsigned char* input, const size_t length);
