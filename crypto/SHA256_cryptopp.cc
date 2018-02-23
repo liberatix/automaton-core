@@ -6,6 +6,7 @@
 
 SHA256_cryptoPP::SHA256_cryptoPP() {
   hash = new CryptoPP::SHA256;
+  cout << CryptoPP::SHA256::DIGESTSIZE << endl;
 }
 
 void SHA256_cryptoPP::calculate_digest(const unsigned char * input, const size_t length, unsigned char * digest) {
