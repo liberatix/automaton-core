@@ -7,11 +7,11 @@ namespace CryptoPP {
   class SHA256;
 }
 
-class SHA256_cryptoPP : public hash_transformation {
+class SHA256_cryptopp : public hash_transformation {
 private:
   CryptoPP::SHA256* hash;
 public:
-  SHA256_cryptoPP();
+  SHA256_cryptopp();
 
   void calculate_digest(const unsigned char* input, const size_t length, unsigned char* digest);
 
