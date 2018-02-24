@@ -5,3 +5,15 @@
 # Mac OS
 .DS_Store
 
+# Ignore intermediate files.
+*.[oa]
+*.so
+*.obj
+*.lib
+*.exp
+*.dll
+*.exe
+*.manifest
+*.dmp
+*.swp
+.tags
