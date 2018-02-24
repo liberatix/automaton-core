@@ -1,5 +1,6 @@
 GTEST_LABEL = "ec44c6c1675c25b9827aacd08c02433cccde7780"
 CRYPTOPP_LABEL = "6_0_0"
+LUA_PREFIX = "lua-5.3.1"
 
 new_http_archive(
   name = "gtest",
@@ -37,4 +38,18 @@ new_git_repository(
   commit = "6ea02e2668c16218c7881f36908dafdbabd3c8a7",
   remote = "https://github.com/boostorg/system.git",
   build_file = "boost_system.BUILD",  
+)
+
+#new_local_repository(
+#  name = "luajit",
+#  path = "LuaJIT-2.0.5",
+#  build_file = "luajit.BUILD",
+#)
+
+new_http_archive(
+  name = "lua",
+  url = "http://www.lua.org/ftp/lua-5.3.1.tar.gz",
+  sha256 = "072767aad6cc2e62044a66e8562f51770d941e972dc1e4068ba719cd8bffac17",
+  build_file = "lua.BUILD",
+  strip_prefix = LUA_PREFIX,
 )
