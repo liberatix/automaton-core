@@ -42,11 +42,6 @@ cc_library(
     ],
     hdrs = glob(["src/*.h"]),
     includes = ["src"],
-    linkopts = [
-        "-lm",
-        "-ldl",
-    ],
-    nocopts = "-fno-exceptions",
 )
 
 cc_binary(
