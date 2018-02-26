@@ -11,11 +11,14 @@ cc_library(
         "SHA256_cryptopp.h",
         "RIPEMD160_cryptopp.cc",
         "RIPEMD160_cryptopp.h",
+        "SHA512_cryptopp.cc",
+        "SHA512_cryptopp.h",
     ],
     hdrs = [
       "hash_transformation.h",
       "SHA256_cryptopp.h",
       "RIPEMD160_cryptopp.h",
+      "SHA512_cryptopp.h",
       ],
     deps = ["@cryptopp//:cryptopp"],
 )

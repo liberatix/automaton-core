@@ -28,3 +28,13 @@ cc_test(
       "@gtest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "SHA512_test",
+    srcs = ["test_SHA512_cryptopp.cc"],
+    size = "small",
+    deps = [
+      "//crypto",
+      "@gtest//:gtest_main",
+    ],
+)
