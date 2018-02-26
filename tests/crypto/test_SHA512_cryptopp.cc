@@ -74,6 +74,7 @@ TEST(SHA512_cryptopp, update_and_finish) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);
+  // NOLINTNEXTLINE
   EXPECT_EQ(toHex(digest, digest_size),
       "B47C933421EA2DB149AD6E10FCE6C7F93D0752380180FFD7F4629A712134831D77BE6091B819ED352C2967A2E2D4FA5050723C9630691F1A05A7281DBE6C1086");
 
@@ -85,6 +86,7 @@ TEST(SHA512_cryptopp, update_and_finish) {
   hasher.update(b, 1);
   hasher.update(c, 1);
   hasher.final(digest);
+  // NOLINTNEXTLINE
   EXPECT_EQ(toHex(digest, digest_size),
       "DDAF35A193617ABACC417349AE20413112E6FA4E89A97EA20A9EEEE64B55D39A2192992A274FC1A836BA3C23A3FEEBBD454D4423643CE80E2A9AC94FA54CA49F");
 }
