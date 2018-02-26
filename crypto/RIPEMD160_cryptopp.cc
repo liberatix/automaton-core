@@ -32,6 +32,7 @@ unsigned int RIPEMD160_cryptopp::digest_size() const {
 
 bool RIPEMD160_cryptopp::register_self() {
   hash_transformation::register_factory("RIPEMD160",
-  [] {return reinterpret_cast<hash_transformation*>(new RIPEMD160_cryptopp()); });
+  [] {return reinterpret_cast<hash_transformation*>
+      (new RIPEMD160_cryptopp()); });
   return true;
 }
