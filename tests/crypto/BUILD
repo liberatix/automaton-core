@@ -18,3 +18,13 @@ cc_test(
       "@gtest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "RIPEMD160_test",
+    srcs = ["test_RIPEMD160_cryptopp.cc"],
+    size = "small",
+    deps = [
+      "//crypto",
+      "@gtest//:gtest_main",
+    ],
+)

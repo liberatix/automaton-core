@@ -30,10 +30,8 @@ unsigned int SHA256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
-bool SHA256_cryptopp::registerSelf() {
-  //  hash_transformation::register_factory("SHA256",
-  //  [] {return (hash_transformation*)new SHA256_cryptopp(); });
+bool SHA256_cryptopp::register_self() {
+  hash_transformation::register_factory("SHA256",
+  [] {return reinterpret_cast<hash_transformation*>(new SHA256_cryptopp()); });
   return true;
 }
-
-static bool registration = SHA256_cryptopp::registerSelf();
