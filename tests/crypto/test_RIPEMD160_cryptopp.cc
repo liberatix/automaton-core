@@ -21,7 +21,7 @@ static std::string toHex(unsigned char * digest, size_t size) {
 
 TEST(RIPEMD160_cryptopp, register_self) {
   RIPEMD160_cryptopp::register_self();
-  hash_transformation* hasher= hash_transformation::create("RIPEMD160");
+  hash_transformation * hasher = hash_transformation::create("RIPEMD160");
   EXPECT_NE(hasher, nullptr);
 }
 
@@ -53,7 +53,6 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
-
 }
 
 TEST(SHA256_cryptopp, update_and_finish) {

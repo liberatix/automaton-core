@@ -4,13 +4,13 @@
 #include "crypto/hash_transformation.h"
 
 namespace CryptoPP {
-  class RIPEMD160;
+class RIPEMD160;
 }
 
 class RIPEMD160_cryptopp : public hash_transformation {
-private:
+ private:
   CryptoPP::RIPEMD160* hash;
-public:
+ public:
   RIPEMD160_cryptopp();
 
   void calculate_digest(const unsigned char* input,
@@ -27,7 +27,7 @@ public:
 
   static bool register_self();
 
-private:
+ private:
   static const int _digest_size = 20;
 };
 
