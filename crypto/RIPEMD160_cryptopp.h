@@ -1,17 +1,17 @@
-#ifndef AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
-#define AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
+#ifndef AUTOMATON_CORE_CRYPTO_RIPEMD160_CRYPTOPP_H__
+#define AUTOMATON_CORE_CRYPTO_RIPEMD160_CRYPTOPP_H__
 
 #include "crypto/hash_transformation.h"
 
 namespace CryptoPP {
-class SHA256;
+  class RIPEMD160;
 }
 
-class SHA256_cryptopp : public hash_transformation {
- private:
-  CryptoPP::SHA256* hash;
- public:
-  SHA256_cryptopp();
+class RIPEMD160_cryptopp : public hash_transformation {
+private:
+  CryptoPP::RIPEMD160* hash;
+public:
+  RIPEMD160_cryptopp();
 
   void calculate_digest(const unsigned char* input,
                         const size_t length,
@@ -27,8 +27,8 @@ class SHA256_cryptopp : public hash_transformation {
 
   static bool register_self();
 
- private:
-  static const int _digest_size = 32;
+private:
+  static const int _digest_size = 20;
 };
 
-#endif  // AUTOMATON_CORE_CRYPTO_SHA256_CRYPTOPP_H__
+#endif  // AUTOMATON_CORE_CRYPTO_RIPEMD160_CRYPTOPP_H__

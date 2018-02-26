@@ -1,8 +1,8 @@
 #include <string>
 #include "crypto/hash_transformation.h"
-#include "crypto/SHA256_cryptopp.h"
+#include "crypto/RIPEMD160_cryptopp.h"
 #include "cryptlib.h"  // NOLINT
-#include "sha.h"  // NOLINT
+#include "ripemd.h"  // NOLINT
 #include "gtest/gtest.h"  // NOLINT
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
@@ -19,26 +19,33 @@ static std::string toHex(unsigned char * digest, size_t size) {
   return output;
 }
 
+TEST(RIPEMD160_cryptopp, register_self) {
+  RIPEMD160_cryptopp::register_self();
+  hash_transformation* hasher= hash_transformation::create("RIPEMD160");
+  EXPECT_NE(hasher, nullptr);
+}
 
-TEST(SHA256_cryptopp, calculate_digest) {
-  SHA256_cryptopp hasher;
+TEST(RIPEMD160_cryptopp, calculate_digest) {
+  RIPEMD160_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   unsigned char* digest = new unsigned char[digest_size];
-  constexpr unsigned int test_cases = 6;
+  constexpr unsigned int test_cases = 9;
   std::string long_a_string(1000000, 'a');
 
   std::string test[test_cases][2] = {
-    {"a", "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB"},
-    // NOLINTNEXTLINE
-    {"abc", "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"},
-    {"", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"},
+    {"", "9C1185A5C5E9FC54612808977EE8F548B2258D31"},
+    {"a", "0BDC9D2D256B3EE9DAAE347BE6F4DC835A467FFE"},
+    {"abc", "8EB208F7E05D987A9B044A8E98C6B087F15A0BFC"},
+    {"message digest", "5D0689EF49D2FAE572B881B123A85FFA21595F36"},
+    {"abcdefghijklmnopqrstuvwxyz", "F71C27109C692C1B56BBDCEB5B9D2865B3708DBC"},
     {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-     "248D6A61D20638B8E5C026930C3E6039A33CE45964FF2167F6ECEDD419DB06C1"},
-    // NOLINTNEXTLINE
-    {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
-     "CF5B16A778AF8380036CE59E7B0492370B249B11E8F07A51AFAC45037AFEE9D1"},
-    {long_a_string,
-      "CDC76E5C9914FB9281A1C7E284D73E67F1809A48A497200E046D39CCC7112CD0"}
+      "12A053384A9C0C88E405A06C27DCF49ADA62EB2B"},
+    {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "B0E20B6E3116640286ED3A87A5713079B21F5189"},
+    {long_a_string, "52783243C1697BDBE16D37F97F68F08325DC1528"},
+      // NOLINTNEXTLINE
+    {"12345678901234567890123456789012345678901234567890123456789012345678901234567890",
+      "9B752E45573D4B39F4DBD3323CAB82BF63326BFB"}
   };
 
   for (unsigned int i = 0; i < test_cases; i++) {
@@ -46,23 +53,23 @@ TEST(SHA256_cryptopp, calculate_digest) {
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
+
 }
 
 TEST(SHA256_cryptopp, update_and_finish) {
-  SHA256_cryptopp hasher;
+  RIPEMD160_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   unsigned char* digest = new unsigned char[digest_size];
-  std::string test_input(
-      "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
+  std::string test_input("a");
   unsigned char* p_test_input = (unsigned char*) test_input.c_str();
   size_t len = test_input.length();
 
-  for (unsigned int i = 0; i <  16777216; i++) {
+  for (unsigned int i = 0; i <  1000000; i++) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);
   EXPECT_EQ(toHex(digest, digest_size),
-      "50E72A0E26442FE2552DC3938AC58658228C0CBFB1D2CA872AE435266FCD055E");
+      "52783243C1697BDBE16D37F97F68F08325DC1528");
 
   // Try to hash a new string to see if everything restarted as intended
   unsigned char* a = (unsigned char*) "a";
@@ -73,10 +80,10 @@ TEST(SHA256_cryptopp, update_and_finish) {
   hasher.update(c, 1);
   hasher.final(digest);
   EXPECT_EQ(toHex(digest, digest_size),
-      "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
+      "8EB208F7E05D987A9B044A8E98C6B087F15A0BFC");
 }
 
 TEST(SHA256_cryptopp, digest_size) {
-  SHA256_cryptopp hasher;
-  EXPECT_EQ(hasher.digest_size(), CryptoPP::SHA256::DIGESTSIZE);
+  RIPEMD160_cryptopp hasher;
+  EXPECT_EQ(hasher.digest_size(), CryptoPP::RIPEMD160::DIGESTSIZE);
 }
