@@ -4,7 +4,6 @@
 #include "keccak.h"  // NOLINT
 
 Keccak_256_cryptopp::Keccak_256_cryptopp() {
-  CryptoPP::Keccak_256;
   hash = new CryptoPP::Keccak_256;
 }
 
