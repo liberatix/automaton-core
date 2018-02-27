@@ -40,8 +40,8 @@ cc_test(
 )
 
 cc_test(
-    name = "keccak_256_test",
-    srcs = ["test_keccak_256_cryptopp.cc"],
+    name = "Keccak_256_test",
+    srcs = ["test_Keccak_256_cryptopp.cc"],
     size = "small",
     deps = [
       "//crypto",
