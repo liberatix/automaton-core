@@ -38,3 +38,13 @@ cc_test(
       "@gtest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "keccak_256_test",
+    srcs = ["test_keccak_256_cryptopp.cc"],
+    size = "small",
+    deps = [
+      "//crypto",
+      "@gtest//:gtest_main",
+    ],
+)
