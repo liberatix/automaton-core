@@ -125,6 +125,6 @@ int main() {
     return ExecuteAll();
 
     // For debugging anything in particular, you can run an individual
-    //test like so:
-    //ExecuteTest("test_const_member_variable");
+    // test like so:
+    // ExecuteTest("test_const_member_variable");
 }
