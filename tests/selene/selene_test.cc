@@ -1,10 +1,11 @@
 #include <algorithm>
+#include <map>
+
 #include "test/class_tests.h"
 #include "test/obj_tests.h"
 #include "test/interop_tests.h"
 #include "test/reference_tests.h"
 #include "test/selector_tests.h"
-#include <map>
 
 // A very simple testing framework
 // To add a test, author a function with the Test function signature
@@ -35,7 +36,8 @@ static TestMap tests = {
     {"test_register_obj_to_table", test_register_obj_to_table},
     {"test_mutate_instance", test_mutate_instance},
     {"test_multiple_methods", test_multiple_methods},
-    {"test_register_obj_const_member_variable", test_register_obj_const_member_variable},
+    {"test_register_obj_const_member_variable",
+        test_register_obj_const_member_variable},
 
     {"test_select_global", test_select_global},
     {"test_select_field", test_select_field},
@@ -85,13 +87,14 @@ int ExecuteAll() {
             std::cout << "." << std::flush;
         } else {
             std::cout << "x" << std::flush;
-            failures.push_back(std::string{"Test \""} +
+            failures.push_back(std::string {"Test \""} +
                                it->first + "\" failed.");
         }
         int size = state.Size();
         if (size != 0)
-            failures.push_back(std::string{"Test \""} + it->first
-                               + "\" leaked " + std::to_string(size) + " values");
+            failures.push_back(std::string {"Test \""} + it->first +
+                               "\" leaked " + std::to_string(size) +
+                               " values");
     }
     std::cout << std::endl << passing << " out of "
               << num_tests << " tests finished successfully." << std::endl;
