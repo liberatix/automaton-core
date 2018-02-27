@@ -6,9 +6,9 @@
 #include "keccak.h"  // NOLINT
 
 class Keccak_256_cryptopp : public hash_transformation {
-private:
+ private:
   CryptoPP::Keccak_256 * hash;
-public:
+ public:
   Keccak_256_cryptopp();
 
   void calculate_digest(const unsigned char* input,
@@ -25,7 +25,7 @@ public:
 
   static bool register_self();
 
-private:
+ private:
   static const int _digest_size = 32;
 };
 
