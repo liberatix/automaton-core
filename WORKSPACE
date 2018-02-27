@@ -1,6 +1,7 @@
 GTEST_LABEL = "ec44c6c1675c25b9827aacd08c02433cccde7780"
 CRYPTOPP_LABEL = "6_0_0"
-LUA_PREFIX = "lua-5.3.1"
+LUA_PREFIX = "lua-5.3.4"
+SELENE_PREFIX = "Selene-0.4"
 
 new_http_archive(
   name = "gtest",
@@ -48,8 +49,25 @@ new_git_repository(
 
 new_http_archive(
   name = "lua",
-  url = "http://www.lua.org/ftp/lua-5.3.1.tar.gz",
-  sha256 = "072767aad6cc2e62044a66e8562f51770d941e972dc1e4068ba719cd8bffac17",
+  url = "https://github.com/lua/lua/releases/download/v5-3-4/lua-5.3.4.tar.gz",
+  sha256 = "f681aa518233bc407e23acf0f5887c884f17436f000d453b2491a9f11a52400c",
+  #url = "http://www.lua.org/ftp/lua-5.3.1.tar.gz",
+  #sha256 = "072767aad6cc2e62044a66e8562f51770d941e972dc1e4068ba719cd8bffac17",
   build_file = "lua.BUILD",
   strip_prefix = LUA_PREFIX,
 )
+
+new_http_archive(
+  name = "selene",
+  url = "https://github.com/jeremyong/Selene/archive/v0.4.tar.gz",
+  sha256 = "e448981a3247541c497a7d0ca90e6a1b61f58ede5fcb4e7fc1c1ec25ed3f5a57",
+  build_file = "selene.BUILD",
+  strip_prefix = SELENE_PREFIX,
+)
+
+# Local repository version for selene.
+# new_local_repository(
+#   name = "selene",
+#   path = SELENE_PREFIX,
+#   build_file = "selene.BUILD",
+# )

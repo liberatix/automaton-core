@@ -17,3 +17,7 @@
 *.dmp
 *.swp
 .tags
+
+# Ignore archives
+*.zip
+*.tar.gz
