@@ -48,3 +48,13 @@ cc_test(
       "@gtest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "SHA3_256_test",
+    srcs = ["test_SHA3_256_cryptopp.cc"],
+    size = "small",
+    deps = [
+      "//crypto",
+      "@gtest//:gtest_main",
+    ],
+)

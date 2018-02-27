@@ -15,6 +15,8 @@ cc_library(
         "SHA512_cryptopp.h",
         "Keccak_256_cryptopp.cc",
         "Keccak_256_cryptopp.h",
+        "SHA3_256_cryptopp.cc",
+        "SHA3_256_cryptopp.h",
     ],
     hdrs = [
       "hash_transformation.h",
@@ -22,6 +24,7 @@ cc_library(
       "RIPEMD160_cryptopp.h",
       "SHA512_cryptopp.h",
       "Keccak_256_cryptopp.h",
+      "SHA3_256_cryptopp.h",
       ],
     deps = ["@cryptopp//:cryptopp"],
 )
