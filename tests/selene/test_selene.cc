@@ -7,6 +7,18 @@
 #include "test/reference_tests.h"
 #include "test/selector_tests.h"
 
+#ifdef _WIN32
+  #include "direct.h"
+  #define PATH_SEP '\\'
+  #define GETCWD _getcwd
+  #define CHDIR _chdir
+#else
+  #include "unistd.h"
+  #define PATH_SEP '/'
+  #define GETCWD getcwd
+  #define CHDIR chdir
+#endif
+
 // A very simple testing framework
 // To add a test, author a function with the Test function signature
 // and include it in the Map of tests below.
@@ -119,12 +131,19 @@ bool ExecuteTest(const char *test) {
 
 
 int main() {
-    // Executing all tests will run all test cases and check leftover
-    // stack size afterwards. It is expected that the stack size
-    // post-test is 0.
-    return ExecuteAll();
+  // Selene's tests look for the Lua files in the current folder,
+  // however Bazel's data files are placed in a specific sub-folder.
+  // Changing the current folder allows all tests to run as intended.
+  std::cout << CHDIR("external") << std::endl;
+  std::cout << CHDIR("selene") << std::endl;
+  std::cout << CHDIR("test") << std::endl;
 
-    // For debugging anything in particular, you can run an individual
-    // test like so:
-    // ExecuteTest("test_const_member_variable");
+  // Executing all tests will run all test cases and check leftover
+  // stack size afterwards. It is expected that the stack size
+  // post-test is 0.
+  return ExecuteAll();
+
+  // For debugging anything in particular, you can run an individual
+  // test like so:
+  // ExecuteTest("test_const_member_variable");
 }
