@@ -32,6 +32,7 @@ unsigned int Keccak_256_cryptopp::digest_size() const {
 
 bool Keccak_256_cryptopp::register_self() {
   hash_transformation::register_factory("Keccak_256",
-    [] {return reinterpret_cast<hash_transformation*>(new Keccak_256_cryptopp()); });
+    [] {return reinterpret_cast<hash_transformation*>
+        (new Keccak_256_cryptopp()); });
   return true;
 }
