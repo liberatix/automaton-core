@@ -1,9 +1,9 @@
 #include <algorithm>
-#include "class_tests.h"
-#include "obj_tests.h"
-#include "interop_tests.h"
-#include "reference_tests.h"
-#include "selector_tests.h"
+#include "test/class_tests.h"
+#include "test/obj_tests.h"
+#include "test/interop_tests.h"
+#include "test/reference_tests.h"
+#include "test/selector_tests.h"
 #include <map>
 
 // A very simple testing framework
