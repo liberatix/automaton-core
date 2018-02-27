@@ -1,6 +1,6 @@
 #include <string>
 #include "crypto/hash_transformation.h"
-#include "crypto/keccak_256_cryptopp.h"
+#include "crypto/Keccak_256_cryptopp.h"
 #include "cryptlib.h"  // NOLINT
 #include "keccak.h"  // NOLINT
 #include "gtest/gtest.h"  // NOLINT
