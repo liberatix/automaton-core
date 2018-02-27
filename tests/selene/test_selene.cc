@@ -8,15 +8,15 @@
 #include "test/selector_tests.h"
 
 #ifdef _WIN32
-   #include "direct.h"
-   #define PATH_SEP '\\'
-   #define GETCWD _getcwd
-   #define CHDIR _chdir
+  #include "direct.h"
+  #define PATH_SEP '\\'
+  #define GETCWD _getcwd
+  #define CHDIR _chdir
 #else
-   #include "unistd.h"
-   #define PATH_SEP '/'
-   #define GETCWD getcwd
-   #define CHDIR chdir
+  #include "unistd.h"
+  #define PATH_SEP '/'
+  #define GETCWD getcwd
+  #define CHDIR chdir
 #endif
 
 // A very simple testing framework
