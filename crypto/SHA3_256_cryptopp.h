@@ -2,7 +2,7 @@
 #define AUTOMATON_CORE_CRYPTO_SHA3_256_CRYPTOPP_H__
 
 #include "crypto/hash_transformation.h"
-#include "sha3.h"
+#include "sha3.h"  // NOLINT
 
 class SHA3_256_cryptopp : public hash_transformation {
  private:
