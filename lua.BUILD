@@ -41,6 +41,7 @@ cc_library(
         "src/linit.c",
     ],
     hdrs = glob(["src/*.h"]),
+    defines = ["LUA_COMPAT_5_2"],
     includes = ["src"],
 )
 
