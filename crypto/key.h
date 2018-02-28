@@ -26,7 +26,7 @@ class key {
   };
 
  public:
-  static void register_factory(std::string field, std::string curve, 
+  static void register_factory(std::string field, std::string curve,
       key_factory_function func);
   unsigned int get_key_lenght() const;
   const unsigned char * get_private_exponent();
