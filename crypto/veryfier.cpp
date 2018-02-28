@@ -1,9 +1,5 @@
-#include "veryfier.h"
-#include "pub_key.h"
+#include "crypto/veryfier.h"
+#include "crypto/pub_key.h"
 
 veryfier::veryfier() {
-}
-
-
-veryfier::~veryfier() {
 }

@@ -1,9 +1,11 @@
-#include "key.h"
+#include "crypto/key.h"
 
 std::map<std::string, std::map<std::string, key::key_factory_function> >
 key::key_factory;
 
-void key::register_factory(std::string field, std::string curve, key_factory_function func) {
+void key::register_factory(std::string field, std::string curve,
+    key_factory_function func) {
+  key_factory[field][curve] = func;
 }
 
 unsigned int key::get_key_lenght() const {

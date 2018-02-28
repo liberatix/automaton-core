@@ -2,7 +2,7 @@
 #define AUTOMATON_CORE_CRYPTO_SIGNER_TRANSFORMATION_H__
 #include <map>
 #include <string>
-#include "key.h"
+#include "crypto/key.h"
 
 class signer {
  public:
@@ -13,15 +13,15 @@ class signer {
   typedef signer * (*signer_factory_function)();
 
   bool initialised = false;
-  
-  virtual std::string sign(std::string msg_hash, long long random = 0) = 0;
-   
+
+  virtual std::string sign(std::string msg_hash, int random = 0) = 0;
+
  private:
-   // Map holding the function pointers used to instantiate classes implementing
-   // the interface.
-   static std::map<std::string, std::map<std::string, signer_factory_function> >
-     pub_key_factory;
-   key * private_key;
+  // Map holding the function pointers used to instantiate classes implementing
+  // the interface.
+  static std::map<std::string, std::map<std::string, signer_factory_function> >
+      pub_key_factory;
+  key * private_key;
 };
 
 #endif  //  AUTOMATON_CORE_CRYPTO_SIGNER_TRANSFORMATION_H__

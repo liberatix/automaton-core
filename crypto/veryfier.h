@@ -2,7 +2,7 @@
 #define AUTOMATON_CORE_CRYPTO_VERYFIER_TRANSFORMATION_H__
 #include <map>
 #include <string>
-#include "pub_key.h"
+#include "crypto/pub_key.h"
 
 
 class veryfier {
@@ -20,7 +20,5 @@ class veryfier {
    // the interface.
    static std::map<std::string, std::map<std::string, veryfier_factory_function> >
      pub_key_factory;
-   
 };
-
 #endif  //  AUTOMATON_CORE_CRYPTO_VERYFIER_TRANSFORMATION_H__
