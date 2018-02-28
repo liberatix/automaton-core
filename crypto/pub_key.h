@@ -26,7 +26,6 @@ class pub_key {
     std::string curve;
     std::string field;
   };
-
  public:
   static void register_factory(std::string field, std::string curve,
       pub_key_factory_function func);
