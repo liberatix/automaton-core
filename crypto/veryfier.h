@@ -16,9 +16,9 @@ class veryfier {
   bool initialised = false;
 
  private:
-   // Map holding the function pointers used to instantiate classes implementing
-   // the interface.
-   static std::map<std::string, std::map<std::string, veryfier_factory_function> >
-     pub_key_factory;
+  // Map holding the function pointers used to instantiate classes implementing
+  // the interface.
+  static std::map<std::string, std::map<std::string,
+  veryfier_factory_function> > pub_key_factory;
 };
 #endif  //  AUTOMATON_CORE_CRYPTO_VERYFIER_TRANSFORMATION_H__
