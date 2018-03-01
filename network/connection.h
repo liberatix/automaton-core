@@ -1,8 +1,9 @@
-#ifndef AUTOMATON_CORE_NET_CONNECTION_H__
-#define AUTOMATON_CORE_NET_CONNECTION_H__
+#ifndef NETWORK_CONNECTION_H__
+#define NETWORK_CONNECTION_H__
 
 #include <map>
 #include <string>
+#include <thread>
 
 // TODO(kari): add state as a member and get_state
 // TODO(kari): think about `send and disconnect`
@@ -60,7 +61,7 @@ class connection {
         connection::error e) = 0;
     virtual void on_connected(connection* c) = 0;
     virtual void on_disconnected(connection* c) = 0;
-    virtual void on_error(connection::error e) = 0;
+    virtual void on_error(connection* c, connection::error e) = 0;
   };
 
   /**
@@ -115,4 +116,4 @@ class connection {
   static std::map<std::string, factory_function> connection_factory;
 };
 
-#endif  // AUTOMATON_CORE_NET_CONNECTION_H__
+#endif  // NETWORK_CONNECTION_H__

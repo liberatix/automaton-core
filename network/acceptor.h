@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_NET_ACCEPTOR_H__
-#define AUTOMATON_CORE_NET_ACCEPTOR_H__
+#ifndef NETWORK_ACCEPTOR_H__
+#define NETWORK_ACCEPTOR_H__
 
 #include <map>
 #include <string>
@@ -79,4 +79,4 @@ class acceptor {
   static std::map<std::string, factory_function> acceptor_factory;
 };
 
-#endif  // AUTOMATON_CORE_NET_ACCEPTOR_H__
+#endif  // NETWORK_ACCEPTOR_H__
