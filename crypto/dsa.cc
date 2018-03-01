@@ -2,8 +2,8 @@
 
 std::map<std::string, dsa::dsa_factory_function> dsa::dsa_factory;
 
-dsa * dsa::create(std::string algorithm) {
-  auto it = dsa_factory.find(algorithm);
+dsa * dsa::create(std::string name) {
+  auto it = dsa_factory.find(name);
   if (it == dsa_factory.end()) {
     return nullptr;
   } else {

@@ -63,11 +63,13 @@ class dsa {
                       const unsigned char * message,
                       unsigned char * signature) = 0;
 
-  // algorithm
-  // secp256k1
-  // secp256r1
-  // ed25519
-  static dsa * create(std::string algorithm);
+  // Instantiate a class using the registered function in the factory.
+  // Returns:          Pointer to dsa derived class implementing the
+  //                   interface or nullptr if there is no registered
+  //                   function with this name.
+  // IN:      name:    The registered name of the function used to
+  //                   instantiate an implementation of this interface.
+  static dsa * create(std::string name);
 
   // Register the create function for a given implementation, will overwrite
   // already registered functions.
