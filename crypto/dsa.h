@@ -5,7 +5,7 @@
 #include <map>
 
 class dsa {
-public:
+ public:
   // The size of the public key in bytes
   virtual size_t public_key_size() = 0;
   // The size of the private key in bytes
@@ -16,7 +16,7 @@ public:
   virtual size_t signature_size() = 0;
   // The size of the random k in bytes;
   virtual size_t k_size() = 0;
-  
+
   // Returns true of this implementation can sign deterministic
   // signatures using the sign_deterministic() function
   virtual bool has_deterministic_signatures() = 0;

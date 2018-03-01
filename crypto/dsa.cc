@@ -1,4 +1,4 @@
-#include "dsa.h"
+#include "crypto/dsa.h"
 
 std::map<std::string, dsa::dsa_factory_function> dsa::dsa_factory;
 
@@ -6,8 +6,7 @@ dsa * dsa::create(std::string algorithm) {
   auto it = dsa_factory.find(algorithm);
   if (it == dsa_factory.end()) {
     return nullptr;
-  }
-  else {
+  } else {
     return it->second();
   }
 }
