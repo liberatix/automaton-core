@@ -235,7 +235,7 @@ void logging(const std::string& s) {
 
 void parse_address(const std::string& address, std::string* result_addr,
   std::string* result_port) {
-  std::regex rgx_ip("([\\d+\\.]+\\d+):(\\d+)");
+  std::regex rgx_ip("((?:\\d+\\.)+\\d+|(?:[0-9a-f]+:)+[0-9a-f]+):(\\d+)");
   std::smatch match;
   if (std::regex_match(address.begin(), address.end(), match, rgx_ip) &&
       match.size() == 3) {
