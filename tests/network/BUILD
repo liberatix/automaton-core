@@ -1,5 +1,5 @@
 cc_binary (
-	name = "main",
-	srcs = ["main.cpp",],
+	name = "tcp_impl_test",
+	srcs = ["tcp_impl_test.cc",],
 	deps = ["//network:network_tcp",]
 )

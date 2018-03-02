@@ -38,6 +38,8 @@ int max_connections = 8;
 
 */
 
+const int BUFFER_SIZE = 256;
+
 /**
   Class that represents a connection with a remote peer.
 **/
@@ -101,11 +103,10 @@ class tcp_connection: public connection {
   std::string get_address();
 
  private:
-  boost::asio::ip::tcp::endpoint _endpoint;
-  boost::asio::ip::tcp::socket _socket;
-  boost::system::error_code ec;
+  boost::asio::ip::tcp::endpoint asio_endpoint;
+  boost::asio::ip::tcp::socket asio_socket;
   std::string address;
-  char msg_buffer[256];  // receive buffer
+  char msg_buffer[BUFFER_SIZE];  // receive buffer
 };
 
 class tcp_acceptor:public acceptor {
@@ -137,7 +138,7 @@ class tcp_acceptor:public acceptor {
   void start_accepting();
 
  private:
-  boost::asio::ip::tcp::acceptor _acceptor;
+  boost::asio::ip::tcp::acceptor asio_acceptor;
   connection::connection_handler* accepted_connections_handler;
 };
 
