@@ -2,8 +2,8 @@
 #include <thread>
 #include "network/tcp_implementation.h"
 
-const const char * localhost = "127.0.0.1";
-const const char * portA = "12333", portB = "12366";
+const char * localhost = "127.0.0.1";
+const char * portA = "12333", portB = "12366";
 
 class handler: public connection::connection_handler {
  public:
