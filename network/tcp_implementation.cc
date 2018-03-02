@@ -196,7 +196,7 @@ void tcp_acceptor::start_accepting() {
         if (accepted) {
           tcp_connection* new_con = new tcp_connection(remote_address, _socket,
               accepted_connections_handler);
-          handler->on_connected(new_con);
+          handler->on_connected(new_con, remote_address);
           if (accepted_connections_handler) {
             accepted_connections_handler->on_connected(new_con);
           }

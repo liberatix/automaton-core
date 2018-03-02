@@ -2,9 +2,9 @@
 #include <thread>
 #include "network/tcp_implementation.h"
 
-const char * localhost = "127.0.0.1";
-const char * portA = "12333";
-const char * portB = "12366";
+const char* localhost = "127.0.0.1";
+const char* portA = "12333";
+const char* portB = "12366";
 
 class handler: public connection::connection_handler {
  public:
@@ -46,9 +46,8 @@ class lis_handler: public acceptor::acceptor_handler {
     logging("Connection request from: " + address + ". Accepting...");
     return true;
   }
-  void on_connected(connection* c) {
-    logging("Accepted connection from: " +
-        (reinterpret_cast<tcp_connection*>(c))->get_address());
+  void on_connected(connection* c, const std::string& address) {
+    logging("Accepted connection from: " + address);
   }
   void on_error(connection::error e) {
     logging("Error (acceptor): " + std::to_string(e));

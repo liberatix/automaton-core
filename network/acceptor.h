@@ -22,7 +22,7 @@ class acceptor {
   class acceptor_handler {
    public:
     virtual bool on_requested(const std::string& address) = 0;
-    virtual void on_connected(connection* c) = 0;
+    virtual void on_connected(connection* c, const std::string& address) = 0;
     virtual void on_error(connection::error e) = 0;
   };
 
