@@ -4,12 +4,12 @@ connection::connection(connection::connection_handler* _handler):
     handler(_handler) {}
 
 connection* connection::create(const std::string& type, const std::string&
-    address, const std::string& port, connection::connection_handler* handler) {
+    address, connection::connection_handler* handler) {
   auto it = connection_factory.find(type);
   if (it == connection_factory.end()) {
     return nullptr;
   } else {
-    return it -> second(address, port, handler);
+    return it -> second(address, handler);
   }
 }
 

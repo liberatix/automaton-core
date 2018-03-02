@@ -44,8 +44,6 @@ class connection {
         message, and the message that was received.
       - on_message_sent will be invoked when a message was sent successfully
         using async_send.
-      TODO(kari): What happens if there is an error; how error pass the message
-        id.
       - on_connected will be invoked when the connection with the remote peer
         was established.
       - on_disconnected will be invoked when connection was closed/ destroyed
@@ -78,10 +76,10 @@ class connection {
     class type was registered, NULL will be returned.
   **/
   static connection* create(const std::string& type, const std::string& address,
-      const std::string& port, connection_handler* handler);
+      connection_handler* handler);
 
   typedef connection* (*factory_function)(const std::string& address,
-      const std::string& port, connection_handler* handler);
+      connection_handler* handler);
 
   /**
     Function that is used to register how an object from child class will be

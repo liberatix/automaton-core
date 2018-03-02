@@ -48,8 +48,7 @@ class tcp_connection: public connection {
   /**
     Constructor that will be used when this class is registered.
   **/
-  tcp_connection(const std::string& _address, const std::string& _port,
-      connection_handler* _handler);
+  tcp_connection(const std::string& _address, connection_handler* _handler);
   /**
     Constructor that will be used from the acceptor.
   **/
@@ -116,9 +115,8 @@ class tcp_acceptor:public acceptor {
     constructor when new connection is accepted and created. It will also be
     used to call its on_connected() method.
   **/
-  tcp_acceptor(const std::string& address, const std::string& port,
-      acceptor_handler* _handler, connection::connection_handler*
-      connections_handler);
+  tcp_acceptor(const std::string& address, acceptor_handler* _handler,
+      connection::connection_handler* connections_handler);
 
   /**
     Destructor.
@@ -148,7 +146,8 @@ class tcp_acceptor:public acceptor {
 **/
 void tcp_init();
 
-// void parse_address();
+void parse_address(const std::string&, std::string* result_addr, std::string*
+    result_port);
 
 void logging(const std::string& s);
 

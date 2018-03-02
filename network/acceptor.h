@@ -22,7 +22,7 @@ class acceptor {
   class acceptor_handler {
    public:
     virtual bool on_requested(const std::string& address) = 0;
-    virtual void on_connected(connection* c) = 0;
+    virtual void on_connected(connection* c, const std::string& address) = 0;
     virtual void on_error(connection::error e) = 0;
   };
 
@@ -39,13 +39,13 @@ class acceptor {
     function. The function returns object from the specified class. If no such
     class type was registered, NULL will be returned.
   **/
-  static acceptor* create(const std::string& type, const std::string& addr,
-      const std::string& port, acceptor_handler* _handler,
-      connection::connection_handler* connections_handler);
+  static acceptor* create(const std::string& type, const std::string& address,
+      acceptor_handler* _handler, connection::connection_handler*
+      connections_handler);
 
-  typedef acceptor* (*factory_function)(const std::string& addr,
-      const std::string& port, acceptor_handler* _handler,
-      connection::connection_handler* connections_handler);
+  typedef acceptor* (*factory_function)(const std::string& address,
+      acceptor_handler* _handler, connection::connection_handler*
+      connections_handler);
   /**
     Function that is used to register how an object from child class will be
     created. Type shows how the class will be referenced (ex. "child_class_1"),
