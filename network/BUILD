@@ -13,7 +13,7 @@ cc_library(
 	  "connection.h",
   ],
   deps = [
-	  "@com_github_boost_asio//:asio",
+	  "@boost//:asio",
   ],
 )
 
