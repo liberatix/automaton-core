@@ -157,7 +157,7 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
     accepted_connections_handler(connections_handler) {
   boost::asio::ip::tcp::resolver resolver{asio_io_service};
   boost::system::error_code boost_error_code;
-  std::string ip,port;
+  std::string ip, port;
   parse_address(address, &ip, &port);
   boost::asio::ip::tcp::resolver::query q{ip, port};
   boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(q,
