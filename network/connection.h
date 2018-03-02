@@ -76,10 +76,10 @@ class connection {
     class type was registered, NULL will be returned.
   **/
   static connection* create(const std::string& type, const std::string& address,
-      const std::string& port, connection_handler* handler);
+      connection_handler* handler);
 
   typedef connection* (*factory_function)(const std::string& address,
-      const std::string& port, connection_handler* handler);
+      connection_handler* handler);
 
   /**
     Function that is used to register how an object from child class will be

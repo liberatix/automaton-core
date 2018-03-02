@@ -2,9 +2,8 @@
 #include <thread>
 #include "network/tcp_implementation.h"
 
-const char* localhost = "127.0.0.1";
-const char* portA = "12333";
-const char* portB = "12366";
+const char* address_a = "127.0.0.1:12333";
+const char* address_b = "127.0.0.1:12366";
 
 class handler: public connection::connection_handler {
  public:
@@ -42,7 +41,7 @@ class lis_handler: public acceptor::acceptor_handler {
   // TODO(kari): Add constructor that accepts needed options
   // (vector connections, max ...)
   bool on_requested(const std::string& address) {
-  //  EXPECT_EQ(address, localhost + ":" + portA);
+  //  EXPECT_EQ(address, address_a);
     logging("Connection request from: " + address + ". Accepting...");
     return true;
   }
@@ -55,8 +54,7 @@ class lis_handler: public acceptor::acceptor_handler {
 };
 handler _handlerA, _handlerB, _handlerC, _handlerD;
 void thread1() {
-  connection* _connection_a = connection::create("tcp", localhost, portB,
-      &_handlerA);
+  connection* _connection_a = connection::create("tcp", address_b, &_handlerA);
 
   _connection_a -> async_send("A0", 0);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -67,8 +65,7 @@ void thread1() {
   reinterpret_cast<tcp_connection*>(_connection_a) -> disconnect();
 }
 void thread2() {
-  connection* _connection_b = connection::create("tcp", localhost, portB,
-      &_handlerB);
+  connection* _connection_b = connection::create("tcp", address_b, &_handlerB);
   std::this_thread::sleep_for(std::chrono::milliseconds(60));
   _connection_b -> async_send("B0", 3);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -79,8 +76,7 @@ void thread2() {
   reinterpret_cast<tcp_connection*>(_connection_b) -> disconnect();
 }
 void thread3() {
-  connection* _connection_c = connection::create("tcp", localhost, portB,
-      &_handlerC);
+  connection* _connection_c = connection::create("tcp", address_b, &_handlerC);
   _connection_c -> async_send("C0", 6);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   _connection_c -> async_send("C1", 7);
@@ -92,20 +88,19 @@ void thread3() {
 
 int main() {
   connection::register_connection_type("tcp", [](const std::string& address,
-      const std::string& port, connection::connection_handler* handler) {
-    return reinterpret_cast<connection*>(new tcp_connection(address, port,
-        handler));
+    connection::connection_handler* handler) {
+    return reinterpret_cast<connection*>(new tcp_connection(address, handler));
   });
   acceptor::register_acceptor_type("tcp", [](const std::string& address,
-      const std::string& port, acceptor::acceptor_handler* _handler,
-      connection::connection_handler* connections_handler) {
-    return reinterpret_cast<acceptor*>(new tcp_acceptor(address, port, _handler,
+      acceptor::acceptor_handler* _handler, connection::connection_handler*
+      connections_handler) {
+    return reinterpret_cast<acceptor*>(new tcp_acceptor(address, _handler,
       connections_handler));
   });
   tcp_init();
   lis_handler _lis_handler;
-  acceptor* _acceptorB = acceptor::create("tcp", localhost, portB,
-      &_lis_handler, &_handlerD);
+  acceptor* _acceptorB = acceptor::create("tcp", address_b, &_lis_handler,
+      &_handlerD);
   std::thread t1(thread1);
   std::thread t2(thread2);
   std::thread t3(thread3);

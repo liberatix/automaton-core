@@ -32,15 +32,14 @@ bool initialized = false;
 
 // Connection functions
 
-tcp_connection::tcp_connection(const std::string& _address, const std::string&
-    _port, connection_handler* _handler):connection(_handler),
-    asio_socket{asio_io_service} {
-  // TODO(kari): parse from "adress:port" to adress and port (ip4 & ip6) and
-  // change the constructor
-  address = _address + ":" + _port;
+tcp_connection::tcp_connection(const std::string& _address, connection_handler*
+    _handler):connection(_handler), asio_socket{asio_io_service} {
+  address = _address;
   boost::system::error_code boost_error_code;
   boost::asio::ip::tcp::resolver resolver{asio_io_service};
-  boost::asio::ip::tcp::resolver::query q{_address, _port};
+  std::string ip, port;
+  parse_address(_address, &ip, &port);
+  boost::asio::ip::tcp::resolver::query q{ip, port};
   asio_endpoint = *resolver.resolve(q, boost_error_code);
   if (boost_error_code) {
     logging("ERROR 6: " + boost_error_code.message());
@@ -152,13 +151,15 @@ std::string tcp_connection::get_address() {
 
 // Acceptor functions
 
-tcp_acceptor::tcp_acceptor(const std::string& addr, const std::string& port,
-    acceptor_handler* _handler, connection::connection_handler*
-    connections_handler):acceptor(_handler), asio_acceptor{asio_io_service},
+tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
+    _handler, connection::connection_handler* connections_handler):
+    acceptor(_handler), asio_acceptor{asio_io_service},
     accepted_connections_handler(connections_handler) {
   boost::asio::ip::tcp::resolver resolver{asio_io_service};
   boost::system::error_code boost_error_code;
-  boost::asio::ip::tcp::resolver::query q{addr, port};
+  std::string ip,port;
+  parse_address(address, &ip, &port);
+  boost::asio::ip::tcp::resolver::query q{ip, port};
   boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(q,
       boost_error_code);
   if (boost_error_code) {
@@ -231,14 +232,17 @@ void logging(const std::string& s) {
 }
 
 // void destroy(){}; stop work, join thread, clean resources...
-/*
-void parse_address(const std::string& address, std::string& result_addr,
-    std::string& result_port) {
-    std::regex rgx("([\\d+\\.]+\\d+|[\\d+\\:]+\\d+):(\\d+)");
-    std::smatch match;
-    if (std::regex_match(address.begin(), address.end(), match, rgx) &&
-        match.size() == 3) {
-      result_addr = match[1];
-      result_port = match[2];
-    }
-}*/
+
+void parse_address(const std::string& address, std::string* result_addr,
+  std::string* result_port) {
+  std::regex rgx_ip("([\\d+\\.]+\\d+):(\\d+)");
+  std::smatch match;
+  if (std::regex_match(address.begin(), address.end(), match, rgx_ip) &&
+      match.size() == 3) {
+    *result_addr = match[1];
+    *result_port = match[2];
+  } else {
+    *result_addr = "";
+    *result_port = "";
+  }
+}
