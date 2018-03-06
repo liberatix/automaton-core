@@ -106,10 +106,12 @@ void tcp_connection::async_send(const std::string& msg, int id) {
   } else if (!tcp_initialized) {
     logging("ERROR (in async_send() 1): Not initialized");
     handler->on_error(this, connection::error::unknown);
+    handler->on_message_sent(this, id, connection::error::unknown);
     // TODO(kari): what to do here? needs to be connected
   } else {
     logging("ERROR (in async_send() 2): Socket closed");
     handler->on_error(this, connection::error::closed_by_peer);
+    handler->on_message_sent(this, id, connection::error::closed_by_peer);
   }
 }
 
