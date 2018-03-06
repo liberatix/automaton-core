@@ -74,7 +74,11 @@ void tcp_connection::connect() {
         [this](const boost::system::error_code& boost_error_code) {
       if (boost_error_code) {
           logging("ERROR (in connect() 0): " + boost_error_code.message());
-          handler->on_error(this, connection::error::unknown);
+          if (boost_error_code == boost::asio::error::connection_refused) {
+            handler->on_error(this, connection::error::connection_refused);
+          } else {
+            handler->on_error(this, connection::error::unknown);
+          }
         } else {
           handler->on_connected(this);
           start_listening();
@@ -96,7 +100,12 @@ void tcp_connection::async_send(const std::string& msg, int id) {
         size_t bytes_transferred) {
       if (boost_error_code) {
         logging("ERROR (in async_send() 0): " + boost_error_code.message());
-        handler->on_message_sent(this, id, connection::error::unknown);
+        if (boost_error_code == boost::asio::error::broken_pipe) {
+          handler->on_message_sent(this, id, connection::error::closed_by_peer);
+          // TODO(kari): ?? handle
+        } else {
+          handler->on_message_sent(this, id, connection::error::unknown);
+        }
        // if (bytes_transferred < message.size())
       } else {
         handler->on_message_sent(this, id, connection::error::no_error);
@@ -105,12 +114,12 @@ void tcp_connection::async_send(const std::string& msg, int id) {
     });
   } else if (!tcp_initialized) {
     logging("ERROR (in async_send() 1): Not initialized");
-    handler->on_error(this, connection::error::unknown);
+    // handler->on_error(this, connection::error::unknown);
     handler->on_message_sent(this, id, connection::error::unknown);
     // TODO(kari): what to do here? needs to be connected
   } else {
     logging("ERROR (in async_send() 2): Socket closed");
-    handler->on_error(this, connection::error::closed_by_peer);
+    // handler->on_error(this, connection::error::closed_by_peer);
     handler->on_message_sent(this, id, connection::error::closed_by_peer);
   }
 }
@@ -149,16 +158,22 @@ void tcp_connection::start_listening() {
 }
 
 void tcp_connection::disconnect() {
-  boost::system::error_code boost_error_code;
-  asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both,
-      boost_error_code);
-  if (boost_error_code) {
-    handler->on_error(this, connection::error::unknown);
-    logging("ERROR (in disconnect()): " + boost_error_code.message());
-  } else {
-    asio_socket.close();
-    handler->on_disconnected(this);
+  if (asio_socket.is_open()) {
+    boost::system::error_code boost_error_code_shut;
+    asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both,
+        boost_error_code_shut);
+    if (boost_error_code_shut) {
+      handler->on_error(this, connection::error::unknown);
+      logging("ERROR (in disconnect() 0): " + boost_error_code_shut.message());
+    }
+    boost::system::error_code boost_error_code_close;
+    asio_socket.close(boost_error_code_close);
+    if (boost_error_code_close) {
+      handler->on_error(this, connection::error::unknown);
+      logging("ERROR (in disconnect() 1): " + boost_error_code_close.message());
+    }
   }
+  handler->on_disconnected(this);
 }
 
 void tcp_connection::add_handler(connection_handler* _handler) {
