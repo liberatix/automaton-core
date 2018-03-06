@@ -101,8 +101,6 @@ class tcp_connection: public connection {
 
   std::string get_address();
 
-  static tcp_connection* create(const std::string name);
-
  private:
   boost::asio::ip::tcp::endpoint asio_endpoint;
   boost::asio::ip::tcp::socket asio_socket;
@@ -136,8 +134,6 @@ class tcp_acceptor:public acceptor {
     will be called. TODO(kari): Decide what to do on error.
   **/
   void start_accepting();
-
-  static tcp_acceptor* create(const std::string name);
 
  private:
   boost::asio::ip::tcp::acceptor asio_acceptor;
