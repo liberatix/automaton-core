@@ -15,16 +15,11 @@ static std::string toHex(unsigned char * decoded, size_t size) {
   return output;
 }
 void decode_from_hex(std::string &encoded, std::string &decoded) {
-
   CryptoPP::StringSource ss(encoded, true,
-    new CryptoPP::HexDecoder(
-        new CryptoPP::StringSink(decoded)
-    ) // HexDecoder
-  ); // StringSource
+    new CryptoPP::HexDecoder(new CryptoPP::StringSink(decoded)));
 }
 
 TEST(dsa_cryptopp, gen_public_key) {
-
   dsa_cryptopp::register_self();
   dsa* tester = dsa::create("secp256k1");
   EXPECT_NE(tester, nullptr);
@@ -52,14 +47,9 @@ TEST(dsa_cryptopp, gen_public_key) {
     EXPECT_EQ(test[i][1], toHex(public_key, tester->public_key_size()));
   }
 }
-
 TEST(dsa_cryptopp, sign_and_verify) {
-
 }
-
 TEST(dsa_cryptopp, verify) {
-
 }
-
 TEST(dsa_cryptopp, check_return_sizes) {
 }
