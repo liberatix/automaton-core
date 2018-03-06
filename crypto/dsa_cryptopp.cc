@@ -4,7 +4,7 @@
 #include "eccrypto.h"
 #include "integer.h"
 #include "oids.h"
-#include "osrng.h"
+#include "randpool.h"
 
 #include <iostream>
 
@@ -60,7 +60,7 @@ void dsa_cryptopp::gen_public_key(const unsigned char * private_key, unsigned ch
 
 void dsa_cryptopp::sign(const unsigned char * private_key, const unsigned char * message, unsigned char * signature) {
 
-  CryptoPP::AutoSeededRandomPool prng;
+  CryptoPP::RandomPool prng;
   //CryptoPP::RandomNumberGenerator prng;
 
   std::string str_signature;
