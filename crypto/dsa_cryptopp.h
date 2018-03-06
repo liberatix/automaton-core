@@ -2,7 +2,7 @@
 #define AUTOMATON_CORE_CRYPTO_DSA_CRYPTOPP_IMPL_TRANSFORMATION_H__
 
 #include "crypto/dsa.h"
-#include "eccrypto.h"
+#include "eccrypto.h"  // NOLINT
 
 class dsa_cryptopp : public dsa {
  public:
