@@ -1,8 +1,9 @@
-#ifndef AUTOMATON_CORE_NET_CONNECTION_H__
-#define AUTOMATON_CORE_NET_CONNECTION_H__
+#ifndef NETWORK_CONNECTION_H__
+#define NETWORK_CONNECTION_H__
 
 #include <map>
 #include <string>
+#include <thread>
 
 // TODO(kari): add state as a member and get_state
 // TODO(kari): think about `send and disconnect`
@@ -43,8 +44,6 @@ class connection {
         message, and the message that was received.
       - on_message_sent will be invoked when a message was sent successfully
         using async_send.
-      TODO(kari): What happens if there is an error; how error pass the message
-        id.
       - on_connected will be invoked when the connection with the remote peer
         was established.
       - on_disconnected will be invoked when connection was closed/ destroyed
@@ -60,7 +59,7 @@ class connection {
         connection::error e) = 0;
     virtual void on_connected(connection* c) = 0;
     virtual void on_disconnected(connection* c) = 0;
-    virtual void on_error(connection::error e) = 0;
+    virtual void on_error(connection* c, connection::error e) = 0;
   };
 
   /**
@@ -77,10 +76,10 @@ class connection {
     class type was registered, NULL will be returned.
   **/
   static connection* create(const std::string& type, const std::string& address,
-      const std::string& port, connection_handler* handler);
+      connection_handler* handler);
 
   typedef connection* (*factory_function)(const std::string& address,
-      const std::string& port, connection_handler* handler);
+      connection_handler* handler);
 
   /**
     Function that is used to register how an object from child class will be
@@ -115,4 +114,4 @@ class connection {
   static std::map<std::string, factory_function> connection_factory;
 };
 
-#endif  // AUTOMATON_CORE_NET_CONNECTION_H__
+#endif  // NETWORK_CONNECTION_H__

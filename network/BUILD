@@ -1,14 +1,29 @@
+# Automaton network library
+
+package(default_visibility = ["//visibility:public"])
+
 cc_library(
-  name = "automaton_core_network",
+  name = "network",
   srcs = [
-	  "acceptor.cpp",
-	  "connection.cpp",		
+	  "acceptor.cc",
+	  "connection.cc",
   ],
   hdrs = [
 	  "acceptor.h",
 	  "connection.h",
   ],
   deps = [
-	  "@com_github_boost_asio//:asio",
+	  "@boost//:asio",
   ],
-)		
+)
+
+cc_library(
+	name = "network_tcp",
+  srcs = [
+	  "tcp_implementation.h",
+	  "tcp_implementation.cc",
+  ],
+  deps = [
+	  "//network:network",
+  ],
+)
