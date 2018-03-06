@@ -6,7 +6,7 @@
 
 // TODO(kari): proper exit, clear resources..
 // TODO(kari): improve init function and handle the new thread
-// TODO(kari): Add "if ! initialized" where necessary
+// TODO(kari): Add "if ! tcp_initialized" where necessary
 
 /*
   the variables below may be used in handler:
@@ -25,10 +25,10 @@ int max_connections = 8;
 
 */
 
-boost::asio::io_service asio_io_service;
-boost::asio::io_service::work _work(asio_io_service);
-std::thread* worker_thread;
-bool initialized = false;
+static boost::asio::io_service asio_io_service;
+static boost::asio::io_service::work _work(asio_io_service);
+static std::thread* worker_thread;
+static bool tcp_initialized = false;
 
 // Connection functions
 
@@ -42,7 +42,7 @@ tcp_connection::tcp_connection(const std::string& _address, connection_handler*
   boost::asio::ip::tcp::resolver::query q{ip, port};
   asio_endpoint = *resolver.resolve(q, boost_error_code);
   if (boost_error_code) {
-    logging("ERROR 6: " + boost_error_code.message());
+    logging("ERROR (in connection constructor): " + boost_error_code.message());
     _handler->on_error(this, connection::error::invalid_address);
   } else {
     connect();
@@ -62,33 +62,40 @@ tcp_connection::~tcp_connection() {
   asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both,
       boost_error_code);
   if (boost_error_code) {
-    logging("ERROR while destroying connection: " +
+    logging("ERROR (while destroying connection): " +
         boost_error_code.message());
   }
   asio_socket.close();
 }
 
 void tcp_connection::connect() {
-  asio_socket.async_connect(asio_endpoint,
-      [this](const boost::system::error_code& boost_error_code) {
-        if (boost_error_code) {
-          logging("ERROR 5: " + boost_error_code.message());
+  if (tcp_initialized) {
+    asio_socket.async_connect(asio_endpoint,
+        [this](const boost::system::error_code& boost_error_code) {
+      if (boost_error_code) {
+          logging("ERROR (in connect() 0): " + boost_error_code.message());
           handler->on_error(this, connection::error::unknown);
         } else {
           handler->on_connected(this);
           start_listening();
         }
     });
+  } else {
+    logging("ERROR (in connect() 1): Not initialized! tcp_init() must be called"
+       "first");
+    handler->on_error(this, connection::error::unknown);
+    // TODO(kari): what to do here? needs to be connected
+  }
 }
 
 void tcp_connection::async_send(const std::string& msg, int id) {
-  if (asio_socket.is_open()) {
+  if (tcp_initialized && asio_socket.is_open()) {
     std::string* message = new std::string(msg);
     asio_socket.async_write_some(boost::asio::buffer(*message),
         [this, id, message](const boost::system::error_code& boost_error_code,
         size_t bytes_transferred) {
       if (boost_error_code) {
-        logging("ERROR 2: " + boost_error_code.message());
+        logging("ERROR (in async_send() 0): " + boost_error_code.message());
         handler->on_message_sent(this, id, connection::error::unknown);
        // if (bytes_transferred < message.size())
       } else {
@@ -96,13 +103,18 @@ void tcp_connection::async_send(const std::string& msg, int id) {
       }
       delete message;
     });
-  } else {
+  } else if (!tcp_initialized) {
+    logging("ERROR (in async_send() 1): Not initialized");
+    handler->on_error(this, connection::error::unknown);
     // TODO(kari): what to do here? needs to be connected
+  } else {
+    logging("ERROR (in async_send() 2): Socket closed");
+    handler->on_error(this, connection::error::closed_by_peer);
   }
 }
 
 void tcp_connection::start_listening() {
-  if (asio_socket.is_open()) {
+  if (tcp_initialized && asio_socket.is_open()) {
     asio_socket.async_read_some(boost::asio::buffer(msg_buffer, BUFFER_SIZE),
         [this](const boost::system::error_code& boost_error_code,
         size_t bytes_transferred) {
@@ -113,7 +125,8 @@ void tcp_connection::start_listening() {
         } else if (boost_error_code == boost::asio::error::operation_aborted) {
           return;
         } else {
-          logging("ERROR 3: " + boost_error_code.message());
+          logging("ERROR (in start_listening() 0): " +
+              boost_error_code.message());
           handler->on_error(this, connection::error::unknown);
           // TODO(kari): what errors and when should start_listening be called?
         }
@@ -123,8 +136,13 @@ void tcp_connection::start_listening() {
       }
       start_listening();
     });
-  } else {
+  } else if (!tcp_initialized) {
+    logging("ERROR (in start_listening() 1): Not initialized");
+    handler->on_error(this, connection::error::unknown);
     // TODO(kari): what to do here? needs to be connected
+  } else {
+    logging("ERROR (in start_listening() 2): Socket closed");
+    handler->on_error(this, connection::error::closed_by_peer);
   }
 }
 
@@ -134,7 +152,7 @@ void tcp_connection::disconnect() {
       boost_error_code);
   if (boost_error_code) {
     handler->on_error(this, connection::error::unknown);
-    logging("ERROR 7: " + boost_error_code.message());
+    logging("ERROR (in disconnect()): " + boost_error_code.message());
   } else {
     asio_socket.close();
     handler->on_disconnected(this);
@@ -163,7 +181,7 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
   boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(q,
       boost_error_code);
   if (boost_error_code) {
-    logging("Error 0: " + boost_error_code.message());
+    logging("Error (in acceptor constructor 0): " + boost_error_code.message());
     handler->on_error(connection::error::invalid_address);
   } else {
     boost::system::error_code ecc;
@@ -171,7 +189,7 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
     asio_acceptor.bind(*it, ecc);
     if (ecc) {
       handler->on_error(connection::error::unknown);
-      logging("Error 1: " + ecc.message());
+      logging("Error (in acceptor constructor 1): " + ecc.message());
     } else {
       asio_acceptor.listen();
       start_accepting();
@@ -184,33 +202,42 @@ tcp_acceptor::~tcp_acceptor() {
 }
 
 void tcp_acceptor::start_accepting() {
-  // tcp_connection* new_connection = new tcp_connection();
-  asio_acceptor.async_accept(asio_io_service, [this]
-      (const boost::system::error_code& boost_error_code,
-      boost::asio::ip::tcp::socket _socket) {
-     if (!boost_error_code) {
-        boost::asio::ip::tcp::endpoint remote_endpoint =
-            _socket.remote_endpoint();
-        std::string remote_address = (remote_endpoint.address()).to_string() +
-        ":" + std::to_string(remote_endpoint.port());
-        bool accepted = handler->on_requested(remote_address);
-        if (accepted) {
-          tcp_connection* new_con = new tcp_connection(remote_address, _socket,
-              accepted_connections_handler);
-          handler->on_connected(new_con, remote_address);
-          if (accepted_connections_handler) {
-            accepted_connections_handler->on_connected(new_con);
+  if (tcp_initialized && asio_acceptor.is_open()) {
+    asio_acceptor.async_accept(asio_io_service, [this]
+        (const boost::system::error_code& boost_error_code,
+        boost::asio::ip::tcp::socket _socket) {
+       if (!boost_error_code) {
+          boost::asio::ip::tcp::endpoint remote_endpoint =
+              _socket.remote_endpoint();
+          std::string remote_address = (remote_endpoint.address()).to_string() +
+          ":" + std::to_string(remote_endpoint.port());
+          bool accepted = handler->on_requested(remote_address);
+          if (accepted) {
+            tcp_connection* new_con = new tcp_connection(remote_address,
+                _socket, accepted_connections_handler);
+            handler->on_connected(new_con, remote_address);
+            if (accepted_connections_handler) {
+              accepted_connections_handler->on_connected(new_con);
+            }
           }
+          start_accepting();
+        } else {
+          // TODO(kari): Handle errors
+          logging("ERROR (in start_accepting()): " +
+              boost_error_code.message());
+          handler->on_error(connection::error::unknown);
+          // TODO(kari): start listen again? depends on the errors
+          // start_accepting();
         }
-        start_accepting();
-      } else {
-        // TODO(kari): Handle errors
-        logging("ERROR 10: " + boost_error_code.message());
-        handler->on_error(connection::error::unknown);
-        // TODO(kari): start listen again? depends on the errors
-        // start_accepting();
-      }
-    });
+      });
+  } else if (!tcp_initialized) {
+    logging("ERROR (in start_accepting()): Not initialized");
+    handler->on_error(connection::error::unknown);
+    // TODO(kari): what to do here? needs to be connected
+  } else {
+    logging("ERROR (in start_accepting()): Acceptor closed");
+    handler->on_error(connection::error::closed_by_peer);
+  }
 }
 
 // Global functions
@@ -220,18 +247,31 @@ void start() {
 }
 
 void tcp_init() {
-  initialized = true;
+  if (tcp_initialized) {
+    return;
+  }
+  connection::register_connection_type("tcp", [](const std::string& address,
+    connection::connection_handler* handler) {
+    return reinterpret_cast<connection*>(new tcp_connection(address, handler));
+  });
+  acceptor::register_acceptor_type("tcp", [](const std::string& address,
+      acceptor::acceptor_handler* _handler, connection::connection_handler*
+      connections_handler) {
+    return reinterpret_cast<acceptor*>(new tcp_acceptor(address, _handler,
+      connections_handler));
+  });
   worker_thread = new std::thread(start);
+  tcp_initialized = true;
 }
 
-std::mutex console_mutex;
+static std::mutex console_mutex;
 void logging(const std::string& s) {
   console_mutex.lock();
   std::cout << s << std::endl;
   console_mutex.unlock();
 }
 
-// void destroy(){}; stop work, join thread, clean resources...
+// TODO(kari): void destroy(){}; stop work, join thread, clean resources...
 
 void parse_address(const std::string& address, std::string* result_addr,
   std::string* result_port) {

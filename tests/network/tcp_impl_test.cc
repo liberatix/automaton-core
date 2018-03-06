@@ -87,16 +87,6 @@ void thread3() {
 }
 
 int main() {
-  connection::register_connection_type("tcp", [](const std::string& address,
-    connection::connection_handler* handler) {
-    return reinterpret_cast<connection*>(new tcp_connection(address, handler));
-  });
-  acceptor::register_acceptor_type("tcp", [](const std::string& address,
-      acceptor::acceptor_handler* _handler, connection::connection_handler*
-      connections_handler) {
-    return reinterpret_cast<acceptor*>(new tcp_acceptor(address, _handler,
-      connections_handler));
-  });
   tcp_init();
   lis_handler _lis_handler;
   acceptor* _acceptorB = acceptor::create("tcp", address_b, &_lis_handler,
