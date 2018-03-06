@@ -60,11 +60,11 @@ TEST(dsa_cryptopp, sign_and_verify) {
   std::string test_hash[test_hashes] = {
     "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"
   };
-  for(unsigned int i = 0; i < test_keys; i++) {
+  for (unsigned int i = 0; i < test_keys; i++) {
     std::string pr_key_decoded;
     decode_from_hex(test_key[i], pr_key_decoded);
     tester->gen_public_key((unsigned char*)pr_key_decoded.c_str(), public_key);
-      for(unsigned int j = 0; j < test_hashes; j++) {
+      for (unsigned int j = 0; j < test_hashes; j++) {
         tester->sign((unsigned char*)pr_key_decoded.c_str(),
             (unsigned char*) test_hash[j].c_str(), signature);
         EXPECT_EQ(tester->verify(public_key,
