@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_CRYPTO__TRANSFORMATION_H__
-#define AUTOMATON_CORE_CRYPTO__TRANSFORMATION_H__
+#ifndef AUTOMATON_CORE_CRYPTO_DSA_TRANSFORMATION_H__
+#define AUTOMATON_CORE_CRYPTO_DSA_TRANSFORMATION_H__
 
 #include <string>
 #include <map>
@@ -17,17 +17,18 @@ class dsa {
   // The size of the random k in bytes;
   virtual size_t k_size() = 0;
 
-  // Returns true of this implementation can sign deterministic
-  // signatures using the sign_deterministic() function
-  virtual bool has_deterministic_signatures() = 0;
-
   // A function pointer given to the register_factory to register.
   // The function will be used by create() to instantiate a
   // derived class implementing this interface
   typedef dsa * (*dsa_factory_function)();
 
+  // Returns true of this implementation can sign deterministic
+  // signatures using the sign_deterministic() function
+  virtual bool has_deterministic_signatures() = 0;
+
   // Create public key from the private. The format is implementation specific
-  // Precondition public_key_size() == public_key in bytes.
+  // Preconditions:     public_key_size() == public_key in bytes.
+  //                    private_key_size() == private_key in bytes.
   // IN:  private_key:  the private key as a buffer.
   // OUT: public_key:   a pointer to the buffer to recive the public key.
   virtual void gen_public_key(const unsigned char * private_key,
@@ -37,6 +38,7 @@ class dsa {
   // Precondition signature_size() == signature in bytes.
   // IN:  private_key:  the private key as a buffer.
   //      message:      the message as a pointer to a buffer.
+  //      msg_len:      the lenght of the hashed message that will be signed.
   // OUT: signature:    a pointer to the buffer to recive the signature.
   virtual void sign(const unsigned char * private_key,
                     const unsigned char * message,
@@ -84,4 +86,4 @@ class dsa {
   static std::map<std::string, dsa_factory_function> dsa_factory;
 };
 
-#endif  //  AUTOMATON_CORE_CRYPTO_dsa_TRANSFORMATION_H__
+#endif  //  AUTOMATON_CORE_CRYPTO_DSA_TRANSFORMATION_H__
