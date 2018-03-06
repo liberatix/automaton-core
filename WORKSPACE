@@ -27,19 +27,20 @@ new_http_archive(
 )
 
 # boost::asio
-new_git_repository(
-  name = "com_github_boost_asio",
-  commit = "6814d260d02300a97521c1a93d02e30877fb8ff5",
-  remote = "https://github.com/boostorg/asio.git",
-  build_file = "boost_asio.BUILD",
-)
+#new_git_repository(
+#  name = "com_github_boost_asio",
+#  commit = "6814d260d02300a97521c1a93d02e30877fb8ff5",
+#  remote = "https://github.com/boostorg/asio.git",
+#  build_file = "boost_asio.BUILD",
+#)
 
-new_git_repository(
-  name = "com_github_boost_system",
-  commit = "6ea02e2668c16218c7881f36908dafdbabd3c8a7",
-  remote = "https://github.com/boostorg/system.git",
-  build_file = "boost_system.BUILD",  
-)
+#new_http_archive(
+#  name = "com_github_boost_system",
+#  urls = ["https://github.com/boostorg/system/archive/boost-1.66.0.tar.gz"],
+#  sha256 = "4b3a4abd23a98aa100b3ec77c455d75c003a6f34c77e4d8b6e7fd2bd30322c45",
+#  build_file = "boost_system.BUILD",
+#  strip_prefix = "system-boost-1.66.0",
+#)
 
 #new_local_repository(
 #  name = "luajit",
@@ -71,3 +72,12 @@ new_http_archive(
 #   path = SELENE_PREFIX,
 #   build_file = "selene.BUILD",
 # )
+
+git_repository(
+    name = "com_github_nelhage_rules_boost",
+    commit = "239ce40e42ab0e3fe7ce84c2e9303ff8a277c41a",
+    remote = "https://github.com/nelhage/rules_boost",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
