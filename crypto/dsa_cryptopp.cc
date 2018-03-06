@@ -86,7 +86,7 @@ bool dsa_cryptopp::verify(const unsigned char * public_key,
                           unsigned char * signature) {
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
 
-  std::string input(reinterpret_cast<char*>(public_key), public_key_size());
+  std::string input(reinterpret_cast<const char*>(public_key), public_key_size());
   CryptoPP::ECP::Point p;
   publicKey.AccessGroupParameters().Initialize(CryptoPP::ASN1::secp256k1());
   publicKey.GetGroupParameters().GetCurve().DecodePoint(p, public_key,
