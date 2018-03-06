@@ -64,6 +64,7 @@ void dsa_cryptopp::sign(const unsigned char * private_key,
   std::string str_signature;
   // Create private key object from exponent
   const CryptoPP::Integer privateExponent(private_key, private_key_size());
+  // TODO(Samir): Need to use identity hash intead of SHA256
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey privateKey;
   privateKey.Initialize(CryptoPP::ASN1::secp256k1(), privateExponent);
 
