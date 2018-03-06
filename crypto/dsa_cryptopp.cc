@@ -1,7 +1,7 @@
 #include <string>
+#include <iostream>
 #include "crypto/dsa.h"
 #include "crypto/dsa_cryptopp.h"
-#include <iostream>
 #include "cryptlib.h"  // NOLINT
 #include "eccrypto.h"  // NOLINT
 #include "integer.h"  // NOLINT
