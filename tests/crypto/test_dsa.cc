@@ -2,8 +2,8 @@
 #include "crypto/dsa.h"
 #include "crypto/dsa_cryptopp.h"
 #include "gtest/gtest.h"
-#include "hex.h"
-#include "filters.h"
+#include "hex.h"  // NOLINT
+#include "filters.h"  // NOLINT
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and
 // right 4 bits of each byte.
@@ -14,7 +14,7 @@ static std::string toHex(unsigned char * decoded, size_t size) {
   encoder.MessageEnd();
   return output;
 }
-void decode_from_hex(std::string &encoded, std::string &decoded) {
+void decode_from_hex(std::string &encoded, std::string &decoded) {   // NOLINT
   CryptoPP::StringSource ss(encoded, true,
     new CryptoPP::HexDecoder(new CryptoPP::StringSink(decoded)));
 }
