@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-
 class state {
  public:
   // Get the value at given path. Empty string if no value is set or
@@ -30,5 +29,4 @@ class state {
   // discards the changes made by set;
   virtual void discard_changes() = 0;
 };
-
 #endif  //  AUTOMATON_CORE_CRYPTO_STATE_TRANSFORMATION_H__
