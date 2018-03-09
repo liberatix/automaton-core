@@ -4,6 +4,11 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "state",
-    srcs = [],
-    hdrs = [],
+    srcs = [
+      "state.cc",
+      "state.h"
+    ],
+    hdrs = [
+      "state.h",
+    ],
 )
