@@ -50,7 +50,7 @@ TEST(dsa_cryptopp, sign_and_verify) {
   unsigned char* public_key = new unsigned char[tester->public_key_size()];
   unsigned char* signature = new unsigned char[tester->signature_size()];
   constexpr unsigned int test_keys = 4;
-  constexpr unsigned int test_hashes = 1;
+  constexpr unsigned int test_hashes = 3;
   std::string test_key[test_keys] = {
     "5f3aa3bb3129db966915a6d341fde4c95121b5f4cedc3ba4ecc3dd44ba9a50bc",
     "77f8406c4620450c9bb233e6cc404bb23a6bf86af3c943df8f0710f612d7ff23",
@@ -58,7 +58,9 @@ TEST(dsa_cryptopp, sign_and_verify) {
     "e3b0f44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   };
   std::string test_hash[test_hashes] = {
-    "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"
+    "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+    "F724319AC094445F75C965E96E961D4AC9DD56ECCD1A0F9E6C2B73B847DB2380",
+    "AEF62B1BE01E78464EDAA9C09FEFE3A3F98B626F5D0821E71E7E4A77B827FFF1"
   };
   for (unsigned int i = 0; i < test_keys; i++) {
     std::string pr_key_decoded;
