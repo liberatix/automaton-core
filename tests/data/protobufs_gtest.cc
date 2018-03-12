@@ -28,7 +28,7 @@ std::string file_to_bytes(char const* filename) {
   // Error reading proto file
 }
 
-TEST(data_protobuf, messages){
+TEST(data_protobuf, messages) {
   protobuf_schema_definition custom_schema;
   int m1 = custom_schema.create_message("MyMessage");
   custom_schema.add_scalar_field(schema::field_info(1,
