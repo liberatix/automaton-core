@@ -18,8 +18,8 @@ cc_library(
 cc_library(
 	name = "data_google_protobufs",
   srcs = [
-	  "protobufs_schema.h",
-	  "protobufs_schema.cc",
+	  "protobuf_schema.h",
+	  "protobuf_schema.cc",
   ],
   copts = ["-Wno-sign-compare"],
   deps = [
