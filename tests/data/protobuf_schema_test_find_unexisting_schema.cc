@@ -29,14 +29,14 @@ std::string file_to_bytes(char const* filename) {
 int main(int argc, char* argv[]) {
   try {
     protobuf_schema sc;
-    sc.import_schema_from_string(file_to_bytes("testing/protos/test.proto"),
-        "test", "test");
+    sc.import_schema_from_string(file_to_bytes("tests/data/test.proto"),
+        "test", "");
     sc.get_schema_id("ALABALA");
     google::protobuf::ShutdownProtobufLibrary();
     return 1;
   }
   catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
     google::protobuf::ShutdownProtobufLibrary();
   }
-  return 0;
 }

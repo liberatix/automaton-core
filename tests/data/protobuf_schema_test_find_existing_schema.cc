@@ -26,20 +26,24 @@ std::string file_to_bytes(char const* filename) {
   return "";
 }
 
-TEST("protobufs_schema", "find_existing_schema") {
-  try{
-		protobuf_schema sc(FileToBytes("testing/protos/test.proto"),"test");
-		int k = sc.GetSchemaID("TestMsg");
-		if (k == 0)
-			cout << "Finding existing message ... PASSED! " << endl;
-		else{
-			cout << "Finding existing message ... FAILED! " << endl;
-			cout << "Expected 0 got " << k << endl;
-		}
-	}
-	catch (exception& e){
-		cout << "Finding existing message ... FAILED! " << endl;
-		cout << e.what() << endl;
-	}
-  return 0;
+int main(int argc, char* argv[]) {
+  try {
+    protobuf_schema sc;
+    sc.import_schema_from_string(file_to_bytes("tests/data/test.proto"),
+        "test", "");
+    int k = sc.get_schema_id("TestMsg");
+    std::cout << "GOT: " << k << std::endl;
+    google::protobuf::ShutdownProtobufLibrary();
+    if (k != 0) {
+      return k;
+    } else {
+      return 0;
+    }
+  }
+  catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
+    google::protobuf::ShutdownProtobufLibrary();
+    return 200;
+  }
+  return 100;
 }

@@ -16,6 +16,17 @@ cc_test (
 cc_test (
 	name = "protobuf_schema_test_find_unexisting_schema",
 	srcs = ["protobuf_schema_test_find_unexisting_schema.cc",],
+  data = ["//tests/data:test.proto"],
+	deps = [
+    "//data:data_google_protobufs",
+    "@gtest//:gtest_main",
+  ]
+)
+
+cc_test (
+	name = "protobuf_schema_test_find_existing_schema",
+	srcs = ["protobuf_schema_test_find_existing_schema.cc",],
+  data = ["//tests/data:test.proto"],
 	deps = [
     "//data:data_google_protobufs",
     "@gtest//:gtest_main",
