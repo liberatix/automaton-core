@@ -38,7 +38,7 @@ class schema {
       its message or enum type should be stored in fully_qualified_type.
     Name - unique name within a message schema. Identifies the field.
     Fully_qualified_type - specifies the type of message and enum fields. It is
-      ignored for scalar types. When
+      ignored for scalar types.
   **/
   struct field_info {
     int tag;
