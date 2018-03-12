@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "data/protobufs_schema.h"
+#include "data/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 std::string file_to_bytes(char const* filename) {

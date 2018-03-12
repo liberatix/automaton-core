@@ -1,4 +1,4 @@
-#include "data/protobufs_schema.h"
+#include "data/protobuf_schema.h"
 
 // Protobuf schema definition functions
 
