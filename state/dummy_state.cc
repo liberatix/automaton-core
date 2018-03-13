@@ -1,10 +1,11 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include <glog/logging.h>
 #include "state/dummy_state.h"
 
 dummy_state::dummy_state(hash_transformation * hash) : hash(hash) {
+  google::InstallFailureSignalHandler();
 }
 
 std::string dummy_state::get(std::string key) {
@@ -23,7 +24,7 @@ void dummy_state::set(std::string key, std::string value) {
 }
 
 std::string dummy_state::get_node_hash(std::string path) {
-  std::cout << "SIZE: " << data.size() << std::endl;
+  LOG(INFO) << "SIZE: " << data.size() << std::endl;
   if (data.size() == 0) {
     return "";
   }
@@ -49,7 +50,7 @@ void dummy_state::delete_node_tree(std::string path) {
   auto start = data.lower_bound(path);
   auto end = data.upper_bound(path + "\xFF");
   for (auto it = start; it != end; it++) {
-    std::cout << "DELETING FROM MAIN STATE " << it->first << std::endl;
+    LOG(INFO) << "DELETING FROM MAIN STATE " << it->first << std::endl;
     pending_changes.erase(it->first);
     pending_changes.insert(std::pair<std::string, std::string>(it->first, ""));
   }
@@ -58,7 +59,7 @@ void dummy_state::delete_node_tree(std::string path) {
   end = pending_changes.upper_bound(path + "\xFF");
   for (auto it = start; it != end; it++) {
     if (it->second != "") {
-      std::cout << "DELETING FROM PENDING CHANGES " << it->first << std::endl;
+      LOG(INFO) << "DELETING FROM PENDING CHANGES " << it->first << std::endl;
       pending_changes.erase(it->first);
       pending_changes.insert(
           std::pair<std::string, std::string>(it->first, ""));
@@ -72,9 +73,13 @@ void dummy_state::commit_changes() {
     auto& value = kv.second;
     data.erase(key);
     if (value == "") {
-      std::cout << "REMOVING " << key << std::endl;
+      LOG(INFO) << "REMOVING " << key << std::endl;
+      int a = 0;
+      int b = 10;
+      int c = b / a;
+      LOG(INFO) << c;
     } else {
-      std::cout << "ADDING " << key << ":" << value << std::endl;
+      LOG(INFO) << "ADDING " << key << ":" << value << std::endl;
       data.insert(kv);
     }
   }
