@@ -1,4 +1,10 @@
-# Automaton data module reference
+# Automaton state module reference
+
+## State structure
+
+Here is an example of the tree before and after setting the value of `tram` to `6`:
+
+![Automaton State Tree](state1.svg)
 
 ## state interface
 
