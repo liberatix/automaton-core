@@ -59,6 +59,8 @@ TEST(SHA512_cryptopp, calculate_digest) {
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
+
+  delete[] digest;
 }
 
 TEST(SHA512_cryptopp, update_and_finish) {
@@ -93,6 +95,8 @@ TEST(SHA512_cryptopp, update_and_finish) {
   hasher.final(digest);
 
   EXPECT_EQ(toHex(digest, digest_size), EXP2);
+
+  delete[] digest;
 }
 
 TEST(SHA512_cryptopp, digest_size) {
