@@ -90,7 +90,8 @@ digraph G {
     f_t -> { f_t_est f_t_ra }
     f_t_est -> f_t_est_er
     f_t_est -> f_t_est_ing
-    f_t_ra -> { f_t_ra_vel f_t_ra_mway }
+    f_t_ra -> { f_t_ra_vel f_t_ra_m }
+    f_t_ra_m -> f_t_ra_m_way
     f_root[label="root"]
     f_t[label="t"]
     f_t_est[label="est = 1" fillcolor="#e0ffff:#80ffff"]
@@ -98,7 +99,8 @@ digraph G {
     f_t_est_ing[label="ing = 3" fillcolor="#e0ffff:#80ffff"]
     f_t_ra[label="ra"]
     f_t_ra_vel[label="vel = 4" fillcolor="#e0ffff:#80ffff"]
-    f_t_ra_mway[label="mway = 5" fillcolor="#e0ffff:#80ffff"]
+    f_t_ra_m[label="m = 6" fillcolor="#e0ffff:#80ffff"]
+    f_t_ra_m_way[label="mway = 5" fillcolor="#e0ffff:#80ffff"]
   }
 
   // align clusters
