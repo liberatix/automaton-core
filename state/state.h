@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_CRYPTO_STATE_TRANSFORMATION_H__
-#define AUTOMATON_CORE_CRYPTO_STATE_TRANSFORMATION_H__
+#ifndef AUTOMATON_CORE_STATE_STATE_H__
+#define AUTOMATON_CORE_STATE_STATE_H__
 
 #include <string>
 #include <vector>
@@ -29,4 +29,5 @@ class state {
   // discards the changes made by set;
   virtual void discard_changes() = 0;
 };
-#endif  //  AUTOMATON_CORE_CRYPTO_STATE_TRANSFORMATION_H__
+
+#endif  //  AUTOMATON_CORE_STATE_STATE_H__
