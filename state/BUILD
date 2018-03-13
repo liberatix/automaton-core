@@ -16,5 +16,6 @@ cc_library(
     ],
     deps = [
       "//crypto",
+      "@com_github_glog_glog//:glog",
     ],
 )
