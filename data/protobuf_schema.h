@@ -14,43 +14,12 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "data/schema.h"
-
-/**
-  TODO(kari): Need to implement better message storage (more memory efficient)
-  and to control message rights to read/write and delete.
-  TODO(kari): There is no memory management right now.
-**/
-
-const std::map<schema::field_type, google::protobuf::FieldDescriptorProto_Type>
-    type_to_protobuf_type {
-  {schema::string, google::protobuf::FieldDescriptorProto_Type_TYPE_STRING},
-  {schema::int32, google::protobuf::FieldDescriptorProto_Type_TYPE_INT32},
-  {schema::enum_type, google::protobuf::FieldDescriptorProto_Type_TYPE_ENUM},
-  {schema::message_type,
-      google::protobuf::FieldDescriptorProto_Type_TYPE_MESSAGE}
-};
-
-const std::map<google::protobuf::FieldDescriptor::Type, schema::field_type>
-    protobuf_type_to_type {
-  {google::protobuf::FieldDescriptor::Type::TYPE_STRING, schema::string},
-  {google::protobuf::FieldDescriptor::Type::TYPE_INT32, schema::int32},
-  {google::protobuf::FieldDescriptor::Type::TYPE_ENUM, schema::enum_type},
-  {google::protobuf::FieldDescriptor::Type::TYPE_MESSAGE,
-      schema::message_type}
-};
-
-const std::map<google::protobuf::FieldDescriptor::CppType, schema::field_type>
-    protobuf_ccptype_to_type {
-  {google::protobuf::FieldDescriptor::CPPTYPE_STRING, schema::string},
-  {google::protobuf::FieldDescriptor::CPPTYPE_INT32, schema::int32},
-  {google::protobuf::FieldDescriptor::CPPTYPE_ENUM, schema::enum_type},
-  {google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE, schema::message_type}
-};
 
 /**
 This is helper class which is used while parsing proto file.
@@ -108,6 +77,8 @@ class protobuf_schema_definition: public schema::schema_definition {
   protobuf_schema_definition();
   ~protobuf_schema_definition();
 
+  void register_self();
+
   /**
     This function is used from protobuf_schema on import. (Instead of
     friend class)
@@ -163,13 +134,13 @@ class protobuf_schema_definition: public schema::schema_definition {
   /**
     Used to add an already created message/enum schema to this schema. The
     message/enum should first be created and ready (fields/ nested messages/
-    enums or enum values must be added) before calling this function. If
-    message/enum with the given id doesn't exist, exception will be thrown.
-    TODO(kari): Check if message can be modified. Decide if that should be
-    possible or maybe the message must be deleted when this function is called
+    enums or enum values must be added) before calling this function.
+    Enum can be added to another message and if no message_id is provided in
+    add_enum or message_id = -1, enum will be added globally. If message/enum
+    with the given id doesn't exist, exception will be thrown.
   **/
   void add_message(int message_id);
-  void add_enum(int enum_id, int where_message_id);
+  void add_enum(int enum_id, int message_id);
 
   /**
     These functions are called to add fields to a message. Any of them can be
@@ -185,19 +156,13 @@ class protobuf_schema_definition: public schema::schema_definition {
 
 class protobuf_schema: public schema {
  private:
-  /*
-  enum invalid_type {
-    NONE = 0,
-    MAP = 1,
-    ONEOF = 2
-    // = 4,8,16...
-  };
-  */
   io_error_collector io_error_collector_;
   proto_error_collector proto_error_collector_;
   google::protobuf::Arena arena;
   google::protobuf::DescriptorPool* pool;
   google::protobuf::DynamicMessageFactory* dynamic_message_factory = NULL;
+  // Spots in the messages vector.
+  std::stack<int> free_message_spots;
   // Message type name to index in vector<const Message*> schemas
   std::map<std::string, int> schemas_names;
   // Message schemas
@@ -210,6 +175,11 @@ class protobuf_schema: public schema {
   // Enums
   std::vector<const google::protobuf::EnumDescriptor*> enums;
 
+  /** Inserts a message in the message vector and returns its id. It is used
+  when new messages are created. It inserts the message in a free spot in tne
+  vector or adds it at the end of it
+  **/
+  int insert_message(google::protobuf::Message* message);
   // Extracts schemas of nested messages/enums
   void extract_nested_messages(
   const google::protobuf::Descriptor* descriptor);
@@ -228,10 +198,16 @@ class protobuf_schema: public schema {
       const std::string& name, const std::string& package);
 
  public:
-  /*
-    Enum to match schema data types with protobuf data types.
-  */
+  static const std::map<schema::field_type,
+      google::protobuf::FieldDescriptorProto_Type> type_to_protobuf_type;
 
+  static const std::map<google::protobuf::FieldDescriptor::Type,
+      schema::field_type> protobuf_type_to_type;
+
+  static const std::map<google::protobuf::FieldDescriptor::CppType,
+      schema::field_type> protobuf_ccptype_to_type;
+
+  void register_self();
   /**
     TODO(kari): Decide to forbid move & copy constructors.
   **/
@@ -250,8 +226,6 @@ class protobuf_schema: public schema {
     schema_definition. If the given schema_definition has dependencies, they
     must be imported first or exception will be thrown. Name will be used for
     reference in schema_definition::add_dependency().
-
-    TODO(kari): Check if package is used in fully_qualified_type.
   */
   void import_schema_definition(schema_definition* schema,
       const std::string& name, const std::string& package);
@@ -263,11 +237,6 @@ class protobuf_schema: public schema {
   // void import_message_to_schema(schema_definition* schema, int id, );
   // void import_enum_to_schema(schema_definition* schema, int id, );
 
-  /**
-    To be removed/replaced. Left now for compability.
-    TODO(kari): Remove this function and include its logic to import functions.
-  **/
-  void build_imports();
   // std::string serialize_protocol();
 
   /*
@@ -290,10 +259,10 @@ class protobuf_schema: public schema {
   int get_enum_id(const std::string& enum_name);
 
   /*
-    Returns the number of values in this enum. If no such enum exists, exception
-    will be thrown.
+    Returns enum value matching value name. If no such enum or name exists,
+    exception will be thrown.
   */
-  int get_enum_values_number(int enum_id);
+  int get_enum_value(int enum_id, const std::string& value_name);
 
   /*
     Returns a vector of pairs containing info about the values in this enum.
@@ -361,19 +330,17 @@ class protobuf_schema: public schema {
   int get_message_schema_id(int message_id);
 
   /*
-    Returns the type (as a string) of the field with the given tag/name in the
+    Returns the type (as a string) of the field with the given tag in the
     schema with the given id. If the given schema id is not valid or there is no
-    field with the given tag/name, exception will be thrown.
+    field with the given tag, exception will be thrown.
     If the type is message, returns 'message'. To get the type of a message
-    field use get_messagefieldtype().
+    field use get_message_field_type().
     If the type is enum, returns 'enum'. To get the type of a enum field use
-    getenumfieldtype().
+    get_enum_field_type().
     Use the result of this function in set_*() and get_*() and in
     set_repeated_*() and get_repeated_*() if the field is repeated.
   */
-  std::string get_field_type_by_tag(int schema_id, int tag);
-  std::string get_field_type_by_name(int schema_id, const std::string&
-      field_name);
+  std::string get_field_type(int schema_id, int tag);
 
   /*
     If the type of the field is message, returns the fully-qualified name of

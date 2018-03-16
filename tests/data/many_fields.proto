@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+message TestMsg {
+}
+
+message TestMsg2 {
+	int32 a = 10;
+	int32 l = 2;
+	string o = 4;
+	
+	int32 b = 1;
+	int32 c = 3;
+	string d = 5;
+	message TestMsg3 {
+		repeated string s = 2;
+	}
+	repeated int32 k = 6;
+}
+
+message TestMsg4 {
+	int32 a = 10;
+	int32 l = 2;
+	string o = 4;
+	message TestMsg5 {
+		repeated string s = 2;
+		message TestMsg6 {
+			repeated string s = 2;
+		}
+	}
+	repeated int32 k = 3;
+}

@@ -8,3 +8,36 @@ schema::field_info::field_info(int tag, field_type type, const std::string&
   this->fully_qualified_type = fully_qualified_type;
   this->is_repeated = is_repeated;
 }
+
+std::map<std::string, schema::factory_function_schema> schema::schema_factory;
+
+void schema::register_factory(std::string name, schema::factory_function_schema
+    func) {
+  schema_factory[name] = func;
+}
+
+schema* schema::create(std::string name) {
+  auto it = schema_factory.find(name);
+  if (it == schema_factory.end()) {
+    return NULL;
+  } else {
+    return it->second();
+  }
+}
+
+std::map<std::string, schema::schema_definition::factory_function_schema_def>
+    schema::schema_definition::schema_definition_factory;
+
+void schema::schema_definition::register_factory(std::string name,
+    schema::schema_definition::factory_function_schema_def func) {
+  schema_definition_factory[name] = func;
+}
+
+schema::schema_definition* schema::schema_definition::create(std::string name) {
+  auto it = schema_definition_factory.find(name);
+  if (it == schema_definition_factory.end()) {
+    return NULL;
+  } else {
+    return it->second();
+  }
+}

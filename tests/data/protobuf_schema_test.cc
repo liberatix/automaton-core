@@ -57,16 +57,17 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < sc.get_schemas_number(); i++) {
         sc.dump_message_schema(i, std::cout);
     }
-    /*int schema_id = sc.get_schema_id("pack3.MyMessage");
-    std::string msg = sc.get_message_field_type(schema_id,
-        sc.get_field_tag(schema_id, "message_field2"));
-    int a = sc.new_message(sc.get_schema_id(msg));
-    sc.set_string(a,1,"alabala");
-    std::cout << sc.to_string(a) << std::endl;
-    int b = sc.new_message(schema_id);
-    sc.set_message(b,3,a);
-    std::cout << sc.to_string(b) << std::endl;
-*/
+    /*
+      int schema_id = sc.get_schema_id("pack3.MyMessage");
+      std::string msg = sc.get_message_field_type(schema_id,
+          sc.get_field_tag(schema_id, "message_field2"));
+      int a = sc.new_message(sc.get_schema_id(msg));
+      sc.set_string(a,1,"alabala");
+      std::cout << sc.to_string(a) << std::endl;
+      int b = sc.new_message(schema_id);
+      sc.set_message(b,3,a);
+      std::cout << sc.to_string(b) << std::endl;
+  */
 
     int k; std::cin >> k;
   } catch(std::exception& e) {
