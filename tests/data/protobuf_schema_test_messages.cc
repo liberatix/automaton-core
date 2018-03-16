@@ -5,7 +5,7 @@
 #include "data/protobuf_schema.h"
 #include "gtest/gtest.h"
 
-TEST(protobuf_schema, find_enum) {
+TEST(protobuf_schema, messages) {
   /**
 
     first_message {
@@ -144,4 +144,7 @@ TEST(protobuf_schema, find_enum) {
   sc.delete_message(id13);
   int new_id = sc.new_message(0);
   EXPECT_EQ(new_id, id13);
+
+  std::cout << "GOT TO THE END" << std::endl;
+  google::protobuf::ShutdownProtobufLibrary();
 }

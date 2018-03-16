@@ -5,7 +5,7 @@
 #include "data/protobuf_schema.h"
 #include "gtest/gtest.h"
 
-TEST(protobuf_schema, find_enum) {
+TEST(protobuf_schema, message_serialization) {
   /**
     first_message {
       string string_field = 1;
@@ -38,4 +38,5 @@ TEST(protobuf_schema, find_enum) {
   EXPECT_EQ(sc.get_repeated_field_size(id2, 2), 2);
   EXPECT_EQ(sc.get_repeated_int32(id2, 2, 0), 7);
   EXPECT_EQ(sc.get_repeated_int32(id2, 2, 1), 11);
+  google::protobuf::ShutdownProtobufLibrary();
 }

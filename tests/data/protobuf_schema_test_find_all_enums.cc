@@ -26,10 +26,11 @@ std::string file_to_bytes(char const* filename) {
   return "";
 }
 
-TEST(protobuf_schema, find_enum) {
+TEST(protobuf_schema, find_all_enums) {
   protobuf_schema sc;
   sc.import_schema_from_string(file_to_bytes("tests/data/many_enums.proto"),
   "test", "");
   int k = sc.get_enums_number();
   EXPECT_EQ(k, 8);
+  google::protobuf::ShutdownProtobufLibrary();
 }

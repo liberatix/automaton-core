@@ -37,5 +37,6 @@ int main(int argc, char* argv[]) {
     google::protobuf::ShutdownProtobufLibrary();
     return 0;
   }
+  google::protobuf::ShutdownProtobufLibrary();
   return 1;
 }

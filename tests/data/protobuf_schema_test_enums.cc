@@ -5,7 +5,7 @@
 #include "data/protobuf_schema.h"
 #include "gtest/gtest.h"
 
-TEST(protobuf_schema, find_enum) {
+TEST(protobuf_schema, enums) {
   /**
 
     message A {
@@ -119,4 +119,5 @@ TEST(protobuf_schema, find_enum) {
     std::string message = e.what();
     EXPECT_EQ(message, "Field is repeated");
   }
+  google::protobuf::ShutdownProtobufLibrary();
 }

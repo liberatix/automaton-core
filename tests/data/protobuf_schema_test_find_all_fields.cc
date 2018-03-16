@@ -26,7 +26,7 @@ std::string file_to_bytes(char const* filename) {
   return "";
 }
 
-TEST(protobuf_schema, finding_all_fields) {
+TEST(protobuf_schema, find_all_fields) {
   protobuf_schema sc;
   sc.import_schema_from_string(file_to_bytes("tests/data/many_fields.proto"),
   "test", "");
@@ -43,4 +43,5 @@ TEST(protobuf_schema, finding_all_fields) {
   id  = sc.get_schema_id("TestMsg4.TestMsg5.TestMsg6");
   k = sc.get_fields_number(id);
   EXPECT_EQ(k, 1);
+  google::protobuf::ShutdownProtobufLibrary();
 }

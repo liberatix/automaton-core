@@ -209,4 +209,5 @@ TEST(protobuf_schema, setting_fields) {
     std::cerr << message << std::endl;
     EXPECT_EQ(message, "Field is not int32");
   }
+  google::protobuf::ShutdownProtobufLibrary();
 }

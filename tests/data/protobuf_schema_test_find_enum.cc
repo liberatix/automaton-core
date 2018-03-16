@@ -36,4 +36,5 @@ TEST(protobuf_schema, find_enum) {
   EXPECT_EQ(info[0].second, 0);
   EXPECT_EQ(info[1].first, "b");
   EXPECT_EQ(info[1].second, 1);
+  google::protobuf::ShutdownProtobufLibrary();
 }

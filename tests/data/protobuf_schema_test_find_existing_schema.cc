@@ -45,5 +45,6 @@ int main(int argc, char* argv[]) {
     google::protobuf::ShutdownProtobufLibrary();
     return 200;
   }
+  google::protobuf::ShutdownProtobufLibrary();
   return 100;
 }
