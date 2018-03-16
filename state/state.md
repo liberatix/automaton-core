@@ -1,4 +1,28 @@
-# Automaton data module reference
+# Automaton state module reference
+
+## State structure
+
+The state is represented as a radix tree based on all the key/value pairs in it.
+
+### State transitions
+
+Here is an example of adding the following key/value pairs one by one:
+
+```
+test=1
+tester=2
+testing=3
+travel=4
+tramway=5
+tram=6
+```
+
+![Automaton State Transitions](state_transitions.svg)
+
+
+Here is an example of the tree before and after setting the value of `tram` to `6`:
+
+![Automaton State Tree](state1.svg)
 
 ## state interface
 

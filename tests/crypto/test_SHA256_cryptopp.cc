@@ -46,6 +46,8 @@ TEST(SHA256_cryptopp, calculate_digest) {
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
+
+  delete[] digest;
 }
 
 TEST(SHA256_cryptopp, update_and_finish) {
@@ -74,6 +76,8 @@ TEST(SHA256_cryptopp, update_and_finish) {
   hasher.final(digest);
   EXPECT_EQ(toHex(digest, digest_size),
       "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
+
+  delete[] digest;
 }
 
 TEST(SHA256_cryptopp, digest_size) {
