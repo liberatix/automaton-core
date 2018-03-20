@@ -68,16 +68,13 @@ void dummy_state::delete_node_tree(std::string path) {
 }
 
 void dummy_state::commit_changes() {
+  LOG(INFO) << "COMMIT " << pending_changes.size() << " PENDING CHANGES" << std::endl;
   for (auto kv : pending_changes) {
     auto& key = kv.first;
     auto& value = kv.second;
     data.erase(key);
     if (value == "") {
       LOG(INFO) << "REMOVING " << key << std::endl;
-      int a = 0;
-      int b = 10;
-      int c = b / a;
-      LOG(INFO) << c;
     } else {
       LOG(INFO) << "ADDING " << key << ":" << value << std::endl;
       data.insert(kv);
