@@ -3,6 +3,21 @@ CRYPTOPP_LABEL = "6_0_0"
 LUA_PREFIX = "lua-5.3.4"
 SELENE_PREFIX = "Selene-0.4"
 
+#Import the gflags files.
+git_repository(
+    name   = "com_github_gflags_gflags",
+    commit = "f8a0efe03aa69b3336d8e228b37d4ccb17324b88",
+    remote = "https://github.com/gflags/gflags.git",
+)
+
+#Import the glog files.
+new_git_repository(
+    name   = "com_github_glog_glog",
+    build_file = "glog.BUILD",
+    remote = "https://github.com/google/glog.git",
+    tag = "v0.3.5",
+)
+
 new_http_archive(
   name = "gtest",
   url = "https://github.com/google/googletest/archive/" + GTEST_LABEL + ".zip",
