@@ -1,6 +1,7 @@
 #ifndef SCHEMA_H_
 #define SCHEMA_H_
 
+#include <map>
 #include <string>
 #include <vector>
 #include <utility>
@@ -38,7 +39,7 @@ class schema {
       its message or enum type should be stored in fully_qualified_type.
     Name - unique name within a message schema. Identifies the field.
     Fully_qualified_type - specifies the type of message and enum fields. It is
-      ignored for scalar types. When
+      ignored for scalar types.
   **/
   struct field_info {
     int tag;
@@ -50,8 +51,17 @@ class schema {
         const std::string& fully_qualified_type, bool is_repeated);
   };
 
+  typedef schema* (*factory_function_schema)();
+  static void register_factory(std::string name, factory_function_schema func);
+  static schema* create(const std::string name);
+
   class schema_definition {
    public:
+     typedef schema_definition* (*factory_function_schema_def)();
+     static void register_factory(std::string name, factory_function_schema_def
+        func);
+     static schema_definition* create(const std::string name);
+
     /**
       If this schema (schema A) depends on another one (schema B), it must be
       added here. Schema_name is the name that has been/will be given to the
@@ -101,13 +111,13 @@ class schema {
     /**
       Used to add an already created message/enum schema to this schema. The
       message/enum should first be created and ready (fields/ nested messages/
-      enums or enum values must be added) before calling this function. If
-      message/enum with the given id doesn't exist, exception will be thrown.
-      TODO(kari): Check if message can be modified. Decide if that should be
-      possible or maybe the message must be deleted when this function is called
+      enums or enum values must be added) before calling this function.
+      Enum can be added to another message and if no message_id is provided in
+      add_enum or message_id = -1, enum will be added globally. If message/enum
+      with the given id doesn't exist, exception will be thrown.
     **/
     virtual void add_message(int message_id) = 0;
-    virtual void add_enum(int enum_id, int where_message_id) = 0;
+    virtual void add_enum(int enum_id, int message_id) = 0;
 
     /**
       These functions are called to add fields to a message. Any of them can be
@@ -120,6 +130,10 @@ class schema {
     virtual void add_enum_field(schema::field_info field, int message_id) = 0;
     virtual void add_message_field(schema::field_info field,
         int message_id) = 0;
+
+   private:
+    static std::map<std::string, factory_function_schema_def>
+        schema_definition_factory;
   };
 
   /*
@@ -159,10 +173,10 @@ class schema {
   virtual int get_enum_id(const std::string& enum_name) = 0;
 
   /*
-    Returns the number of values in this enum. If no such enum exists, exception
-    will be thrown.
+    Returns enum value matching value name. If no such enum or name exists,
+    exception will be thrown.
   */
-  virtual int get_enum_values_number(int enum_id) = 0;
+  virtual int get_enum_value(int enum_id, const std::string& value_name) = 0;
 
   /*
     Returns a vector of pairs containing info about the values in this enum.
@@ -242,9 +256,9 @@ class schema {
   virtual int get_message_schema_id(int message_id) = 0;
 
   /*
-    Returns the type (as a string) of the field with the given tag/name in the
+    Returns the type (as a string) of the field with the given tag in the
     schema with the given id. If the given schema id is not valid or there is no
-    field with the given tag/name, exception will be thrown.
+    field with the given tag, exception will be thrown.
     If the type is message, returns 'message'. To get the type of a message
     field use get_message_field_type().
     If the type is enum, returns 'enum'. To get the type of a enum field use
@@ -253,9 +267,7 @@ class schema {
     set_repeated_*() and get_repeated_*() if the field is repeated.
   */
 
-  virtual std::string get_field_type_by_tag(int schema_id, int tag) = 0;
-  virtual std::string get_field_type_by_name(int schema_id, const std::string&
-      field_name) = 0;
+  virtual std::string get_field_type(int schema_id, int tag) = 0;
 
   /*
     If the type of the field is message, returns the fully-qualified name of
@@ -376,6 +388,9 @@ class schema {
   virtual void set_repeated_enum(int message_id, int field_tag, int value, int
       index) = 0;
   virtual int get_repeated_enum(int message_id, int field_tag, int index) = 0;
+
+ private:
+  static std::map<std::string, factory_function_schema> schema_factory;
 };
 
 #endif  // SCHEMA_H_
