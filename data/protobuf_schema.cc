@@ -358,6 +358,7 @@ void protobuf_schema::import_schema_definition(schema_definition* schema,
   if (schema == NULL) {
     throw std::runtime_error("Schema reference is NULL");
   }
+  // TODO(kari): schema need to be protobuf_schema
   import_from_file_proto(reinterpret_cast<protobuf_schema_definition*>(schema)
       ->get_descriptor(), name, package);
 }
@@ -1007,7 +1008,7 @@ void protobuf_schema::set_message(int message_id, int field_tag, int
   const google::protobuf::Reflection* reflect = m->GetReflection();
   // creates copy of the sub message so that the field doesnt change if you
   // change the message outside
-  google::protobuf::Message* copy = messages[sub_message_id]->New();
+  google::protobuf::Message* copy = messages[sub_message_id]->New(&arena);
   copy->CopyFrom(*messages[sub_message_id]);
   reflect->SetAllocatedMessage(m, copy, fdesc);
 }
@@ -1086,7 +1087,7 @@ void protobuf_schema::set_repeated_message(int message_id, int field_tag,
     google::protobuf::Message* sub_m = messages[sub_message_id];
     reflect->MutableRepeatedMessage(m, fdesc, index)->CopyFrom(*sub_m);
   } else {
-    google::protobuf::Message* copy = messages[sub_message_id]-> New();
+    google::protobuf::Message* copy = messages[sub_message_id]-> New(&arena);
     copy->CopyFrom(*messages[sub_message_id]);
     reflect->AddAllocatedMessage(m, fdesc, copy);
   }
