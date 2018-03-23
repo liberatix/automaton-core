@@ -1,11 +1,11 @@
 #ifndef AUTOMATON_CORE_STATE_IMPL_H__
 #define AUTOMATON_CORE_STATE_IMPL_H__
 
+#include "state/state.h"
 #include <string>
 #include <vector>
 #include <stack>
 #include <stdint.h>
-#include "state/state.h"
 
 class state_impl : public state{
  public:

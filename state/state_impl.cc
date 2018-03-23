@@ -72,7 +72,8 @@ void state_impl::set(std::string key, std::string value) {
         // Set split node as parent of cur_node
         nodes[cur_node].parent = split_node;
         // Set the current node as child of the new split node
-        nodes[split_node].children[cur_node_prefix[cur_prefix_index]]=cur_node;
+        nodes[split_node].children
+            [cur_node_prefix[cur_prefix_index]] = cur_node;
 
         // set prefix of split_node and cur_node
         if (cur_prefix_index >= 1) {
@@ -162,7 +163,8 @@ void state_impl::delete_node_tree(std::string path) {
 // 1. If multiple children -> set value to ""
 // 2. If one child -> merge with child and parent points to child
 // 3. If no children, -> delete and remove link from parent,
-//  3.1 If parent has only one child remaining, and the value of parent is "", merge parent and its remaining child
+//  3.1 If parent has only one child remaining, and the value of parent is "",
+//      merge parent and its remaining child
 void state_impl::erase(std::string path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].value == "") {
@@ -180,7 +182,7 @@ void state_impl::erase(std::string path) {
   if (children.size() > 1) {
     nodes[cur_node].value = "";
   // if one child -> merge prefix into child and parent points to child
-  } else if(children.size() == 1) {
+  } else if (children.size() == 1) {
     uint32_t parent = nodes[cur_node].parent;
     uint32_t child = nodes[cur_node].children[children[0]];
     // add the prefix of current node to the child
