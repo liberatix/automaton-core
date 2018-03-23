@@ -5,12 +5,11 @@
 #include <vector>
 #include <stack>
 #include <stdint.h>
-#include "state.h"
+#include "state/state.h"
 
 class state_impl : public state{
  public:
-  
-   state_impl();
+  state_impl();
 
   // Get the value at given path. Empty string if no value is set or
   // there is no node at the given path
@@ -23,7 +22,8 @@ class state_impl : public state{
   // set or there is no node at the given path
   std::string get_node_hash(std::string path);
 
-  // Get the children as chars //TODO(Samir:) change to to return sting path to children with value.
+  // Get the children as chars //TODO(Samir:) change to to return sting path to
+  // children with value.
   std::vector<unsigned char> get_node_children(std::string path);
 
   // Erase previously set element in the trie
@@ -37,14 +37,15 @@ class state_impl : public state{
 
   // discards the changes made by set;
   void discard_changes();
+
  private:
-   struct node {
-     uint32_t parent;
-     std::string prefix;
-     std::string hash;
-     std::string value;
-     uint32_t children[256];
-   };
+  struct node {
+    uint32_t parent;
+    std::string prefix;
+    std::string hash;
+    std::string value;
+    uint32_t children[256];
+  };
   std::vector<node> nodes;
   std::stack<uint32_t> fragmented_locations;
 
