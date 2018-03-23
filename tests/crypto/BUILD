@@ -12,7 +12,7 @@ cc_test(
 cc_test(
     name = "sha_test",
     srcs = ["test_SHA256_cryptopp.cc"],
-    size = "small",
+    size = "large",
     deps = [
       "//crypto",
       "@gtest//:gtest_main",
