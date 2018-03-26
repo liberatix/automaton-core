@@ -149,7 +149,7 @@ std::vector<unsigned char> state_impl::get_node_children(std::string path) {
   std::vector<unsigned char> result;
   int32_t node_index = get_node_index(path);
   if (node_index == -1) {
-    throw std::exception("No node at this path");
+    throw std::out_of_range("No node at this path");
   }
   for (unsigned int i = 0; i < 256; ++i) {
     if (nodes[node_index].children[i]) {
@@ -170,7 +170,7 @@ void state_impl::delete_node_tree(std::string path) {
 void state_impl::erase(std::string path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].value == "") {
-    throw std::exception("No set node at path at");
+    throw std::out_of_range("No set node at path at");
   }
 
   // Get the children of this node
