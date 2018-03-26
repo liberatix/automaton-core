@@ -22,9 +22,9 @@ TEST(state_impl, set_and_get) {
   state_impl state;
 
   // For each node added, check if the previous nodes are still correct
-  for(unsigned int i = 0; i < tests.size(); i++) {
+  for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
-      for(unsigned int j = 0; j <= i; j++) {
+      for (unsigned int j = 0; j <= i; j++) {
         EXPECT_EQ(state.get(tests[j].first), tests[j].second);
       }
   }
@@ -44,13 +44,13 @@ TEST(state_impl, set_delete_and_get) {
   tests.push_back(std::make_pair("tramva", "7"));
   state_impl state;
   // add all nodes
-  for(unsigned int i = 0; i < tests.size(); i++) {
+  for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
   }
   // delete one and check if remaining nodes are currect
-  for(unsigned int i = 0; i < tests.size(); i++) {
+  for (unsigned int i = 0; i < tests.size(); i++) {
     state.erase(tests[i].first);
-    for(unsigned int j = i+1; j < tests.size(); j++) {
+    for (unsigned int j = i+1; j < tests.size(); j++) {
       EXPECT_EQ(state.get(tests[j].first), tests[j].second);
     }
   }
