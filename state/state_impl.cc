@@ -188,11 +188,12 @@ void state_impl::erase(std::string path) {
     // add the prefix of current node to the child
     nodes[child].prefix.insert(0, 1, children[0]);
     nodes[child].prefix.insert(0, nodes[cur_node].prefix);
-    //  link parent to child
+    // link parent and child
     unsigned char path_from_parent = path[path.length() -
         nodes[cur_node].prefix.length() - 1];
     nodes[parent].children[path_from_parent] = child;
-    // TODO(Samir):  Remember empty elements for later use
+    nodes[child].parent = parent;
+    // Remember empty elements for later use
     fragmented_locations.push(cur_node);
   // if no children, remove element and handle parent cases
   } else {
@@ -211,7 +212,9 @@ void state_impl::erase(std::string path) {
         children.push_back(i);
       }
     }
-
+    // If the parent of the deleted node has no prefix has only single
+    // child remaining and is not the root we will merge his only child
+    //
     if (nodes[cur_node].value.length() == 0
         && children.size() == 1 && cur_node != 0) {
       parent = nodes[cur_node].parent;
@@ -219,9 +222,11 @@ void state_impl::erase(std::string path) {
       nodes[child].prefix.insert(0, 1, children[0]);
       nodes[child].prefix.insert(0, nodes[cur_node].prefix);
 
+      // link parent and child
       path_from_parent_index -= nodes[cur_node].prefix.length() + 1;
       path_from_parent = path[path_from_parent_index];
       nodes[parent].children[path_from_parent] = child;
+      nodes[child].parent = parent;
       fragmented_locations.push(cur_node);
     }
   }
