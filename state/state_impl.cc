@@ -72,8 +72,8 @@ void state_impl::set(std::string key, std::string value) {
         // Set split node as parent of cur_node
         nodes[cur_node].parent = split_node;
         // Set the current node as child of the new split node
-        nodes[split_node].children
-            [cur_node_prefix[cur_prefix_index]] = cur_node;
+        unsigned char path_to_child = cur_node_prefix[cur_prefix_index];
+        nodes[split_node].children[path_to_child] = cur_node;
 
         // set prefix of split_node and cur_node
         if (cur_prefix_index >= 1) {
@@ -105,7 +105,9 @@ void state_impl::set(std::string key, std::string value) {
     // Set split node as parent of cur_node
     nodes[cur_node].parent = split_node;
     // Set the current node as child of the new split node
-    nodes[split_node].children[cur_node_prefix[cur_prefix_index]] = cur_node;
+
+    const unsigned char path_to_child = cur_node_prefix[cur_prefix_index];
+    nodes[split_node].children[path_to_child] = cur_node;
 
     // set prefix of split_node and cur_node
     if (cur_prefix_index >= 1) {
@@ -124,7 +126,7 @@ void state_impl::set(std::string key, std::string value) {
 
 
 std::string state_impl::get_node_hash(std::string path) {
-  uint32_t node_index = get_node_index(path);
+  int32_t node_index = get_node_index(path);
   return node_index == -1 ? "" : nodes[node_index].hash;
 }
 
@@ -145,7 +147,7 @@ std::string state_impl::get_node_hash(std::string path) {
 
 std::vector<unsigned char> state_impl::get_node_children(std::string path) {
   std::vector<unsigned char> result;
-  uint32_t node_index = get_node_index(path);
+  int32_t node_index = get_node_index(path);
   if (node_index == -1) {
     throw std::exception("No node at this path");
   }
