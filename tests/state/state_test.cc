@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <string>
 #include "gtest/gtest.h"
 #include "state/state_impl.h"
 #include "crypto/SHA256_cryptopp.h"
@@ -19,7 +20,10 @@ TEST(state_impl, set_and_get) {
   tests.push_back(std::make_pair("tram", "6"));
   tests.push_back(std::make_pair("tramva", "7"));
 
-  state_impl state;
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl state(hasher);
 
   // For each node added, check if the previous nodes are still correct
   for (unsigned int i = 0; i < tests.size(); i++) {
@@ -42,7 +46,11 @@ TEST(state_impl, set_delete_and_get) {
   tests.push_back(std::make_pair("tramway", "5"));
   tests.push_back(std::make_pair("tram", "6"));
   tests.push_back(std::make_pair("tramva", "7"));
-  state_impl state;
+
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl state(hasher);
   // add all nodes
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
@@ -56,6 +64,40 @@ TEST(state_impl, set_delete_and_get) {
   }
 }
 
+TEST(state_impl, node_hash_add_erase) {
+  uint8_t digest32[32];
+  std::stack<std::string> root_hashes;
+  std::stack<std::string> keys;
+  int32_t key_count = 3;
+
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl state(hasher);
+
+  // Add keys/values to the state and add the root hash into a stack
+  for (int32_t i = 0; i < key_count; ++i) {
+    root_hashes.push(state.get_node_hash(""));
+    std::string data = std::to_string(i);
+
+    hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
+        digest32);
+    keys.emplace((char*)digest32, 32);
+
+    state.set(keys.top(), data);
+  }
+  // Erase the keys in reverse order and check if root hash the saved one
+  // for the same trie state
+
+  for (int32_t i = 0; i < key_count; ++i) {
+    state.erase(keys.top());
+    keys.pop();
+
+    EXPECT_EQ(state.get_node_hash(""), root_hashes.top());
+    root_hashes.pop();
+  }
+
+}
 
 
 /*
