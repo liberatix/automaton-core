@@ -68,7 +68,7 @@ TEST(state_impl, node_hash_add_erase) {
   uint8_t digest32[32];
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 3;
+  int32_t key_count = 10000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;

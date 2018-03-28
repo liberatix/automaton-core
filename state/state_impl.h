@@ -1,16 +1,16 @@
 #ifndef AUTOMATON_CORE_STATE_IMPL_H__
 #define AUTOMATON_CORE_STATE_IMPL_H__
 
-#include "state/state.h"
-#include "crypto/hash_transformation.h"
 #include <stdint.h>
 #include <string>
 #include <vector>
 #include <stack>
+#include "state/state.h"
+#include "crypto/hash_transformation.h"
 
 class state_impl : public state{
  public:
-  state_impl(hash_transformation* hasher);
+  explicit state_impl(hash_transformation* hasher);
 
   // Get the value at given path. Empty string if no value is set or
   // there is no node at the given path

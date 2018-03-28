@@ -1,22 +1,9 @@
+#include "state/state_impl.h"
 #include <algorithm>
-#include <bitset>
-#include <iostream>
-#include <set>
 #include <string>
-#include <thread>
-#include <type_traits>
-#include <typeinfo>
-#include <tuple>
-#include <utility>
 #include <vector>
 #include <stack>
-#include "state/state.h"
-#include "state/state_impl.h"
 #include "crypto/hash_transformation.h"
-#include <ctime>
-#include <random>
-#include <iomanip>
-#include <sstream>
 
 
 state_impl::state_impl(hash_transformation* hasher) {
@@ -27,7 +14,7 @@ state_impl::state_impl(hash_transformation* hasher) {
 
 std::string state_impl::get(const std::string& key) {
   int32_t node_index = get_node_index(key);
-  std::cout << "index at key\"" << key << "\": " << node_index << std::endl;
+  //std::cout << "index at key\"" << key << "\": " << node_index << std::endl;
   return node_index == -1 ? "" : nodes[node_index].value;
 }
 void state_impl::set(const std::string& key, const std::string& value) {
@@ -148,7 +135,8 @@ std::string state_impl::get_node_hash(const std::string& path) {
 //  return result;
 //}
 
-std::vector<unsigned char> state_impl::get_node_children(const std::string& path) {
+std::vector<unsigned char> state_impl::get_node_children(
+    const std::string& path) {
   std::vector<unsigned char> result;
   int32_t node_index = get_node_index(path);
   if (node_index == -1) {
