@@ -6,7 +6,6 @@
 
 class state {
  public:
-
   // Get the value at given path. Empty string if no value is set or
   // there is no node at the given path
   virtual std::string get(const std::string& key) = 0;
@@ -19,7 +18,8 @@ class state {
   virtual std::string get_node_hash(const std::string& path) = 0;
 
   // Get the children as chars
-  virtual std::vector<unsigned char> get_node_children(const std::string& path) = 0;
+  virtual std::vector<unsigned char> get_node_children(
+      const std::string& path) = 0;
 
   // Erase previously set element in the trie
   virtual void erase(const std::string& path) = 0;

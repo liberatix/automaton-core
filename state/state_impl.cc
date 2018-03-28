@@ -328,10 +328,10 @@ void state_impl::calculate_hash(uint32_t cur_node) {
   }
   uint8_t * digest = new uint8_t[hasher->digest_size()];
   hasher->final(digest);
-  nodes[cur_node].hash = std::string((char*)digest, hasher->digest_size());
+  nodes[cur_node].hash = std::string(reinterpret_cast<char*>(digest),
+      hasher->digest_size());
 
   if (cur_node != 0) {
     calculate_hash(nodes[cur_node].parent);
   }
-
 }
