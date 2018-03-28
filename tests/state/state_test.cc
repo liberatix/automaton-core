@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <string>
 #include "gtest/gtest.h"
 #include "state/state_impl.h"
 #include "crypto/SHA256_cryptopp.h"
@@ -82,7 +81,7 @@ TEST(state_impl, node_hash_add_erase) {
 
     hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
         digest32);
-    keys.emplace((char*)digest32, 32);
+    keys.emplace(reinterpret_cast<char*>(digest32), 32);
 
     state.set(keys.top(), data);
   }
@@ -96,7 +95,6 @@ TEST(state_impl, node_hash_add_erase) {
     EXPECT_EQ(state.get_node_hash(""), root_hashes.top());
     root_hashes.pop();
   }
-
 }
 
 

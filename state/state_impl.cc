@@ -14,7 +14,7 @@ state_impl::state_impl(hash_transformation* hasher) {
 
 std::string state_impl::get(const std::string& key) {
   int32_t node_index = get_node_index(key);
-  //std::cout << "index at key\"" << key << "\": " << node_index << std::endl;
+  //  std::cout << "index at key\"" << key << "\": " << node_index << std::endl;
   return node_index == -1 ? "" : nodes[node_index].value;
 }
 void state_impl::set(const std::string& key, const std::string& value) {
@@ -302,7 +302,7 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
 
 void state_impl::calculate_hash(uint32_t cur_node) {
   const uint8_t *value, *prefix, *child_hash;
-  hasher->restart(); // just in case
+  hasher->restart();  // just in case
 
   // Hash the value
   value =
