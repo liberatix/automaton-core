@@ -63,35 +63,72 @@ TEST(state_impl, set_delete_and_get) {
   }
 }
 
-TEST(state_impl, node_hash_add_erase) {
+std::string tohex(std::string s) {
+  std::stringstream ss;
+  for (int i = 0; i < s.size(); i++) {
+    ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << ((int)s[i] & 0xff);
+  }
+  return ss.str();
+}
+
+std::string hash_key(int i) {
   uint8_t digest32[32];
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  std::string data = std::to_string(i);
+  hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
+      digest32);
+  return std::string(reinterpret_cast<char*>(digest32), 16 + i % 16);
+}
+
+TEST(state_impl, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 5000;
+  int32_t key_count = 70000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
   state_impl state(hasher);
 
-  // Add keys/values to the state and add the root hash into a stack
+  // Add keys/values to the state and add the root hash into a stack.
   for (int32_t i = 0; i < key_count; ++i) {
     root_hashes.push(state.get_node_hash(""));
+    std::string key = hash_key(i);
     std::string data = std::to_string(i);
-
-    hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
-        digest32);
-    keys.emplace(reinterpret_cast<char*>(digest32), 32);
+    keys.push(key);
 
     state.set(keys.top(), data);
+    EXPECT_EQ(data, state.get(keys.top()));
+
+    if (i % 1000) {
+      continue;
+    }
+    // Integrity check for all prior key/values.
+    std::cout << i << std::endl;
+    for (int32_t j = 0; j <= i; j++) {
+      std::string data = std::to_string(j);
+      std::string key = hash_key(j);
+
+      if (data != state.get(key)) {
+        std::cout << "Setting " << i << " fails at " << j << std::endl;
+        std::cout << "Setting key " << tohex(keys.top())
+          << " fails " << tohex(key) << std::endl;
+        throw "!!!";
+      }
+    }
   }
+
   // Erase the keys in reverse order and check if root hash the saved one
   // for the same trie state
 
-  for (int32_t i = 0; i < key_count; ++i) {
+  for (int32_t i = 0; i < key_count; i++) {
     state.erase(keys.top());
     keys.pop();
 
+    if (i % 1000 == 0) {
+      std::cout << "Passed " << i << " deletions in reverse order.\n";
+    }
     EXPECT_EQ(state.get_node_hash(""), root_hashes.top());
     root_hashes.pop();
   }

@@ -1,10 +1,19 @@
 #include "state/state_impl.h"
 #include <algorithm>
+#include <iomanip>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <stack>
 #include "crypto/hash_transformation.h"
 
+std::string tohex(std::string s) {
+  std::stringstream ss;
+  for (int i = 0; i < s.size(); i++) {
+    ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << ((int)s[i] & 0xff);
+  }
+  return ss.str();
+}
 
 state_impl::state_impl(hash_transformation* hasher) {
   nodes.push_back(state_impl::node());
@@ -51,7 +60,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
     } else {
       // If next path element does not match the next prefix element,
       // create a split node at the difference
-      if (path_element != nodes[cur_node].prefix[cur_prefix_index]) {
+      if (path_element != (unsigned char)nodes[cur_node].prefix[cur_prefix_index]) {
         const std::string cur_node_prefix = nodes[cur_node].prefix;
 
         // Create the split_node and set up links with cur_node
@@ -60,7 +69,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
         // Set split node as parent of cur_node
         nodes[cur_node].parent = split_node;
         // Set the current node as child of the new split node
-        unsigned char path_to_child = cur_node_prefix[cur_prefix_index];
+        unsigned char path_to_child = (unsigned char)cur_node_prefix[cur_prefix_index];
         nodes[split_node].children[path_to_child] = cur_node;
 
         // set prefix of split_node and cur_node
@@ -140,7 +149,7 @@ std::vector<unsigned char> state_impl::get_node_children(
   std::vector<unsigned char> result;
   int32_t node_index = get_node_index(path);
   if (node_index == -1) {
-    throw std::out_of_range("No node at this path");
+    throw std::out_of_range("No node at this path: " + tohex(path));
   }
   for (unsigned int i = 0; i < 256; ++i) {
     if (nodes[node_index].children[i]) {
@@ -162,8 +171,13 @@ void state_impl::delete_node_tree(const std::string& path) {
 //      merge parent and its remaining child
 void state_impl::erase(const std::string& path) {
   int32_t cur_node = get_node_index(path);
+  /*
+  if (path.length() != 32) {
+    throw std::out_of_range("Length is not 32: " + path);
+  }
+  */
   if (cur_node == -1 || nodes[cur_node].value == "") {
-    throw std::out_of_range("No set node at path at");
+    throw std::out_of_range("No set node at path: " + tohex(path));
   }
 
   // Get the children of this node
