@@ -10,7 +10,8 @@
 std::string tohex(std::string s) {
   std::stringstream ss;
   for (int i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << ((int)s[i] & 0xff);
+    ss << std::hex << std::uppercase << std::setw(2) <<
+        std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
   }
   return ss.str();
 }
@@ -60,7 +61,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
     } else {
       // If next path element does not match the next prefix element,
       // create a split node at the difference
-      if (path_element != (unsigned char)nodes[cur_node].prefix[cur_prefix_index]) {
+      if (path_element !=
+          (unsigned char)nodes[cur_node].prefix[cur_prefix_index]) {
         const std::string cur_node_prefix = nodes[cur_node].prefix;
 
         // Create the split_node and set up links with cur_node
@@ -69,7 +71,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
         // Set split node as parent of cur_node
         nodes[cur_node].parent = split_node;
         // Set the current node as child of the new split node
-        unsigned char path_to_child = (unsigned char)cur_node_prefix[cur_prefix_index];
+        unsigned char path_to_child =
+            (unsigned char)cur_node_prefix[cur_prefix_index];
         nodes[split_node].children[path_to_child] = cur_node;
 
         // set prefix of split_node and cur_node

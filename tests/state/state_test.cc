@@ -66,7 +66,8 @@ TEST(state_impl, set_delete_and_get) {
 std::string tohex(std::string s) {
   std::stringstream ss;
   for (int i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << ((int)s[i] & 0xff);
+    ss << std::hex << std::uppercase << std::setw(2) <<
+        std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
   }
   return ss.str();
 }
