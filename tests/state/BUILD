@@ -2,7 +2,7 @@
 cc_test(
     name = "state",
     srcs = ["state_test.cc"],
-    size = "small",
+    size = "large",
     deps = [
       "//state",
       "@gtest//:gtest_main",
