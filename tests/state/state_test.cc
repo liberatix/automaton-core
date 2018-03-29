@@ -85,7 +85,7 @@ std::string hash_key(int i) {
 TEST(state_impl, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 70000;
+  int32_t key_count = 100000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
@@ -125,12 +125,32 @@ TEST(state_impl, node_hash_add_erase) {
 
   for (int32_t i = 0; i < key_count; i++) {
     state.erase(keys.top());
+
+    // Integrity check for all prior key/values.
+    if (i % 1000 == 0) {
+      std::cout << i << std::endl;
+      for (int32_t j = 0; j < key_count - i - 1; j++) {
+        std::string data = std::to_string(j);
+        std::string key = hash_key(j);
+
+        if (data != state.get(key)) {
+          std::cout << "Deleting " << (key_count - i) << " fails at " << j << std::endl;
+          std::cout << "Deleting key " << tohex(keys.top())
+            << " fails " << tohex(key) << std::endl;
+          throw std::domain_error("!!!");
+        }
+      }
+    }
+
     keys.pop();
 
     if (i % 1000 == 0) {
       std::cout << "Passed " << i << " deletions in reverse order.\n";
     }
     EXPECT_EQ(state.get_node_hash(""), root_hashes.top());
+    if (state.get_node_hash("") != root_hashes.top()) {
+      throw std::domain_error("BAD " + std::to_string(i));
+    }
     root_hashes.pop();
   }
 }

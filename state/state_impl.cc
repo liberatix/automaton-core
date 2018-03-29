@@ -242,6 +242,7 @@ void state_impl::erase(const std::string& path) {
       nodes[parent].children[path_from_parent] = child;
       nodes[child].parent = parent;
       fragmented_locations.push(cur_node);
+      // cur_node = child;
     }
   }
   calculate_hash(cur_node);
