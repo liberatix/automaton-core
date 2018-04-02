@@ -134,7 +134,8 @@ TEST(state_impl, node_hash_add_erase) {
         std::string key = hash_key(j);
 
         if (data != state.get(key)) {
-          std::cout << "Deleting " << (key_count - i) << " fails at " << j << std::endl;
+          std::cout << "Deleting " << (key_count - i) << " fails at "
+              << j << std::endl;
           std::cout << "Deleting key " << tohex(keys.top())
             << " fails " << tohex(key) << std::endl;
           throw std::domain_error("!!!");
