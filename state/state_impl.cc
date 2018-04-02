@@ -190,11 +190,12 @@ void state_impl::erase(const std::string& path) {
 
   // Get the children of this node
   std::vector<unsigned char> children;
-  for (unsigned int i = 0; i < 256; ++i) {
+  unsigned char i = 0;
+  do {
     if (nodes[cur_node].children[i]) {
       children.push_back(i);
     }
-  }
+  } while (++i != 0);
 
   // If multiple children just erase the value
   if (children.size() > 1) {
@@ -227,11 +228,12 @@ void state_impl::erase(const std::string& path) {
     // Find out how many children does the parent have
     children.clear();
     cur_node = parent;
-    for (unsigned int i = 0; i < 256; ++i) {
+    unsigned char i = 0;
+    do {
       if (nodes[cur_node].children[i]) {
         children.push_back(i);
       }
-    }
+    } while (++i != 0);
     // If the parent of the deleted node has no prefix, has only one
     // child remaining and is not the root we will merge it with his child
     if (nodes[cur_node].value.length() == 0
