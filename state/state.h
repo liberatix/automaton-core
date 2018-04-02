@@ -18,7 +18,7 @@ class state {
   virtual std::string get_node_hash(const std::string& path) = 0;
 
   // Get the children as chars
-  virtual std::vector<unsigned char> get_node_children(
+  virtual std::vector<std::string> get_node_children(
       const std::string& path) = 0;
 
   // Erase previously set element in the trie

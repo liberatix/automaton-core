@@ -25,7 +25,7 @@ class state_impl : public state{
 
   // Get the children as chars //TODO(Samir:) change to to return sting path to
   // children with value.
-  std::vector<unsigned char> get_node_children(const std::string& path);
+  std::vector<std::string> get_node_children(const std::string& path);
 
   // Erase previously set element in the trie
   void erase(const std::string& path);
@@ -41,6 +41,9 @@ class state_impl : public state{
 
   // get the size of the hash in bytes
   uint32_t hash_size();
+
+  // compare differences in with the second state and print path
+  void print_subtrie(std::string path, std::string formated_path);
 
  private:
   struct node {

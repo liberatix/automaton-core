@@ -7,7 +7,9 @@
 #include <stack>
 #include "crypto/hash_transformation.h"
 
-std::string tohex(std::string s) {
+typedef std::basic_string<unsigned char> ustring;
+
+static std::string tohex(std::string s) {
   std::stringstream ss;
   for (int i = 0; i < s.size(); i++) {
     ss << std::hex << std::uppercase << std::setw(2) <<
@@ -38,8 +40,6 @@ void state_impl::set(const std::string& key, const std::string& value) {
   for (; i < key.length(); ++i) {
     unsigned char path_element = key[i];
     // If there is no prefix or thre is prefix but we have reached the end
-    // TODO(Samir): Check why this can't be just
-    // cur_prefix_index == nodes[cur_node].prefix.length()
     if (cur_prefix_index == nodes[cur_node].prefix.length()) {
       // If there is children with the next path element continue on the path
       if (nodes[cur_node].children[path_element] != 0) {
@@ -53,7 +53,6 @@ void state_impl::set(const std::string& key, const std::string& value) {
         // this node has no children so it's the final node
         // and the remainder of the path will be the prefix
         nodes[cur_node].prefix = key.substr(i);
-        // cur_prefix_index = nodes[cur_node].prefix.length();
         break;
       }
       cur_prefix_index = 0;
@@ -85,6 +84,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
         } else {
           nodes[cur_node].prefix = "";
         }
+        // Recalculate the hash of the child part of the node that got split
+        calculate_hash(cur_node);
         // Create the new node from the split to the next path element
         cur_node = add_node(split_node, path_element);
         cur_prefix_index = 0;
@@ -118,6 +119,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
     } else {
       nodes[cur_node].prefix = "";
     }
+    // Recalculate the hash of the child part of the node that got split
+    calculate_hash(cur_node);
     // Create the new node from the split to the next path element
     cur_node = split_node;
   }
@@ -132,35 +135,37 @@ std::string state_impl::get_node_hash(const std::string& path) {
   return node_index == -1 ? "" : nodes[node_index].hash;
 }
 
-//  std::vector<std::string>
-//        get_node_children_as_string::string(const std::string& path) {
-//  std::vector<std::string> result;
-//  uint32_t node_index = get_node_index(path);
+  std::vector<std::string> state_impl::get_node_children(
+      const std::string& path) {
+  std::vector<std::string> result;
+  int32_t node_index = get_node_index(path);
+  if (node_index == -1) {
+    throw std::exception("No node at this path");
+  }
+  unsigned char i = 0;
+  do {
+    if (nodes[node_index].children[i]) {
+      uint32_t child = nodes[node_index].children[i];
+      result.push_back(std::string((const char*)&i,1) + nodes[child].prefix);
+    }
+  } while (++i != 0);
+  return result;
+}
+
+//std::vector<unsigned char> state_impl::get_node_children(
+//    const std::string& path) {
+//  std::vector<unsigned char> result;
+//  int32_t node_index = get_node_index(path);
 //  if (node_index == -1) {
-//    throw std::exception("No node at this path");
+//    throw std::out_of_range("No node at this path: " + tohex(path));
 //  }
 //  for (unsigned int i = 0; i < 256; ++i) {
 //    if (nodes[node_index].children[i]) {
-//      result.push_back(std::string((const char*)&i));
+//      result.push_back(i);
 //    }
 //  }
 //  return result;
 //}
-
-std::vector<unsigned char> state_impl::get_node_children(
-    const std::string& path) {
-  std::vector<unsigned char> result;
-  int32_t node_index = get_node_index(path);
-  if (node_index == -1) {
-    throw std::out_of_range("No node at this path: " + tohex(path));
-  }
-  for (unsigned int i = 0; i < 256; ++i) {
-    if (nodes[node_index].children[i]) {
-      result.push_back(i);
-    }
-  }
-  return result;
-}
 
 void state_impl::delete_node_tree(const std::string& path) {
   // TODO(Samir): Implement delete subtrie ( subtrie of node with value only? )
@@ -213,8 +218,8 @@ void state_impl::erase(const std::string& path) {
   } else {
     // erase the link from parent
     uint32_t parent = nodes[cur_node].parent;
-    uint32_t path_from_parent_index = path.length() -
-        nodes[cur_node].prefix.length() - 1;
+    uint32_t path_from_parent_index = (path.length() -
+        nodes[cur_node].prefix.length()) - 1;
     unsigned char path_from_parent = path[path_from_parent_index];
     nodes[parent].children[path_from_parent] = 0;
     fragmented_locations.push(cur_node);
@@ -242,7 +247,7 @@ void state_impl::erase(const std::string& path) {
       nodes[parent].children[path_from_parent] = child;
       nodes[child].parent = parent;
       fragmented_locations.push(cur_node);
-      // cur_node = child;
+      cur_node = child;
     }
   }
   calculate_hash(cur_node);
@@ -258,10 +263,21 @@ uint32_t state_impl::hash_size() {
   return hasher->digest_size();
 }
 
+void state_impl::print_subtrie(std::string path, std::string formated_path) {
+  std::cout << formated_path << " prefix: " << tohex(nodes[get_node_index(path)].prefix) << " value: " << get(path)
+    << " hash: " << tohex(get_node_hash(path)) << std::endl << std::endl;
+  std::vector<std::string> children = get_node_children(path);
+  for (auto i : children) {
+    print_subtrie(path + i, formated_path + "/" + tohex(i));
+  }
+}
+
 int32_t state_impl::get_node_index(const std::string& path) {
   uint32_t cur_node = 0;
-
-  for (uint32_t i = 0; i < path.length(); i++) {
+  uint32_t i;
+  bool key_ended_at_edge = false;
+  for (i = 0; i < path.length(); i++) {
+    key_ended_at_edge = false;
     uint8_t path_element = path[i];
     // if no prefix keep looking
     if (nodes[cur_node].prefix.length() == 0) {
@@ -269,6 +285,7 @@ int32_t state_impl::get_node_index(const std::string& path) {
         return -1;
       }
       cur_node = nodes[cur_node].children[path_element];
+      key_ended_at_edge = true;
     // else compare prefix with remaining path and decide what to do
     } else {
       // if prefix is shorter than remaining path, compare them.
@@ -279,6 +296,7 @@ int32_t state_impl::get_node_index(const std::string& path) {
           path_element = path[i];
           if (nodes[cur_node].children[path_element]) {
             cur_node = nodes[cur_node].children[path_element];
+            key_ended_at_edge = true;
           } else {
             return -1;
           }
@@ -297,6 +315,9 @@ int32_t state_impl::get_node_index(const std::string& path) {
         return -1;
       }
     }
+  }
+  if (key_ended_at_edge && nodes[cur_node].prefix.length()) {
+    return -1;
   }
   return cur_node;
 }
@@ -325,13 +346,19 @@ void state_impl::calculate_hash(uint32_t cur_node) {
   // Hash the value
   value =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].value.c_str());
-  size_t len = nodes[cur_node].value.length();
+  int len = nodes[cur_node].value.length();
+  if (cur_node == 678) { // 678 ... 
+    std::cout << "hashing value: " << tohex(std::string((char*)value, len)) << std::endl;
+  }
   hasher->update(value, len);
 
   // Hash the prefix
   prefix =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].prefix.c_str());
   len = nodes[cur_node].prefix.length();
+  if (cur_node == 678) {
+    std::cout << "hashing prefix: " << tohex(std::string((char*)prefix, len)) << std::endl;
+  }
   hasher->update(prefix, len);
 
   // Hash the children hashes
@@ -341,14 +368,26 @@ void state_impl::calculate_hash(uint32_t cur_node) {
       child_hash =
           reinterpret_cast<const uint8_t*>(nodes[child].hash.c_str());
       len = nodes[child].hash.length();
+      if (cur_node == 678) {
+        std::cout << "hashing child : "
+          << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << (i & 0xff)
+          << ": " << tohex(std::string((char*)child_hash, len)) << std::endl;
+        std::cout << std::dec << "len: " << len << std::endl;
+      }
       hasher->update(child_hash, len);
     }
   }
   uint8_t * digest = new uint8_t[hasher->digest_size()];
+ 
   hasher->final(digest);
   nodes[cur_node].hash = std::string(reinterpret_cast<char*>(digest),
-      hasher->digest_size());
+    hasher->digest_size());
+  
+  if (cur_node == 678) {
+      std::cout << "the hash of 678: " <<  tohex(nodes[cur_node].hash) << std::endl << std::endl;
+  }
 
+  delete[] digest;
   if (cur_node != 0) {
     calculate_hash(nodes[cur_node].parent);
   }
