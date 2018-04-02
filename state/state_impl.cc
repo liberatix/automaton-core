@@ -11,7 +11,7 @@ typedef std::basic_string<unsigned char> ustring;
 
 static std::string tohex(std::string s) {
   std::stringstream ss;
-  for (int i = 0; i < s.size(); i++) {
+  for (uint32_t i = 0; i < s.size(); i++) {
     ss << std::hex << std::uppercase << std::setw(2) <<
         std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
   }
@@ -140,7 +140,7 @@ std::string state_impl::get_node_hash(const std::string& path) {
   std::vector<std::string> result;
   int32_t node_index = get_node_index(path);
   if (node_index == -1) {
-    throw std::exception("No node at this path");
+    throw std::out_of_range("No node at this path");
   }
   unsigned char i = 0;
   do {
