@@ -1,8 +1,9 @@
 
 cc_test(
-    name = "dummy_state_test",
-    srcs = ["dummy_state_test.cc"],
-    size = "small",
+    name = "state",
+    srcs = ["state_test.cc"],
+    size = "medium",
+    timeout = "moderate",
     deps = [
       "//state",
       "@gtest//:gtest_main",
