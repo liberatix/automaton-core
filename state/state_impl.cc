@@ -129,7 +129,6 @@ void state_impl::set(const std::string& key, const std::string& value) {
   calculate_hash(cur_node);
 }
 
-// TODO(Samir): add return in hex format
 std::string state_impl::get_node_hash(const std::string& path) {
   int32_t node_index = get_node_index(path);
   return node_index == -1 ? "" : nodes[node_index].hash;
@@ -146,13 +145,14 @@ std::string state_impl::get_node_hash(const std::string& path) {
   do {
     if (nodes[node_index].children[i]) {
       uint32_t child = nodes[node_index].children[i];
-      result.push_back(std::string((const char*)&i,1) + nodes[child].prefix);
+      // TODO(Samir): potential bug ( big vs little endian)
+      result.push_back(std::string((const char*)&i, 1) + nodes[child].prefix);
     }
   } while (++i != 0);
   return result;
 }
 
-//std::vector<unsigned char> state_impl::get_node_children(
+//  std::vector<unsigned char> state_impl::get_node_children(
 //    const std::string& path) {
 //  std::vector<unsigned char> result;
 //  int32_t node_index = get_node_index(path);
@@ -264,8 +264,9 @@ uint32_t state_impl::hash_size() {
 }
 
 void state_impl::print_subtrie(std::string path, std::string formated_path) {
-  std::cout << formated_path << " prefix: " << tohex(nodes[get_node_index(path)].prefix) << " value: " << get(path)
-    << " hash: " << tohex(get_node_hash(path)) << std::endl << std::endl;
+  std::cout << formated_path << " prefix: " <<
+      tohex(nodes[get_node_index(path)].prefix) << " value: " << get(path)
+      << " hash: " << tohex(get_node_hash(path)) << std::endl << std::endl;
   std::vector<std::string> children = get_node_children(path);
   for (auto i : children) {
     print_subtrie(path + i, formated_path + "/" + tohex(i));
@@ -333,6 +334,7 @@ bool state_impl::has_children(uint32_t node_index) {
 }
 
 uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
+  // TODO(Samir): use fragmented_locations if avalible
   nodes[from].children[to] = nodes.size();
   nodes.push_back(node());  // change to -> new node() and refactor;
   nodes[nodes[from].children[to]].parent = from;
@@ -347,18 +349,12 @@ void state_impl::calculate_hash(uint32_t cur_node) {
   value =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].value.c_str());
   int len = nodes[cur_node].value.length();
-  if (cur_node == 678) { // 678 ... 
-    std::cout << "hashing value: " << tohex(std::string((char*)value, len)) << std::endl;
-  }
   hasher->update(value, len);
 
   // Hash the prefix
   prefix =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].prefix.c_str());
   len = nodes[cur_node].prefix.length();
-  if (cur_node == 678) {
-    std::cout << "hashing prefix: " << tohex(std::string((char*)prefix, len)) << std::endl;
-  }
   hasher->update(prefix, len);
 
   // Hash the children hashes
@@ -368,24 +364,13 @@ void state_impl::calculate_hash(uint32_t cur_node) {
       child_hash =
           reinterpret_cast<const uint8_t*>(nodes[child].hash.c_str());
       len = nodes[child].hash.length();
-      if (cur_node == 678) {
-        std::cout << "hashing child : "
-          << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << (i & 0xff)
-          << ": " << tohex(std::string((char*)child_hash, len)) << std::endl;
-        std::cout << std::dec << "len: " << len << std::endl;
-      }
       hasher->update(child_hash, len);
     }
   }
   uint8_t * digest = new uint8_t[hasher->digest_size()];
- 
   hasher->final(digest);
   nodes[cur_node].hash = std::string(reinterpret_cast<char*>(digest),
     hasher->digest_size());
-  
-  if (cur_node == 678) {
-      std::cout << "the hash of 678: " <<  tohex(nodes[cur_node].hash) << std::endl << std::endl;
-  }
 
   delete[] digest;
   if (cur_node != 0) {
