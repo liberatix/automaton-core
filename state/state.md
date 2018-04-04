@@ -49,10 +49,10 @@ class state {
   void delete_node_tree(string path) = 0;
 
   // finalizes the changes made by set
-  void commit_changes() = 0;
+  void commit() = 0;
 
   // discards the changes made by set;
-  void discard_changes() = 0;
+  void abort() = 0;
 }
 ```
 
@@ -113,28 +113,28 @@ delete_node_tree("abc");
 ```
 
 
-### commit_changes and discard_changes
+### commit and abort
 ```cpp
 set("ab", "1");
 get("ab");
 // -> "1"
-commit_changes();
+commit();
 set("cd", "2");
 get("ab");
 // -> "1"
 get("cd")
 // -> "2"
-discard_changes();
+abort();
 get("ab");
 // -> "1"
 get("cd")
 // -> ""
-// Changed made after commit_changes() was called are
-// discarded when discard_changes is called
+// Changed made after commit() was called are
+// discarded when abort is called
 delete_node_tree("ab");
 get("ab");
 // -> ""
-discard_changes();
+abort();
 get("ab");
 // -> "1"
 ```
