@@ -1,10 +1,10 @@
 #include "network/tcp_implementation.h"
 
+#include <boost/asio/read.hpp>
+
 #include <regex>
 #include <thread>
 #include <mutex>
-
-#include <boost/asio/read.hpp>
 
 // TODO(kari): proper exit, clear resources..
 // TODO(kari): improve init function and handle the new thread
@@ -144,7 +144,7 @@ void tcp_connection::async_read(char* buffer, int buffer_size,
             logging("ERROR (in start_listening() 0): " +
                 boost_error_code.message());
             handler->on_error(this, connection::error::unknown);
-            // TODO(kari): what errors and when should start_listening be called?
+            // TODO(kari): what errors and when should read be called?
           }
         } else {
           handler->on_message_received(this, std::string(buffer, 0,
@@ -168,7 +168,7 @@ void tcp_connection::async_read(char* buffer, int buffer_size,
             logging("ERROR (in start_listening() 0): " +
                 boost_error_code.message());
             handler->on_error(this, connection::error::unknown);
-            // TODO(kari): what errors and when should start_listening be called?
+            // TODO(kari): what errors and when should read be called?
           }
         } else {
           handler->on_message_received(this, std::string(buffer, 0,
