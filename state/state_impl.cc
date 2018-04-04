@@ -212,7 +212,6 @@ void state_impl::erase(const std::string& path) {
         && children.size() == 1 && cur_node != 0) {
       parent = nodes[cur_node].parent;
       uint32_t child = nodes[cur_node].children[children[0]];
-      //nodes[child].prefix.insert(0, 1, children[0]);
       nodes[child].prefix.insert(0, nodes[cur_node].prefix);
 
       // link parent and child

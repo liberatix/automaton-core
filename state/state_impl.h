@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <map>
 #include <vector>
 #include <stack>
 #include "state/state.h"
@@ -63,7 +64,8 @@ class state_impl : public state{
   // This needs to be called at the end of set() and erase() to recalculate the
   // hashes of all nodes from lowest child that was changed to the root
   void calculate_hash(uint32_t cur_node);
-  // Create 
+  // Create a backup starting from cur_node to root if they are not
+  // in the backup map
   void backup_nodes(uint32_t cur_node);
   std::map<uint32_t, node> backup;
 };
