@@ -68,6 +68,11 @@ class connection {
     invoked once the message was sent successfully.
   **/
   virtual void async_send(const std::string& message, int id = 0) = 0;
+  virtual void async_read(char* buffer, int buffer_size, int num_bytes = 0) = 0;
+
+  virtual state get_state() = 0;
+  virtual void connect() = 0;
+  virtual void disconnect() = 0;
 
   /**
     Function that is used to create objects from a specified child class.

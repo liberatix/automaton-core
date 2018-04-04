@@ -38,7 +38,7 @@ int max_connections = 8;
 
 */
 
-const int BUFFER_SIZE = 256;
+const int DEFAULT_BUFFER_SIZE = 256;
 
 /**
   Class that represents a connection with a remote peer.
@@ -76,6 +76,10 @@ class tcp_connection: public connection {
   void async_send(const std::string& msg, int id);
 
   /**
+  **/
+  void async_read(char* buffer, int buffer_size, int num_bytes);
+
+  /**
     When this function is called, the local peer start listening for messages from
     the remote peer. If a message was successfully received, handler's
     on_message_received() will be called. If the remote peer disconnects, handler's
@@ -83,7 +87,7 @@ class tcp_connection: public connection {
     on_error() will be called. This function is called from connect() but can be
     called again if an error occured and listening for messages was interrupted.
   **/
-  void start_listening();
+//  void start_listening(); REMOVED
 
   /**
     This function can be called to disconnect peer. To reconnect connect() shoul be
@@ -101,11 +105,12 @@ class tcp_connection: public connection {
 
   std::string get_address();
 
+  connection::state get_state();
+
  private:
   boost::asio::ip::tcp::endpoint asio_endpoint;
   boost::asio::ip::tcp::socket asio_socket;
   std::string address;
-  char msg_buffer[BUFFER_SIZE];  // receive buffer
 };
 
 class tcp_acceptor:public acceptor {

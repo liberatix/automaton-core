@@ -36,6 +36,9 @@ class handler: public connection::connection_handler {
         (reinterpret_cast<tcp_connection*>(c))->get_address());
   }
   void on_error(connection* c, connection::error e) {
+    if (e == connection::no_error) {
+      return;
+    }
     logging("Error: " + std::to_string(e) + " (connection " +
         (reinterpret_cast<tcp_connection*>(c))->get_address() + ")");
   }
@@ -57,45 +60,55 @@ class lis_handler: public acceptor::acceptor_handler {
     logging("Error (acceptor): " + std::to_string(e));
   }
 };
-handler _handlerA, _handlerB, _handlerC, _handlerD;
-void thread1() {
-  connection* _connection_a = connection::create("tcp", address_b, &_handlerA);
 
-  _connection_a -> async_send("A0", counter++);
+handler handlerA, handlerB, handlerC, handlerD;
+void thread1() {
+  char* buffer = new char[256];
+  connection* connection_a = connection::create("tcp", address_b, &handlerA);
+  connection_a -> connect();
+  connection_a -> async_read(buffer, 256, 0);
+  connection_a -> async_send("A0", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  _connection_a -> async_send("A1", counter++);
+  connection_a -> async_send("A1", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  _connection_a -> async_send("A2", counter++);
+  connection_a -> async_send("A2", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  reinterpret_cast<tcp_connection*>(_connection_a) -> disconnect();
+  reinterpret_cast<tcp_connection*>(connection_a) -> disconnect();
 }
 void thread2() {
-  connection* _connection_b = connection::create("tcp", address_b, &_handlerB);
+  char* buffer = new char[256];
+  connection* connection_b = connection::create("tcp", address_b, &handlerB);
+  connection_b -> connect();
+  connection_b -> async_read(buffer, 256, 0);
   std::this_thread::sleep_for(std::chrono::milliseconds(60));
-  _connection_b -> async_send("B0", counter++);
+  connection_b -> async_send("B0", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  _connection_b -> async_send("B1", counter++);
+  connection_b -> async_send("B1", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  _connection_b -> async_send("B2", counter++);
-  reinterpret_cast<tcp_connection*>(_connection_b) -> disconnect();
-  _connection_b -> async_send("B2", counter++);  // Error
+  connection_b -> async_send("B2", counter++);
+  reinterpret_cast<tcp_connection*>(connection_b) -> disconnect();
+  connection_b -> async_send("B2", counter++);  // Error
 }
 void thread3() {
-  connection* _connection_c = connection::create("tcp", address_b, &_handlerC);
-  _connection_c -> async_send("C0", counter++);
+  char* buffer = new char[256];
+  connection* connection_c = connection::create("tcp", address_b, &handlerC);
+  connection_c -> connect();
+  connection_c -> async_read(buffer, 256, 0);
+  connection_c -> async_send("C0", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  _connection_c -> async_send("C1", counter++);
+  connection_c -> async_send("C1", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  _connection_c -> async_send("C2", counter++);
+  connection_c -> async_send("C2", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  reinterpret_cast<tcp_connection*>(_connection_c) -> disconnect();
+  reinterpret_cast<tcp_connection*>(connection_c) -> disconnect();
 }
 
 int main() {
   tcp_init();
-  lis_handler _lis_handler;
-  acceptor* _acceptorB = acceptor::create("tcp", address_b, &_lis_handler,
-      &_handlerD);
+  lis_handler lis_handler;
+  acceptor* acceptorB = acceptor::create("tcp", address_b, &lis_handler,
+      &handlerD);
+  acceptorB->start_accepting();
   std::thread t1(thread1);
   std::thread t2(thread2);
   std::thread t3(thread3);
@@ -104,7 +117,7 @@ int main() {
   }
   int r; std::cin >> r;
   t1.join();
-  t2.join();
-  t3.join();
+//  t2.join();
+//  t3.join();
   return 0;
 }
