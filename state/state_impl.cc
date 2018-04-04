@@ -263,7 +263,7 @@ int32_t state_impl::get_node_index(const std::string& path) {
     } else {
       // if prefix is shorter than remaining path, compare them.
       if ((int32_t)nodes[cur_node].prefix.length()-1 <
-          (int32_t)path.length() - i) {
+          (int32_t)path.length() - (int32_t)i) {
         if (nodes[cur_node].prefix == path.substr(i-1,
             nodes[cur_node].prefix.length())) {
           i += (int32_t)nodes[cur_node].prefix.length()-1;
@@ -279,7 +279,7 @@ int32_t state_impl::get_node_index(const std::string& path) {
         }
       // if prefix length is equal to remaining path compare
       } else if ((int32_t)nodes[cur_node].prefix.length()-1
-            == (int32_t)path.length() - i) {
+            == (int32_t)path.length() - (int32_t)i) {
         if (nodes[cur_node].prefix == path.substr(i-1)) {
           return cur_node;
         } else {
