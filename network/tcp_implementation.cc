@@ -137,7 +137,8 @@ void tcp_connection::async_read(char* buffer, int buffer_size,
           if (boost_error_code == boost::asio::error::eof) {
             handler->on_disconnected(this);
             return;
-          } else if (boost_error_code == boost::asio::error::operation_aborted) {
+          } else if (boost_error_code ==
+                boost::asio::error::operation_aborted) {
             return;
           } else {
             logging("ERROR (in start_listening() 0): " +
@@ -151,7 +152,8 @@ void tcp_connection::async_read(char* buffer, int buffer_size,
         }
       });
     } else {
-        boost::asio::async_read(asio_socket, boost::asio::buffer(buffer, buffer_size),
+        boost::asio::async_read(asio_socket,
+          boost::asio::buffer(buffer, buffer_size),
           boost::asio::transfer_exactly(num_bytes),
           [this, buffer](const boost::system::error_code& boost_error_code,
           size_t bytes_transferred) {
@@ -159,7 +161,8 @@ void tcp_connection::async_read(char* buffer, int buffer_size,
           if (boost_error_code == boost::asio::error::eof) {
             handler->on_disconnected(this);
             return;
-          } else if (boost_error_code == boost::asio::error::operation_aborted) {
+          } else if (boost_error_code ==
+              boost::asio::error::operation_aborted) {
             return;
           } else {
             logging("ERROR (in start_listening() 0): " +
