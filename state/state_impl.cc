@@ -1,4 +1,5 @@
 #include "state/state_impl.h"
+#include <map>
 #include <algorithm>
 #include <iomanip>
 #include <string>
@@ -46,11 +47,11 @@ void state_impl::set(const std::string& key, const std::string& value) {
         cur_node = nodes[cur_node].children[path_element];
       } else if (has_children(cur_node) ||
           nodes[cur_node].value != "" || cur_node == 0) {
-        // This node has children, value set or is the root. 
+        // This node has children, value set or is the root.
         // It can't be the final node.
         cur_node = add_node(cur_node, path_element);
       } else {
-        // this node has no children so it's the final node. The remainder 
+        // this node has no children so it's the final node. The remainder
         // of the path will be the prefix including the path from parent
         nodes[cur_node].prefix.append(key.substr(i));
         break;
@@ -77,7 +78,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
         // set prefix of split_node and cur_node
         nodes[split_node].prefix = cur_node_prefix.substr(0, cur_prefix_index);
         nodes[cur_node].prefix = cur_node_prefix.substr(cur_prefix_index);
-        
+
         // Recalculate the hash of the child part of the node that got split
         calculate_hash(cur_node);
         // Create the new node from the split to the next path element
@@ -96,7 +97,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
     const std::string cur_node_prefix = nodes[cur_node].prefix;
 
     // Create the split_node and set up links with cur_node
-    uint32_t split_node = add_node(nodes[cur_node].parent, nodes[cur_node].prefix[0]); //key[key.length() - cur_prefix_index-1]);
+    uint32_t split_node = add_node(nodes[cur_node].parent,
+        nodes[cur_node].prefix[0]);
     // Set split node as parent of cur_node
     nodes[cur_node].parent = split_node;
 
@@ -141,21 +143,6 @@ std::string state_impl::get_node_hash(const std::string& path) {
   return result;
 }
 
-//  std::vector<unsigned char> state_impl::get_node_children(
-//    const std::string& path) {
-//  std::vector<unsigned char> result;
-//  int32_t node_index = get_node_index(path);
-//  if (node_index == -1) {
-//    throw std::out_of_range("No node at this path: " + tohex(path));
-//  }
-//  for (unsigned int i = 0; i < 256; ++i) {
-//    if (nodes[node_index].children[i]) {
-//      result.push_back(i);
-//    }
-//  }
-//  return result;
-//}
-
 void state_impl::delete_node_tree(const std::string& path) {
   // TODO(Samir): Implement delete subtrie ( subtrie of node with value only? )
   throw std::exception();
@@ -194,7 +181,6 @@ void state_impl::erase(const std::string& path) {
     uint32_t parent = nodes[cur_node].parent;
     uint32_t child = nodes[cur_node].children[children[0]];
     // add the prefix of current node to the child
-    //nodes[child].prefix.insert(0, 1, children[0]);
     nodes[child].prefix.insert(0, nodes[cur_node].prefix);
     // link parent and child
     unsigned char path_from_parent = nodes[cur_node].prefix[0];
@@ -207,8 +193,6 @@ void state_impl::erase(const std::string& path) {
   } else {
     // erase the link from parent
     uint32_t parent = nodes[cur_node].parent;
-    //uint32_t path_from_parent_index = (path.length() -
-    //    nodes[cur_node].prefix.length()) - 1;
     unsigned char path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = 0;
     fragmented_locations.push(cur_node);
@@ -232,7 +216,6 @@ void state_impl::erase(const std::string& path) {
       nodes[child].prefix.insert(0, nodes[cur_node].prefix);
 
       // link parent and child
-      // path_from_parent_index -= nodes[cur_node].prefix.length() + 1;
       path_from_parent = nodes[cur_node].prefix[0];
       nodes[parent].children[path_from_parent] = child;
       nodes[child].parent = parent;
@@ -295,7 +278,8 @@ int32_t state_impl::get_node_index(const std::string& path) {
           return -1;
         }
       // if prefix length is equal to remaining path compare
-      } else if ((int32_t)nodes[cur_node].prefix.length()-1 == path.length() - i) {
+      } else if ((int32_t)nodes[cur_node].prefix.length()-1
+            == path.length() - i) {
         if (nodes[cur_node].prefix == path.substr(i-1)) {
           return cur_node;
         } else {
@@ -329,7 +313,7 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
   nodes[from].children[to] = new_node;
   nodes.push_back(node());  // change to -> new node() and refactor;
   nodes[new_node].parent = from;
-  nodes[new_node].prefix = std::string((char*)&to, 1);
+  nodes[new_node].prefix = std::string(reinterpret_cast<char*>(&to), 1);
   return new_node;
 }
 
@@ -371,5 +355,4 @@ void state_impl::calculate_hash(uint32_t cur_node) {
 }
 
 void state_impl::backup_nodes(uint32_t cur_node) {
-
 }
