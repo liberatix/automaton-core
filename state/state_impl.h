@@ -55,8 +55,11 @@ class state_impl : public state{
     uint32_t children[256];
   };
   std::vector<node> nodes;
+  std::map<uint32_t, node> backup;
   std::stack<uint32_t> fragmented_locations;
   hash_transformation* hasher;
+  uint32_t nodes_current_state;
+  uint32_t permanent_nodes_count;
 
   int32_t get_node_index(const std::string& path);
   bool has_children(uint32_t node_index);
@@ -67,7 +70,7 @@ class state_impl : public state{
   // Create a backup starting from cur_node to root if they are not
   // in the backup map
   void backup_nodes(uint32_t cur_node);
-  std::map<uint32_t, node> backup;
+  // void move_last_element_to(uint32_t cur_node);
 };
 
 #endif  //  AUTOMATON_CORE_STATE_IMPL_H__

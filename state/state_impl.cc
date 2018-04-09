@@ -22,7 +22,9 @@ static std::string tohex(std::string s) {
 state_impl::state_impl(hash_transformation* hasher) {
   nodes.push_back(state_impl::node());
   this->hasher = hasher;
+  nodes_current_state = 1;
   calculate_hash(0);
+  permanent_nodes_count = 1;
 }
 
 std::string state_impl::get(const std::string& key) {
@@ -49,6 +51,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
           nodes[cur_node].value != "" || cur_node == 0) {
         // This node has children, value set or is the root.
         // It can't be the final node.
+        backup_nodes(cur_node);
         cur_node = add_node(cur_node, path_element);
       } else {
         // this node has no children so it's the final node. The remainder
@@ -65,6 +68,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
           (unsigned char)nodes[cur_node].prefix[cur_prefix_index]) {
         const std::string cur_node_prefix = nodes[cur_node].prefix;
 
+        // Backup necesery nodes before changes
+        backup_nodes(cur_node);
         // Create the split_node and set up links with cur_node
         uint32_t split_node = add_node(nodes[cur_node].parent,
             nodes[cur_node].prefix[0]);
@@ -93,7 +98,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
   // We checked the whoel key but there is still prefix left.
   if ((nodes[cur_node].prefix.length() != cur_prefix_index)
       && i == key.length()) {
-    // Create node here
+    backup_nodes(cur_node);
     const std::string cur_node_prefix = nodes[cur_node].prefix;
 
     // Create the split_node and set up links with cur_node
@@ -115,6 +120,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
     // Create the new node from the split to the next path element
     cur_node = split_node;
   }
+
+  backup_nodes(cur_node);
   // set the value and calculate the hash
   nodes[cur_node].value = value;
   calculate_hash(cur_node);
@@ -164,6 +171,7 @@ void state_impl::erase(const std::string& path) {
     throw std::out_of_range("No set node at path: " + tohex(path));
   }
 
+  backup_nodes(cur_node);
   // Get the children of this node
   std::vector<unsigned char> children;
   unsigned char i = 0;
@@ -180,6 +188,8 @@ void state_impl::erase(const std::string& path) {
   } else if (children.size() == 1) {
     uint32_t parent = nodes[cur_node].parent;
     uint32_t child = nodes[cur_node].children[children[0]];
+    // backup the child before chaning it
+    backup_nodes(child);
     // add the prefix of current node to the child
     nodes[child].prefix.insert(0, nodes[cur_node].prefix);
     // link parent and child
@@ -188,6 +198,7 @@ void state_impl::erase(const std::string& path) {
     nodes[child].parent = parent;
     // Remember empty elements for later use
     fragmented_locations.push(cur_node);
+    // move_last_element_to(cur_node);
     cur_node = child;
   // If no child -> remove element and handle parent cases
   } else {
@@ -196,7 +207,7 @@ void state_impl::erase(const std::string& path) {
     unsigned char path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = 0;
     fragmented_locations.push(cur_node);
-
+    // move_last_element_to(cur_node);
     // Find out how many children does the parent have
     children.clear();
     cur_node = parent;
@@ -212,6 +223,7 @@ void state_impl::erase(const std::string& path) {
         && children.size() == 1 && cur_node != 0) {
       parent = nodes[cur_node].parent;
       uint32_t child = nodes[cur_node].children[children[0]];
+      backup_nodes(child);
       nodes[child].prefix.insert(0, nodes[cur_node].prefix);
 
       // link parent and child
@@ -219,6 +231,7 @@ void state_impl::erase(const std::string& path) {
       nodes[parent].children[path_from_parent] = child;
       nodes[child].parent = parent;
       fragmented_locations.push(cur_node);
+      // move_last_element_to(cur_node);
       cur_node = child;
     }
   }
@@ -226,9 +239,35 @@ void state_impl::erase(const std::string& path) {
 }
 
 void state_impl::commit_changes() {
+  
+  // Erase backups
+  backup.clear();
+  permanent_nodes_count = nodes.size();
+
+  // OLD version where we are using fragmented locations
+  // move end elements to the empty slots and resize the vector to the new size
+  // TODO(Samir):Resize
+  // TODO(Samir): Check if the elemented that we are moving is not deleted element
+  //uint32_t moved_elements = fragmented_locations.size();
+  //while (!fragmented_locations.empty()) {
+  //  uint32_t cur_node = fragmented_locations.top();
+  //  fragmented_locations.pop();
+  //  nodes[cur_node] = nodes.back();
+  //  nodes.pop_back();
+  //  uint32_t parent = nodes[cur_node].parent;
+  //  unsigned char path_from_parent = (unsigned char)nodes[cur_node].prefix[0];
+  //  nodes[parent].children[path_from_parent] = cur_node;
+  //}
+//  nodes.resize(nodes.size() - fragmented_locations_count);
+
 }
 
 void state_impl::discard_changes() {
+  // TODO(Samir):resize
+  for (auto it = backup.begin(); it != backup.end(); ++it) {
+    nodes[it->first] = it->second;
+  }
+  nodes.resize(permanent_nodes_count);
 }
 
 uint32_t state_impl::hash_size() {
@@ -314,17 +353,19 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
   nodes.push_back(node());  // change to -> new node() and refactor;
   nodes[new_node].parent = from;
   nodes[new_node].prefix = std::string(reinterpret_cast<char*>(&to), 1);
+
   return new_node;
 }
 
 void state_impl::calculate_hash(uint32_t cur_node) {
+
   const uint8_t *value, *prefix, *child_hash;
   hasher->restart();  // just in case
 
   // Hash the value
   value =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].value.c_str());
-  int len = nodes[cur_node].value.length();
+  uint32_t len = nodes[cur_node].value.length();
   hasher->update(value, len);
 
   // Hash the prefix
@@ -355,4 +396,21 @@ void state_impl::calculate_hash(uint32_t cur_node) {
 }
 
 void state_impl::backup_nodes(uint32_t cur_node) {
+  // Insert element if it is not in the map. If sucsessfully inserted keep
+  // calling backup_nodes on the parent unless we have reached the root
+  if (backup.insert(std::make_pair((int32_t)cur_node,
+      nodes[cur_node])).second && cur_node
+    && cur_node < permanent_nodes_count) {
+    backup_nodes(nodes[cur_node].parent);
+  }
 }
+
+//void state_impl::move_last_element_to(uint32_t cur_node) {
+//  if (cur_node == nodes.size() - 1) {
+//    nodes.pop_back();
+//  }
+//  else {
+//    nodes[cur_node] = nodes.back;
+//    nodes.pop_back();
+//  }
+//}
