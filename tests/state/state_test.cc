@@ -85,7 +85,7 @@ std::string hash_key(int i) {
 TEST(state_impl, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 100000;
+  int32_t key_count = 10000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
@@ -120,7 +120,7 @@ TEST(state_impl, node_hash_add_erase) {
     }
   }
 
-  // Erase the keys in reverse order and check if root hash the saved one
+  // Erase the keys in reverse order and check if root hash is the saved one
   // for the same trie state
 
   for (int32_t i = 0; i < key_count; i++) {
@@ -157,68 +157,57 @@ TEST(state_impl, node_hash_add_erase) {
 }
 
 
-/*
-TEST(state_impl, set_multiple_times) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
-  s.set("a", "1");
-  EXPECT_EQ(s.get("a"), "1");
-  s.set("a", "");
-  EXPECT_EQ(s.get("a"), "");
-  s.commit_changes();
-  EXPECT_EQ(s.get("a"), "");
-}
-
-
 TEST(state_impl, insert_and_delete_expect_blank) {
-  state_impl s;
-  s.set("a", "1");
-  s.set("b", "2");
-  s.set("c", "3");
-  s.commit_changes();
-  s.set("a", "");
-  s.set("b", "");
-  s.set("c", "");
-  s.commit_changes();
-  EXPECT_EQ(s.get(""), "");
-  //EXPECT_EQ(s.get_node_hash(""), "");
-}
-*/
 
-/*
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl state(hasher);
+
+  state.set("a", "1");
+  state.set("b", "2");
+  state.set("c", "3");
+  state.commit_changes();
+  state.set("a", "");
+  state.set("b", "");
+  state.set("c", "");
+  state.commit_changes();
+  EXPECT_EQ(state.get(""), "");
+}
+
+
 TEST(state_impl, get_node_hash) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
-  EXPECT_EQ(s.get_node_hash(""), "");
-}
-
-TEST(state_impl, get_should_not_change_state) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
-  EXPECT_EQ(s.get("a"), "");
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl s(hasher);
   EXPECT_EQ(s.get_node_hash(""), "");
 }
 
 TEST(state_impl, commit_changes) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl s(hasher);
   s.set("a", "1");
   s.set("b", "2");
   s.set("c", "3");
+  std::string root_hash = s.get_node_hash("");
   s.commit_changes();
-  EXPECT_EQ(s.get_node_hash(""), "O2\x4Je_2\xE8R\x8E\xDE\xA6M\xBF\xD1\x1C\xBA\x81\v\x87\x90\xE6\xE6\xE2=(\xAD:u\x98\a4"); // NOLINT
+  EXPECT_EQ(s.get_node_hash(""), root_hash);
 }
 
 TEST(state_impl, discard_changes) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl s(hasher);
   s.set("a", "1");
   s.set("b", "2");
   s.set("c", "3");
   s.discard_changes();
   EXPECT_EQ(s.get_node_hash(""), "");
 }
-
 
 
 TEST(state_impl, delete_node_tree) {
@@ -228,10 +217,7 @@ TEST(state_impl, delete_node_tree) {
   s.set("aaa", "2");
   s.set("abc", "3");
   s.set("a2z", "4");
-  s.commit_changes();
   s.set("a", "test");
   s.delete_node_tree("a");
-  s.commit_changes();
   EXPECT_EQ(s.get_node_hash(""), "");
 }
-*/

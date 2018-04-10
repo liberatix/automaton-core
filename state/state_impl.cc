@@ -130,6 +130,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
 
 std::string state_impl::get_node_hash(const std::string& path) {
   int32_t node_index = get_node_index(path);
+  
   return node_index == -1 ? "" : nodes[node_index].hash;
 }
 
@@ -145,7 +146,7 @@ std::string state_impl::get_node_hash(const std::string& path) {
     if (nodes[node_index].children[i]) {
       uint32_t child = nodes[node_index].children[i];
       // TODO(Samir): potential bug ( big vs little endian)
-      result.push_back(std::string((const char*)&i, 1) + nodes[child].prefix);
+      result.push_back(std::string(nodes[child].prefix));
     }
   } while (++i != 0);
   return result;
@@ -153,7 +154,47 @@ std::string state_impl::get_node_hash(const std::string& path) {
 
 void state_impl::delete_node_tree(const std::string& path) {
   // TODO(Samir): Implement delete subtrie ( subtrie of node with value only? )
-  throw std::exception();
+  int32_t cur_node = get_node_index(path);
+  if (cur_node == -1 || nodes[cur_node].value == "") {
+    throw std::out_of_range("No set node at path: " + tohex(path));
+  }
+  backup_nodes(cur_node);
+
+  std::vector<unsigned char> children;
+  unsigned char i = 0;
+  uint32_t parent = nodes[cur_node].parent;
+  unsigned char path_from_parent = nodes[cur_node].prefix[0];
+  nodes[parent].children[path_from_parent] = 0;
+  fragmented_locations.push(cur_node);
+  // move_last_element_to(cur_node);
+  // Find out how many children does the parent have
+  children.clear();
+  cur_node = parent;
+  // TODO(Samir): add this and all child nodes to fragmented locations
+  
+  do {
+    if (nodes[cur_node].children[i]) {
+      children.push_back(i);
+    }
+  } while (++i != 0);
+  // If the parent of the deleted node has no prefix, has only one
+  // child remaining and is not the root we will merge it with his child
+  if (nodes[cur_node].value.length() == 0
+    && children.size() == 1 && cur_node != 0) {
+    parent = nodes[cur_node].parent;
+    uint32_t child = nodes[cur_node].children[children[0]];
+    backup_nodes(child);
+    nodes[child].prefix.insert(0, nodes[cur_node].prefix);
+
+    // link parent and child
+    path_from_parent = nodes[cur_node].prefix[0];
+    nodes[parent].children[path_from_parent] = child;
+    nodes[child].parent = parent;
+    fragmented_locations.push(cur_node);
+    // move_last_element_to(cur_node);
+    cur_node = child;
+  }
+  calculate_hash(cur_node);
 }
 
 // 1. If multiple children -> set value to ""
@@ -163,11 +204,6 @@ void state_impl::delete_node_tree(const std::string& path) {
 //      merge parent and its remaining child
 void state_impl::erase(const std::string& path) {
   int32_t cur_node = get_node_index(path);
-  /*
-  if (path.length() != 32) {
-    throw std::out_of_range("Length is not 32: " + path);
-  }
-  */
   if (cur_node == -1 || nodes[cur_node].value == "") {
     throw std::out_of_range("No set node at path: " + tohex(path));
   }
@@ -342,6 +378,11 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
 void state_impl::calculate_hash(uint32_t cur_node) {
   const uint8_t *value, *prefix, *child_hash;
   hasher->restart();  // just in case
+  // If we are at root and we have no children the hash will be ""
+  if (!cur_node && !has_children(cur_node)) {
+    nodes[cur_node].hash = "";
+    return;
+  }
 
   // Hash the value
   value =
