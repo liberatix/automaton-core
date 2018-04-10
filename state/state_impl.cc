@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <stack>
+#include <utility>
 #include "crypto/hash_transformation.h"
 
 typedef std::basic_string<unsigned char> ustring;
@@ -239,31 +240,12 @@ void state_impl::erase(const std::string& path) {
 }
 
 void state_impl::commit_changes() {
-  
   // Erase backups
   backup.clear();
   permanent_nodes_count = nodes.size();
-
-  // OLD version where we are using fragmented locations
-  // move end elements to the empty slots and resize the vector to the new size
-  // TODO(Samir):Resize
-  // TODO(Samir): Check if the elemented that we are moving is not deleted element
-  //uint32_t moved_elements = fragmented_locations.size();
-  //while (!fragmented_locations.empty()) {
-  //  uint32_t cur_node = fragmented_locations.top();
-  //  fragmented_locations.pop();
-  //  nodes[cur_node] = nodes.back();
-  //  nodes.pop_back();
-  //  uint32_t parent = nodes[cur_node].parent;
-  //  unsigned char path_from_parent = (unsigned char)nodes[cur_node].prefix[0];
-  //  nodes[parent].children[path_from_parent] = cur_node;
-  //}
-//  nodes.resize(nodes.size() - fragmented_locations_count);
-
 }
 
 void state_impl::discard_changes() {
-  // TODO(Samir):resize
   for (auto it = backup.begin(); it != backup.end(); ++it) {
     nodes[it->first] = it->second;
   }
@@ -358,7 +340,6 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
 }
 
 void state_impl::calculate_hash(uint32_t cur_node) {
-
   const uint8_t *value, *prefix, *child_hash;
   hasher->restart();  // just in case
 
@@ -404,13 +385,3 @@ void state_impl::backup_nodes(uint32_t cur_node) {
     backup_nodes(nodes[cur_node].parent);
   }
 }
-
-//void state_impl::move_last_element_to(uint32_t cur_node) {
-//  if (cur_node == nodes.size() - 1) {
-//    nodes.pop_back();
-//  }
-//  else {
-//    nodes[cur_node] = nodes.back;
-//    nodes.pop_back();
-//  }
-//}
