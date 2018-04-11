@@ -130,7 +130,6 @@ void state_impl::set(const std::string& key, const std::string& value) {
 
 std::string state_impl::get_node_hash(const std::string& path) {
   int32_t node_index = get_node_index(path);
-  
   return node_index == -1 ? "" : nodes[node_index].hash;
 }
 
@@ -171,7 +170,6 @@ void state_impl::delete_node_tree(const std::string& path) {
   children.clear();
   cur_node = parent;
   // TODO(Samir): add this and all child nodes to fragmented locations
-  
   do {
     if (nodes[cur_node].children[i]) {
       children.push_back(i);

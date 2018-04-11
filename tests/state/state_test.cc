@@ -158,7 +158,6 @@ TEST(state_impl, node_hash_add_erase) {
 
 
 TEST(state_impl, insert_and_delete_expect_blank) {
-
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
