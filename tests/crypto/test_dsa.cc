@@ -22,7 +22,6 @@ TEST(dsa_cryptopp, gen_public_key) {
   dsa_cryptopp::register_self();
   dsa* tester = dsa::create("secp256k1");
   EXPECT_NE(tester, nullptr);
-  unsigned char* private_key = new unsigned char[tester->private_key_size()];
   unsigned char* public_key = new unsigned char[tester->public_key_size()];
   constexpr unsigned int test_cases = 4;
   std::string test[test_cases][2] = {
@@ -46,7 +45,6 @@ TEST(dsa_cryptopp, sign_and_verify) {
   dsa_cryptopp::register_self();
   dsa* tester = dsa::create("secp256k1");
   EXPECT_NE(tester, nullptr);
-  unsigned char* private_key = new unsigned char[tester->private_key_size()];
   unsigned char* public_key = new unsigned char[tester->public_key_size()];
   unsigned char* signature = new unsigned char[tester->signature_size()];
   constexpr unsigned int test_keys = 4;
