@@ -285,7 +285,7 @@ void state_impl::commit_changes() {
   auto it_low = fragmented_locations.begin();
   auto rit_high = fragmented_locations.rbegin();
   uint32_t empty_elements = fragmented_locations.size();
-  int32_t last_element = nodes.size() - 1;
+  uint32_t last_element = nodes.size() - 1;
   // Copy elements and skip if element is deleted
   while (*it_low != *rit_high) {
   // auto it_last_element = fragmented_locations.find(last_element);
