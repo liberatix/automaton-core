@@ -467,5 +467,4 @@ void state_impl::backup_nodes(uint32_t cur_node) {
 }
 
 void state_impl::subtrie_mark_free(uint32_t cur_node) {
-
 }
