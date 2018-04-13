@@ -158,13 +158,14 @@ void state_impl::delete_node_tree(const std::string& path) {
     throw std::out_of_range("No set node at path: " + tohex(path));
   }
   backup_nodes(cur_node);
+  subtrie_mark_free(cur_node);
 
   std::vector<unsigned char> children;
   unsigned char i = 0;
   uint32_t parent = nodes[cur_node].parent;
   unsigned char path_from_parent = nodes[cur_node].prefix[0];
   nodes[parent].children[path_from_parent] = 0;
-  fragmented_locations.insert(cur_node);
+  free_locations.insert(cur_node);
   // move_last_element_to(cur_node);
   // Find out how many children does the parent have
   children.clear();
@@ -188,7 +189,7 @@ void state_impl::delete_node_tree(const std::string& path) {
     path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = child;
     nodes[child].parent = parent;
-    fragmented_locations.insert(cur_node);
+    free_locations.insert(cur_node);
     // add_fragmented_location(cur_node);
     // move_last_element_to(cur_node);
     cur_node = child;
@@ -233,7 +234,7 @@ void state_impl::erase(const std::string& path) {
     nodes[parent].children[path_from_parent] = child;
     nodes[child].parent = parent;
     // Remember empty elements for later use
-    fragmented_locations.insert(cur_node);
+    free_locations.insert(cur_node);
     // move_last_element_to(cur_node);
     cur_node = child;
   // If no child -> remove element and handle parent cases
@@ -242,7 +243,7 @@ void state_impl::erase(const std::string& path) {
     uint32_t parent = nodes[cur_node].parent;
     unsigned char path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = 0;
-    fragmented_locations.insert(cur_node);
+    free_locations.insert(cur_node);
     // move_last_element_to(cur_node);
     // Find out how many children does the parent have
     children.clear();
@@ -266,7 +267,7 @@ void state_impl::erase(const std::string& path) {
       path_from_parent = nodes[cur_node].prefix[0];
       nodes[parent].children[path_from_parent] = child;
       nodes[child].parent = parent;
-      fragmented_locations.insert(cur_node);
+      free_locations.insert(cur_node);
       // move_last_element_to(cur_node);
       cur_node = child;
     }
@@ -277,18 +278,18 @@ void state_impl::erase(const std::string& path) {
 void state_impl::commit_changes() {
   // Erase backups
   backup.clear();
-  if (fragmented_locations.empty()) {
+  if (free_locations.empty()) {
     return;
   }
   // If we have fragmented, move not deleted elements from
   // the end of the vector into them
-  auto it_low = fragmented_locations.begin();
-  auto rit_high = fragmented_locations.rbegin();
-  uint32_t empty_elements = fragmented_locations.size();
+  auto it_low = free_locations.begin();
+  auto rit_high = free_locations.rbegin();
+  uint32_t empty_elements = free_locations.size();
   uint32_t last_element = nodes.size() - 1;
   // Copy elements and skip if element is deleted
   while (*it_low != *rit_high) {
-  // auto it_last_element = fragmented_locations.find(last_element);
+  // auto it_last_element = free_locations.find(last_element);
     if (last_element == *rit_high) {
       rit_high++;
     } else {
@@ -304,7 +305,7 @@ void state_impl::commit_changes() {
 
   nodes.resize(nodes.size() - empty_elements);
   permanent_nodes_count = nodes.size();
-  fragmented_locations.clear();
+  free_locations.clear();
 }
 
 void state_impl::discard_changes() {
@@ -312,7 +313,7 @@ void state_impl::discard_changes() {
     nodes[it->first] = it->second;
   }
   nodes.resize(permanent_nodes_count);
-  fragmented_locations.clear();
+  free_locations.clear();
 }
 
 uint32_t state_impl::hash_size() {
@@ -397,17 +398,15 @@ bool state_impl::has_children(uint32_t node_index) {
 uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
   uint32_t new_node;
   // Add node to the end of the vector if the are no fragmented location
-  if (fragmented_locations.empty()) {
+  if (free_locations.empty()) {
     new_node = nodes.size();
-    // TODO(Samir): change to emplace_back
-    nodes.push_back(node());
-    // nodes.emplace_back();
+    nodes.emplace_back();
   } else {
-    auto it_fragmented_locations =  fragmented_locations.begin();
+    auto it_fragmented_locations =  free_locations.begin();
     new_node = *it_fragmented_locations;
     // TODO(Samir): change to emplace(node)
     nodes[new_node] = node();
-    fragmented_locations.erase(it_fragmented_locations);
+    free_locations.erase(it_fragmented_locations);
   }
   nodes[from].children[to] = new_node;
   nodes[new_node].parent = from;
@@ -465,4 +464,8 @@ void state_impl::backup_nodes(uint32_t cur_node) {
     && cur_node < permanent_nodes_count) {
     backup_nodes(nodes[cur_node].parent);
   }
+}
+
+void state_impl::subtrie_mark_free(uint32_t cur_node) {
+
 }

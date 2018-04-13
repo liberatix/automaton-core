@@ -58,7 +58,7 @@ class state_impl : public state{
   };
   std::vector<node> nodes;
   std::map<uint32_t, node> backup;
-  std::set<uint32_t> fragmented_locations;
+  std::set<uint32_t> free_locations;
   hash_transformation* hasher;
   uint32_t nodes_current_state;
   uint32_t permanent_nodes_count;
@@ -72,7 +72,8 @@ class state_impl : public state{
   // Create a backup starting from cur_node to root if they are not
   // in the backup map
   void backup_nodes(uint32_t cur_node);
-  // void move_last_element_to(uint32_t cur_node);
+  // add all nodes in the subtrie to free_locations to be reused.
+  void subtrie_mark_free(uint32_t cur_node);
 };
 
 #endif  //  AUTOMATON_CORE_STATE_IMPL_H__
