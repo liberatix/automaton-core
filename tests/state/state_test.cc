@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <stack>
 #include "gtest/gtest.h"
 #include "state/state_impl.h"
 #include "crypto/SHA256_cryptopp.h"
@@ -219,4 +220,53 @@ TEST(state_impl, delete_node_tree) {
   s.set("a", "test");
   s.delete_node_tree("a");
   EXPECT_EQ(s.get_node_hash(""), "");
+}
+
+
+TEST(dummy_state, using_deleted_locations) {
+  SHA256_cryptopp hash;
+  state_impl s(&hash);
+
+  s.set("a", "1");
+  s.set("b", "2");
+  s.set("c", "3");
+  s.set("d", "4");
+  EXPECT_EQ(s.size(), 5);
+  s.commit_changes();
+  EXPECT_EQ(s.size(), 5);
+
+  s.erase("a");
+  EXPECT_EQ(s.size(), 5);
+  s.commit_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.erase("b");
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.set("a", "1");
+  s.erase("b");
+  EXPECT_EQ(s.size(), 5);
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.erase("b");
+  s.set("a", "1");
+  EXPECT_EQ(s.size(), 4);
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.set("a", "1");
+  EXPECT_EQ(s.size(), 5);
+  s.erase("b");
+  s.set("x", "2");
+  EXPECT_EQ(s.size(), 5);
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.erase("b");
+  s.commit_changes();
+  EXPECT_EQ(s.size(), 3);
+  s.set("e", "1");
+  EXPECT_EQ(s.size(), 4);
 }

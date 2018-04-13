@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <stack>
+#include <set>
 #include "state/state.h"
 #include "crypto/hash_transformation.h"
 
@@ -46,6 +46,8 @@ class state_impl : public state{
   // compare differences in with the second state and print path
   void print_subtrie(std::string path, std::string formated_path);
 
+  uint32_t size();
+
  private:
   struct node {
     uint32_t parent;
@@ -56,7 +58,7 @@ class state_impl : public state{
   };
   std::vector<node> nodes;
   std::map<uint32_t, node> backup;
-  std::stack<uint32_t> fragmented_locations;
+  std::set<uint32_t> fragmented_locations;
   hash_transformation* hasher;
   uint32_t nodes_current_state;
   uint32_t permanent_nodes_count;

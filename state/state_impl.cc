@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <stack>
+#include <set>
 #include <utility>
 #include "crypto/hash_transformation.h"
 
@@ -164,7 +164,7 @@ void state_impl::delete_node_tree(const std::string& path) {
   uint32_t parent = nodes[cur_node].parent;
   unsigned char path_from_parent = nodes[cur_node].prefix[0];
   nodes[parent].children[path_from_parent] = 0;
-  fragmented_locations.push(cur_node);
+  fragmented_locations.insert(cur_node);
   // move_last_element_to(cur_node);
   // Find out how many children does the parent have
   children.clear();
@@ -188,7 +188,8 @@ void state_impl::delete_node_tree(const std::string& path) {
     path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = child;
     nodes[child].parent = parent;
-    fragmented_locations.push(cur_node);
+    fragmented_locations.insert(cur_node);
+    // add_fragmented_location(cur_node);
     // move_last_element_to(cur_node);
     cur_node = child;
   }
@@ -232,7 +233,7 @@ void state_impl::erase(const std::string& path) {
     nodes[parent].children[path_from_parent] = child;
     nodes[child].parent = parent;
     // Remember empty elements for later use
-    fragmented_locations.push(cur_node);
+    fragmented_locations.insert(cur_node);
     // move_last_element_to(cur_node);
     cur_node = child;
   // If no child -> remove element and handle parent cases
@@ -241,7 +242,7 @@ void state_impl::erase(const std::string& path) {
     uint32_t parent = nodes[cur_node].parent;
     unsigned char path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = 0;
-    fragmented_locations.push(cur_node);
+    fragmented_locations.insert(cur_node);
     // move_last_element_to(cur_node);
     // Find out how many children does the parent have
     children.clear();
@@ -265,7 +266,7 @@ void state_impl::erase(const std::string& path) {
       path_from_parent = nodes[cur_node].prefix[0];
       nodes[parent].children[path_from_parent] = child;
       nodes[child].parent = parent;
-      fragmented_locations.push(cur_node);
+      fragmented_locations.insert(cur_node);
       // move_last_element_to(cur_node);
       cur_node = child;
     }
@@ -276,7 +277,35 @@ void state_impl::erase(const std::string& path) {
 void state_impl::commit_changes() {
   // Erase backups
   backup.clear();
+  if (fragmented_locations.empty()) {
+    return;
+  }
+  // If we have fragmented, move not deleted elements from
+  // the end of the vector into them
+  auto it_low = fragmented_locations.begin();
+  auto rit_high = fragmented_locations.rbegin();
+  uint32_t empty_elements = fragmented_locations.size();
+  int32_t last_element = nodes.size() - 1;
+  // Copy elements and skip if element is deleted
+  while (*it_low != *rit_high) {
+  // auto it_last_element = fragmented_locations.find(last_element);
+    if (last_element == *rit_high) {
+      rit_high++;
+    }
+    else {
+      nodes[*it_low] = nodes[last_element];
+      uint32_t parent = nodes[last_element].parent;
+      uint8_t path_from_parent = nodes[last_element].prefix[0];
+      nodes[parent].children[path_from_parent] = *it_low;
+      it_low++;
+    }
+    last_element--;
+  }
+  nodes[*it_low] = nodes[last_element];
+
+  nodes.resize(nodes.size() - empty_elements);
   permanent_nodes_count = nodes.size();
+  fragmented_locations.clear();
 }
 
 void state_impl::discard_changes() {
@@ -284,6 +313,7 @@ void state_impl::discard_changes() {
     nodes[it->first] = it->second;
   }
   nodes.resize(permanent_nodes_count);
+  fragmented_locations.clear();
 }
 
 uint32_t state_impl::hash_size() {
@@ -298,6 +328,9 @@ void state_impl::print_subtrie(std::string path, std::string formated_path) {
   for (auto i : children) {
     print_subtrie(path + i, formated_path + "/" + tohex(i));
   }
+}
+uint32_t state_impl::size() {
+  return nodes.size();
 }
 // TODO(Samir): Remove all calls to substring
 int32_t state_impl::get_node_index(const std::string& path) {
@@ -363,13 +396,23 @@ bool state_impl::has_children(uint32_t node_index) {
 }
 
 uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
-  // TODO(Samir): use fragmented_locations if avalible
-  uint32_t new_node = nodes.size();
+  uint32_t new_node;
+  // Add node to the end of the vector if the are no fragmented location
+  if (fragmented_locations.empty()) {
+    new_node = nodes.size();
+    // TODO(Samir): change to emplace_back
+    nodes.push_back(node()); 
+    //nodes.emplace_back();
+  } else {
+    auto it_fragmented_locations =  fragmented_locations.begin();
+    new_node = *it_fragmented_locations;
+    // TODO(Samir): change to emplace(node)
+    nodes[new_node] = node();
+    fragmented_locations.erase(it_fragmented_locations);
+  }
   nodes[from].children[to] = new_node;
-  nodes.push_back(node());  // change to -> new node() and refactor;
   nodes[new_node].parent = from;
   nodes[new_node].prefix = std::string(reinterpret_cast<char*>(&to), 1);
-
   return new_node;
 }
 
