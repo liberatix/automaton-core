@@ -291,8 +291,7 @@ void state_impl::commit_changes() {
   // auto it_last_element = fragmented_locations.find(last_element);
     if (last_element == *rit_high) {
       rit_high++;
-    }
-    else {
+    } else {
       nodes[*it_low] = nodes[last_element];
       uint32_t parent = nodes[last_element].parent;
       uint8_t path_from_parent = nodes[last_element].prefix[0];
@@ -401,8 +400,8 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
   if (fragmented_locations.empty()) {
     new_node = nodes.size();
     // TODO(Samir): change to emplace_back
-    nodes.push_back(node()); 
-    //nodes.emplace_back();
+    nodes.push_back(node());
+    // nodes.emplace_back();
   } else {
     auto it_fragmented_locations =  fragmented_locations.begin();
     new_node = *it_fragmented_locations;
