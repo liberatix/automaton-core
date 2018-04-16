@@ -89,11 +89,11 @@ void thread2() {
   std::this_thread::sleep_for(std::chrono::milliseconds(60));
   connection_b -> async_send("B0", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  //connection_b -> async_send("B1", counter++);
+  // connection_b -> async_send("B1", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  //connection_b -> async_send("B2", counter++);
+  // connection_b -> async_send("B2", counter++);
   reinterpret_cast<tcp_connection*>(connection_b) -> disconnect();
-//  connection_b -> async_send("B2", counter++);  // Error
+  // connection_b -> async_send("B2", counter++);  // Error
 }
 void thread3() {
   connection* connection_c = connection::create("tcp", address_b, &handlerC);
