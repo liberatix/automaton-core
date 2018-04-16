@@ -49,7 +49,6 @@ tcp_connection::tcp_connection(const std::string& address_, connection_handler*
   } else {
     logging("In connection constructor: successfully resolved address, "
     "no connection was made yet");
-    handler_->on_error(this, connection::error::no_error);
   }
 }
 
@@ -95,7 +94,7 @@ void tcp_connection::connect() {
 }
 
 void tcp_connection::async_send(const std::string& msg, int id) {
-  if (tcp_initialized && asio_socket.is_open()) {
+  if (tcp_initialized && asio_socket.is_open() && msg.size() > 0) {
     std::string* message = new std::string(msg);
     asio_socket.async_write_some(boost::asio::buffer(*message),
         [this, id, message](const boost::system::error_code& boost_error_code,

@@ -71,6 +71,7 @@ class connection {
   virtual void async_read(char* buffer, int buffer_size, int num_bytes = 0) = 0;
 
   virtual state get_state() = 0;
+  virtual std::string get_address() = 0;
   virtual void connect() = 0;
   virtual void disconnect() = 0;
 
