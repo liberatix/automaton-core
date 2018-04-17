@@ -83,7 +83,7 @@ std::string hash_key(int i) {
   return std::string(reinterpret_cast<char*>(digest32), 16 + i % 16);
 }
 
-/*TEST(state_impl, node_hash_add_erase) {
+TEST(state_impl, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
   int32_t key_count = 100000;
@@ -155,7 +155,7 @@ std::string hash_key(int i) {
     }
     root_hashes.pop();
   }
-}*/
+}
 
 TEST(state_impl, insert_and_delete_expect_blank) {
   SHA256_cryptopp::register_self();
@@ -244,7 +244,7 @@ TEST(state_impl, delete_node_tree_plus_commit_discard_free_backup_add_node) {
   std::string hash_before_discard = s.get_node_hash("");
   s.delete_node_tree("a");
   s.discard_changes();
-  EXPECT_EQ(s.get_node_hash(""),hash_before_discard);
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
 
   s.delete_node_tree("a");
   s.set("evil_node", "lets overwrite empty locations");
@@ -264,11 +264,6 @@ TEST(state_impl, delete_node_tree_plus_commit_discard_free_backup_add_node) {
   s.delete_node_tree("branch");
   s.discard_changes();
   EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
-
-  
-  // >> discard changes here
-  // compare if the hash is equal after discard to the one before
-
 }
 
 

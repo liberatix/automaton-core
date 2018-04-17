@@ -157,7 +157,7 @@ void state_impl::delete_node_tree(const std::string& path) {
   if (cur_node == -1 || nodes[cur_node].value == "") {
     throw std::out_of_range("No set node at path: " + tohex(path));
   }
-  backup_nodes(nodes[cur_node].parent); // we will backup curr_node before we use the location
+  backup_nodes(nodes[cur_node].parent);
   subtrie_mark_free(cur_node);
 
   std::vector<unsigned char> children;
@@ -401,7 +401,6 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
   if (free_locations.empty()) {
     new_node = nodes.size();
     nodes.push_back(node());
-    //nodes.emplace_back();
   } else {
     auto it_fragmented_locations =  free_locations.begin();
     backup_nodes(*it_fragmented_locations);
