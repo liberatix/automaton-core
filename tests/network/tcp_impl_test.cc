@@ -14,7 +14,7 @@ class handler: public connection::connection_handler {
  public:
   void on_message_received(connection* c, const std::string& message) {
     logging("Message \"" + message + "\" received from " +
-        (reinterpret_cast<tcp_connection*>(c))->get_address());
+        (c->get_address());
     if (message.compare("Thank you!")) {
       c->async_send("Thank you!", counter++);
     }
@@ -23,28 +23,24 @@ class handler: public connection::connection_handler {
   void on_message_sent(connection* c, int id, connection::error e) {
     if (e) {
       logging("Message with id " + std::to_string(id) + " was NOT sent to " +
-          (reinterpret_cast<tcp_connection*>(c))->get_address() + "\nError "
-          + std::to_string(e) +" occured");
+          c->get_address() + "\nError " + std::to_string(e) +" occured");
     } else {
       logging("Message with id " + std::to_string(id) +
-          " was successfully sent to "
-          + (reinterpret_cast<tcp_connection*>(c))->get_address());
+          " was successfully sent to " + c->get_address());
     }
   }
   void on_connected(connection* c) {
-    logging("Connected with: " +
-        (reinterpret_cast<tcp_connection*>(c))->get_address());
+    logging("Connected with: " + c->get_address());
   }
   void on_disconnected(connection* c) {
-    logging("Disconnected with: " +
-        (reinterpret_cast<tcp_connection*>(c))->get_address());
+    logging("Disconnected with: " + c->get_address());
   }
   void on_error(connection* c, connection::error e) {
     if (e == connection::no_error) {
       return;
     }
-    logging("Error: " + std::to_string(e) + " (connection " +
-        (reinterpret_cast<tcp_connection*>(c))->get_address() + ")");
+    logging("Error: " + std::to_string(e) + " (connection " + c->get_address() +
+        ")");
   }
 };
 
@@ -92,7 +88,7 @@ void thread2() {
   // connection_b -> async_send("B1", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   // connection_b -> async_send("B2", counter++);
-  reinterpret_cast<tcp_connection*>(connection_b) -> disconnect();
+  connection_b -> disconnect();
   // connection_b -> async_send("B2", counter++);  // Error
 }
 void thread3() {
@@ -106,7 +102,7 @@ void thread3() {
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   connection_c -> async_send("C2", counter++);*/
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  reinterpret_cast<tcp_connection*>(connection_c) -> disconnect();
+  connection_c -> disconnect();
 }
 
 int main() {

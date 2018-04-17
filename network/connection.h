@@ -102,7 +102,7 @@ class connection {
   /**
   Class constructor.
   **/
-  explicit connection(connection_handler* _handler);
+  explicit connection(connection_handler* handler_);
 
   /**
     Handler object that must be set so the client could be informed for events.

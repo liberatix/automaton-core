@@ -1,7 +1,7 @@
 #include "network/connection.h"
 
-connection::connection(connection::connection_handler* _handler):
-    handler(_handler) {}
+connection::connection(connection::connection_handler* handler_):
+    handler(handler_) {}
 
 connection* connection::create(const std::string& type, const std::string&
     address, connection::connection_handler* handler) {

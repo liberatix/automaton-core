@@ -40,11 +40,11 @@ class acceptor {
     class type was registered, NULL will be returned.
   **/
   static acceptor* create(const std::string& type, const std::string& address,
-      acceptor_handler* _handler, connection::connection_handler*
+      acceptor_handler* handler_, connection::connection_handler*
       connections_handler);
 
   typedef acceptor* (*factory_function)(const std::string& address,
-      acceptor_handler* _handler, connection::connection_handler*
+      acceptor_handler* handler_, connection::connection_handler*
       connections_handler);
   /**
     Function that is used to register how an object from child class will be
@@ -61,7 +61,7 @@ class acceptor {
   /**
     Class constructor.
   **/
-  explicit acceptor(acceptor_handler* _handler);
+  explicit acceptor(acceptor_handler* handler_);
 
   /**
     Handler object that must be set so the client could be informed for events.

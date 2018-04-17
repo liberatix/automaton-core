@@ -28,7 +28,7 @@ int max_connections = 8;
 */
 
 static boost::asio::io_service asio_io_service;
-static boost::asio::io_service::work _work(asio_io_service);
+static boost::asio::io_service::work work_(asio_io_service);
 static std::thread* worker_thread;
 static bool tcp_initialized = false;
 
@@ -254,16 +254,16 @@ void tcp_acceptor::start_accepting() {
   if (tcp_initialized && asio_acceptor.is_open()) {
     asio_acceptor.async_accept(asio_io_service, [this]
         (const boost::system::error_code& boost_error_code,
-        boost::asio::ip::tcp::socket _socket) {
+        boost::asio::ip::tcp::socket socket_) {
        if (!boost_error_code) {
           boost::asio::ip::tcp::endpoint remote_endpoint =
-              _socket.remote_endpoint();
+              socket_.remote_endpoint();
           std::string remote_address = (remote_endpoint.address()).to_string() +
           ":" + std::to_string(remote_endpoint.port());
           bool accepted = handler->on_requested(remote_address);
           if (accepted) {
             tcp_connection* new_con = new tcp_connection(remote_address,
-                _socket, accepted_connections_handler);
+                socket_, accepted_connections_handler);
             handler->on_connected(new_con, remote_address);
             if (accepted_connections_handler) {
               accepted_connections_handler->on_connected(new_con);

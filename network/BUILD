@@ -27,3 +27,15 @@ cc_library(
 	  "//network:network",
   ],
 )
+
+
+cc_library(
+	name = "simulated_connection",
+  srcs = [
+	  "simulated_connection.h",
+	  "simulated_connection.cc",
+  ],
+  deps = [
+	  "//network:network",
+  ],
+)

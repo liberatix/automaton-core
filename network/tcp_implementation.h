@@ -38,8 +38,6 @@ int max_connections = 8;
 
 */
 
-const int DEFAULT_BUFFER_SIZE = 256;
-
 /**
   Class that represents a connection with a remote peer.
 **/
@@ -48,13 +46,13 @@ class tcp_connection: public connection {
   /**
     Constructor that will be used when this class is registered.
   **/
-  tcp_connection(const std::string& _address, connection_handler* _handler);
+  tcp_connection(const std::string& address_, connection_handler* handler_);
   /**
     Constructor that will be used from the acceptor.
   **/
-  tcp_connection(const std::string& _address,
-      const boost::asio::ip::tcp::socket& _socket,
-      connection_handler* _handler);
+  tcp_connection(const std::string& address_,
+      const boost::asio::ip::tcp::socket& socket_,
+      connection_handler* handler_);
   /**
     Destructor.
   **/
@@ -101,7 +99,7 @@ class tcp_connection: public connection {
     connection is created from the acceptor and the default handler (the one
     passed to the acceptor) needs to be changed.
   **/
-  void add_handler(connection_handler* _handler);
+  void add_handler(connection_handler* handler_);
 
   std::string get_address();
 
@@ -120,7 +118,7 @@ class tcp_acceptor:public acceptor {
     constructor when new connection is accepted and created. It will also be
     used to call its on_connected() method.
   **/
-  tcp_acceptor(const std::string& address, acceptor_handler* _handler,
+  tcp_acceptor(const std::string& address, acceptor_handler* handler_,
       connection::connection_handler* connections_handler);
 
   /**
