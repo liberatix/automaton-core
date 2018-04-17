@@ -85,6 +85,7 @@ void dsa_cryptopp::sign_deterministic(const unsigned char * private_key,
 bool dsa_cryptopp::verify(const unsigned char * public_key,
                           const unsigned char * message,
                           unsigned char * signature) {
+  // TODO(Samir): Change SHA256 to identity hash
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
 
   std::string input(reinterpret_cast<const char*>(public_key),
@@ -94,7 +95,7 @@ bool dsa_cryptopp::verify(const unsigned char * public_key,
   publicKey.GetGroupParameters().GetCurve().DecodePoint(p, public_key,
       public_key_size());
   publicKey.SetPublicElement(p);
-
+  // TODO(Samir): Change SHA256 to identity hash
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier
       verifier(publicKey);
   return verifier.VerifyMessage(message, hashed_message_size(), signature,
