@@ -7,6 +7,7 @@
 #include "integer.h"  // NOLINT
 #include "oids.h"  // NOLINT
 #include "randpool.h"  // NOLINT
+#include "osrng.h" // NOLINT
 
 
 /*
@@ -59,7 +60,7 @@ void dsa_cryptopp::gen_public_key(const unsigned char * private_key,
 void dsa_cryptopp::sign(const unsigned char * private_key,
                         const unsigned char * message,
                         unsigned char * signature) {
-  CryptoPP::RandomPool prng;
+  CryptoPP::AutoSeededRandomPool prng;
 
   std::string str_signature;
   // Create private key object from exponent
