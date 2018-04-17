@@ -13,8 +13,7 @@ char* bufferC = new char[256];
 class handler: public connection::connection_handler {
  public:
   void on_message_received(connection* c, const std::string& message) {
-    logging("Message \"" + message + "\" received from " +
-        (c->get_address());
+    logging("Message \"" + message + "\" received from " + c->get_address());
     if (message.compare("Thank you!")) {
       c->async_send("Thank you!", counter++);
     }
