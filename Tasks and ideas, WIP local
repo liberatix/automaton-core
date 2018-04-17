@@ -1,0 +1,3 @@
+# Delete of nodes and use of free locations.
+1. Deleted nodes should be backed up only when we create new node at
+their location.

@@ -157,7 +157,7 @@ void state_impl::delete_node_tree(const std::string& path) {
   if (cur_node == -1 || nodes[cur_node].value == "") {
     throw std::out_of_range("No set node at path: " + tohex(path));
   }
-  backup_nodes(cur_node);
+  backup_nodes(nodes[cur_node].parent); // we will backup curr_node before we use the location
   subtrie_mark_free(cur_node);
 
   std::vector<unsigned char> children;
@@ -184,7 +184,6 @@ void state_impl::delete_node_tree(const std::string& path) {
     uint32_t child = nodes[cur_node].children[children[0]];
     backup_nodes(child);
     nodes[child].prefix.insert(0, nodes[cur_node].prefix);
-
     // link parent and child
     path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = child;
@@ -279,6 +278,7 @@ void state_impl::commit_changes() {
   // Erase backups
   backup.clear();
   if (free_locations.empty()) {
+    permanent_nodes_count = nodes.size();
     return;
   }
   // If we have fragmented, move not deleted elements from
@@ -400,9 +400,11 @@ uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
   // Add node to the end of the vector if the are no fragmented location
   if (free_locations.empty()) {
     new_node = nodes.size();
-    nodes.emplace_back();
+    nodes.push_back(node());
+    //nodes.emplace_back();
   } else {
     auto it_fragmented_locations =  free_locations.begin();
+    backup_nodes(*it_fragmented_locations);
     new_node = *it_fragmented_locations;
     // TODO(Samir): change to emplace(node)
     nodes[new_node] = node();
@@ -467,4 +469,12 @@ void state_impl::backup_nodes(uint32_t cur_node) {
 }
 
 void state_impl::subtrie_mark_free(uint32_t cur_node) {
+  uint8_t child = 0;
+  free_locations.insert(cur_node);
+  do {
+    if (nodes[cur_node].children[child]) {
+      subtrie_mark_free(nodes[cur_node].children[child]);
+    }
+  } while (++child != 0);
+  return;
 }

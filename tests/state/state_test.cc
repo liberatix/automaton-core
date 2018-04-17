@@ -83,10 +83,10 @@ std::string hash_key(int i) {
   return std::string(reinterpret_cast<char*>(digest32), 16 + i % 16);
 }
 
-TEST(state_impl, node_hash_add_erase) {
+/*TEST(state_impl, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 10000;
+  int32_t key_count = 100000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
@@ -103,7 +103,7 @@ TEST(state_impl, node_hash_add_erase) {
     state.set(keys.top(), data);
     EXPECT_EQ(data, state.get(keys.top()));
 
-    if (i % 1000) {
+    if (i % (key_count/10)) {
       continue;
     }
     // Integrity check for all prior key/values.
@@ -128,7 +128,7 @@ TEST(state_impl, node_hash_add_erase) {
     state.erase(keys.top());
 
     // Integrity check for all prior key/values.
-    if (i % 1000 == 0) {
+    if (i % (key_count/10) == 0) {
       std::cout << i << std::endl;
       for (int32_t j = 0; j < key_count - i - 1; j++) {
         std::string data = std::to_string(j);
@@ -155,8 +155,7 @@ TEST(state_impl, node_hash_add_erase) {
     }
     root_hashes.pop();
   }
-}
-
+}*/
 
 TEST(state_impl, insert_and_delete_expect_blank) {
   SHA256_cryptopp::register_self();
@@ -220,6 +219,56 @@ TEST(state_impl, delete_node_tree) {
   s.set("a", "test");
   s.delete_node_tree("a");
   EXPECT_EQ(s.get_node_hash(""), "");
+}
+// This function tests if free locations are used correclty when combined
+// with delete_node_tree, commit_changes, discard_changes.
+// Deleted nodes should be backed up only when we create new node at
+// their location.
+TEST(state_impl, delete_node_tree_plus_commit_discard_free_backup_add_node) {
+  SHA256_cryptopp hash;
+  state_impl s(&hash);
+  s.set("aa", "1");
+  s.set("aaa", "2");
+  s.set("abc", "3");
+  s.set("a2z", "4");
+  s.set("a", "test");
+  s.set("not_a_path", "lets have few more paths");
+  s.set("unrelated_path", "just few more paths unrelated to 1");
+  s.set("branch_two", "other branch to play with");
+  s.set("branch_mewtwo", "branch to play with");
+  s.set("branch_mew", "to play with");
+  s.set("branch_arrow", "play with");
+  s.set("branch_two_but_longer", "with");
+  s.set("branch", "Oh no, branches to paly with are gone");
+  s.commit_changes();
+  std::string hash_before_discard = s.get_node_hash("");
+  s.delete_node_tree("a");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""),hash_before_discard);
+
+  s.delete_node_tree("a");
+  s.set("evil_node", "lets overwrite empty locations");
+  s.set("a_starting_node", "lets overwrite empty locations");
+  s.set("aaa", "I will act like I am legit node to avoid getting discarded");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+
+  s.set("branch", "I replace the original");
+  s.delete_node_tree("branch");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+
+  s.set("brach_mew", "ancestor to be deleted");
+  s.erase("branch_mewtwo");
+  s.set("branch_mewtwo", "I'm back, but different");
+  s.delete_node_tree("branch");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+
+  
+  // >> discard changes here
+  // compare if the hash is equal after discard to the one before
+
 }
 
 
