@@ -3,10 +3,10 @@
 #include <iostream>
 #include "crypto/dsa.h"
 #include <cryptlib.h>
-#include <eccrypto.h> 
-#include <integer.h>  
-#include <oids.h> 
-#include <randpool.h> 
+#include <eccrypto.h>
+#include <integer.h>
+#include <oids.h>
+#include <randpool.h>
 #include <osrng.h>
 
 
