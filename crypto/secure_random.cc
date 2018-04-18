@@ -1,6 +1,6 @@
 #include "crypto/secure_random.h"
 #include <cryptlib.h>
-#include "osrng.h" // NOLINT
+#include <osrng.h>
 
 bool secure_random::bit() {
   return prng.GenerateBit();
