@@ -156,6 +156,7 @@ cc_library(
       "*.h",
       "*.cpp",
     ]),
+  includes = ["."],
   defines = [
     "CRYPTOPP_DISABLE_ASM",
     "CRYPTOPP_DISABLE_AESNI",
