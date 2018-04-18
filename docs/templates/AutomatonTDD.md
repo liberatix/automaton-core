@@ -1,12 +1,10 @@
 # The Full Title of Your Technical Design Document
 
-> [Automaton](https://automaton.network)
->
-> Author(s):
->
-> Last updated:
->
-> Status: One of: IDEA | DRAFT | FINAL |  IMPLEMENTED | STAGING | LIVE | OBSOLETE
+| [Automaton](https://automaton.network) | |
+|-|-|
+| Author(s): | |
+| Last updated: | |
+| Status: | One of: ``IDEA`` ``DRAFT`` ``FINAL`` ``IMPLEMENTED`` ``STAGING`` ``LIVE`` ``OBSOLETE`` |
 
 > This document is to be used as a guideline when creating technical design documents for the Automaton project. Feel free to add or remove section as necessary. Based on this [Design Doc article by Malte Ubl](https://medium.com/@cramforce/design-docs-a-design-doc-a152f4484c6b)
 
