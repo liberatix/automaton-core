@@ -9,7 +9,6 @@
 #include <iostream>
 #include "crypto/dsa.h"
 
-sa_cryptopp.h, c system, c++ system, other.  [build/include_order] [4]
 /*
 TODO(Samir): set domain params from the fallowing example
 https://stackoverflow.com/a/45796422
