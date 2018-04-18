@@ -67,7 +67,8 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
 
 ## ALTERNATIVES CONSIDERED
 
-This section is a fixed part of the document structure as it forces the authors to think about what alternatives would have been available to achieve the goals of the design. Alternatives may be other possible designs or the use of an existing system that does almost what is needed, the purchase of a standard software or to do nothing at all.
+> This section is a fixed part of the document structure as it forces the authors to think about what alternatives would have been available to achieve the goals of the design. Alternatives may be other possible designs or the use of an existing system that does almost what is needed, the purchase of a standard software or to do nothing at all.
+
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat.
 
 ## LEVEL OF DETAIL
