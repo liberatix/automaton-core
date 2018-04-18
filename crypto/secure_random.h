@@ -2,7 +2,7 @@
 #define AUTOMATON_CORE_CRYPTO_SECURE_RANDOM_CRYPTOPP_H__
 
 #include <stdint.h>
-#include <osrng.h> // NOLINT
+#include <osrng.h>
 
 // Class used for getting cryptographically secure random
 class secure_random {
