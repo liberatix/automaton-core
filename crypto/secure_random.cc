@@ -1,5 +1,5 @@
 #include "crypto/secure_random.h"
-#include "cryptlib.h"  // NOLINT
+#include <cryptlib.h>
 #include "osrng.h" // NOLINT
 
 bool secure_random::bit() {
