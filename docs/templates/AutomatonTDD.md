@@ -1,8 +1,7 @@
 # The Full Title of Your Technical Design Document
 
-| [Automaton](https://automaton.network) | |
+| Author(s): | e.g. *@github-username* |
 |-|-|
-| Author(s): | |
 | Last updated: | |
 | Status: | One of: ``IDEA`` ``DRAFT`` ``FINAL`` ``IMPLEMENTED`` ``STAGING`` ``LIVE`` ``OBSOLETE`` |
 
