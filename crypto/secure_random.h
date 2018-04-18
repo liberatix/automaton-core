@@ -17,4 +17,4 @@ class secure_random {
   CryptoPP::AutoSeededRandomPool prng;
 };
 
-#endif  //AUTOMATON_CORE_CRYPTO_SECURE_RANDOM_CRYPTOPP_H__
+#endif  // AUTOMATON_CORE_CRYPTO_SECURE_RANDOM_CRYPTOPP_H__

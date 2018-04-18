@@ -1,4 +1,4 @@
-#include "secure_random.h"
+#include "crypto/secure_random.h"
 #include "cryptlib.h"  // NOLINT
 #include "osrng.h" // NOLINT
 
