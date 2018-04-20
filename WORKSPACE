@@ -64,6 +64,14 @@ new_http_archive(
 #)
 
 new_http_archive(
+  name = "bitcoin",
+  url = "https://github.com/bitcoin/bitcoin/archive/v0.16.0.zip",
+  sha256 = "5c1743f91b25acca53ea147a9aee9754e9489abf187d5806c0f0b8bfc11b8fbf",
+  build_file = "bitcoin.BUILD",
+  strip_prefix = "bitcoin-0.16.0",
+)
+
+new_http_archive(
   name = "lua",
   url = "https://github.com/lua/lua/releases/download/v5-3-4/lua-5.3.4.tar.gz",
   sha256 = "f681aa518233bc407e23acf0f5887c884f17436f000d453b2491a9f11a52400c",
