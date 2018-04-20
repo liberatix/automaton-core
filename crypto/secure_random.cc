@@ -1,15 +1,18 @@
 #include "crypto/secure_random.h"
-#include <cryptlib.h>
-#include <osrng.h>
 
-bool secure_random::bit() {
-  return prng.GenerateBit();
+std::map<std::string, secure_random::secure_random_factory_function>
+    secure_random::secure_random_factory;
+
+secure_random * secure_random::create(std::string name) {
+  auto it = secure_random_factory.find(name);
+  if (it == secure_random_factory.end()) {
+    return nullptr;
+  } else {
+    return it->second();
+  }
 }
 
-void secure_random::block(uint8_t * output, size_t size) {
-  prng.GenerateBlock(output, size);
-}
-
-uint8_t secure_random::byte() {
-  return prng.GenerateByte();
+void secure_random::register_factory(std::string name,
+    secure_random_factory_function func) {
+  secure_random_factory[name] = func;
 }

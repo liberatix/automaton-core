@@ -21,6 +21,10 @@ cc_library(
         "dsa.h",
         "dsa_cryptopp.cc",
         "dsa_cryptopp.h",
+        "secure_random.cc",
+        "secure_random.h",
+        "secure_random_cryptopp.cc",
+        "secure_random_cryptopp.h",
     ],
     hdrs = [
       "hash_transformation.h",
@@ -31,6 +35,8 @@ cc_library(
       "SHA3_256_cryptopp.h",
       "dsa.h",
       "dsa_cryptopp.h",
+      "secure_random.h",
+      "secure_random_cryptopp.h",
       ],
     deps = ["@cryptopp//:cryptopp"],
 )
