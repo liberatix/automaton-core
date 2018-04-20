@@ -31,7 +31,7 @@ class secure_random {
   // Returns:    Pointer to secure_random derived class implementing the
   //             interface or nullptr if there is no registered function
   //             with this name.
-  // IN:  name:  The registered name of the function used to instantiate 
+  // IN:  name:  The registered name of the function used to instantiate
   //             an implementation of this interface.
   static secure_random * create(std::string name);
 
@@ -40,7 +40,8 @@ class secure_random {
   // IN:  name:   a string that will be used to call this function.
   //      func:   function pointers used to instantiate classes
   //              implementing the interface.
-  static void register_factory(std::string name, secure_random_factory_function func);
+  static void register_factory(std::string name,
+      secure_random_factory_function func);
 
  private:
   // Map holding the function pointers used to instantiate classes implementing

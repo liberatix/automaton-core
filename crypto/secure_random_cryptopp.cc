@@ -15,6 +15,7 @@ uint8_t secure_random_cryptopp::byte() {
 }
 
 bool secure_random_cryptopp::register_self() {
-  secure_random_cryptopp::register_factory("cryptopp", [] {return reinterpret_cast<secure_random*>(new secure_random_cryptopp()); });
+  secure_random_cryptopp::register_factory("cryptopp", [] {return
+      reinterpret_cast<secure_random*>(new secure_random_cryptopp()); });
   return true;
 }
