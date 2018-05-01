@@ -1,5 +1,5 @@
 GTEST_LABEL = "ec44c6c1675c25b9827aacd08c02433cccde7780"
-CRYPTOPP_LABEL = "6_0_0"
+CRYPTOPP_LABEL = "7_0_0"
 LUA_PREFIX = "lua-5.3.4"
 SELENE_PREFIX = "Selene-0.4"
 
@@ -32,11 +32,11 @@ http_archive(
   sha256 = "706ac3cbd4504f34c5b991e1b4567e35d7fa883c417e1644de594a169e193af8",
 )
 
-# cryptopp-CRYPTOPP_6_0_0
+# cryptopp-CRYPTOPP_7_0_0
 new_http_archive(
   name = "cryptopp",
-  url = "https://github.com/weidai11/cryptopp/archive/CRYPTOPP_6_0_0.zip",
-  sha256 = "2d12dbd4ccef518124bb6065287659a5f538c4d5b4049958f6e560abb2a1bb41",
+  url = "https://github.com/weidai11/cryptopp/archive/CRYPTOPP_7_0_0.zip",
+  sha256 = "d63659f7ffd7c928bb1b67eca1c8b2f6ec743b14688f257890b1549013075d02",
   build_file = "cryptopp.BUILD",
   strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
 )

@@ -1,14 +1,13 @@
-#ifndef AUTOMATON_CORE_CRYPTO_DSA_CRYPTOPP_IMPL_TRANSFORMATION_H__
-#define AUTOMATON_CORE_CRYPTO_DSA_CRYPTOPP_IMPL_TRANSFORMATION_H__
+#ifndef AUTOMATON_CORE_CRYPTO_ED25519_ORLP_IMPL_H__
+#define AUTOMATON_CORE_CRYPTO_ED25519_ORLP_IMPL_H__
 
-#include "crypto/dsa.h"
-#include "eccrypto.h"  // NOLINT
+#include "crypto/digital_signature.h"
 
-class dsa_cryptopp : public dsa {
+class ed25519_orlp : public digital_signature {
  public:
   size_t public_key_size();
   size_t private_key_size();
-  // will delete hashed_message_size, we need to give the size
+  // TODO(Samir): will delete hashed_message_size, we need to give the size
   // of the message depending on the hash functions
   size_t hashed_message_size();
   size_t signature_size();
@@ -17,9 +16,9 @@ class dsa_cryptopp : public dsa {
 
   // Input should be byte array encoding the integer,
   // each byte representing 2 4-byte values
+  // !! Private key is the seed used to create keypair in ed25591
   void gen_public_key(const unsigned char * private_key,
                       unsigned char * public_key);
-
 
   void sign(const unsigned char * private_key,
             const unsigned char * message,
@@ -37,4 +36,4 @@ class dsa_cryptopp : public dsa {
   static bool register_self();
 };
 
-#endif  //  AUTOMATON_CORE_CRYPTO_DSA_CRYPTOPP_IMPL_TRANSFORMATION_H__
+#endif  //  AUTOMATON_CORE_CRYPTO_ED25519_ORLP_IMPL_H__

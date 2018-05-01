@@ -1,10 +1,10 @@
-#ifndef AUTOMATON_CORE_CRYPTO_DSA_H__
-#define AUTOMATON_CORE_CRYPTO_DSA_H__
+#ifndef AUTOMATON_CORE_CRYPTO_DIGITAL_SIGNATURE_H__
+#define AUTOMATON_CORE_CRYPTO_DIGITAL_SIGNATURE_H__
 
 #include <string>
 #include <map>
 
-class dsa {
+class digital_signature {
  public:
   // The size of the public key in bytes
   virtual size_t public_key_size() = 0;
@@ -20,7 +20,7 @@ class dsa {
   // A function pointer given to the register_factory to register.
   // The function will be used by create() to instantiate a
   // derived class implementing this interface
-  typedef dsa * (*dsa_factory_function)();
+  typedef digital_signature * (*digital_signature_factory_function)();
 
   // Returns true of this implementation can sign deterministic
   // signatures using the sign_deterministic() function
@@ -66,24 +66,26 @@ class dsa {
                       unsigned char * signature) = 0;
 
   // Instantiate a class using the registered function in the factory.
-  // Returns:          Pointer to dsa derived class implementing the
-  //                   interface or nullptr if there is no registered
-  //                   function with this name.
-  // IN:      name:    The registered name of the function used to
-  //                   instantiate an implementation of this interface.
-  static dsa * create(std::string name);
+  // Returns:      Pointer to digital_signature derived class implementing the
+  //               interface or nullptr if there is no registered
+  //               function with this name.
+  // IN:  name:    The registered name of the function used to
+  //               instantiate an implementation of this interface.
+  static digital_signature * create(std::string name);
 
   // Register the create function for a given implementation, will overwrite
   // already registered functions.
   // IN:  name:   a string that will be used to call this function.
   //      func:   function pointers used to instantiate classes
   //              implementing the interface.
-  static void register_factory(std::string name, dsa_factory_function func);
+  static void register_factory(std::string name,
+                               digital_signature_factory_function func);
 
  private:
   // Map holding the function pointers used to instantiate
   // classes implementing this interface.
-  static std::map<std::string, dsa_factory_function> dsa_factory;
+  static std::map<std::string,
+      digital_signature_factory_function> digital_signature_factory;
 };
 
-#endif  //  AUTOMATON_CORE_CRYPTO_DSA_TRANSFORMATION_H__
+#endif  //  AUTOMATON_CORE_CRYPTO_DIGITAL_SIGNATURE_H__
