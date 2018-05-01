@@ -1,6 +1,6 @@
 #include <string>
-#include "crypto/dsa.h"
-#include "crypto/dsa_cryptopp.h"
+#include "crypto/digital_signature.h"
+#include "crypto/secp256k1_cryptopp.h"
 #include "gtest/gtest.h"
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
@@ -18,9 +18,9 @@ void decode_from_hex(std::string &encoded, std::string &decoded) {   // NOLINT
   CryptoPP::StringSource ss(encoded, true,
     new CryptoPP::HexDecoder(new CryptoPP::StringSink(decoded)));
 }
-TEST(dsa_cryptopp, gen_public_key) {
-  dsa_cryptopp::register_self();
-  dsa* tester = dsa::create("secp256k1");
+TEST(secp256k1_cryptopp, gen_public_key) {
+  secp256k1_cryptopp::register_self();
+  digital_signature* tester = digital_signature::create("secp256k1");
   EXPECT_NE(tester, nullptr);
   unsigned char* public_key = new unsigned char[tester->public_key_size()];
   constexpr unsigned int test_cases = 4;
@@ -41,9 +41,9 @@ TEST(dsa_cryptopp, gen_public_key) {
     EXPECT_EQ(test[i][1], toHex(public_key, tester->public_key_size()));
   }
 }
-TEST(dsa_cryptopp, sign_and_verify) {
-  dsa_cryptopp::register_self();
-  dsa* tester = dsa::create("secp256k1");
+TEST(secp256k1_cryptopp, sign_and_verify) {
+  secp256k1_cryptopp::register_self();
+  digital_signature* tester = digital_signature::create("secp256k1");
   EXPECT_NE(tester, nullptr);
   unsigned char* public_key = new unsigned char[tester->public_key_size()];
   unsigned char* signature = new unsigned char[tester->signature_size()];
@@ -70,7 +70,7 @@ TEST(dsa_cryptopp, sign_and_verify) {
     }
   }
 }
-TEST(dsa_cryptopp, verify) {
+TEST(secp256k1_cryptopp, verify) {
 }
-TEST(dsa_cryptopp, check_return_sizes) {
+TEST(secp256k1_cryptopp, check_return_sizes) {
 }
