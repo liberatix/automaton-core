@@ -1,10 +1,10 @@
-#ifndef AUTOMATON_CORE_EXAMPLES_SIMPLE_MINER_H__
-#define AUTOMATON_CORE_EXAMPLES_SIMPLE_MINER_H__
+#ifndef AUTOMATON_CORE_EXAMPLES_BASIC_HASH_MINER_H__
+#define AUTOMATON_CORE_EXAMPLES_BASIC_HASH_MINER_H__
 
 #include <string>
 #include <vector>
 #include "crypto/hash_transformation.h"
-#include "examples/crypto/simple_miner.h"
+#include "examples/crypto/basic_hash_miner.h"
 
 hash_transformation* _hash_transformation;
 unsigned char* _nonce;
@@ -39,15 +39,15 @@ bool is_valid_next_block_hash(unsigned char* hash, int required_leading_zeros) {
   }
 }
 
-int simple_miner::get_nonce_lenght() {
+int basic_hash_miner::get_nonce_lenght() {
   return _nonce_lenght;
 }
 
-simple_miner::simple_miner(hash_transformation* hash_transformation) {
+basic_hash_miner::basic_hash_miner(hash_transformation* hash_transformation) {
   _hash_transformation = hash_transformation;
 }
 
-unsigned char* simple_miner::mine(unsigned char* block_hash,
+unsigned char* basic_hash_miner::mine(unsigned char* block_hash,
     int block_hash_lenght,
     int required_leading_zeros) {
   if (required_leading_zeros > _nonce_lenght * 8) {

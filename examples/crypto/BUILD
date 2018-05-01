@@ -2,26 +2,14 @@
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = "examples_crypto",
-    srcs = [
-        "simple_miner.cc",
-    ],
-    hdrs = [
-      "simple_miner.h",
-      ],
-    deps = [
-      "//crypto",
-    ],
-)
-
 cc_binary(
-    name = "demo_miner",
+    name = "demo_crypto",
     srcs = [
-      "miner_demo.cc"
+      "miner_demo.cc",
+      "basic_hash_miner.cc",
+      "basic_hash_miner.h",
     ],
     deps = [
       "//crypto",
-      "examples_crypto",
     ],
 )
