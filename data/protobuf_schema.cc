@@ -223,9 +223,7 @@ protobuf_schema::protobuf_schema() {
       <google::protobuf::DynamicMessageFactory>(&arena, pool);
 }
 
-protobuf_schema::~protobuf_schema() {
-  // TODO(kari): clear messages
-}
+protobuf_schema::~protobuf_schema() {}
 
 void protobuf_schema::register_self() {
   protobuf_schema::register_factory("protobuf", [] {
