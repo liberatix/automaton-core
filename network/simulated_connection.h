@@ -16,19 +16,26 @@ void simulation_init();
   ...
 **/
 enum event_type {
-  default_event = 0,
-  disconnect = 1,
-  connection_attempt = 2,
-  send = 3,
-  read = 4,
-  accept = 5,
-  refuse = 6,
+  default_event = 0,  //
+  disconnect = 1,  // this is created when disconnect is called and handled on
+  // the other end after some lag
+  connection_attempt = 2,  // this is created when connect is called and handled
+  // on the other end after some lag; on_requested is called
+  send = 3,  // this is created when send is called and handled after some lag;
+  // when handling send on_message_sent is called and read events are generated
+  // for the other end
+  read = 4,  // a message need to be read and on_message_received to be called
+  // if no read has been called, event time is increased
+  accept = 5,  // this is created when a connection is accepted (on_requested
+  // returns true) and handled on the other end afted some lag
+  refuse = 6,  // as above
   error = 7
 };
 
 class simulated_connection;
 class simulated_acceptor;
 // this could be protobuf message
+// TODO(kari): Shrink it
 struct event {
   static unsigned int event_ids;
   unsigned int event_id;
@@ -82,11 +89,14 @@ class simulated_connection: public connection {
   int address_to;
   state connection_state;
   connection_params parameters;
+
+  // Next 5 are used for read event
   std::queue<char*> buffers;
   std::queue<unsigned int> buffers_sizes;
   std::queue<unsigned int> expect_to_read;
   std::queue<int> read_ids;
   unsigned int bytes_read;
+
   simulated_connection(const std::string& address_,
       connection_handler* handler_);
   bool parse_address(const std::string& address);
