@@ -1,13 +1,13 @@
+#include "crypto/dsa_cryptopp.h"
+#include <cryptlib.h>
+#include <eccrypto.h>
+#include <integer.h>
+#include <oids.h>
+#include <randpool.h>
+#include <osrng.h>
 #include <string>
 #include <iostream>
 #include "crypto/dsa.h"
-#include "crypto/dsa_cryptopp.h"
-#include "cryptlib.h"  // NOLINT
-#include "eccrypto.h"  // NOLINT
-#include "integer.h"  // NOLINT
-#include "oids.h"  // NOLINT
-#include "randpool.h"  // NOLINT
-
 
 /*
 TODO(Samir): set domain params from the fallowing example
@@ -59,7 +59,7 @@ void dsa_cryptopp::gen_public_key(const unsigned char * private_key,
 void dsa_cryptopp::sign(const unsigned char * private_key,
                         const unsigned char * message,
                         unsigned char * signature) {
-  CryptoPP::RandomPool prng;
+  CryptoPP::AutoSeededRandomPool prng;
 
   std::string str_signature;
   // Create private key object from exponent
@@ -85,6 +85,7 @@ void dsa_cryptopp::sign_deterministic(const unsigned char * private_key,
 bool dsa_cryptopp::verify(const unsigned char * public_key,
                           const unsigned char * message,
                           unsigned char * signature) {
+  // TODO(Samir): Change SHA256 to identity hash
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
 
   std::string input(reinterpret_cast<const char*>(public_key),
@@ -94,7 +95,7 @@ bool dsa_cryptopp::verify(const unsigned char * public_key,
   publicKey.GetGroupParameters().GetCurve().DecodePoint(p, public_key,
       public_key_size());
   publicKey.SetPublicElement(p);
-
+  // TODO(Samir): Change SHA256 to identity hash
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier
       verifier(publicKey);
   return verifier.VerifyMessage(message, hashed_message_size(), signature,

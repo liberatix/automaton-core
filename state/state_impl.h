@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 #include <string>
+#include <map>
 #include <vector>
-#include <stack>
+#include <set>
 #include "state/state.h"
 #include "crypto/hash_transformation.h"
 
@@ -45,6 +46,8 @@ class state_impl : public state{
   // compare differences in with the second state and print path
   void print_subtrie(std::string path, std::string formated_path);
 
+  uint32_t size();
+
  private:
   struct node {
     uint32_t parent;
@@ -54,8 +57,11 @@ class state_impl : public state{
     uint32_t children[256];
   };
   std::vector<node> nodes;
-  std::stack<uint32_t> fragmented_locations;
+  std::map<uint32_t, node> backup;
+  std::set<uint32_t> free_locations;
   hash_transformation* hasher;
+  uint32_t nodes_current_state;
+  uint32_t permanent_nodes_count;
 
   int32_t get_node_index(const std::string& path);
   bool has_children(uint32_t node_index);
@@ -63,6 +69,11 @@ class state_impl : public state{
   // This needs to be called at the end of set() and erase() to recalculate the
   // hashes of all nodes from lowest child that was changed to the root
   void calculate_hash(uint32_t cur_node);
+  // Create a backup starting from cur_node to root if they are not
+  // in the backup map
+  void backup_nodes(uint32_t cur_node);
+  // add all nodes in the subtrie to free_locations to be reused.
+  void subtrie_mark_free(uint32_t cur_node);
 };
 
 #endif  //  AUTOMATON_CORE_STATE_IMPL_H__
