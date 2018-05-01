@@ -1,6 +1,12 @@
 #ifndef TCP_IMPLEMENTATION_H__
 #define TCP_IMPLEMENTATION_H__
 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <utility>
+#include <memory>
+
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/write.hpp>
@@ -8,15 +14,8 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <utility>
-#include <memory>
-
 #include "network/connection.h"
 #include "network/acceptor.h"
-// #include "Schema.cpp"
 
 // TODO(kari): proper exit, clear resources..
 // TODO(kari): add worker and init function
@@ -71,21 +70,14 @@ class tcp_connection: public connection {
     the handler's function on_message_sent() will be called after the message was
     successfully sent or if an error occurred.
   **/
-  void async_send(const std::string& msg, int id);
+  void async_send(const std::string& msg, unsigned int id);
 
   /**
+    If you call this function more than once, events form a queue, no read is
+    cancelled
   **/
-  void async_read(char* buffer, int buffer_size, int num_bytes);
-
-  /**
-    When this function is called, the local peer start listening for messages from
-    the remote peer. If a message was successfully received, handler's
-    on_message_received() will be called. If the remote peer disconnects, handler's
-    on_disconnected() will be called. If an error occured while receiving the message,
-    on_error() will be called. This function is called from connect() but can be
-    called again if an error occured and listening for messages was interrupted.
-  **/
-//  void start_listening(); REMOVED
+  void async_read(char* buffer, unsigned int buffer_size,
+      unsigned int num_bytes, unsigned int id);
 
   /**
     This function can be called to disconnect peer. To reconnect connect() shoul be
@@ -101,9 +93,9 @@ class tcp_connection: public connection {
   **/
   void add_handler(connection_handler* handler_);
 
-  std::string get_address();
+  std::string get_address() const;
 
-  connection::state get_state();
+  connection::state get_state() const;
 
  private:
   boost::asio::ip::tcp::endpoint asio_endpoint;

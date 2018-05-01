@@ -12,14 +12,16 @@ char* bufferC = new char[256];
 
 class handler: public connection::connection_handler {
  public:
-  void on_message_received(connection* c, const std::string& message) {
+  void on_message_received(connection* c, char* buffer, unsigned int bytes_read,
+      unsigned int id) {
+    std::string message = std::string(buffer, bytes_read);
     logging("Message \"" + message + "\" received from " + c->get_address());
     if (message.compare("Thank you!")) {
       c->async_send("Thank you!", counter++);
     }
     // connection_a -> async_read(buffer, 256, 0);
   }
-  void on_message_sent(connection* c, int id, connection::error e) {
+  void on_message_sent(connection* c, unsigned int id, connection::error e) {
     if (e) {
       logging("Message with id " + std::to_string(id) + " was NOT sent to " +
           c->get_address() + "\nError " + std::to_string(e) +" occured");
@@ -96,12 +98,21 @@ void thread3() {
   connection_c -> async_read(bufferC, 256, 0);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   connection_c -> async_send("C0", counter++);
-  /*std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
   connection_c -> async_send("C1", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  connection_c -> async_send("C2", counter++);*/
+  connection_c -> async_send("C2", counter++);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   connection_c -> disconnect();
+  connection_c -> connect();
+  connection_c -> async_read(bufferC, 256, 0);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  connection_c -> async_send("C0", counter++);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  connection_c -> async_send("C1", counter++);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  connection_c -> async_send("C2", counter++);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
 int main() {
@@ -110,15 +121,15 @@ int main() {
   acceptor* acceptorB = acceptor::create("tcp", address_b, &lis_handler,
       &handlerD);
   acceptorB->start_accepting();
-  std::thread t1(thread1);
-  std::thread t2(thread2);
+  //  std::thread t1(thread1);
+  //  std::thread t2(thread2);
   std::thread t3(thread3);
   /*if (!passed) {
     return 1;
   }*/
   int r; std::cin >> r;
-  t1.join();
-  t2.join();
+  //  t1.join();
+  //  t2.join();
   t3.join();
   return 0;
 }

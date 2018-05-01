@@ -1,10 +1,10 @@
 #include "network/tcp_implementation.h"
 
-#include <boost/asio/read.hpp>
-
+#include <mutex>
 #include <regex>
 #include <thread>
-#include <mutex>
+
+#include <boost/asio/read.hpp>
 
 // TODO(kari): proper exit, clear resources..
 // TODO(kari): improve init function and handle the new thread
@@ -72,6 +72,7 @@ tcp_connection::~tcp_connection() {
 
 void tcp_connection::connect() {
   if (tcp_initialized) {
+    // TODO(kari): if already connected {}
     asio_socket.async_connect(asio_endpoint,
         [this](const boost::system::error_code& boost_error_code) {
       if (boost_error_code) {
@@ -93,7 +94,7 @@ void tcp_connection::connect() {
   }
 }
 
-void tcp_connection::async_send(const std::string& msg, int id) {
+void tcp_connection::async_send(const std::string& msg, unsigned int id) {
   if (tcp_initialized && asio_socket.is_open() && msg.size() > 0) {
     std::string* message = new std::string(msg);
     asio_socket.async_write_some(boost::asio::buffer(*message),
@@ -125,12 +126,12 @@ void tcp_connection::async_send(const std::string& msg, int id) {
   }
 }
 
-void tcp_connection::async_read(char* buffer, int buffer_size,
-    int num_bytes) {
+void tcp_connection::async_read(char* buffer, unsigned int buffer_size,
+    unsigned int num_bytes, unsigned int id) {
   if (tcp_initialized && asio_socket.is_open()) {
     if (num_bytes <= 0) {
       asio_socket.async_read_some(boost::asio::buffer(buffer, buffer_size),
-          [this, buffer](const boost::system::error_code& boost_error_code,
+          [this, buffer, id](const boost::system::error_code& boost_error_code,
           size_t bytes_transferred) {
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
@@ -140,21 +141,20 @@ void tcp_connection::async_read(char* buffer, int buffer_size,
                 boost::asio::error::operation_aborted) {
             return;
           } else {
-            logging("ERROR (in start_listening() 0): " +
+            logging("ERROR (in async_read() 0): " +
                 boost_error_code.message());
             handler->on_error(this, connection::error::unknown);
             // TODO(kari): what errors and when should read be called?
           }
         } else {
-          handler->on_message_received(this, std::string(buffer, 0,
-              bytes_transferred));
+          handler->on_message_received(this, buffer, bytes_transferred, id);
         }
       });
     } else {
         boost::asio::async_read(asio_socket,
           boost::asio::buffer(buffer, buffer_size),
           boost::asio::transfer_exactly(num_bytes),
-          [this, buffer](const boost::system::error_code& boost_error_code,
+          [this, buffer, id](const boost::system::error_code& boost_error_code,
           size_t bytes_transferred) {
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
@@ -164,14 +164,13 @@ void tcp_connection::async_read(char* buffer, int buffer_size,
               boost::asio::error::operation_aborted) {
             return;
           } else {
-            logging("ERROR (in start_listening() 0): " +
+            logging("ERROR (in async_read() 1): " +
                 boost_error_code.message());
             handler->on_error(this, connection::error::unknown);
             // TODO(kari): what errors and when should read be called?
           }
         } else {
-          handler->on_message_received(this, std::string(buffer, 0,
-              bytes_transferred));
+          handler->on_message_received(this, buffer, bytes_transferred, id);
         }
       });
     }
@@ -208,11 +207,11 @@ void tcp_connection::add_handler(connection_handler* handler_) {
   this->handler = handler_;
 }
 
-std::string tcp_connection::get_address() {
+std::string tcp_connection::get_address() const {
   return address;
 }
 
-connection::state tcp_connection::get_state() {
+connection::state tcp_connection::get_state() const {
   // TODO(kari): implement this
   return connection::state::invalid_state;
 }
