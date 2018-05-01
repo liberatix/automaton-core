@@ -1,12 +1,12 @@
 # Contribution Guidelines
 
-[TOC]
-
 ## Style Guides
 
 ### C++ Style Guide
 
+We follow [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) with some exceptions:
 
+* Names for classes and functions are all lowercase, with underscores between words instead of Camel Case.
 
 ## Commits
 
