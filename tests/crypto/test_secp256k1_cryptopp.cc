@@ -1,10 +1,11 @@
 #include <string>
+#include <vector>
 #include "crypto/digital_signature.h"
 #include "crypto/secp256k1_cryptopp.h"
 #include "gtest/gtest.h"
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
-#include <vector>
+
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and
 // right 4 bits of each byte.
