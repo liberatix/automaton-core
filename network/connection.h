@@ -35,6 +35,7 @@ class connection {
     closed_by_peer = 3,
     connection_refused = 4,
     timed_out = 5,
+    broken_pipe = 6,
   };
 
   /**
@@ -53,9 +54,9 @@ class connection {
   **/
   class connection_handler {
    public:
-    virtual void on_message_received(connection* c, const std::string&
-        message) = 0;
-    virtual void on_message_sent(connection* c, int id,
+    virtual void on_message_received(connection* c, char* buffer,
+        unsigned int bytes_read, unsigned int id) = 0;
+    virtual void on_message_sent(connection* c, unsigned int id,
         connection::error e) = 0;
     virtual void on_connected(connection* c) = 0;
     virtual void on_disconnected(connection* c) = 0;
@@ -67,7 +68,14 @@ class connection {
     sequence_id at the time of sending the message. On_message_sent should be
     invoked once the message was sent successfully.
   **/
-  virtual void async_send(const std::string& message, int id = 0) = 0;
+  virtual void async_send(const std::string& message, unsigned int id = 0) = 0;
+  virtual void async_read(char* buffer, unsigned int buffer_size,
+      unsigned int num_bytes = 0, unsigned int id = 0) = 0;
+
+  virtual state get_state() const = 0;
+  virtual std::string get_address() const = 0;
+  virtual void connect() = 0;
+  virtual void disconnect() = 0;
 
   /**
     Function that is used to create objects from a specified child class.
@@ -96,7 +104,7 @@ class connection {
   /**
   Class constructor.
   **/
-  explicit connection(connection_handler* _handler);
+  explicit connection(connection_handler* handler_);
 
   /**
     Handler object that must be set so the client could be informed for events.

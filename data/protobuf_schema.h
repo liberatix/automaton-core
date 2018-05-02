@@ -412,7 +412,7 @@ class protobuf_schema: public schema {
     use get/set_repeated_*() on non-repeated field or vise versa, exception will
     be thrown. If you use out of range index on set_repeated_*() the value will
     just be added at the end (not on the specified index). If you use out of
-    range index on set_repeated_*(), exception will be thrown.
+    range index on get_repeated_*(), exception will be thrown.
   */
 
   void set_string(int message_id, int field_tag, const std::string& value);
