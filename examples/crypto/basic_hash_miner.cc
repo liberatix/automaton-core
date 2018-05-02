@@ -9,7 +9,7 @@
 void basic_hash_miner::next_nonce() {
   int current = nonce_lenght_ - 1;
 
-  while (nonce_[current] == 255 && current > 0) {
+  while (nonce_[current] == 255) {
     nonce_[current] = 0;
     current--;
   }
