@@ -1,3 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+
 cc_library(
   name = "secp256k1",
   srcs = glob(["src/secp256k1/src/*.c"]),
@@ -6,5 +8,4 @@ cc_library(
     "src/secp256k1/src/*.h",
   ]),
   # includes = ["./src/secp256k1"],
-  visibility = ["//visibility:public"],
 )
