@@ -7,9 +7,6 @@ class ed25519_orlp : public digital_signature {
  public:
   size_t public_key_size();
   size_t private_key_size();
-  // TODO(Samir): will delete hashed_message_size, we need to give the size
-  // of the message depending on the hash functions
-  size_t hashed_message_size();
   size_t signature_size();
   size_t k_size();
   bool has_deterministic_signatures();
@@ -22,15 +19,18 @@ class ed25519_orlp : public digital_signature {
 
   void sign(const unsigned char * private_key,
             const unsigned char * message,
+            const size_t msg_len,
             unsigned char * signature);
 
   void sign_deterministic(const unsigned char * private_key,
                           const unsigned char * message,
+                          const size_t msg_len,
                           const unsigned char * k,
                           unsigned char * signature);
 
   bool verify(const unsigned char * public_key,
               const unsigned char * message,
+              const size_t msg_len,
               unsigned char * signature);
 
   static bool register_self();

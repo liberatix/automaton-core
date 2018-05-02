@@ -10,8 +10,6 @@ class digital_signature {
   virtual size_t public_key_size() = 0;
   // The size of the private key in bytes
   virtual size_t private_key_size() = 0;
-  // The size of hashed message in bytes
-  virtual size_t hashed_message_size() = 0;
   // The size of the signature in bytes
   virtual size_t signature_size() = 0;
   // The size of the random k in bytes;
@@ -38,10 +36,11 @@ class digital_signature {
   // Precondition signature_size() == signature in bytes.
   // IN:  private_key:  the private key as a buffer.
   //      message:      the message as a pointer to a buffer.
-  //      msg_len:      the lenght of the hashed message that will be signed.
+  //      msg_len:      the lenght of the message that will be signed.
   // OUT: signature:    a pointer to the buffer to recive the signature.
   virtual void sign(const unsigned char * private_key,
                     const unsigned char * message,
+                    const size_t msg_len,
                     unsigned char * signature) = 0;
 
   // Sign a deterministic message using private key, random k
@@ -49,10 +48,12 @@ class digital_signature {
   // Precondition signature_size() == signature in bytes.
   // IN:  private_key:  the private key as a buffer.
   //      message:      the message as a pointer to a buffer.
+  //      msg_len:      the lenght of the message that will be signed.
   //      k:            the random k used the sign the message
   // OUT: signature:    a pointer to the buffer to recive the signature.
   virtual void sign_deterministic(const unsigned char * private_key,
                                   const unsigned char * message,
+                                  const size_t msg_len,
                                   const unsigned char * k,
                                   unsigned char * signature) = 0;
 
@@ -60,9 +61,11 @@ class digital_signature {
   // coresponding the the given public key
   // IN:  public:     the public key as a buffer.
   //      message:    the message as a pointer to a buffer.
+  //      msg_len:    the lenght of the message.
   //      signature:  a pointer to the buffer to recive the signature.
   virtual bool verify(const unsigned char * public_key,
                       const unsigned char * message,
+                      const size_t msg_len,
                       unsigned char * signature) = 0;
 
   // Instantiate a class using the registered function in the factory.

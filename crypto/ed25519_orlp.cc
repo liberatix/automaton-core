@@ -16,9 +16,6 @@ size_t ed25519_orlp::public_key_size() {
 size_t ed25519_orlp::private_key_size() {
   return 32;
 }
-size_t ed25519_orlp::hashed_message_size() {
-  return 32;
-}
 size_t ed25519_orlp::signature_size() {
   return 64;
 }
@@ -38,20 +35,23 @@ void ed25519_orlp::gen_public_key(const unsigned char * private_key,
 }
 
 void ed25519_orlp::sign(const unsigned char * private_key,
-                            const unsigned char * message,
-                            unsigned char * signature) {
+                        const unsigned char * message,
+                        const size_t msg_len,
+                        unsigned char * signature) {
 }
 
 void ed25519_orlp::sign_deterministic(const unsigned char * private_key,
-                                          const unsigned char * message,
-                                          const unsigned char * k,
-                                          unsigned char * signature) {
-  sign(private_key, message, signature);
+                                      const unsigned char * message,
+                                      const size_t msg_len,
+                                      const unsigned char * k,
+                                      unsigned char * signature) {
+  sign(private_key, message, msg_len, signature);
 }
 
 bool ed25519_orlp::verify(const unsigned char * public_key,
-                              const unsigned char * message,
-                              unsigned char * signature) {
+                          const unsigned char * message,
+                          const size_t msg_len,
+                          unsigned char * signature) {
   return 0;
 }
 

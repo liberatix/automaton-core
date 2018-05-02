@@ -27,9 +27,6 @@ size_t secp256k1_cryptopp::public_key_size() {
 size_t secp256k1_cryptopp::private_key_size() {
   return 32;
 }
-size_t secp256k1_cryptopp::hashed_message_size() {
-  return 32;
-}
 size_t secp256k1_cryptopp::signature_size() {
   return 64;
 }
@@ -57,6 +54,7 @@ void secp256k1_cryptopp::gen_public_key(const unsigned char * private_key,
 }
 void secp256k1_cryptopp::sign(const unsigned char * private_key,
                         const unsigned char * message,
+                        const size_t msg_len,
                         unsigned char * signature) {
   CryptoPP::AutoSeededRandomPool prng;
 
@@ -68,7 +66,7 @@ void secp256k1_cryptopp::sign(const unsigned char * private_key,
   privateKey.Initialize(CryptoPP::ASN1::secp256k1(), privateExponent);
 
   memset(signature, 0, signature_size());
-  CryptoPP::StringSource(message, hashed_message_size(), true,
+  CryptoPP::StringSource(message, msg_len, true,
     new CryptoPP::SignerFilter(prng, CryptoPP::ECDSA<CryptoPP::ECP,
         CryptoPP::SHA256>::Signer(privateKey),
             new CryptoPP::ArraySink(signature, signature_size())));
@@ -78,14 +76,15 @@ void secp256k1_cryptopp::sign(const unsigned char * private_key,
 void secp256k1_cryptopp::sign_deterministic(
                           const unsigned char * private_key,
                           const unsigned char * message,
+                          const size_t msg_len,
                           const unsigned char * k,
                           unsigned char * signature) {
   throw;
 }
 bool secp256k1_cryptopp::verify(const unsigned char * public_key,
                           const unsigned char * message,
+                          const size_t msg_len,
                           unsigned char * signature) {
-  // TODO(Samir): Change SHA256 to identity hash
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
 
   std::string input(reinterpret_cast<const char*>(public_key),
@@ -98,7 +97,7 @@ bool secp256k1_cryptopp::verify(const unsigned char * public_key,
   // TODO(Samir): Change SHA256 to identity hash
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier
       verifier(publicKey);
-  return verifier.VerifyMessage(message, hashed_message_size(), signature,
+  return verifier.VerifyMessage(message, msg_len, signature,
       signature_size());
 }
 bool secp256k1_cryptopp::register_self() {
