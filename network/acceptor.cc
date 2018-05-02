@@ -1,15 +1,15 @@
 #include "network/acceptor.h"
 
-acceptor::acceptor(acceptor::acceptor_handler* _handler):handler(_handler) {}
+acceptor::acceptor(acceptor::acceptor_handler* handler_):handler(handler_) {}
 
 acceptor* acceptor::create(const std::string& type,
-    const std::string& address, acceptor::acceptor_handler* _handler,
+    const std::string& address, acceptor::acceptor_handler* handler_,
     connection::connection_handler* connections_handler) {
   auto it = acceptor_factory.find(type);
   if (it == acceptor_factory.end()) {
     return NULL;
   } else {
-    return it -> second(address, _handler, connections_handler);
+    return it -> second(address, handler_, connections_handler);
   }
 }
 void acceptor::register_acceptor_type(
