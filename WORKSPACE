@@ -38,12 +38,18 @@ local_repository(
 )
 
 # cryptopp-CRYPTOPP_7_0_0
-new_http_archive(
+#new_http_archive(
+#  name = "cryptopp",
+#  url = "https://github.com/weidai11/cryptopp/archive/CRYPTOPP_7_0_0.zip",
+#  sha256 = "d63659f7ffd7c928bb1b67eca1c8b2f6ec743b14688f257890b1549013075d02",
+#  build_file = "cryptopp.BUILD",
+#  strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
+#)
+
+new_local_repository(
   name = "cryptopp",
-  url = "https://github.com/weidai11/cryptopp/archive/CRYPTOPP_7_0_0.zip",
-  sha256 = "d63659f7ffd7c928bb1b67eca1c8b2f6ec743b14688f257890b1549013075d02",
   build_file = "cryptopp.BUILD",
-  strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
+  path = "third_party/cryptopp-CRYPTOPP_7_0_0",
 )
 
 # boost::asio
