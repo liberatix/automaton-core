@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <stack>
 #include "gtest/gtest.h"
 #include "state/state_impl.h"
 #include "crypto/SHA256_cryptopp.h"
@@ -65,7 +66,7 @@ TEST(state_impl, set_delete_and_get) {
 
 static std::string tohex(std::string s) {
   std::stringstream ss;
-  for (int i = 0; i < s.size(); i++) {
+  for (unsigned int i = 0; i < s.size(); i++) {
     ss << std::hex << std::uppercase << std::setw(2) <<
         std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
   }
@@ -102,7 +103,7 @@ TEST(state_impl, node_hash_add_erase) {
     state.set(keys.top(), data);
     EXPECT_EQ(data, state.get(keys.top()));
 
-    if (i % 1000) {
+    if (i % (key_count/10)) {
       continue;
     }
     // Integrity check for all prior key/values.
@@ -120,14 +121,14 @@ TEST(state_impl, node_hash_add_erase) {
     }
   }
 
-  // Erase the keys in reverse order and check if root hash the saved one
+  // Erase the keys in reverse order and check if root hash is the saved one
   // for the same trie state
 
   for (int32_t i = 0; i < key_count; i++) {
     state.erase(keys.top());
 
     // Integrity check for all prior key/values.
-    if (i % 1000 == 0) {
+    if (i % (key_count/10) == 0) {
       std::cout << i << std::endl;
       for (int32_t j = 0; j < key_count - i - 1; j++) {
         std::string data = std::to_string(j);
@@ -156,69 +157,56 @@ TEST(state_impl, node_hash_add_erase) {
   }
 }
 
-
-/*
-TEST(state_impl, set_multiple_times) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
-  s.set("a", "1");
-  EXPECT_EQ(s.get("a"), "1");
-  s.set("a", "");
-  EXPECT_EQ(s.get("a"), "");
-  s.commit_changes();
-  EXPECT_EQ(s.get("a"), "");
-}
-
-
 TEST(state_impl, insert_and_delete_expect_blank) {
-  state_impl s;
-  s.set("a", "1");
-  s.set("b", "2");
-  s.set("c", "3");
-  s.commit_changes();
-  s.set("a", "");
-  s.set("b", "");
-  s.set("c", "");
-  s.commit_changes();
-  EXPECT_EQ(s.get(""), "");
-  //EXPECT_EQ(s.get_node_hash(""), "");
-}
-*/
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl state(hasher);
 
-/*
+  state.set("a", "1");
+  state.set("b", "2");
+  state.set("c", "3");
+  state.commit_changes();
+  state.set("a", "");
+  state.set("b", "");
+  state.set("c", "");
+  state.commit_changes();
+  EXPECT_EQ(state.get(""), "");
+}
+
+
 TEST(state_impl, get_node_hash) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
-  EXPECT_EQ(s.get_node_hash(""), "");
-}
-
-TEST(state_impl, get_should_not_change_state) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
-  EXPECT_EQ(s.get("a"), "");
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl s(hasher);
   EXPECT_EQ(s.get_node_hash(""), "");
 }
 
 TEST(state_impl, commit_changes) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl s(hasher);
   s.set("a", "1");
   s.set("b", "2");
   s.set("c", "3");
+  std::string root_hash = s.get_node_hash("");
   s.commit_changes();
-  EXPECT_EQ(s.get_node_hash(""), "O2\x4Je_2\xE8R\x8E\xDE\xA6M\xBF\xD1\x1C\xBA\x81\v\x87\x90\xE6\xE6\xE2=(\xAD:u\x98\a4"); // NOLINT
+  EXPECT_EQ(s.get_node_hash(""), root_hash);
 }
 
 TEST(state_impl, discard_changes) {
-  SHA256_cryptopp hash;
-  state_impl s(&hash);
+  SHA256_cryptopp::register_self();
+  hash_transformation* hasher;
+  hasher = hash_transformation::create("SHA256");
+  state_impl s(hasher);
   s.set("a", "1");
   s.set("b", "2");
   s.set("c", "3");
   s.discard_changes();
   EXPECT_EQ(s.get_node_hash(""), "");
 }
-
 
 
 TEST(state_impl, delete_node_tree) {
@@ -228,10 +216,101 @@ TEST(state_impl, delete_node_tree) {
   s.set("aaa", "2");
   s.set("abc", "3");
   s.set("a2z", "4");
-  s.commit_changes();
   s.set("a", "test");
   s.delete_node_tree("a");
-  s.commit_changes();
   EXPECT_EQ(s.get_node_hash(""), "");
 }
-*/
+// This function tests if free locations are used correclty when combined
+// with delete_node_tree, commit_changes, discard_changes.
+// Deleted nodes should be backed up only when we create new node at
+// their location.
+TEST(state_impl, delete_node_tree_plus_commit_discard_free_backup_add_node) {
+  SHA256_cryptopp hash;
+  state_impl s(&hash);
+  s.set("aa", "1");
+  s.set("aaa", "2");
+  s.set("abc", "3");
+  s.set("a2z", "4");
+  s.set("a", "test");
+  s.set("not_a_path", "lets have few more paths");
+  s.set("unrelated_path", "just few more paths unrelated to 1");
+  s.set("branch_two", "other branch to play with");
+  s.set("branch_mewtwo", "branch to play with");
+  s.set("branch_mew", "to play with");
+  s.set("branch_arrow", "play with");
+  s.set("branch_two_but_longer", "with");
+  s.set("branch", "Oh no, branches to paly with are gone");
+  s.commit_changes();
+  std::string hash_before_discard = s.get_node_hash("");
+  s.delete_node_tree("a");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+
+  s.delete_node_tree("a");
+  s.set("evil_node", "lets overwrite empty locations");
+  s.set("a_starting_node", "lets overwrite empty locations");
+  s.set("aaa", "I will act like I am legit node to avoid getting discarded");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+
+  s.set("branch", "I replace the original");
+  s.delete_node_tree("branch");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+
+  s.set("brach_mew", "ancestor to be deleted");
+  s.erase("branch_mewtwo");
+  s.set("branch_mewtwo", "I'm back, but different");
+  s.delete_node_tree("branch");
+  s.discard_changes();
+  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+}
+
+
+TEST(dummy_state, using_deleted_locations) {
+  SHA256_cryptopp hash;
+  state_impl s(&hash);
+
+  s.set("a", "1");
+  s.set("b", "2");
+  s.set("c", "3");
+  s.set("d", "4");
+  EXPECT_EQ(s.size(), 5);
+  s.commit_changes();
+  EXPECT_EQ(s.size(), 5);
+
+  s.erase("a");
+  EXPECT_EQ(s.size(), 5);
+  s.commit_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.erase("b");
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.set("a", "1");
+  s.erase("b");
+  EXPECT_EQ(s.size(), 5);
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.erase("b");
+  s.set("a", "1");
+  EXPECT_EQ(s.size(), 4);
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.set("a", "1");
+  EXPECT_EQ(s.size(), 5);
+  s.erase("b");
+  s.set("x", "2");
+  EXPECT_EQ(s.size(), 5);
+  s.discard_changes();
+  EXPECT_EQ(s.size(), 4);
+
+  s.erase("b");
+  s.commit_changes();
+  EXPECT_EQ(s.size(), 3);
+  s.set("e", "1");
+  EXPECT_EQ(s.size(), 4);
+}
