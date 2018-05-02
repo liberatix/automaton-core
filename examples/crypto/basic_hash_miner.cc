@@ -17,7 +17,8 @@ void basic_hash_miner::next_nonce() {
   nonce_[current]++;
 }
 
-bool basic_hash_miner::is_valid_next_block_hash(unsigned char* hash, int required_leading_zeros) {
+bool basic_hash_miner::is_valid_next_block_hash(unsigned char* hash,
+                                                int required_leading_zeros) {
   int current = 0;
   while (required_leading_zeros - 8 >= 0) {
     if (hash[current] != 0) {
