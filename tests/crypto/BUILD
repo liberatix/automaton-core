@@ -32,7 +32,7 @@ cc_test(
 cc_test(
     name = "SHA512_test",
     srcs = ["test_SHA512_cryptopp.cc"],
-    size = "small",
+    size = "large",
     deps = [
       "//crypto",
       "@gtest//:gtest_main",
@@ -52,7 +52,7 @@ cc_test(
 cc_test(
     name = "SHA3_256_test",
     srcs = ["test_SHA3_256_cryptopp.cc"],
-    size = "small",
+    size = "large",
     deps = [
       "//crypto",
       "@gtest//:gtest_main",
@@ -60,8 +60,8 @@ cc_test(
 )
 
 cc_test(
-    name = "dsa",
-    srcs = ["test_dsa.cc"],
+    name = "secp256k1_cryptopp",
+    srcs = ["test_secp256k1_cryptopp.cc"],
     size = "small",
     deps = [
       "//crypto",
