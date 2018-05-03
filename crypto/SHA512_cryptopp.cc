@@ -10,12 +10,12 @@ SHA512_cryptopp::SHA512_cryptopp() {
 void SHA512_cryptopp::calculate_digest(const unsigned char * input,
                                       const size_t length,
                                       unsigned char * digest) {
-  hash->CalculateDigest(digest, input, length);
+  hash->CalculateDigest(digest, length == 0 ? nullptr : input, length);
 }
 
 void SHA512_cryptopp::update(const unsigned char * input,
                              const size_t length) {
-  hash->Update(input, length);
+  hash->Update(length == 0 ? nullptr : input, length);
 }
 
 void SHA512_cryptopp::final(unsigned char * digest) {
