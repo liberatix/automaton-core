@@ -1,38 +1,38 @@
-#include "crypto/RIPEMD160_cryptopp.h"
+#include "crypto/Keccak_256_cryptopp.h"
 #include "crypto/hash_transformation.h"
 #include "cryptlib.h"  // NOLINT
-#include "ripemd.h"  // NOLINT
+#include "keccak.h"  // NOLINT
 
-RIPEMD160_cryptopp::RIPEMD160_cryptopp() {
-  hash = new CryptoPP::RIPEMD160;
+Keccak_256_cryptopp::Keccak_256_cryptopp() {
+  hash = new CryptoPP::Keccak_256;
 }
 
-void RIPEMD160_cryptopp::calculate_digest(const unsigned char * input,
-                                          const size_t length,
-                                          unsigned char * digest) {
+void Keccak_256_cryptopp::calculate_digest(const unsigned char * input,
+                                           const size_t length,
+                                           unsigned char * digest) {
   hash->CalculateDigest(digest, length == 0 ? nullptr : input, length);
 }
 
-void RIPEMD160_cryptopp::update(const unsigned char * input,
-                                const size_t length) {
+void Keccak_256_cryptopp::update(const unsigned char * input,
+                                 const size_t length) {
   hash->Update(length == 0 ? nullptr : input, length);
 }
 
-void RIPEMD160_cryptopp::final(unsigned char * digest) {
+void Keccak_256_cryptopp::final(unsigned char * digest) {
   hash->Final(digest);
 }
 
-void RIPEMD160_cryptopp::restart() {
+void Keccak_256_cryptopp::restart() {
   hash->Restart();
 }
 
-unsigned int RIPEMD160_cryptopp::digest_size() const {
+unsigned int Keccak_256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
-bool RIPEMD160_cryptopp::register_self() {
-  hash_transformation::register_factory("RIPEMD160",
-  [] {return reinterpret_cast<hash_transformation*>
-      (new RIPEMD160_cryptopp()); });
+bool Keccak_256_cryptopp::register_self() {
+  hash_transformation::register_factory("Keccak_256",
+    [] {return reinterpret_cast<hash_transformation*>
+        (new Keccak_256_cryptopp()); });
   return true;
 }
