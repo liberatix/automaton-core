@@ -13,14 +13,14 @@ local_repository(
 
 new_local_repository(
   name = "cryptopp",
-  build_file = "cryptopp.BUILD",
   path = "third_party/cryptopp-CRYPTOPP_7_0_0",
+  build_file = "cryptopp.BUILD",
 )
 
 new_local_repository(
   name = "bitcoin",
-  build_file = "bitcoin.BUILD",
   path = "third_party/bitcoin-0.16.0",
+  build_file = "bitcoin.BUILD",
 )
 
 new_local_repository(
@@ -35,6 +35,17 @@ new_local_repository(
   build_file = "selene.BUILD",
 )
 
+new_local_repository(
+  name   = "com_github_glog_glog",
+  path = "third_party/glog-0.3.5",
+  build_file = "glog.BUILD",
+)
+
+local_repository(
+  name = "com_github_gflags_gflags",
+  path = "third_party/gflags-2.2.1",
+)
+
 #new_local_repository(
 #  name = "luajit",
 #  path = "LuaJIT-2.0.5",
@@ -45,9 +56,9 @@ new_local_repository(
 
 # BOOST
 git_repository(
-    name = "com_github_nelhage_rules_boost",
-    commit = "239ce40e42ab0e3fe7ce84c2e9303ff8a277c41a",
-    remote = "https://github.com/nelhage/rules_boost",
+  name = "com_github_nelhage_rules_boost",
+  commit = "239ce40e42ab0e3fe7ce84c2e9303ff8a277c41a",
+  remote = "https://github.com/nelhage/rules_boost",
 )
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
@@ -58,20 +69,20 @@ boost_deps()
 # LUA_PREFIX = "lua-5.3.4"
 # SELENE_PREFIX = "Selene-0.4"
 
-#Import the gflags files.
-git_repository(
-    name   = "com_github_gflags_gflags",
-    commit = "f8a0efe03aa69b3336d8e228b37d4ccb17324b88",
-    remote = "https://github.com/gflags/gflags.git",
-)
+# Import the gflags files.
+# git_repository(
+#     name   = "com_github_gflags_gflags",
+#     commit = "f8a0efe03aa69b3336d8e228b37d4ccb17324b88",
+#     remote = "https://github.com/gflags/gflags.git",
+# )
 
 # Import the glog files.
-new_git_repository(
-    name   = "com_github_glog_glog",
-    build_file = "glog.BUILD",
-    remote = "https://github.com/google/glog.git",
-    tag = "v0.3.5",
-)
+# new_git_repository(
+#     name   = "com_github_glog_glog",
+#     build_file = "glog.BUILD",
+#     remote = "https://github.com/google/glog.git",
+#     tag = "v0.3.5",
+# )
 
 # new_http_archive(
 #   name = "gtest",
