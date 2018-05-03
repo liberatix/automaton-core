@@ -2,7 +2,7 @@
 #include <cryptlib.h>
 #include <string>
 #include <iostream>
-#include "ed25519_orlp\ed25519.h"
+#include "ed25519.h"
 
 // unsigned char seed[32];
 // unsigned char signature[64];
@@ -62,7 +62,6 @@ bool ed25519_orlp::verify(const unsigned char * public_key,
 }
 
 bool ed25519_orlp::register_self() {
-    ed25519_orlp::register_factory("ed25519_orlp",
-    [] {return reinterpret_cast<digital_signature*>(new ed25519_orlp()); });
-return true;
+  ed25519_orlp::register_factory("ed25519_orlp", [] { return reinterpret_cast<digital_signature*>(new ed25519_orlp()); });
+  return true;
 }
