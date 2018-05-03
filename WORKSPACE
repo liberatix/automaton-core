@@ -18,12 +18,18 @@ new_git_repository(
     tag = "v0.3.5",
 )
 
-new_http_archive(
+#new_http_archive(
+#  name = "gtest",
+#  url = "https://github.com/google/googletest/archive/" + GTEST_LABEL + ".zip",
+#  sha256 = "bc258fff04a6511e7106a1575bb514a185935041b2c16affb799e0567393ec30",
+#  build_file = "gtest.BUILD",
+#  strip_prefix = "googletest-" + GTEST_LABEL,
+#)
+
+new_local_repository(
   name = "gtest",
-  url = "https://github.com/google/googletest/archive/" + GTEST_LABEL + ".zip",
-  sha256 = "bc258fff04a6511e7106a1575bb514a185935041b2c16affb799e0567393ec30",
+  path = "third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
   build_file = "gtest.BUILD",
-  strip_prefix = "googletest-" + GTEST_LABEL,
 )
 
 # http_archive(
@@ -92,20 +98,20 @@ new_http_archive(
   strip_prefix = LUA_PREFIX,
 )
 
-new_http_archive(
-  name = "selene",
-  url = "https://github.com/jeremyong/Selene/archive/v0.4.tar.gz",
-  sha256 = "e448981a3247541c497a7d0ca90e6a1b61f58ede5fcb4e7fc1c1ec25ed3f5a57",
-  build_file = "selene.BUILD",
-  strip_prefix = SELENE_PREFIX,
-)
+# new_http_archive(
+#   name = "selene",
+#   url = "https://github.com/jeremyong/Selene/archive/v0.4.tar.gz",
+#   sha256 = "e448981a3247541c497a7d0ca90e6a1b61f58ede5fcb4e7fc1c1ec25ed3f5a57",
+#   build_file = "selene.BUILD",
+#   strip_prefix = SELENE_PREFIX,
+# )
 
 # Local repository version for selene.
-# new_local_repository(
-#   name = "selene",
-#   path = SELENE_PREFIX,
-#   build_file = "selene.BUILD",
-# )
+new_local_repository(
+  name = "selene",
+  path = "third_party/Selene-0.4",
+  build_file = "selene.BUILD",
+)
 
 git_repository(
     name = "com_github_nelhage_rules_boost",
