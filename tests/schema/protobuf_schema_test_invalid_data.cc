@@ -29,8 +29,8 @@ std::string file_to_bytes(char const* filename) {
 int main(int argc, char* argv[]) {
   try {
     protobuf_schema sc;
-    sc.import_schema_from_string(file_to_bytes("tests/schema/invalid_data.proto"),
-        "test", "");
+    sc.import_schema_from_string(
+        file_to_bytes("tests/schema/invalid_data.proto"), "test", "");
   }
   catch (std::runtime_error& e) {
     // std::cout << e.what() << std::endl;
