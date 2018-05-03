@@ -1,7 +1,52 @@
-GTEST_LABEL = "ec44c6c1675c25b9827aacd08c02433cccde7780"
-CRYPTOPP_LABEL = "7_0_0"
-LUA_PREFIX = "lua-5.3.4"
-SELENE_PREFIX = "Selene-0.4"
+# LOCAL REPOSITORIES
+
+new_local_repository(
+  name = "gtest",
+  path = "third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
+  build_file = "gtest.BUILD",
+)
+
+local_repository(
+  name = "com_google_protobuf",
+  path = "third_party/protobuf-3.5.1",
+)
+
+new_local_repository(
+  name = "cryptopp",
+  build_file = "cryptopp.BUILD",
+  path = "third_party/cryptopp-CRYPTOPP_7_0_0",
+)
+
+new_local_repository(
+  name = "bitcoin",
+  build_file = "bitcoin.BUILD",
+  path = "third_party/bitcoin-0.16.0",
+)
+
+new_local_repository(
+  name = "lua",
+  path = "third_party/lua-5.3.4",
+  build_file = "lua.BUILD",
+)
+
+new_local_repository(
+  name = "selene",
+  path = "third_party/Selene-0.4",
+  build_file = "selene.BUILD",
+)
+
+#new_local_repository(
+#  name = "luajit",
+#  path = "LuaJIT-2.0.5",
+#  build_file = "luajit.BUILD",
+#)
+
+# REMOTE REPOSITORIES
+
+# GTEST_LABEL = "ec44c6c1675c25b9827aacd08c02433cccde7780"
+# CRYPTOPP_LABEL = "7_0_0"
+# LUA_PREFIX = "lua-5.3.4"
+# SELENE_PREFIX = "Selene-0.4"
 
 #Import the gflags files.
 git_repository(
@@ -26,22 +71,11 @@ new_git_repository(
 #  strip_prefix = "googletest-" + GTEST_LABEL,
 #)
 
-new_local_repository(
-  name = "gtest",
-  path = "third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
-  build_file = "gtest.BUILD",
-)
-
 # http_archive(
 #   name = "protobufs",
 #   urls = ["https://github.com/google/protobuf/releases/download/v3.5.1/protobuf-cpp-3.5.1.zip"],
 #   sha256 = "706ac3cbd4504f34c5b991e1b4567e35d7fa883c417e1644de594a169e193af8",
 # )
-
-local_repository(
-  name = "com_google_protobuf",
-  path = "third_party/protobuf-3.5.1",
-)
 
 # cryptopp-CRYPTOPP_7_0_0
 #new_http_archive(
@@ -51,12 +85,6 @@ local_repository(
 #  build_file = "cryptopp.BUILD",
 #  strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
 #)
-
-new_local_repository(
-  name = "cryptopp",
-  build_file = "cryptopp.BUILD",
-  path = "third_party/cryptopp-CRYPTOPP_7_0_0",
-)
 
 # boost::asio
 #new_git_repository(
@@ -74,29 +102,23 @@ new_local_repository(
 #  strip_prefix = "system-boost-1.66.0",
 #)
 
-#new_local_repository(
-#  name = "luajit",
-#  path = "LuaJIT-2.0.5",
-#  build_file = "luajit.BUILD",
-#)
+# new_http_archive(
+#   name = "bitcoin",
+#   url = "https://github.com/bitcoin/bitcoin/archive/v0.16.0.zip",
+#   sha256 = "5c1743f91b25acca53ea147a9aee9754e9489abf187d5806c0f0b8bfc11b8fbf",
+#   build_file = "bitcoin.BUILD",
+#   strip_prefix = "bitcoin-0.16.0",
+# )
 
-new_http_archive(
-  name = "bitcoin",
-  url = "https://github.com/bitcoin/bitcoin/archive/v0.16.0.zip",
-  sha256 = "5c1743f91b25acca53ea147a9aee9754e9489abf187d5806c0f0b8bfc11b8fbf",
-  build_file = "bitcoin.BUILD",
-  strip_prefix = "bitcoin-0.16.0",
-)
-
-new_http_archive(
-  name = "lua",
-  url = "https://github.com/lua/lua/releases/download/v5-3-4/lua-5.3.4.tar.gz",
-  sha256 = "f681aa518233bc407e23acf0f5887c884f17436f000d453b2491a9f11a52400c",
-  #url = "http://www.lua.org/ftp/lua-5.3.1.tar.gz",
-  #sha256 = "072767aad6cc2e62044a66e8562f51770d941e972dc1e4068ba719cd8bffac17",
-  build_file = "lua.BUILD",
-  strip_prefix = LUA_PREFIX,
-)
+# new_http_archive(
+#   name = "lua",
+#   url = "https://github.com/lua/lua/releases/download/v5-3-4/lua-5.3.4.tar.gz",
+#   sha256 = "f681aa518233bc407e23acf0f5887c884f17436f000d453b2491a9f11a52400c",
+#   #url = "http://www.lua.org/ftp/lua-5.3.1.tar.gz",
+#   #sha256 = "072767aad6cc2e62044a66e8562f51770d941e972dc1e4068ba719cd8bffac17",
+#   build_file = "lua.BUILD",
+#   strip_prefix = LUA_PREFIX,
+# )
 
 # new_http_archive(
 #   name = "selene",
@@ -105,13 +127,6 @@ new_http_archive(
 #   build_file = "selene.BUILD",
 #   strip_prefix = SELENE_PREFIX,
 # )
-
-# Local repository version for selene.
-new_local_repository(
-  name = "selene",
-  path = "third_party/Selene-0.4",
-  build_file = "selene.BUILD",
-)
 
 git_repository(
     name = "com_github_nelhage_rules_boost",
