@@ -43,6 +43,16 @@ new_local_repository(
 
 # REMOTE REPOSITORIES
 
+# BOOST
+git_repository(
+    name = "com_github_nelhage_rules_boost",
+    commit = "239ce40e42ab0e3fe7ce84c2e9303ff8a277c41a",
+    remote = "https://github.com/nelhage/rules_boost",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
+
 # GTEST_LABEL = "ec44c6c1675c25b9827aacd08c02433cccde7780"
 # CRYPTOPP_LABEL = "7_0_0"
 # LUA_PREFIX = "lua-5.3.4"
@@ -55,7 +65,7 @@ git_repository(
     remote = "https://github.com/gflags/gflags.git",
 )
 
-#Import the glog files.
+# Import the glog files.
 new_git_repository(
     name   = "com_github_glog_glog",
     build_file = "glog.BUILD",
@@ -63,13 +73,13 @@ new_git_repository(
     tag = "v0.3.5",
 )
 
-#new_http_archive(
-#  name = "gtest",
-#  url = "https://github.com/google/googletest/archive/" + GTEST_LABEL + ".zip",
-#  sha256 = "bc258fff04a6511e7106a1575bb514a185935041b2c16affb799e0567393ec30",
-#  build_file = "gtest.BUILD",
-#  strip_prefix = "googletest-" + GTEST_LABEL,
-#)
+# new_http_archive(
+#   name = "gtest",
+#   url = "https://github.com/google/googletest/archive/" + GTEST_LABEL + ".zip",
+#   sha256 = "bc258fff04a6511e7106a1575bb514a185935041b2c16affb799e0567393ec30",
+#   build_file = "gtest.BUILD",
+#   strip_prefix = "googletest-" + GTEST_LABEL,
+# )
 
 # http_archive(
 #   name = "protobufs",
@@ -78,29 +88,29 @@ new_git_repository(
 # )
 
 # cryptopp-CRYPTOPP_7_0_0
-#new_http_archive(
-#  name = "cryptopp",
-#  url = "https://github.com/weidai11/cryptopp/archive/CRYPTOPP_7_0_0.zip",
-#  sha256 = "d63659f7ffd7c928bb1b67eca1c8b2f6ec743b14688f257890b1549013075d02",
-#  build_file = "cryptopp.BUILD",
-#  strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
-#)
+# new_http_archive(
+#   name = "cryptopp",
+#   url = "https://github.com/weidai11/cryptopp/archive/CRYPTOPP_7_0_0.zip",
+#   sha256 = "d63659f7ffd7c928bb1b67eca1c8b2f6ec743b14688f257890b1549013075d02",
+#   build_file = "cryptopp.BUILD",
+#   strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
+# )
 
 # boost::asio
-#new_git_repository(
-#  name = "com_github_boost_asio",
-#  commit = "6814d260d02300a97521c1a93d02e30877fb8ff5",
-#  remote = "https://github.com/boostorg/asio.git",
-#  build_file = "boost_asio.BUILD",
-#)
+# new_git_repository(
+#   name = "com_github_boost_asio",
+#   commit = "6814d260d02300a97521c1a93d02e30877fb8ff5",
+#   remote = "https://github.com/boostorg/asio.git",
+#   build_file = "boost_asio.BUILD",
+# )
 
-#new_http_archive(
-#  name = "com_github_boost_system",
-#  urls = ["https://github.com/boostorg/system/archive/boost-1.66.0.tar.gz"],
-#  sha256 = "4b3a4abd23a98aa100b3ec77c455d75c003a6f34c77e4d8b6e7fd2bd30322c45",
-#  build_file = "boost_system.BUILD",
-#  strip_prefix = "system-boost-1.66.0",
-#)
+# new_http_archive(
+#   name = "com_github_boost_system",
+#   urls = ["https://github.com/boostorg/system/archive/boost-1.66.0.tar.gz"],
+#   sha256 = "4b3a4abd23a98aa100b3ec77c455d75c003a6f34c77e4d8b6e7fd2bd30322c45",
+#   build_file = "boost_system.BUILD",
+#   strip_prefix = "system-boost-1.66.0",
+# )
 
 # new_http_archive(
 #   name = "bitcoin",
@@ -127,12 +137,3 @@ new_git_repository(
 #   build_file = "selene.BUILD",
 #   strip_prefix = SELENE_PREFIX,
 # )
-
-git_repository(
-    name = "com_github_nelhage_rules_boost",
-    commit = "239ce40e42ab0e3fe7ce84c2e9303ff8a277c41a",
-    remote = "https://github.com/nelhage/rules_boost",
-)
-
-load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
-boost_deps()
