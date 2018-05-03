@@ -62,9 +62,20 @@ cc_test(
 cc_test(
     name = "secp256k1_cryptopp",
     srcs = ["test_secp256k1_cryptopp.cc"],
+    size = "large",
+    deps = [
+      "//crypto",
+      "@gtest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "ed25519_orlp",
+    srcs = ["test_ed25519_orlp.cc"],
     size = "small",
     deps = [
       "//crypto",
+      "//crypto/ed25519_orlp",
       "@gtest//:gtest_main",
     ],
 )

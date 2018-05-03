@@ -8,14 +8,14 @@ Keccak_256_cryptopp::Keccak_256_cryptopp() {
 }
 
 void Keccak_256_cryptopp::calculate_digest(const unsigned char * input,
-  const size_t length,
-  unsigned char * digest) {
-  hash->CalculateDigest(digest, input, length);
+                                           const size_t length,
+                                           unsigned char * digest) {
+  hash->CalculateDigest(digest, length == 0 ? nullptr : input, length);
 }
 
 void Keccak_256_cryptopp::update(const unsigned char * input,
-  const size_t length) {
-  hash->Update(input, length);
+                                 const size_t length) {
+  hash->Update(length == 0 ? nullptr : input, length);
 }
 
 void Keccak_256_cryptopp::final(unsigned char * digest) {

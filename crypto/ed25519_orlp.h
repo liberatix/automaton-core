@@ -3,6 +3,7 @@
 
 #include "crypto/digital_signature.h"
 
+// The seed is the private key!
 class ed25519_orlp : public digital_signature {
  public:
   size_t public_key_size();
