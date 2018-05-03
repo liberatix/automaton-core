@@ -1,4 +1,4 @@
-#include "crypto/Keccak_256_cryptopp.h"
+#include "crypto/keccak_256_cryptopp.h"
 #include "crypto/hash_transformation.h"
 #include "cryptlib.h"  // NOLINT
 #include "keccak.h"  // NOLINT
@@ -8,14 +8,20 @@ Keccak_256_cryptopp::Keccak_256_cryptopp() {
 }
 
 void Keccak_256_cryptopp::calculate_digest(const unsigned char * input,
-  const size_t length,
-  unsigned char * digest) {
-  hash->CalculateDigest(digest, input, length);
+                                           const size_t length,
+                                           unsigned char * digest) {
+  if (length) {
+    hash->CalculateDigest(digest, input, length);
+  } else {
+    hash->Final(digest);
+  }
 }
 
 void Keccak_256_cryptopp::update(const unsigned char * input,
-  const size_t length) {
-  hash->Update(input, length);
+                                 const size_t length) {
+  if (length) {
+    hash->Update(input, length);
+  }
 }
 
 void Keccak_256_cryptopp::final(unsigned char * digest) {
