@@ -25,6 +25,8 @@ cc_library(
         "secure_random.h",
         "secure_random_cryptopp.cc",
         "secure_random_cryptopp.h",
+        "ed25519_orlp.cc",
+        "ed25519_orlp.h",
     ],
     hdrs = [
       "hash_transformation.h",
@@ -37,6 +39,10 @@ cc_library(
       "secp256k1_cryptopp.h",
       "secure_random.h",
       "secure_random_cryptopp.h",
+      "ed25519_orlp.h",
       ],
-    deps = ["@cryptopp//:cryptopp"],
+    deps = [
+      "@cryptopp//:cryptopp",
+      "@ed25519_orlp//:ed25519_orlp",
+    ],
 )

@@ -1,6 +1,12 @@
 # LOCAL REPOSITORIES
 
 new_local_repository(
+  name = "ed25519_orlp",
+  path = "third_party/ed25519-7fa6712ef5d581a6981ec2b08ee623314cd1d1c4/src",
+  build_file = "ed25519_orlp.BUILD",
+)
+
+new_local_repository(
   name = "gtest",
   path = "third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
   build_file = "gtest.BUILD",
