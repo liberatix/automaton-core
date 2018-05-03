@@ -10,7 +10,11 @@ SHA256_cryptopp::SHA256_cryptopp() {
 void SHA256_cryptopp::calculate_digest(const unsigned char * input,
                                       const size_t length,
                                       unsigned char * digest) {
-  hash->CalculateDigest(digest, input, length);
+  if (length) {
+    hash->CalculateDigest(digest, input, length);
+  } else {
+    hash->Final(digest);
+  }
 }
 
 void SHA256_cryptopp::update(const unsigned char * input,
