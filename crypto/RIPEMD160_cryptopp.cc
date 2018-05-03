@@ -10,7 +10,11 @@ RIPEMD160_cryptopp::RIPEMD160_cryptopp() {
 void RIPEMD160_cryptopp::calculate_digest(const unsigned char * input,
                                           const size_t length,
                                           unsigned char * digest) {
-  hash->CalculateDigest(digest, input, length);
+  if (length) {
+    hash->CalculateDigest(digest, input, length);
+  } else {
+    hash->Final(digest);
+  }
 }
 
 void RIPEMD160_cryptopp::update(const unsigned char * input,
