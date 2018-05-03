@@ -21,12 +21,10 @@ void decode_from_hex(std::string &encoded, std::string &decoded) {   // NOLINT
     new CryptoPP::HexDecoder(new CryptoPP::StringSink(decoded)));
 }
 TEST(secp256k1_cryptopp, gen_public_key) {
-
 }
 TEST(secp256k1_cryptopp, sign_and_verify) {
   ed25519_orlp::register_self();
-  //ed25519_orlp tmp;
-  /*
+
   digital_signature * tester = digital_signature::create("ed25519_orlp");
   EXPECT_NE(tester, nullptr);
   unsigned char* public_key = new unsigned char[tester->public_key_size()];
@@ -58,7 +56,6 @@ TEST(secp256k1_cryptopp, sign_and_verify) {
                               signature), true);
     }
   }
-  */
 }
 TEST(secp256k1_cryptopp, verify) {
 }
