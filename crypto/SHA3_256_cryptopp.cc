@@ -1,37 +1,38 @@
-#include "crypto/SHA512_cryptopp.h"
+#include "crypto/SHA3_256_cryptopp.h"
 #include "crypto/hash_transformation.h"
 #include "cryptlib.h"  // NOLINT
-#include "sha.h"  // NOLINT
+#include "sha3.h"  // NOLINT
 
-SHA512_cryptopp::SHA512_cryptopp() {
-  hash = new CryptoPP::SHA512;
+SHA3_256_cryptopp::SHA3_256_cryptopp() {
+  hash = new CryptoPP::SHA3_256;
 }
 
-void SHA512_cryptopp::calculate_digest(const unsigned char * input,
+void SHA3_256_cryptopp::calculate_digest(const unsigned char * input,
                                       const size_t length,
                                       unsigned char * digest) {
   hash->CalculateDigest(digest, length == 0 ? nullptr : input, length);
 }
 
-void SHA512_cryptopp::update(const unsigned char * input,
+void SHA3_256_cryptopp::update(const unsigned char * input,
                              const size_t length) {
   hash->Update(length == 0 ? nullptr : input, length);
 }
 
-void SHA512_cryptopp::final(unsigned char * digest) {
+void SHA3_256_cryptopp::final(unsigned char * digest) {
   hash->Final(digest);
 }
 
-void SHA512_cryptopp::restart() {
+void SHA3_256_cryptopp::restart() {
   hash->Restart();
 }
 
-unsigned int SHA512_cryptopp::digest_size() const {
+unsigned int SHA3_256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
-bool SHA512_cryptopp::register_self() {
-  hash_transformation::register_factory("SHA512",
-  [] {return reinterpret_cast<hash_transformation*>(new SHA512_cryptopp()); });
+bool SHA3_256_cryptopp::register_self() {
+  hash_transformation::register_factory("SHA3_256",
+  [] {return reinterpret_cast<hash_transformation*>
+      (new SHA3_256_cryptopp()); });
   return true;
 }
