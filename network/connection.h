@@ -36,6 +36,7 @@ class connection {
     connection_refused = 4,
     timed_out = 5,
     broken_pipe = 6,
+    not_connected = 7,
   };
 
   /**

@@ -1,10 +1,12 @@
 #ifndef NETWORK_SIMULATED_CONNECTION_H__
 #define NETWORK_SIMULATED_CONNECTION_H__
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <queue>
 #include <vector>
+#include <utility>
 
 #include "network/acceptor.h"
 #include "network/connection.h"
@@ -38,14 +40,16 @@ class simulated_acceptor;
 // TODO(kari): Shrink it
 struct event {
   static unsigned int event_ids;
+  static unsigned int new_id();  // gives unique event id
+
   unsigned int event_id;
   event_type type;
-  unsigned int time_created;  // not used right now
-  unsigned int time_of_handling;  // used for sorting in the event queue
+  // unsigned int time_created;
+  uint64_t time_of_handling;  // used for sorting in the event queue;
   simulated_connection* connection_;
   simulated_acceptor* acceptor_;
   std::string data;
-  unsigned int id;
+  unsigned int id;  // used for sorting in the event queue;
   event();
   std::string to_string() const;
 };
@@ -58,29 +62,96 @@ struct connection_params {
   unsigned int bandwidth;
 };
 
+/**
+  Singleton class running the simulation. Stores created acceptors,
+  connections, events and simulation time.
+**/
 class simulation {
  private:
-  struct q_comperator {
+  /**
+   Comparator for the event queue -> events with lower time come first, if
+   time is equal, event id is used and events created first are handled first.
+  **/
+  struct q_comparator {
     bool operator() (const event& lhs, const event& rhs) const;
   };
 
-  std::priority_queue<event, std::vector<event>, q_comperator> event_q;
+  // TODO(kari): remove this
+  /*class map_comparator {
+   public:
+    bool operator() (const std::pair<int, int>& lhs,
+        const std::pair<int, int>& rhs) const {
+      if (lhs.first == rhs.first) {
+        return lhs.second < rhs.second;
+      }
+      return lhs.first < rhs.first;
+    }
+  };*/
+
+  /**
+    Map storing created connections where the key is <address_A, address_B> and
+    the value represents connection A->B. B->A is stored separately.
+  **/
+  std::map<std::pair<int, int>, simulated_connection*> connections;
+  std::mutex connections_mutex;
+  /**
+    Map storing created acceptors where the key is the address.
+  **/
+  std::map<int, simulated_acceptor*> acceptors;
+  std::mutex acceptors_mutex;
+  /**
+    Priority queue storing the events that need to be handled. Lower time of
+    handlig means higher priority. If equal, lower event id (created earlier)
+    means higher priority.
+  **/
+  std::priority_queue<event, std::vector<event>, q_comparator> event_q;
   std::mutex q_mutex;
-  bool quit_pressed;
-  unsigned int simulation_time;
-  std::thread input_thread;
-  std::thread simulation_thread;
-  static simulation* simulator;  // instance
+  /**
+    Simulation time. On create is 0.
+  **/
+  uint64_t simulation_time;
+  std::mutex time_mutex;
+  /**
+    The simulation instance.
+  **/
+  static simulation* simulator;
+  // Constructor.
   simulation();
-  void input();
+  /**
+    Function that handles the events from the queue. It is called from
+    process().
+  **/
   void handle_event(const event& event_);
-  void loop();  // void loop(void (*handle_event)(const event& event));
+  /**
+    Update the simulation time.
+  **/
+  void set_time(uint64_t time);
+
  public:
   ~simulation();
+  /**
+    Returns pointer to the simulation instance;
+  **/
   static simulation* get_simulator();
-  bool quit();
+  /**
+    Add event to the event queue. It is called from connection
+    functions(connect, send, etc.) or from handle_event
+  **/
   void push_event(const event& event_);
-  unsigned int time();
+  // Returns current simulation time
+  uint64_t get_time();
+  /**
+    Process all events from simulation_time to the given time.
+  **/
+  void process(uint64_t time);
+  void add_connection(int address_a, int address_b,
+      simulated_connection* connection_);
+  void add_acceptor(int address, simulated_acceptor* acceptor_);
+  simulated_connection* get_connection(int address_a, int address_b);
+  simulated_acceptor* get_acceptor(int address);
+  // DEBUG
+  void print_q();
+  void print_connections();
 };
 
 class simulated_connection: public connection {
@@ -88,13 +159,24 @@ class simulated_connection: public connection {
   int address_from;
   int address_to;
   state connection_state;
+  unsigned int last_event;  // this is used when setting event time to prevent
+  // events that are called before others to be handled firts because they had
+  // maller lag
   connection_params parameters;
 
-  // Next 5 are used for read event
+  /**
+    Next 4 are used for read event. When read() is called, passed parameters
+    go into these queues.
+  **/
   std::queue<char*> buffers;
   std::queue<unsigned int> buffers_sizes;
   std::queue<unsigned int> expect_to_read;
   std::queue<int> read_ids;
+  /**
+    Bytes that are already read, but not yet passed to the handler. When
+    bytes_read is equal to expect_to_read, on_message_received is called and
+    bytes_read becomes 0.
+  **/
   unsigned int bytes_read;
 
   simulated_connection(const std::string& address_,
@@ -110,6 +192,11 @@ class simulated_connection: public connection {
   void connect();
   void disconnect();
   connection_handler* get_handler();
+  /**
+    Clears queues related to read operation. It is used when disconnecting.
+    Could be removed if connections are unique and won't be reused.
+  **/
+  void clear_queues();
 };
 
 class simulated_acceptor: public acceptor {
@@ -119,8 +206,8 @@ class simulated_acceptor: public acceptor {
   connection::connection_handler* accepted_connections_handler;
   simulated_acceptor(const std::string& address_, acceptor::acceptor_handler*
       handler_, connection::connection_handler* accepted_connections_handler);
-
   void start_accepting();
+  bool parse_address(const std::string& address);  // not implemented yet
   acceptor_handler* get_handler();
 };
 
