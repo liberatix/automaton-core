@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "schema/schema.h"
+#include "schema/schema_definition.h"
 
 /**
 This is helper class which is used while parsing proto file.
@@ -66,7 +67,7 @@ class proto_error_collector : public
 };
 
 class protobuf_schema;
-class protobuf_schema_definition: public schema::schema_definition {
+class protobuf_schema_definition: public schema_definition {
  private:
   google::protobuf::Arena arena;
   google::protobuf::FileDescriptorProto* file_descriptor_proto;
@@ -149,9 +150,9 @@ class protobuf_schema_definition: public schema::schema_definition {
     add_message_field() is called but the provided field is scalar type),
     exception will be thrown.
   **/
-  void add_scalar_field(schema::field_info field, int message_id);
-  void add_enum_field(schema::field_info field, int message_id);
-  void add_message_field(schema::field_info field, int message_id);
+  void add_scalar_field(schema_definition::field_info field, int message_id);
+  void add_enum_field(schema_definition::field_info field, int message_id);
+  void add_message_field(schema_definition::field_info field, int message_id);
 };
 
 class protobuf_schema: public schema {
@@ -198,14 +199,14 @@ class protobuf_schema: public schema {
       const std::string& name, const std::string& package);
 
  public:
-  static const std::map<schema::field_type,
+  static const std::map<schema_definition::field_type,
       google::protobuf::FieldDescriptorProto_Type> type_to_protobuf_type;
 
   static const std::map<google::protobuf::FieldDescriptor::Type,
-      schema::field_type> protobuf_type_to_type;
+      schema_definition::field_type> protobuf_type_to_type;
 
   static const std::map<google::protobuf::FieldDescriptor::CppType,
-      schema::field_type> protobuf_ccptype_to_type;
+      schema_definition::field_type> protobuf_ccptype_to_type;
 
   void register_self();
   /**
@@ -294,7 +295,7 @@ class protobuf_schema: public schema {
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  field_info get_field_info(int schema_id, int index);
+  schema_definition::field_info get_field_info(int schema_id, int index);
 
   /*
     Creates new message from a schema with schema_id. Returns id of the

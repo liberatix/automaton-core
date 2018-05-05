@@ -1,14 +1,5 @@
 #include "schema/schema.h"
 
-schema::field_info::field_info(int tag, field_type type, const std::string&
-    name, const std::string& fully_qualified_type, bool is_repeated) {
-  this->tag = tag;
-  this->type = type;
-  this->name = name;
-  this->fully_qualified_type = fully_qualified_type;
-  this->is_repeated = is_repeated;
-}
-
 std::map<std::string, schema::factory_function_schema> schema::schema_factory;
 
 void schema::register_factory(std::string name, schema::factory_function_schema
@@ -25,15 +16,15 @@ schema* schema::create(std::string name) {
   }
 }
 
-std::map<std::string, schema::schema_definition::factory_function_schema_def>
-    schema::schema_definition::schema_definition_factory;
+std::map<std::string, schema_definition::factory_function_schema_def>
+    schema_definition::schema_definition_factory;
 
-void schema::schema_definition::register_factory(std::string name,
-    schema::schema_definition::factory_function_schema_def func) {
+void schema_definition::register_factory(std::string name,
+    schema_definition::factory_function_schema_def func) {
   schema_definition_factory[name] = func;
 }
 
-schema::schema_definition* schema::schema_definition::create(std::string name) {
+schema_definition* schema_definition::create(std::string name) {
   auto it = schema_definition_factory.find(name);
   if (it == schema_definition_factory.end()) {
     return NULL;
