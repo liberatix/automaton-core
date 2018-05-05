@@ -31,20 +31,21 @@ TEST(protobuf_schema, messages) {
   int m3 = custom_schema.create_message("nested_message");
   int m4 = custom_schema.create_message("third_message");
 
-  custom_schema.add_scalar_field(schema::field_info(1,
-      schema::field_type::string, "string_field_1", "", false), m1);
-  custom_schema.add_scalar_field(schema::field_info(1,
-      schema::field_type::string, "string_field_2", "", false), m2);
-  custom_schema.add_scalar_field(schema::field_info(1,
-      schema::field_type::string, "string_field_nested", "", false), m3);
+  custom_schema.add_scalar_field(schema_definition::field_info(1,
+      schema_definition::field_type::string, "string_field_1", "", false), m1);
+  custom_schema.add_scalar_field(schema_definition::field_info(1,
+      schema_definition::field_type::string, "string_field_2", "", false), m2);
+  custom_schema.add_scalar_field(schema_definition::field_info(1,
+      schema_definition::field_type::string, "string_field_nested", "", false),
+      m3);
 
-  custom_schema.add_message_field(schema::field_info(2,
-      schema::field_type::message_type, "message_field", "second_message",
-      false), m1);
+  custom_schema.add_message_field(schema_definition::field_info(2,
+      schema_definition::field_type::message_type, "message_field",
+      "second_message", false), m1);
 
-  custom_schema.add_message_field(schema::field_info(1,
-      schema::field_type::message_type, "repeated_msg_field", "second_message",
-      true), m4);
+  custom_schema.add_message_field(schema_definition::field_info(1,
+      schema_definition::field_type::message_type, "repeated_msg_field",
+      "second_message", true), m4);
 
   custom_schema.add_nested_message(m1, m3);
   custom_schema.add_message(m1);
@@ -117,24 +118,24 @@ TEST(protobuf_schema, messages) {
 
   EXPECT_EQ(sc.get_field_type(sc.get_message_schema_id(id13), 1), "message");
 
-  schema::field_info field =
+  schema_definition::field_info field =
       sc.get_field_info(sc.get_schema_id("first_message"), 0);
   EXPECT_EQ(field.tag, 1);
-  EXPECT_EQ(field.type, schema::field_type::string);
+  EXPECT_EQ(field.type, schema_definition::field_type::string);
   EXPECT_EQ(field.name, "string_field_1");
   EXPECT_EQ(field.fully_qualified_type, "");
   EXPECT_EQ(field.is_repeated, false);
 
   field = sc.get_field_info(sc.get_schema_id("first_message"), 1);
   EXPECT_EQ(field.tag, 2);
-  EXPECT_EQ(field.type, schema::field_type::message_type);
+  EXPECT_EQ(field.type, schema_definition::field_type::message_type);
   EXPECT_EQ(field.name, "message_field");
   EXPECT_EQ(field.fully_qualified_type, "second_message");
   EXPECT_EQ(field.is_repeated, false);
 
   field = sc.get_field_info(sc.get_schema_id("third_message"), 0);
   EXPECT_EQ(field.tag, 1);
-  EXPECT_EQ(field.type, schema::field_type::message_type);
+  EXPECT_EQ(field.type, schema_definition::field_type::message_type);
   EXPECT_EQ(field.name, "repeated_msg_field");
   EXPECT_EQ(field.fully_qualified_type, "second_message");
   EXPECT_EQ(field.is_repeated, true);

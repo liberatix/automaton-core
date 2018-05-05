@@ -1,10 +1,12 @@
-#ifndef SCHEMA_H_
-#define SCHEMA_H_
+#ifndef AUTOMATON_CORE_SCHEMA_SCHEMA_H_
+#define AUTOMATON_CORE_SCHEMA_SCHEMA_H_
 
 #include <map>
 #include <string>
 #include <vector>
 #include <utility>
+
+#include "schema/schema_definition.h"
 
 /*
   TODO(kari): how to make difference between schema_definition as a whole combo
@@ -18,123 +20,13 @@
     and others
 */
 
+/** Schema data structure interface.
+*/
 class schema {
  public:
-  /**
-    Allowed data types.
-  **/
-  enum field_type {
-    unknown = 0,
-    message_type =  1,
-    enum_type = 2,
-    string = 4,
-    int32 = 5,
-  };
-
-  /**
-    Struct representing one field in a message schema (field schema). Does NOT
-    contain value, only describes a field.
-    Tag - unique number within a message schema. Identifies the field.
-    Type - one of the allowed data types. If it is a message or enum type,
-      its message or enum type should be stored in fully_qualified_type.
-    Name - unique name within a message schema. Identifies the field.
-    Fully_qualified_type - specifies the type of message and enum fields. It is
-      ignored for scalar types.
-  **/
-  struct field_info {
-    int tag;
-    field_type type;
-    std::string name;
-    std::string fully_qualified_type;
-    bool is_repeated;
-    field_info(int tag, field_type type, const std::string& name,
-        const std::string& fully_qualified_type, bool is_repeated);
-  };
-
   typedef schema* (*factory_function_schema)();
   static void register_factory(std::string name, factory_function_schema func);
   static schema* create(const std::string name);
-
-  class schema_definition {
-   public:
-     typedef schema_definition* (*factory_function_schema_def)();
-     static void register_factory(std::string name, factory_function_schema_def
-        func);
-     static schema_definition* create(const std::string name);
-
-    /**
-      If this schema (schema A) depends on another one (schema B), it must be
-      added here. Schema_name is the name that has been/will be given to the
-      schema (B) on import (when schema::import_schema_definition() is called).
-      Shema B should be imported before Schema A.
-    **/
-    virtual void add_dependency(const std::string& schema_name) = 0;
-
-    /**
-      Returns the id of the created message_schema.
-      TODO(kari): Check for name collisions.
-      Only creates empty message schema and name it. Fields and/or nested
-      enums/messages should be added to the message (using add_* and
-      add_*_field) and then add_message() so the created message schema is added
-      to the schema.
-    **/
-    virtual int create_message(const std::string& message_name) = 0;
-
-    /**
-      Returns the id of the created enum_schema.
-      TODO(kari): Check for name collisions.
-      Only creates empty enum schema and name it. Values should be added to the
-      enum (using add_enum_value) and then add_enum() so the created enum schema
-      is added to the schema.
-    **/
-    virtual int create_enum(const std::string& enum_name) = 0;
-
-    /**
-      Used to add values to an already created enum with enum_id. If such enum
-      doesn't exist, exception will be thrown.
-      TODO(kari): Decide if duplicate values are allowed.
-    **/
-    virtual void add_enum_value(int enum_id, const std::string& value_name,
-        int value) = 0;
-
-    /**
-      Used to add nested message. Both messages must already exist. If any of
-      them doesn't exist, exception will be thrown. The message with id
-      sub_message_id will be added as a nested message to the other.
-      *** Nested message is different from message field. It is like an inner
-      class, NOT like a reference to an object ***
-      TODO(kari): Check for name collisions
-      TODO(kari): Decide if duplicate values are allowed.
-    **/
-    virtual void add_nested_message(int message_id, int sub_message_id) = 0;
-
-    /**
-      Used to add an already created message/enum schema to this schema. The
-      message/enum should first be created and ready (fields/ nested messages/
-      enums or enum values must be added) before calling this function.
-      Enum can be added to another message and if no message_id is provided in
-      add_enum or message_id = -1, enum will be added globally. If message/enum
-      with the given id doesn't exist, exception will be thrown.
-    **/
-    virtual void add_message(int message_id) = 0;
-    virtual void add_enum(int enum_id, int message_id) = 0;
-
-    /**
-      These functions are called to add fields to a message. Any of them can be
-      called multiple times on the same message. If the given message_id is not
-      valid or the given field doesn't match the expected field type (ex.
-      add_message_field() is called but the provided field is scalar type),
-      exception will be thrown.
-    **/
-    virtual void add_scalar_field(schema::field_info field, int message_id) = 0;
-    virtual void add_enum_field(schema::field_info field, int message_id) = 0;
-    virtual void add_message_field(schema::field_info field,
-        int message_id) = 0;
-
-   private:
-    static std::map<std::string, factory_function_schema_def>
-        schema_definition_factory;
-  };
 
   /*
     This is needed for testing or if virtual std::string serialize_protocol()
@@ -209,7 +101,8 @@ class schema {
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  virtual field_info get_field_info(int schema_id, int index) = 0;
+  virtual schema_definition::field_info get_field_info(int schema_id,
+                                                       int index) = 0;
 
   /*
     Creates new message from a schema with schema_id. Returns id of the
@@ -225,16 +118,14 @@ class schema {
   */
   virtual int create_copy_message(int message_id) = 0;
 
-  /*
-    Returns the id of the schema with schema_name. Id is needed for creating new
-    messages of that type, also getting information about the fields. If schema
-    with the given name doesn't exist, exception will be thrown.
+  /** Returns the id of the schema with schema_name. Id is needed for creating
+      new messages of that type, also getting information about the fields.
+      If schema with the given name doesn't exist, exception will be thrown.
   */
   virtual int get_schema_id(const std::string& schema_name) = 0;
 
-  /*
-    Returns the name of the schema of message with the given id. If schema with
-    the given name doesn't exist, exception will be thrown.
+  /** Returns the name of the schema of message with the given id. If schema
+      with the given name doesn't exist, exception will be thrown.
   */
   virtual std::string get_schema_name(int schema_id) = 0;
 
@@ -242,97 +133,89 @@ class schema {
     TODO(asen/kari): Decide to keep or remove this function. Removed for now.
     get_schema_name(get_message_schema_id(message_id)) will return the same
     information.
-
-    Returns the schema name of the message with the given id. If such message
-    doesn't exist, exception will be thrown.
+  */
+  /* Returns the schema name of the message with the given id. If such message
+      doesn't exist, exception will be thrown.
 
   virtual std::string get_message_type(int message_id) = 0;
   */
 
-  /*
-    Returns the schema id of the message with the given id. If such message
-    doesn't exist, exception will be thrown.
+  /** Returns the schema id of the message with the given id. If such message
+      doesn't exist, exception will be thrown.
   */
   virtual int get_message_schema_id(int message_id) = 0;
 
-  /*
-    Returns the type (as a string) of the field with the given tag in the
-    schema with the given id. If the given schema id is not valid or there is no
-    field with the given tag, exception will be thrown.
-    If the type is message, returns 'message'. To get the type of a message
-    field use get_message_field_type().
-    If the type is enum, returns 'enum'. To get the type of a enum field use
-    get_enum_field_type().
-    Use the result of this function in set_*() and get_*() and in
-    set_repeated_*() and get_repeated_*() if the field is repeated.
+  /** Returns the type (as a string) of the field with the given tag in the
+      schema with the given id. If the given schema id is not valid or there is
+      no field with the given tag, exception will be thrown.
+
+      If the type is message, returns 'message'. To get the type of a message
+      field use get_message_field_type().
+
+      If the type is enum, returns 'enum'. To get the type of a enum field use
+      get_enum_field_type().
+
+      Use the result of this function in set_*() and get_*() and in
+      set_repeated_*() and get_repeated_*() if the field is repeated.
   */
 
   virtual std::string get_field_type(int schema_id, int tag) = 0;
 
-  /*
-    If the type of the field is message, returns the fully-qualified name of
-    the message type. If the given schema id is not valid or if there is no
-    field with the given tag or the field type is not message,
-    exception will be thrown.
+  /** If the type of the field is message, returns the fully-qualified name of
+      the message type. If the given schema id is not valid or if there is no
+      field with the given tag or the field type is not message,
+      exception will be thrown.
   */
   virtual std::string get_message_field_type(int schema_id, int tag) = 0;
 
-  /*
-    If the type of the field is enum, returns the fully-qualified name of
-    the enum type. If the given schema id is not valid or if there is no field
-    with the given tag or the field type is not enum, exception will be thrown.
+  /** If the type of the field is enum, returns the fully-qualified name of
+      the enum type. If the given schema id is not valid or if there is no field
+      with the given tag or the field type is not enum, exception will be thrown.
   */
   virtual std::string get_enum_field_type(int schema_id, int tag) = 0;
 
-  /*
-    Returns the tag of the field with the given name in the schema with the
-    given id. If the given schema id is not valid or there is no field with the
-    given name, exception will be thrown.
+  /** Returns the tag of the field with the given name in the schema with the
+      given id. If the given schema id is not valid or there is no field with the
+      given name, exception will be thrown.
   */
   virtual int get_field_tag(int schema_id, const std::string& name) = 0;
 
-  /*
-    Returns true if the field is repeated, false, otherwise. If the given schema
-    id is not valid or if there is no field with the given tag, exception will
-    be thrown.
+  /** Returns true if the field is repeated, false, otherwise. If the given schema
+      id is not valid or if there is no field with the given tag, exception will
+      be thrown.
   */
   virtual bool is_repeated(int schema_id, int tag) = 0;
 
-  /*
-    Returns the size of the repeated field in the given message. If no such
-    message or field exists or if the field is not repeated, exception will be
-    thrown.
+  /** Returns the size of the repeated field in the given message. If no such
+      message or field exists or if the field is not repeated, exception will be
+      thrown.
   */
   virtual int get_repeated_field_size(int message_id, int field_tag) = 0;
 
-  /*
-    Serializes the given message into the given string. If no such message
-    exists or some error while serializing happens, exception will be thrown.
+  /** Serializes the given message into the given string. If no such message
+      exists or some error while serializing happens, exception will be thrown.
   */
   virtual bool serialize_message(int message_id,  std::string* output) = 0;
 
-  /*
-    Deserializes message from the given string into a message with the given
-    message id. If no such message exists or some error while deserializing
-    happens, exception will be thrown. To use this function you should first
-    create new message from the same schema and pass the id to this function.
+  /** Deserializes message from the given string into a message with the given
+      message id. If no such message exists or some error while deserializing
+      happens, exception will be thrown. To use this function you should first
+      create new message from the same schema and pass the id to this function.
   */
   virtual bool deserialize_message(int message_id, const std::string&
       input) = 0;
 
-  /*
-    Returns human readable representation of the message with the given id. If
-    message id is not valid, exception will be thrown.
+  /** Returns human readable representation of the message with the given id. If
+      message id is not valid, exception will be thrown.
   */
   virtual std::string to_string(int message_id) = 0;
 
-  /*
-    Deletes the message with the given id. If message id is not valid, exception
-    will be thrown.
+  /** Deletes the message with the given id. If message id is not valid, exception
+      will be thrown.
   */
   virtual void delete_message(int message_id) = 0;
 
-  /*
+  /**
     Setters and getters for the scalar types. If any tag or id is invalid, or if
     you try to use these functions on non-matching type fields, or if you try to
     use get/set_repeated_*() on non-repeated field or vise versa, exception will
@@ -393,4 +276,4 @@ class schema {
   static std::map<std::string, factory_function_schema> schema_factory;
 };
 
-#endif  // SCHEMA_H_
+#endif  // AUTOMATON_CORE_SCHEMA_SCHEMA_H_
