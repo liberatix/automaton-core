@@ -15,6 +15,7 @@ class schema_definition {
     enum_type = 2,
     string = 4,
     int32 = 5,
+    int64 = 6,
   };
 
   /**
