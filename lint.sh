@@ -5,6 +5,7 @@ FILTERS=(
   "-legal/copyright"
   "-build/header_guard"
   "-build/c++11"
+  "-"
 )
 
 FILTER_ARG=$(join_by "," "${FILTERS[@]}")
