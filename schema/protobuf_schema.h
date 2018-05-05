@@ -1,5 +1,5 @@
-#ifndef PROTOBUF_SCHEMA_H_
-#define PROTOBUF_SCHEMA_H_
+#ifndef AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_H_
+#define AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_H_
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -461,4 +461,4 @@ class protobuf_schema: public schema {
   int get_repeated_enum(int message_id, int field_tag, int index);
 };
 
-#endif  // PROTOBUF_SCHEMA_H_
+#endif  // AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_H_

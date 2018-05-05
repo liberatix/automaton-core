@@ -1,5 +1,5 @@
-#ifndef SCHEMA_H_
-#define SCHEMA_H_
+#ifndef AUTOMATON_CORE_SCHEMA_SCHEMA_H_
+#define AUTOMATON_CORE_SCHEMA_SCHEMA_H_
 
 #include <map>
 #include <string>
@@ -284,4 +284,4 @@ class schema {
   static std::map<std::string, factory_function_schema> schema_factory;
 };
 
-#endif  // SCHEMA_H_
+#endif  // AUTOMATON_CORE_SCHEMA_SCHEMA_H_
