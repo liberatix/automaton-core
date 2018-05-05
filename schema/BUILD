@@ -5,11 +5,11 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
   name = "schema",
   srcs = [
-	  "schema.cc",
+    "schema.cc",
     "schema_definition.cc",
   ],
   hdrs = [
-	  "schema.h",
+    "schema.h",
     "schema_definition.h",
   ],
   deps = [
