@@ -3,6 +3,7 @@
 #include <string>
 
 #include "schema/protobuf_schema.h"
+#include "schema/protobuf_schema_definition.h"
 
 std::string file_to_bytes(char const* filename) {
   std::ifstream is(filename, std::ifstream::binary);
