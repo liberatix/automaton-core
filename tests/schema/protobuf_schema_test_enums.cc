@@ -3,6 +3,7 @@
 #include <string>
 
 #include "schema/protobuf_schema.h"
+#include "schema/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
 TEST(protobuf_schema, enums) {
