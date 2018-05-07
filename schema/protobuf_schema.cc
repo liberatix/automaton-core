@@ -242,7 +242,7 @@ void protobuf_schema::dump_message_schema(int schema_id,
   ostream_ << "\n}" << std::endl;
 }
 
-schema_message * protobuf_schema::new_message(int schema_id) {
+schema_message* protobuf_schema::new_message(int schema_id) {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -253,7 +253,7 @@ schema_message * protobuf_schema::new_message(int schema_id) {
   return new protobuf_schema_message(m);
 }
 
-schema_message * protobuf_schema::new_message(const char * schema_name) {
+schema_message* protobuf_schema::new_message(const char* schema_name) {
   return new_message(get_schema_id(schema_name));
 }
 
