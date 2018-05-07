@@ -21,6 +21,7 @@
 
 #include "schema/schema.h"
 #include "schema/schema_definition.h"
+#include "schema/protobuf_schema_message.h"
 
 /**
 This is helper class which is used while parsing proto file.
@@ -73,30 +74,30 @@ class protobuf_schema: public schema {
   google::protobuf::Arena arena;
   google::protobuf::DescriptorPool* pool;
   google::protobuf::DynamicMessageFactory* dynamic_message_factory = NULL;
-  // Spots in the messages vector.
-  std::stack<int> free_message_spots;
-  // Message type name to index in vector<const Message*> schemas
-  std::map<std::string, int> schemas_names;
-  // Message schemas
-  std::vector<const google::protobuf::Message*> schemas;
-  // Message instances
-  std::vector <google::protobuf::Message*> messages;
 
-  // Enum type name to index in vector enums
+  /// Spots in the messages vector.
+  std::stack<int> free_message_spots;
+
+  /// Message type name to index in vector<const Message*> schemas
+  std::map<std::string, int> schemas_names;
+
+  /// Message schemas
+  std::vector<const google::protobuf::Message*> schemas;
+
+  // Message instances
+  // std::vector <protobuf_schema_message> messages;
+
+  /// Enum type name to index in vector enums
   std::map<std::string, int> enums_names;
-  // Enums
+
+  /// Enums
   std::vector<const google::protobuf::EnumDescriptor*> enums;
 
-  /** Inserts a message in the message vector and returns its id. It is used
-  when new messages are created. It inserts the message in a free spot in tne
-  vector or adds it at the end of it
-  **/
-  int insert_message(google::protobuf::Message* message);
-  // Extracts schemas of nested messages/enums
-  void extract_nested_messages(
-  const google::protobuf::Descriptor* descriptor);
-  void extract_nested_enums(
-      const google::protobuf::Descriptor* descriptor);
+  /// Extracts schemas of nested messages
+  void extract_nested_messages(const google::protobuf::Descriptor* descriptor);
+
+  /// Extracts schemas of nested enums
+  void extract_nested_enums(const google::protobuf::Descriptor* descriptor);
 
   /**
   Checks if there is protocol buffers data types that we do not support.
@@ -214,7 +215,17 @@ class protobuf_schema: public schema {
     serializing and deserializing, etc. If the given schema id is not valid,
     exception will be thrown.
   */
-  int new_message(int schema_id);
+  schema_message * new_message(int schema_id);
+
+  /**
+    Creates new message from a schema name.
+    
+    Returns the created message that is used for setting and getting data,
+    serializing and deserializing, etc.
+
+    If the given schema_name is not valid, exception will be thrown.
+  */
+  schema_message * new_message(const char * schema_name);
 
   /*
     Creates a copy of the message with the given id. If the given id is not
@@ -282,94 +293,6 @@ class protobuf_schema: public schema {
     be thrown.
   */
   bool is_repeated(int schema_id, int tag);
-
-  /*
-    Returns the size of the repeated field in the given message. If no such
-    message or field exists or if the field is not repeated, exception will be
-    thrown.
-  */
-  int get_repeated_field_size(int message_id, int field_tag);
-
-  /*
-    Serializes the given message into the given string. If no such message
-    exists or some error while serializing happens, exception will be thrown.
-  */
-  bool serialize_message(int message_id, std::string* output);
-
-
-  /*
-    Deserializes message from the given string into a message with the given
-    message id. If no such message exists or some error while deserializing
-    happens, exception will be thrown. To use this function you should first
-    create new message from the same schema and pass the id to this function.
-  */
-  bool deserialize_message(int message_id, const std::string&
-      input);
-
-  /*
-    Returns human readable representation of the message with the given id. If
-    message id is not valid, exception will be thrown.
-  */
-  std::string to_string(int message_id);
-
-  /*
-    Deletes the message with the given id. If message id is not valid, exception
-    will be thrown.
-  */
-  void delete_message(int message_id);
-
-  /*
-    Setters and getters for the scalar types. If any tag or id is invalid, or if
-    you try to use these functions on non-matching type fields, or if you try to
-    use get/set_repeated_*() on non-repeated field or vise versa, exception will
-    be thrown. If you use out of range index on set_repeated_*() the value will
-    just be added at the end (not on the specified index). If you use out of
-    range index on get_repeated_*(), exception will be thrown.
-  */
-
-  void set_string(int message_id, int field_tag, const std::string& value);
-  std::string get_string(int message_id, int field_tag);
-  void set_repeated_string(int message_id, int field_tag, const std::string&
-      value, int index);
-  std::string get_repeated_string(int message_id, int field_tag,
-      int index);
-
-  void set_int32(int message_id, int field_tag, int32_t value);
-  int32_t get_int32(int message_id, int field_tag);
-  void set_repeated_int32(int message_id, int field_tag, int32_t value,
-    int index);
-  int32_t get_repeated_int32(int message_id, int field_tag, int index);
-
-  /*
-    Setters and getters for message type fields. When you use setters, you
-    should already have the sub_message created and initialized. This function
-    makes a copy of it so if you change the sub_message, the original message
-    that keeps the copy will not be affected. If any tag or id is invalid, or if
-    you try to use these functions on non-message fields, or if you try to use
-    get/set_repeated_message() on non-repeated field or vise versa, or if you
-    give sub_message that is from different type than expected, exception will
-    be thrown. If you use out of range index on set_repeated_message() the value
-    will just be added at the end (not on the specified index). If you use out
-    of range index on get_repeated_message(), exception will be thrown.
-  */
-  void set_message(int message_id, int field_tag, int sub_message_id);
-  int get_message(int message_id, int field_tag);
-  void set_repeated_message(int message_id, int field_tag, int sub_message_id,
-      int index);
-  int get_repeated_message(int message_id, int field_tag, int index);
-
-  /*
-    Setters and getters for enum type fields. If any tag or id is invalid, or if
-    you try to use these functions on non-enum fields, exception will be thrown.
-    If you use out of range index on set_repeated_enum() the value will just be
-    added at the end (not on the specified index). If you use out of range index
-    on get_repeated_enum(), exception will be thrown.
-  */
-  void set_enum(int message_id, int field_tag, int value);
-  int get_enum(int message_id, int field_tag);
-  void set_repeated_enum(int message_id, int field_tag, int value, int
-      index);
-  int get_repeated_enum(int message_id, int field_tag, int index);
 };
 
 #endif  // AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_H_

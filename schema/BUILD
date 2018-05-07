@@ -1,4 +1,4 @@
-# Automaton data serialization library
+# Automaton data schema & serialization library
 
 package(default_visibility = ["//visibility:public"])
 
@@ -7,10 +7,13 @@ cc_library(
   srcs = [
     "schema.cc",
     "schema_definition.cc",
+    "schema_message.cc",
   ],
   hdrs = [
     "schema.h",
     "schema_definition.h",
+    "schema_exception.h",
+    "schema_message.h",
   ],
   deps = [
 	  "@com_google_protobuf//:protobuf",
@@ -24,6 +27,8 @@ cc_library(
 	  "protobuf_schema.h",
     "protobuf_schema_definition.cc",
     "protobuf_schema_definition.h",
+    "protobuf_schema_message.cc",
+    "protobuf_schema_message.h",
   ],
   copts = ["-Wno-sign-compare"],
   deps = [

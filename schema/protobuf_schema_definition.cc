@@ -30,8 +30,9 @@ void protobuf_schema_definition::add_dependency(const std::string&
 
 int protobuf_schema_definition::create_message(const std::string&
     message_name) {
-  messages.push_back(google::protobuf::Arena::Create<
-      google::protobuf::DescriptorProto>(&arena));
+  messages.push_back(
+      google::protobuf::Arena::Create
+          <google::protobuf::DescriptorProto>(&arena));
   messages[messages.size() - 1]->set_name(message_name);
   return messages.size() - 1;
 }
