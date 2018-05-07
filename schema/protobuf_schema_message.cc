@@ -11,8 +11,8 @@ int protobuf_schema_message::get_repeated_field_size(int field_tag) {
   if (m == NULL || m->GetDescriptor() == NULL) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
+  const google::protobuf::FieldDescriptor* fdesc =
+      m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == NULL) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
@@ -72,8 +72,8 @@ std::string protobuf_schema_message::get_string(int field_tag) {
   if (m == NULL || m->GetDescriptor() == NULL) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
+  const google::protobuf::FieldDescriptor* fdesc =
+      m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == NULL) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
@@ -92,8 +92,8 @@ void protobuf_schema_message::set_repeated_string(int field_tag,
   if (m == NULL || m->GetDescriptor() == NULL) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
+  const google::protobuf::FieldDescriptor* fdesc =
+      m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == NULL) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
@@ -204,8 +204,8 @@ int32_t protobuf_schema_message::get_repeated_int32(int field_tag, int index) {
   if (m == NULL || m->GetDescriptor() == NULL) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
+  const google::protobuf::FieldDescriptor* fdesc =
+      m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == NULL) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
@@ -263,8 +263,8 @@ schema_message * protobuf_schema_message::get_message(int field_tag) {
   if (m == NULL || m->GetDescriptor() == NULL) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
+  const google::protobuf::FieldDescriptor* fdesc =
+      m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == NULL) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
@@ -433,7 +433,7 @@ int protobuf_schema_message::get_repeated_enum(int field_tag, int index) {
     throw std::runtime_error("Unexpected error");
   }
   const google::protobuf::FieldDescriptor* fdesc =
-      m->GetDescriptor()-> FindFieldByNumber(field_tag);
+      m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == NULL) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));

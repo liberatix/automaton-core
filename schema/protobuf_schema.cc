@@ -249,7 +249,7 @@ schema_message* protobuf_schema::new_message(int schema_id) {
   if (schemas[schema_id] == NULL) {
     throw std::runtime_error("Unexpected error");
   }
-  google::protobuf::Message* m = schemas[schema_id]-> New();
+  google::protobuf::Message* m = schemas[schema_id]->New();
   return new protobuf_schema_message(m);
 }
 
@@ -427,8 +427,7 @@ std::string protobuf_schema::get_message_field_type(int schema_id,
     throw std::runtime_error("Unexpected error");
   }
   const google::protobuf::FieldDescriptor* fdesc =
-      schemas[schema_id]->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
+      schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
     if (fdesc->cpp_type() !=
         google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
