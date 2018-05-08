@@ -10,7 +10,7 @@ void schema::register_factory(std::string name, schema::factory_function_schema
 schema* schema::create(std::string name) {
   auto it = schema_factory.find(name);
   if (it == schema_factory.end()) {
-    return NULL;
+    return nullptr;
   } else {
     return it->second();
   }
@@ -27,7 +27,7 @@ void schema_definition::register_factory(std::string name,
 schema_definition* schema_definition::create(std::string name) {
   auto it = schema_definition_factory.find(name);
   if (it == schema_definition_factory.end()) {
-    return NULL;
+    return nullptr;
   } else {
     return it->second();
   }
