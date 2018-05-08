@@ -1,7 +1,10 @@
 cc_binary(
 	name = "protobuf_schema_test",
 	srcs = ["protobuf_schema_test.cc",],
-	deps = ["//schema:schema_google_protobufs"],
+	deps = [
+    "//io",
+    "//schema:schema_google_protobufs"
+  ],
 )
 
 cc_test(
@@ -13,9 +16,6 @@ cc_test(
   ],
   size = "small",
 )
-
-"""
-DISABLING ALL OTHER TESTS FOR NOW
 
 cc_test(
 	name = "protobuf_schema_definitions",
@@ -32,6 +32,7 @@ cc_test(
 	srcs = ["protobuf_schema_test_find_unexisting_schema.cc",],
   data = ["//tests/schema:test.proto"],
 	deps = [
+    "//io",
     "//schema:schema_google_protobufs",
     "@gtest//:gtest_main",
   ],
@@ -43,6 +44,7 @@ cc_test(
 	srcs = ["protobuf_schema_test_invalid_data.cc",],
   data = ["//tests/schema:invalid_data.proto"],
 	deps = [
+    "//io",
     "//schema:schema_google_protobufs",
     "@gtest//:gtest_main",
   ],
@@ -54,6 +56,7 @@ cc_test(
 	srcs = ["protobuf_schema_test_find_existing_schema.cc",],
   data = ["//tests/schema:test.proto"],
 	deps = [
+    "//io",
     "//schema:schema_google_protobufs",
     "@gtest//:gtest_main",
   ],
@@ -65,6 +68,7 @@ cc_test(
 	srcs = ["protobuf_schema_test_find_all_fields.cc",],
   data = ["//tests/schema:many_fields.proto"],
 	deps = [
+    "//io",
     "//schema:schema_google_protobufs",
     "@gtest//:gtest_main",
   ],
@@ -76,6 +80,7 @@ cc_test(
 	srcs = ["protobuf_schema_test_find_all_enums.cc",],
   data = ["//tests/schema:many_enums.proto"],
 	deps = [
+    "//io",
     "//schema:schema_google_protobufs",
     "@gtest//:gtest_main",
   ],
@@ -87,6 +92,7 @@ cc_test(
 	srcs = ["protobuf_schema_test_find_enum.cc",],
   data = ["//tests/schema:many_enums.proto"],
 	deps = [
+    "//io",
     "//schema:schema_google_protobufs",
     "@gtest//:gtest_main",
   ],
@@ -108,6 +114,7 @@ cc_test(
 	srcs = ["protobuf_schema_test_setting_fields.cc",],
   data = ["//tests/schema:test.proto"],
 	deps = [
+    "//io",
     "//schema:schema_google_protobufs",
     "@gtest//:gtest_main",
   ],
@@ -125,16 +132,6 @@ cc_test(
 )
 
 cc_test(
-	name = "protobuf_schema_test_messages",
-	srcs = ["protobuf_schema_test_messages.cc",],
-	deps = [
-    "//schema:schema_google_protobufs",
-    "@gtest//:gtest_main",
-  ],
-  size = "small",
-)
-
-cc_test(
 	name = "protobuf_schema_test_enums",
 	srcs = ["protobuf_schema_test_enums.cc",],
 	deps = [
@@ -143,4 +140,3 @@ cc_test(
   ],
   size = "small",
 )
-"""
