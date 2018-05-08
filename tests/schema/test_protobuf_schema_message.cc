@@ -68,7 +68,8 @@ TEST(protobuf_schema_message, messages) {
   custom_schema.add_message(m2);
   custom_schema.add_message(m4);
 
-  protobuf_schema sc;
+  protobuf_schema * scp = new protobuf_schema();
+  protobuf_schema& sc = *scp;
   sc.import_schema_definition(&custom_schema, "test", "");
 
   schema_message * msg1 = sc.new_message(FIRST_MESSAGE);
@@ -159,6 +160,24 @@ TEST(protobuf_schema_message, messages) {
   EXPECT_EQ(field.name, REPEATED_MSG_FIELD);
   EXPECT_EQ(field.fully_qualified_type, SECOND_MESSAGE);
   EXPECT_EQ(field.is_repeated, true);
+
+  delete msg1;
+  delete msg2;
+  delete msg3;
+  delete msg4;
+  delete msg5;
+  delete msg6;
+  delete msg7;
+  delete msg8;
+  delete msg9;
+  delete msg10;
+  delete msg11;
+  // delete msg12;
+  delete msg13;
+  delete msg14;
+  delete msg15;
+
+  delete scp;
 
   google::protobuf::ShutdownProtobufLibrary();
 }

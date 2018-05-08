@@ -71,7 +71,6 @@ class protobuf_schema: public schema {
  private:
   io_error_collector io_error_collector_;
   proto_error_collector proto_error_collector_;
-  google::protobuf::Arena arena;
   google::protobuf::DescriptorPool* pool;
   google::protobuf::DynamicMessageFactory* dynamic_message_factory = NULL;
 

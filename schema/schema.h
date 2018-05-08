@@ -13,6 +13,8 @@
 */
 class schema {
  public:
+  virtual ~schema() {}
+
   typedef schema* (*factory_function_schema)();
   static void register_factory(std::string name, factory_function_schema func);
   static schema* create(const std::string name);
@@ -123,6 +125,7 @@ class schema {
   */
   virtual std::string get_schema_name(int schema_id) = 0;
 
+  // TODO(asen): We should return enum type instead of string.
   /** Returns the type (as a string) of the field with the given tag in the
       schema with the given id. If the given schema id is not valid or there is
       no field with the given tag, exception will be thrown.

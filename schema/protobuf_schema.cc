@@ -44,13 +44,14 @@ protobuf_schema::protobuf_ccptype_to_type {
 };
 
 protobuf_schema::protobuf_schema() {
-  pool = google::protobuf::Arena::Create
-      <google::protobuf::DescriptorPool>(&arena);
-  dynamic_message_factory = google::protobuf::Arena::Create
-      <google::protobuf::DynamicMessageFactory>(&arena, pool);
+  pool = new google::protobuf::DescriptorPool();
+  dynamic_message_factory = new google::protobuf::DynamicMessageFactory(pool);
 }
 
-protobuf_schema::~protobuf_schema() {}
+protobuf_schema::~protobuf_schema() {
+  delete dynamic_message_factory;
+  delete pool;
+}
 
 void protobuf_schema::register_self() {
   protobuf_schema::register_factory("protobuf", [] {
@@ -184,8 +185,7 @@ void protobuf_schema::import_schema_definition(schema_definition* schema,
 void protobuf_schema::import_schema_from_string(const std::string& proto_def,
       const std::string& package, const std::string& name) {
   google::protobuf::FileDescriptorProto* fileproto =
-      google::protobuf::Arena::Create<
-      google::protobuf::FileDescriptorProto>(&arena);
+      new google::protobuf::FileDescriptorProto();
   std::istringstream stream(proto_def);
   google::protobuf::io::IstreamInputStream is(&stream);
   google::protobuf::io::Tokenizer tok(&is, &io_error_collector_);

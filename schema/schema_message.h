@@ -7,6 +7,8 @@
 */
 class schema_message {
  public:
+  virtual ~schema_message() {}
+
   /**
     Returns the name of the message schema.
 
