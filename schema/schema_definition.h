@@ -4,6 +4,18 @@
 #include <map>
 #include <string>
 
+/*
+  TODO(kari): how to make difference between schema_definition as a whole combo
+  of message and enum schemas, and a single message/enum schema definition.
+  It may be confusing.
+  TODO(kari): field_info may become class. There are too many functions
+  related to fields:
+    * get_field_tag()
+    * get_field_type_by_tag/name()
+    * is_repeated()
+    and others
+*/
+
 class schema_definition {
  public:
   /**

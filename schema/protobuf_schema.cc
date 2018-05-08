@@ -1,5 +1,6 @@
 #include "schema/protobuf_schema.h"
 #include "schema/protobuf_schema_definition.h"
+#include "schema/protobuf_schema_message.h"
 
 // Protobuf schema
 
@@ -43,29 +44,19 @@ protobuf_schema::protobuf_ccptype_to_type {
 };
 
 protobuf_schema::protobuf_schema() {
-  pool = google::protobuf::Arena::Create
-      <google::protobuf::DescriptorPool>(&arena);
-  dynamic_message_factory = google::protobuf::Arena::Create
-      <google::protobuf::DynamicMessageFactory>(&arena, pool);
+  pool = new google::protobuf::DescriptorPool();
+  dynamic_message_factory = new google::protobuf::DynamicMessageFactory(pool);
 }
 
-protobuf_schema::~protobuf_schema() {}
+protobuf_schema::~protobuf_schema() {
+  delete dynamic_message_factory;
+  delete pool;
+}
 
 void protobuf_schema::register_self() {
   protobuf_schema::register_factory("protobuf", [] {
       return reinterpret_cast<schema*>(new protobuf_schema());
   });
-}
-
-int protobuf_schema::insert_message(google::protobuf::Message* message) {
-  if (!free_message_spots.empty()) {
-    int spot = free_message_spots.top();
-    free_message_spots.pop();
-    messages[spot] = message;
-    return spot;
-  }
-  messages.push_back(message);
-  return messages.size() - 1;
 }
 
 void protobuf_schema::extract_nested_messages(
@@ -81,6 +72,7 @@ void protobuf_schema::extract_nested_messages(
     extract_nested_messages(desc);
   }
 }
+
 void protobuf_schema::extract_nested_enums(
     const google::protobuf::Descriptor* d) {
   if (d == NULL) {
@@ -99,8 +91,8 @@ void protobuf_schema::extract_nested_enums(
   }
 }
 
-bool protobuf_schema::contain_invalid_data(const google::protobuf::Descriptor*
-    d) {
+bool protobuf_schema::contain_invalid_data(
+  const google::protobuf::Descriptor* d) {
   if (d == NULL) {
     throw std::invalid_argument("Unexpected error");
   }
@@ -193,8 +185,7 @@ void protobuf_schema::import_schema_definition(schema_definition* schema,
 void protobuf_schema::import_schema_from_string(const std::string& proto_def,
       const std::string& package, const std::string& name) {
   google::protobuf::FileDescriptorProto* fileproto =
-      google::protobuf::Arena::Create<
-      google::protobuf::FileDescriptorProto>(&arena);
+      new google::protobuf::FileDescriptorProto();
   std::istringstream stream(proto_def);
   google::protobuf::io::IstreamInputStream is(&stream);
   google::protobuf::io::Tokenizer tok(&is, &io_error_collector_);
@@ -251,38 +242,19 @@ void protobuf_schema::dump_message_schema(int schema_id,
   ostream_ << "\n}" << std::endl;
 }
 
-int protobuf_schema::new_message(int schema_id) {
+schema_message* protobuf_schema::new_message(int schema_id) {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
   if (schemas[schema_id] == NULL) {
     throw std::runtime_error("Unexpected error");
   }
-  google::protobuf::Message* m = schemas[schema_id]-> New();
-  return insert_message(m);
+  google::protobuf::Message* m = schemas[schema_id]->New();
+  return new protobuf_schema_message(m);
 }
 
-int protobuf_schema::create_copy_message(int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  if (messages[message_id] == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  google::protobuf::Message* copy = messages[message_id]-> New();
-  copy->CopyFrom(*messages[message_id]);
-  return insert_message(copy);
-}
-
-void protobuf_schema::delete_message(int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  delete messages[message_id];
-  messages[message_id] = NULL;
-  free_message_spots.push(message_id);
+schema_message* protobuf_schema::new_message(const char* schema_name) {
+  return new_message(get_schema_id(schema_name));
 }
 
 int protobuf_schema::get_schemas_number() {
@@ -430,25 +402,6 @@ std::string protobuf_schema::get_schema_name(int schema_id) {
   }
   return schemas[schema_id]->GetTypeName();
 }
-/*
-std::string protobuf_schema::get_message_type(int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: " +
-        std::to_string(message_id));
-  }
-  return messages[message_id]->GetTypeName();
-}
-*/
-int protobuf_schema::get_message_schema_id(int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: " +
-        std::to_string(message_id));
-  }
-  if (messages[message_id] == NULL) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
-  return get_schema_id(messages[message_id]->GetTypeName());
-}
 
 std::string protobuf_schema::get_field_type(int schema_id, int tag) {
   if (schema_id < 0 || schema_id >= schemas.size()) {
@@ -474,8 +427,7 @@ std::string protobuf_schema::get_message_field_type(int schema_id,
     throw std::runtime_error("Unexpected error");
   }
   const google::protobuf::FieldDescriptor* fdesc =
-      schemas[schema_id]->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
+      schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
     if (fdesc->cpp_type() !=
         google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
@@ -519,564 +471,6 @@ int protobuf_schema::get_field_tag(int schema_id, const std::string& name) {
   throw std::invalid_argument("No field with name: " + name);
 }
 
-int protobuf_schema::get_repeated_field_size(int message_id, int field_tag) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  return m->GetReflection()->FieldSize(*m, fdesc);
-}
-
-bool protobuf_schema::serialize_message(int message_id, std::string* output) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (output == NULL) {
-    throw std::invalid_argument("No output provided");
-  }
-  if (m == NULL) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
-  return m->SerializeToString(output);  // TODO(kari): Handle errors.
-}
-
-bool protobuf_schema::deserialize_message(int message_id,
-      const std::string& input) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
-  return m->ParseFromString(input);  // TODO(kari): Handle errors.
-}
-
-std::string protobuf_schema::to_string(int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  if (messages[message_id] == NULL) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
-  return messages[message_id]->DebugString();
-}
-
-void protobuf_schema::set_string(int message_id, int field_tag,
-      const std::string& value) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
-  }
-  m->GetReflection()->SetString(m, fdesc, value);
-}
-
-std::string protobuf_schema::get_string(int message_id, int field_tag) {
-  if (message_id < 0 || message_id >= messages.size()) {
-      throw std::out_of_range("No message with id: " +
-          std::to_string(message_id));
-  }
-
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
-  }
-  return m->GetReflection()->GetString(*m, fdesc);
-}
-
-void protobuf_schema::set_repeated_string(int message_id, int field_tag,
-      const std::string& value, int index = -1) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*messages[message_id], fdesc)) {
-    reflect->SetRepeatedString(m, fdesc, index, value);
-  } else {
-    reflect->AddString(m, fdesc, value);
-  }
-}
-
-std::string protobuf_schema::get_repeated_string(int message_id, int field_tag,
-      int index) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
-    return reflect->GetRepeatedString(*m, fdesc, index);
-  } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
-  }
-}
-
-void protobuf_schema::set_int32(int message_id, int field_tag, int32_t value) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-     ->FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
-  }
-  m->GetReflection()->SetInt32(m, fdesc, value);
-}
-
-int32_t protobuf_schema::get_int32(int message_id, int field_tag) {
-  if (message_id < 0 || message_id >= messages.size()) {
-      throw std::out_of_range("No message with id: " +
-          std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-     ->FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
-  }
-  return m->GetReflection()->GetInt32(*m, fdesc);
-}
-
-void protobuf_schema::set_repeated_int32(int message_id, int field_tag,
-    int32_t value, int index = -1) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-     ->FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*messages[message_id], fdesc)) {
-    reflect->SetRepeatedInt32(m, fdesc, index, value);
-  } else {
-    reflect->AddInt32(m, fdesc, value);
-  }
-}
-
-int32_t protobuf_schema::get_repeated_int32(int message_id, int field_tag,
-      int index) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
-    return reflect->GetRepeatedInt32(*m, fdesc, index);
-  } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
-  }
-}
-
-void protobuf_schema::set_message(int message_id, int field_tag, int
-      sub_message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  if (!(sub_message_id >= 0 && sub_message_id < messages.size())) {
-    throw std::out_of_range("No sub message with id: " +
-        std::to_string(sub_message_id));
-  }  // throw
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
-  }
-  if (messages[sub_message_id] == NULL || messages[sub_message_id]->
-        GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
-  std::string message_type = fdesc->message_type()->full_name();  // Error
-  std::string sub_message_type = messages[sub_message_id]->
-      GetDescriptor()->full_name();
-  if (message_type.compare(sub_message_type)) {
-    throw std::invalid_argument("Type of the given sub message (which is <" +
-        sub_message_type + ">) doesn't match the field type (which is <" +
-        message_type + ">)");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  // creates copy of the sub message so that the field doesnt change if you
-  // change the message outside
-  google::protobuf::Message* copy = messages[sub_message_id]->New(&arena);
-  copy->CopyFrom(*messages[sub_message_id]);
-  reflect->SetAllocatedMessage(m, copy, fdesc);
-}
-// makes a COPY of the message and returns its id
-int protobuf_schema::get_message(int message_id, int field_tag) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-    if (fdesc->cpp_type() !=
-        google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
-  }
-  // name resolution need to be done
-  // to get Dynamic Message Factory of the class containing the sub message
-  const google::protobuf::Message* original = &reflect->GetMessage(*m, fdesc);
-  google::protobuf::Message* copy = original->New();
-  copy->CopyFrom(*original);
-  return insert_message(copy);
-}
-
-void protobuf_schema::set_repeated_message(int message_id, int field_tag,
-    int sub_message_id, int index = -1) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  if (!(sub_message_id >= 0 && sub_message_id < messages.size())) {
-    throw std::out_of_range("No sub message with id: " +
-        std::to_string(sub_message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  if (messages[sub_message_id] == NULL || messages[sub_message_id]->
-        GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  std::string message_type = fdesc->message_type()->full_name();  // Error
-  std::string sub_message_type = messages[sub_message_id]->
-      GetDescriptor()->full_name();
-  if (message_type.compare(sub_message_type)) {
-    throw std::invalid_argument("Type of the given sub message (which is <" +
-        sub_message_type + ">) doesn't match the field type (which is <" +
-        message_type + ">)");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
-    google::protobuf::Message* sub_m = messages[sub_message_id];
-    reflect->MutableRepeatedMessage(m, fdesc, index)->CopyFrom(*sub_m);
-  } else {
-    google::protobuf::Message* copy = messages[sub_message_id]-> New(&arena);
-    copy->CopyFrom(*messages[sub_message_id]);
-    reflect->AddAllocatedMessage(m, fdesc, copy);
-  }
-}
-
-// Returns copy of the message
-int protobuf_schema::get_repeated_message(int message_id, int field_tag,
-      int index) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
-    const google::protobuf::Message* original =
-        &reflect->GetRepeatedMessage(*m, fdesc, index);
-    google::protobuf::Message* copy = original->New();
-    copy->CopyFrom(*original);
-    return insert_message(copy);
-  } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
-  }
-}
-
-void protobuf_schema::set_enum(int message_id, int field_tag, int value) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-     ->FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
-  }
-  const google::protobuf::EnumDescriptor* edesc = fdesc->enum_type();
-  if (edesc->FindValueByNumber(value) == NULL) {
-    throw std::invalid_argument("Enum doesn't have value: " +
-        std::to_string(value));
-  }
-  m->GetReflection()->SetEnumValue(m, fdesc, value);
-}
-
-int protobuf_schema::get_enum(int message_id, int field_tag) {
-  if (message_id < 0 || message_id >= messages.size()) {
-      throw std::out_of_range("No message with id: " +
-          std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-     ->FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
-  }
-  return m->GetReflection()->GetEnumValue(*m, fdesc);
-}
-
-void protobuf_schema::set_repeated_enum(int message_id, int field_tag,
-    int value, int index = -1) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-     ->FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  const google::protobuf::EnumDescriptor* edesc = fdesc->enum_type();
-  if (edesc->FindValueByNumber(value) == NULL) {
-    throw std::invalid_argument("Enum doesn't have value: " +
-        std::to_string(value));
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*messages[message_id], fdesc)) {
-    reflect->SetRepeatedEnumValue(m, fdesc, index, value);
-  } else {
-    reflect->AddEnumValue(m, fdesc, value);
-  }
-}
-
-int protobuf_schema::get_repeated_enum(int message_id, int field_tag,
-      int index) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  google::protobuf::Message* m = messages[message_id];
-  if (m == NULL || m->GetDescriptor() == NULL) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
-      -> FindFieldByNumber(field_tag);
-  if (fdesc == NULL) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
-  }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
-  }
-  if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
-  }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
-  if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
-    return m->GetReflection()->GetRepeatedEnumValue(*m, fdesc, index);
-  } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
-  }
-}
-
 // Error collectors helper classes
 
 io_error_collector::io_error_collector() {
@@ -1092,6 +486,7 @@ void io_error_collector::AddError(int line, int column,
   errors_list += "Error: line: " + std::to_string(line) + " col: " +
       std::to_string(column) + "->" + message.c_str() + "\n";
 }
+
 void io_error_collector::AddWarning(int line, int column,
       const std::string& message) {
   std::cerr << "*Warning: line: " << line << " col: " << column << "->"
@@ -1099,13 +494,16 @@ void io_error_collector::AddWarning(int line, int column,
   errors_list += "Warning: line: " + std::to_string(line) + " col: " +
       std::to_string(column) + "->" + message.c_str() + "\n";
 }
+
 void io_error_collector::clear_errors() {
   errors_number = 0;
   errors_list = "";
 }
+
 int io_error_collector::get_number_errors() {
   return errors_number;
 }
+
 std::string io_error_collector::get_all_errors() {
   return errors_list;
 }
@@ -1128,6 +526,7 @@ void proto_error_collector::AddError(
   errors_list += "Error: schema: " + schema + " <" + element_name +
       "> error message:" + message + "\n";
 }
+
 void proto_error_collector::AddWarning(const std::string& schema,  // File
       // name in which the error occurred.
     const std::string& element_name,  // Full name of the erroneous element.
@@ -1141,13 +540,16 @@ void proto_error_collector::AddWarning(const std::string& schema,  // File
   errors_list += "Warning: schema: " + schema + " <" + element_name
       + "> error message:" + message + "\n";
 }
+
 void proto_error_collector::clear_errors() {
   errors_number = 0;
   errors_list = "";
 }
+
 int proto_error_collector::get_number_errors() {
   return errors_number;
 }
+
 std::string proto_error_collector::get_all_errors() {
   return errors_list;
 }

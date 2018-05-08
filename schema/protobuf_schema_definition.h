@@ -13,6 +13,7 @@
 
 #include <string>
 #include <vector>
+
 #include "schema/schema_definition.h"
 
 class protobuf_schema_definition: public schema_definition {
