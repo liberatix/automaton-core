@@ -66,55 +66,55 @@ TEST(protobuf_schema, enums) {
   protobuf_schema sc;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  int id1 = sc.new_message(sc.get_schema_id("A"));
-  int id2 = sc.new_message(sc.get_schema_id("A"));
+  schema_message * msg1 = sc.new_message("A");
+  schema_message * msg2 = sc.new_message("A");
 
-  sc.set_string(id1, 1, "value_string");
+  msg1->set_string(1, "value_string");
   int inner_enum_value = sc.get_enum_value(sc.get_enum_id("A.inner_enum"),
       "inner_value2");
-  sc.set_enum(id1, 2, inner_enum_value);
+  msg1->set_enum(2, inner_enum_value);
   int outer_enum_value = sc.get_enum_value(sc.get_enum_id("outer_enum"),
       "outer_value1");
-  sc.set_enum(id1, 3, outer_enum_value);
+  msg1->set_enum(3, outer_enum_value);
 
-  std::cout << "Message {\n" << sc.to_string(id1) << "\n}" << std::endl;
+  std::cout << "Message {\n" << msg1->to_string() << "\n}" << std::endl;
 
   std::string data1;
-  sc.serialize_message(id1, &data1);
-  sc.deserialize_message(id2, data1);
+  msg1->serialize_message(&data1);
+  msg2->deserialize_message(data1);
 
-  EXPECT_EQ(sc.get_string(id2, 1), "value_string");
-  EXPECT_EQ(sc.get_enum(id2, 2), 1);
-  EXPECT_EQ(sc.get_enum(id2, 3), 0);
+  EXPECT_EQ(msg2->get_string(1), "value_string");
+  EXPECT_EQ(msg2->get_enum(2), 1);
+  EXPECT_EQ(msg2->get_enum(3), 0);
 
-  int id3 = sc.new_message(sc.get_schema_id("B"));
-  int id4 = sc.new_message(sc.get_schema_id("B"));
+  schema_message * msg3 = sc.new_message(sc.get_schema_id("B"));
+  schema_message * msg4 = sc.new_message(sc.get_schema_id("B"));
 
-  sc.set_enum(id3, 1, 1);
-  sc.set_repeated_enum(id3, 2, 1, -1);
-  sc.set_repeated_enum(id3, 2, 0, -1);
-  sc.set_repeated_enum(id3, 2, 1, -1);
+  msg3->set_enum(1, 1);
+  msg3->set_repeated_enum(2, 1, -1);
+  msg3->set_repeated_enum(2, 0, -1);
+  msg3->set_repeated_enum(2, 1, -1);
 
-  EXPECT_EQ(sc.get_enum(id3, 1), 1);
-  EXPECT_EQ(sc.get_repeated_field_size(id3, 2), 3);
-  EXPECT_EQ(sc.get_repeated_enum(id3, 2, 0), 1);
-  EXPECT_EQ(sc.get_repeated_enum(id3, 2, 1), 0);
-  EXPECT_EQ(sc.get_repeated_enum(id3, 2, 2), 1);
+  EXPECT_EQ(msg3->get_enum(1), 1);
+  EXPECT_EQ(msg3->get_repeated_field_size(2), 3);
+  EXPECT_EQ(msg3->get_repeated_enum(2, 0), 1);
+  EXPECT_EQ(msg3->get_repeated_enum(2, 1), 0);
+  EXPECT_EQ(msg3->get_repeated_enum(2, 2), 1);
 
   std::string data2;
-  sc.serialize_message(id3, &data2);
-  sc.deserialize_message(id4, data2);
+  msg3->serialize_message(&data2);
+  msg4->deserialize_message(data2);
 
-  EXPECT_EQ(sc.get_enum(id4, 1), 1);
-  EXPECT_EQ(sc.get_repeated_field_size(id4, 2), 3);
-  EXPECT_EQ(sc.get_repeated_enum(id4, 2, 0), 1);
-  EXPECT_EQ(sc.get_repeated_enum(id4, 2, 1), 0);
-  EXPECT_EQ(sc.get_repeated_enum(id4, 2, 2), 1);
+  EXPECT_EQ(msg4->get_enum(1), 1);
+  EXPECT_EQ(msg4->get_repeated_field_size(2), 3);
+  EXPECT_EQ(msg4->get_repeated_enum(2, 0), 1);
+  EXPECT_EQ(msg4->get_repeated_enum(2, 1), 0);
+  EXPECT_EQ(msg4->get_repeated_enum(2, 2), 1);
 
-  sc.set_repeated_enum(id3, 2, 1, 1);
-  EXPECT_EQ(sc.get_repeated_enum(id3, 2, 1), 1);
+  msg3->set_repeated_enum(2, 1, 1);
+  EXPECT_EQ(msg3->get_repeated_enum(2, 1), 1);
   try {
-    sc.set_enum(id3, 2, 1);
+    msg3->set_enum(2, 1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
