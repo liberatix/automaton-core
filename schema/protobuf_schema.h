@@ -72,7 +72,7 @@ class protobuf_schema: public schema {
   io_error_collector io_error_collector_;
   proto_error_collector proto_error_collector_;
   google::protobuf::DescriptorPool* pool;
-  google::protobuf::DynamicMessageFactory* dynamic_message_factory = NULL;
+  google::protobuf::DynamicMessageFactory* dynamic_message_factory = nullptr;
 
   /// Spots in the messages vector.
   std::stack<int> free_message_spots;

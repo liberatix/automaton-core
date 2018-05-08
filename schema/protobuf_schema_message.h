@@ -28,7 +28,7 @@ class protobuf_schema_message : public schema_message {
   explicit protobuf_schema_message(google::protobuf::Message * m) : m(m) {}
 
   ~protobuf_schema_message() {
-    if (m != NULL) {
+    if (m != nullptr) {
       delete m;
     }
   }

@@ -50,7 +50,7 @@ void protobuf_schema_definition::add_enum_value(int enum_id, const std::string&
     throw std::out_of_range("No enum with id: " + std::to_string(enum_id));
   }
   google::protobuf::EnumDescriptorProto* edp = enums[enum_id];
-  if (edp == NULL) {
+  if (edp == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   google::protobuf::EnumValueDescriptorProto* field = edp->add_value();
@@ -68,7 +68,7 @@ void protobuf_schema_definition::add_nested_message(int message_id,
     throw std::out_of_range("No message with id: "
         + std::to_string(message_id));
   }
-  if (messages[message_id] == NULL || messages[sub_message_id] == NULL) {
+  if (messages[message_id] == nullptr || messages[sub_message_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   google::protobuf::DescriptorProto* dpr = messages[message_id];
@@ -81,7 +81,7 @@ void protobuf_schema_definition::add_message(int message_id) {
     throw std::out_of_range("No message with id: "
         + std::to_string(message_id));
   }
-  if (messages[message_id] == NULL) {
+  if (messages[message_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   google::protobuf::DescriptorProto* m =
@@ -94,7 +94,7 @@ void protobuf_schema_definition::add_enum(int enum_id, int message_id
   if (enum_id < 0 || enum_id >= enums.size()) {
     throw std::out_of_range("No enum with id: " + std::to_string(enum_id));
   }
-  if (enums[enum_id] == NULL) {
+  if (enums[enum_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   if (message_id == -1) {
@@ -106,7 +106,7 @@ void protobuf_schema_definition::add_enum(int enum_id, int message_id
       throw std::out_of_range("No message with id: "
           + std::to_string(message_id));
     }
-    if (messages[message_id] == NULL) {
+    if (messages[message_id] == nullptr) {
       throw std::runtime_error("Unexpected error");
     }
     google::protobuf::DescriptorProto* dpr = messages[message_id];
@@ -127,7 +127,7 @@ void protobuf_schema_definition::add_scalar_field(
     throw std::invalid_argument("Wrong field type");
   }
   google::protobuf::DescriptorProto* dpr = messages[message_id];
-  if (dpr == NULL) {
+  if (dpr == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   google::protobuf::FieldDescriptorProto* field_proto = dpr->add_field();
@@ -150,7 +150,7 @@ void protobuf_schema_definition::add_enum_field(
     throw std::invalid_argument("Wrong field type");
   }
   google::protobuf::DescriptorProto* dpr = messages[message_id];
-  if (dpr == NULL) {
+  if (dpr == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   google::protobuf::FieldDescriptorProto* field_proto = dpr->add_field();
@@ -174,7 +174,7 @@ void protobuf_schema_definition::add_message_field(
     throw std::invalid_argument("Wrong field type");
   }
   google::protobuf::DescriptorProto* dpr = messages[message_id];
-  if (dpr == NULL) {
+  if (dpr == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   google::protobuf::FieldDescriptorProto* field_proto = dpr->add_field();
