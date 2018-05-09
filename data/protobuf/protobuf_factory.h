@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_H_
-#define AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_H_
+#ifndef AUTOMATON_CORE_DATA_PROTOBUF_FACTORY_H_
+#define AUTOMATON_CORE_DATA_PROTOBUF_FACTORY_H_
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -67,7 +67,7 @@ class proto_error_collector : public
   std::string get_all_errors();
 };
 
-class protobuf_schema: public factory {
+class protobuf_factory: public factory {
  private:
   io_error_collector io_error_collector_;
   proto_error_collector proto_error_collector_;
@@ -123,8 +123,8 @@ class protobuf_schema: public factory {
   /**
     TODO(kari): Decide to forbid move & copy constructors.
   **/
-  protobuf_schema();
-  ~protobuf_schema();
+  protobuf_factory();
+  ~protobuf_factory();
 
   /*
     This is needed for testing or if std::string serialize_protocol()
@@ -294,4 +294,4 @@ class protobuf_schema: public factory {
   bool is_repeated(int schema_id, int tag);
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_H_
+#endif  // AUTOMATON_CORE_DATA_PROTOBUF_FACTORY_H_

@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_MESSAGE_H__
-#define AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_MESSAGE_H__
+#ifndef AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_MESSAGE_H__
+#define AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_MESSAGE_H__
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -134,4 +134,4 @@ class protobuf_schema_message : public msg {
   google::protobuf::Message* m;
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_PROTOBUF_SCHEMA_MESSAGE_H__
+#endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_MESSAGE_H__

@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_PROTOBUF_SCHEMA_DEFINITION_H__
-#define AUTOMATON_CORE_PROTOBUF_SCHEMA_DEFINITION_H__
+#ifndef AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_DEFINITION_H__
+#define AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_DEFINITION_H__
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -30,7 +30,7 @@ class protobuf_schema_definition: public schema {
   void register_self();
 
   /**
-    This function is used from protobuf_schema on import. (Instead of
+    This function is used from protobuf_factory on import. (Instead of
     friend class)
   **/
   google::protobuf::FileDescriptorProto* get_descriptor();
@@ -104,5 +104,4 @@ class protobuf_schema_definition: public schema {
   void add_message_field(schema::field_info field, int message_id);
 };
 
-
-#endif  // AUTOMATON_CORE_PROTOBUF_SCHEMA_DEFINITION_H__
+#endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_DEFINITION_H__

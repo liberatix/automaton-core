@@ -1,4 +1,4 @@
-#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema_definition.h"
 
 using google::protobuf::Arena;
@@ -136,7 +136,7 @@ void protobuf_schema_definition::add_scalar_field(
   }
   FieldDescriptorProto* field_proto = dpr->add_field();
   field_proto->set_name(field.name);
-  field_proto->set_type(protobuf_schema::type_to_protobuf_type.at(field.type));
+  field_proto->set_type(protobuf_factory::type_to_protobuf_type.at(field.type));
   field_proto->set_number(field.tag);
   if (field.is_repeated) {
     field_proto->set_label(
