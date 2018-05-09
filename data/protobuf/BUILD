@@ -3,7 +3,7 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-	name = "protobuf",
+  name = "protobuf",
   srcs = [
     "protobuf_factory.cc",
 	  "protobuf_factory.h",
