@@ -1,9 +1,32 @@
-# Schema interface usage
+# Automaton Data Schema Interface Usage
 
-## Creating schemas (class schema_definition)
+```cpp
+namespace data {
+
+/**
+  Data factory interface.
+*/
+class factory {
+};
+
+/**
+  Data schema definition interface
+*/
+class schema {
+};
+
+/**
+  Message interface
+*/
+class msg {
+};
 
 ```
-schema_definition custom_schema;
+
+## Creating data schema definitions (class data::schema)
+
+```cpp
+data::schema custom_schema;
 
 // Creates empty message prototype and returns its id.
 int m1 = custom_schema.create_message("MyMessage");
