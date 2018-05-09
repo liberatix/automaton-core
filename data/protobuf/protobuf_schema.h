@@ -21,7 +21,7 @@
 
 #include "data/factory.h"
 #include "data/schema.h"
-#include "data/protobuf_schema_message.h"
+#include "data/protobuf/protobuf_schema_message.h"
 
 /**
 This is helper class which is used while parsing proto file.

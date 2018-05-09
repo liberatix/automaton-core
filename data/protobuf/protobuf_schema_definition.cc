@@ -1,5 +1,5 @@
-#include "data/protobuf_schema.h"
-#include "data/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_schema_definition.h"
 
 using google::protobuf::Arena;
 using google::protobuf::DescriptorProto;
