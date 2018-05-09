@@ -3,9 +3,12 @@
 #include <string>
 
 #include "io/io.h"
+#include "data/msg.h"
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_msg.h"
 #include "gtest/gtest.h"
+
+using data::msg;
+using data::protobuf::protobuf_factory;
 
 const char * TEST_MSG = "TestMsg";
 

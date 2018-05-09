@@ -10,6 +10,9 @@ using google::protobuf::FieldDescriptorProto_Label;
 using google::protobuf::FieldDescriptorProto_Type;
 using google::protobuf::FileDescriptorProto;
 
+namespace data {
+namespace protobuf {
+
 // Protobuf schema definition
 
 protobuf_schema::protobuf_schema() {
@@ -179,3 +182,6 @@ void protobuf_schema::add_message_field(schema::field_info field, int message_id
         FieldDescriptorProto_Label::FieldDescriptorProto_Label_LABEL_REPEATED);
   }
 }
+
+}  // namespace protobuf
+}  // namespace data

@@ -16,6 +16,9 @@
 
 #include "data/schema.h"
 
+namespace data {
+namespace protobuf {
+
 class protobuf_schema: public schema {
  private:
   google::protobuf::Arena arena;
@@ -106,5 +109,8 @@ class protobuf_schema: public schema {
 
   void add_message_field(schema::field_info field, int message_id);
 };
+
+}  // namespace protobuf
+}  // namespace data
 
 #endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_H__

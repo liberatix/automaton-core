@@ -6,6 +6,10 @@
 #include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
+using data::schema;
+using data::protobuf::protobuf_factory;
+using data::protobuf::protobuf_schema;
+
 TEST(data_protobuf, messages) {
   protobuf_schema cs;
   int m1 = cs.create_message("MyMessage");

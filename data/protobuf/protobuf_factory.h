@@ -23,6 +23,11 @@
 #include "data/schema.h"
 #include "data/protobuf/protobuf_msg.h"
 
+using data::schema;
+
+namespace data {
+namespace protobuf {
+
 /**
 This is helper class which is used while parsing proto file.
 **/
@@ -292,5 +297,8 @@ class protobuf_factory: public factory {
   */
   bool is_repeated(int schema_id, int tag);
 };
+
+}  // namespace protobuf
+}  // namespace data
 
 #endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_FACTORY_H_

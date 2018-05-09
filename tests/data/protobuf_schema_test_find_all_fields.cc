@@ -6,6 +6,8 @@
 #include "data/protobuf/protobuf_factory.h"
 #include "gtest/gtest.h"
 
+using data::protobuf::protobuf_factory;
+
 TEST(protobuf_factory, find_all_fields) {
   protobuf_factory sc;
   sc.import_schema_from_string(

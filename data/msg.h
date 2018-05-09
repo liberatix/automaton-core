@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace data {
+
 /** Schema message interface
 */
 class msg {
@@ -98,5 +100,7 @@ class msg {
 
   virtual int get_repeated_enum(int field_tag, int index) = 0;
 };
+
+}  // namespace data
 
 #endif  // AUTOMATON_CORE_DATA_MSG_H__

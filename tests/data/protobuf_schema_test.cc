@@ -6,6 +6,11 @@
 #include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema.h"
 
+using data::msg;
+using data::schema;
+using data::protobuf::protobuf_factory;
+using data::protobuf::protobuf_schema;
+
 int main(int argc, char* argv[]) {
   try {
     protobuf_schema custom_schema;
