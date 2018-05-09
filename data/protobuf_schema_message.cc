@@ -1,5 +1,10 @@
 #include "data/protobuf_schema_message.h"
 
+using google::protobuf::EnumDescriptor;
+using google::protobuf::FieldDescriptor;
+using google::protobuf::Message;
+using google::protobuf::Reflection;
+
 std::string protobuf_schema_message::get_message_type() {
   if (m == nullptr) {
     throw std::runtime_error("Unexpected error: No message");
@@ -11,7 +16,7 @@ int protobuf_schema_message::get_repeated_field_size(int field_tag) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -52,7 +57,7 @@ void protobuf_schema_message::set_string(int field_tag,
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error: No message");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
 
   if (fdesc == nullptr) {
@@ -62,7 +67,7 @@ void protobuf_schema_message::set_string(int field_tag,
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
     throw std::invalid_argument("Field is not string");
   }
   m->GetReflection()->SetString(m, fdesc, value);
@@ -72,7 +77,7 @@ std::string protobuf_schema_message::get_string(int field_tag) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -81,7 +86,7 @@ std::string protobuf_schema_message::get_string(int field_tag) {
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
     throw std::invalid_argument("Field is not string");
   }
   return m->GetReflection()->GetString(*m, fdesc);
@@ -92,19 +97,19 @@ void protobuf_schema_message::set_repeated_string(int field_tag,
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
     throw std::invalid_argument("Field is not string");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     reflect->SetRepeatedString(m, fdesc, index, value);
   } else {
@@ -117,19 +122,19 @@ std::string protobuf_schema_message::get_repeated_string(
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
     throw std::invalid_argument("Field is not string");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     return reflect->GetRepeatedString(*m, fdesc, index);
   } else {
@@ -141,7 +146,7 @@ void protobuf_schema_message::set_int32(int field_tag, int32_t value) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -150,7 +155,7 @@ void protobuf_schema_message::set_int32(int field_tag, int32_t value) {
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
     throw std::invalid_argument("Field is not int32");
   }
   m->GetReflection()->SetInt32(m, fdesc, value);
@@ -160,7 +165,7 @@ int32_t protobuf_schema_message::get_int32(int field_tag) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
+  const FieldDescriptor* fdesc = m->GetDescriptor()
      ->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -169,7 +174,7 @@ int32_t protobuf_schema_message::get_int32(int field_tag) {
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
     throw std::invalid_argument("Field is not int32");
   }
   return m->GetReflection()->GetInt32(*m, fdesc);
@@ -180,19 +185,19 @@ void protobuf_schema_message::set_repeated_int32(
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc = m->GetDescriptor()
+  const FieldDescriptor* fdesc = m->GetDescriptor()
      ->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
     throw std::invalid_argument("Field is not int32");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     reflect->SetRepeatedInt32(m, fdesc, index, value);
   } else {
@@ -204,19 +209,19 @@ int32_t protobuf_schema_message::get_repeated_int32(int field_tag, int index) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_INT32) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
     throw std::invalid_argument("Field is not int32");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     return reflect->GetRepeatedInt32(*m, fdesc, index);
   } else {
@@ -229,7 +234,7 @@ void protobuf_schema_message::set_message(
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error: No message");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -238,11 +243,11 @@ void protobuf_schema_message::set_message(
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
     throw std::invalid_argument("Field is not message");
   }
   std::string message_type = fdesc->message_type()->full_name();  // Error
-  google::protobuf::Message* sub_m =
+  Message* sub_m =
       reinterpret_cast<const protobuf_schema_message *>(sub_message)->m;
   std::string sub_message_type = sub_m->GetDescriptor()->full_name();
   if (message_type.compare(sub_message_type)) {
@@ -250,10 +255,10 @@ void protobuf_schema_message::set_message(
         sub_message_type + ">) doesn't match the field type (which is <" +
         message_type + ">)");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   // creates copy of the sub message so that the field doesnt change if you
   // change the message outside
-  google::protobuf::Message* copy = sub_m->New();
+  Message* copy = sub_m->New();
   copy->CopyFrom(*sub_m);
   reflect->SetAllocatedMessage(m, copy, fdesc);
 }
@@ -263,7 +268,7 @@ msg * protobuf_schema_message::get_message(int field_tag) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -272,15 +277,15 @@ msg * protobuf_schema_message::get_message(int field_tag) {
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
     if (fdesc->cpp_type() !=
-        google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+        FieldDescriptor::CPPTYPE_MESSAGE) {
     throw std::invalid_argument("Field is not message");
   }
   // name resolution need to be done
   // to get Dynamic Message Factory of the class containing the sub message
-  const google::protobuf::Message* original = &reflect->GetMessage(*m, fdesc);
-  google::protobuf::Message* copy = original->New();
+  const Message* original = &reflect->GetMessage(*m, fdesc);
+  Message* copy = original->New();
   copy->CopyFrom(*original);
   return new protobuf_schema_message(copy);
 }
@@ -290,19 +295,19 @@ void protobuf_schema_message::set_repeated_message(
   if (m == nullptr || m->GetDescriptor() == nullptr || sub_message == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
     throw std::invalid_argument("Field is not message");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  google::protobuf::Message* sub_m =
+  Message* sub_m =
       reinterpret_cast<const protobuf_schema_message *>(sub_message)->m;
   if (sub_m == nullptr || sub_m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
@@ -315,11 +320,11 @@ void protobuf_schema_message::set_repeated_message(
         sub_message_type + ">) doesn't match the field type (which is <" +
         message_type + ">)");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     reflect->MutableRepeatedMessage(m, fdesc, index)->CopyFrom(*sub_m);
   } else {
-    google::protobuf::Message* copy = sub_m->New();
+    Message* copy = sub_m->New();
     copy->CopyFrom(*sub_m);
     reflect->AddAllocatedMessage(m, fdesc, copy);
   }
@@ -331,23 +336,22 @@ msg * protobuf_schema_message::get_repeated_message(
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
     throw std::invalid_argument("Field is not message");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
-    const google::protobuf::Message* original =
-        &reflect->GetRepeatedMessage(*m, fdesc, index);
-    google::protobuf::Message* copy = original->New();
+    const Message* original = &reflect->GetRepeatedMessage(*m, fdesc, index);
+    Message* copy = original->New();
     copy->CopyFrom(*original);
     return new protobuf_schema_message(copy);
   } else {
@@ -359,7 +363,7 @@ void protobuf_schema_message::set_enum(int field_tag, int value) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -368,10 +372,10 @@ void protobuf_schema_message::set_enum(int field_tag, int value) {
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
     throw std::invalid_argument("Field is not enum");
   }
-  const google::protobuf::EnumDescriptor* edesc = fdesc->enum_type();
+  const EnumDescriptor* edesc = fdesc->enum_type();
   if (edesc->FindValueByNumber(value) == nullptr) {
     throw std::invalid_argument("Enum doesn't have value: " +
         std::to_string(value));
@@ -383,7 +387,7 @@ int protobuf_schema_message::get_enum(int field_tag) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -392,7 +396,7 @@ int protobuf_schema_message::get_enum(int field_tag) {
   if (fdesc->is_repeated()) {
     throw std::invalid_argument("Field is repeated");
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
     throw std::invalid_argument("Field is not enum");
   }
   return m->GetReflection()->GetEnumValue(*m, fdesc);
@@ -403,24 +407,24 @@ void protobuf_schema_message::set_repeated_enum(
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
     throw std::invalid_argument("Field is not enum");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  const google::protobuf::EnumDescriptor* edesc = fdesc->enum_type();
+  const EnumDescriptor* edesc = fdesc->enum_type();
   if (edesc->FindValueByNumber(value) == nullptr) {
     throw std::invalid_argument("Enum doesn't have value: " +
         std::to_string(value));
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     reflect->SetRepeatedEnumValue(m, fdesc, index, value);
   } else {
@@ -432,19 +436,19 @@ int protobuf_schema_message::get_repeated_enum(int field_tag, int index) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
         std::to_string(field_tag));
   }
-  if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+  if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
     throw std::invalid_argument("Field is not enum");
   }
   if (!(fdesc->is_repeated())) {
     throw std::invalid_argument("Field is not repeated");
   }
-  const google::protobuf::Reflection* reflect = m->GetReflection();
+  const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     return m->GetReflection()->GetRepeatedEnumValue(*m, fdesc, index);
   } else {
