@@ -31,6 +31,6 @@ cc_library(
     "protobuf_schema_message.h",
   ],
   deps = [
-	  "//data",
+    "//data",
   ],
 )
