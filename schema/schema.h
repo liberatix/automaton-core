@@ -13,7 +13,7 @@
 */
 class schema {
  public:
-  virtual ~schema() {}
+  virtual ~schema() = 0;
 
   typedef schema* (*factory_function_schema)();
   static void register_factory(std::string name, factory_function_schema func);

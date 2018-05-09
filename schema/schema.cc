@@ -1,5 +1,7 @@
 #include "schema/schema.h"
 
+schema::~schema() {}
+
 std::map<std::string, schema::factory_function_schema> schema::schema_factory;
 
 void schema::register_factory(std::string name, schema::factory_function_schema
