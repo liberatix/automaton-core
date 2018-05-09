@@ -104,7 +104,8 @@ void simulation::handle_event(const event& e) {
           This event is created when the other endpoint has called disconnect().
           Sets connection state to disconnected.
           TODO(kari): If possible delete related events in the queue and
-          delete connection fron map.
+          delete connection fron map. NOTE: Maybe it is better not to delete events
+          so proper errors could be passed (operation cancelled, broken_pipe, etc.)
         */
         if (connection_->connection_state == connection::state::connected) {
           connection_->connection_state = connection::state::disconnected;
@@ -186,7 +187,7 @@ void simulation::handle_event(const event& e) {
           connect and before sending message which is not very comfortable when
           using the simulation. That's why the event is just postponed untill
           it is known if the connection is accepted or refused. BUG: If refused,
-          error 'operation cancelled' will happend, which also happen when
+          error 'operation cancelled' will happend, which also happens when
           disconnect has been called.
         **/
         if (connection_->connection_state ==
@@ -225,12 +226,15 @@ void simulation::handle_event(const event& e) {
           // logging("send 1.4");
           break;
         }
-        connection_->get_handler()->on_message_sent(connection_, e.message_id,
+        /*
+          connection_->get_handler()->on_message_sent(connection_, e.message_id,
             connection::error::no_error);
+        */
         event new_event;
         new_event.type_ = event::type::read;
         new_event.recipient = connection_->remote_connection_id;
         new_event.data = e.data;
+        new_event.message_id = e.message_id;
         new_event.time_of_handling =
           sim->get_time() > remote_connection->time_stamp + 1?
           sim->get_time() : remote_connection->time_stamp + 1;
@@ -340,7 +344,10 @@ void simulation::handle_event(const event& e) {
           ++new_event.time_of_handling;
           push_event(new_event);
         } else {
-          // TODO(kari): Call handler's on_message_sent here.
+          simulated_connection* remote_connection =
+              sim->get_connection(connection_->remote_connection_id);
+          remote_connection->get_handler()->on_message_sent(remote_connection,
+              e.message_id, connection::error::no_error);
         }
         // logging("read 1.6");
         break;
@@ -486,7 +493,7 @@ void simulated_connection::async_send(const std::string& message, unsigned
   event new_event;
   new_event.type_ = event::type::send;
   new_event.recipient = local_connection_id;
-  new_event.data = message;  // TODO(kari): is this a copy
+  new_event.data = message;
   new_event.message_id = id;
   new_event.time_of_handling =
       (sim->get_time() > time_stamp + 1 ? sim->get_time() : time_stamp + 1) + get_lag();
@@ -546,7 +553,7 @@ unsigned int simulated_connection::get_lag() const {
   if (parameters.min_lag == parameters.max_lag) {
     return parameters.min_lag;
   }
-  return std::rand()%(parameters.max_lag - parameters.min_lag) + parameters.min_lag;
+  return std::rand() % (parameters.max_lag - parameters.min_lag) + parameters.min_lag;
 }
 void simulated_connection::connect() {
   if (!remote_address) {

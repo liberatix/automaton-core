@@ -6,31 +6,31 @@
 static int send_counter = 0;
 static int read_counter = 0;
 
-std::string create_connection_address(unsigned int min_lag,
-                                      unsigned int max_lag,
-                                      unsigned int num_acceptors) {
+std::string create_connection_address(unsigned int num_acceptors,
+                                      unsigned int min_lag = 1,
+                                      unsigned int max_lag = 5) {
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
   unsigned int mn, mx;
-  mn = std::rand()%(max_lag - min_lag) + min_lag;
-  mx = std::rand()%(max_lag - min_lag) + min_lag;
+  mn = std::rand() % (max_lag - min_lag) + min_lag;
+  mx = std::rand() % (max_lag - min_lag) + min_lag;
   s << (mn < mx ? mn : mx) << ':' << (mn < mx ? mx : mn) << ':';
   /// For test purposes if we have n acceptors, their addresses are in range 1-n
-  s << (std::rand()%num_acceptors + 1);
+  s << (std::rand() % num_acceptors + 1);
   logging("Created connection address: " + s.str());
   return s.str();
 }
-std::string create_acceptor_address(unsigned int min_connections,
-                                      unsigned int max_connections,
-                                      unsigned int min_bandwidth,
-                                      unsigned int max_bandwidth,
-                                      unsigned int next_address) {
+std::string create_acceptor_address(uint32_t address,
+                                      unsigned int min_connections = 4,
+                                      unsigned int max_connections = 16,
+                                      unsigned int min_bandwidth = 1,
+                                      unsigned int max_bandwidth = 64) {
   std::stringstream s;
   unsigned int conns;
-  conns = std::rand()%max_connections;
+  conns = std::rand() % max_connections;
   conns = conns > min_connections ? conns : min_connections;
-  s << conns << ':' << (std::rand()%(max_bandwidth - min_bandwidth) + min_bandwidth)
-      << ':' << next_address;
+  s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth) + min_bandwidth)
+      << ':' << address;
   logging("Created acceptor address: " + s.str());
   return s.str();
 }
@@ -93,27 +93,27 @@ int main() {
   lis_handler lis_handler_;
   simulation* sim = simulation::get_simulator();
   acceptor* acceptorA = acceptor::create("sim",
-                                        create_acceptor_address(1, 64, 4, 8, 1),
+                                        create_acceptor_address(1),
                                         &lis_handler_,
                                         &handler_);
   acceptor* acceptorB = acceptor::create("sim",
-                                        create_acceptor_address(1, 64, 4, 8, 2),
+                                        create_acceptor_address(2),
                                         &lis_handler_,
                                         &handler_);
   acceptorB->start_accepting();
   acceptorA->start_accepting();
   acceptor* acceptorC = acceptor::create("sim",
-                                        create_acceptor_address(1, 64, 4, 8, 3),
+                                        create_acceptor_address(3),
                                         &lis_handler_,
                                         &handler_);
   acceptorC->start_accepting();
   connection* connection_ab = connection::create("sim",
-                                            create_connection_address(1, 15, 3),
+                                            create_connection_address(3),
                                             &handler_);
   connection_ab -> connect();
   connection_ab -> async_read(new char[128], 128, 0, read_counter++);
   connection* connection_ac = connection::create("sim",
-                                            create_connection_address(1, 15, 3),
+                                            create_connection_address(3),
                                             &handler_);
   connection_ac -> connect();
   connection_ac -> async_read(new char[128], 128, 0, read_counter++);
