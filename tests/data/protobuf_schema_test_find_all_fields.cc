@@ -3,7 +3,7 @@
 #include <string>
 
 #include "io/io.h"
-#include "schema/protobuf_schema.h"
+#include "data/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 TEST(protobuf_schema, find_all_fields) {

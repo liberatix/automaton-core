@@ -67,7 +67,7 @@ class proto_error_collector : public
   std::string get_all_errors();
 };
 
-class protobuf_schema: public schema {
+class protobuf_schema: public factory {
  private:
   io_error_collector io_error_collector_;
   proto_error_collector proto_error_collector_;

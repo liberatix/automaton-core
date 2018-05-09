@@ -1,4 +1,4 @@
-#include "schema/protobuf_schema_message.h"
+#include "data/protobuf_schema_message.h"
 
 std::string protobuf_schema_message::get_message_type() {
   if (m == nullptr) {

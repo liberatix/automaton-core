@@ -55,7 +55,7 @@ protobuf_schema::~protobuf_schema() {
 
 void protobuf_schema::register_self() {
   protobuf_schema::register_factory("protobuf", [] {
-      return reinterpret_cast<schema*>(new protobuf_schema());
+      return reinterpret_cast<factory*>(new protobuf_schema());
   });
 }
 
@@ -348,7 +348,8 @@ bool protobuf_schema::is_repeated(int schema_id, int field_tag) {
   if (fdesc) {
     return fdesc->is_repeated();
   }
-  throw std::invalid_argument("No field with tag: " + field_tag);
+  throw std::invalid_argument("No field with tag: " +
+      std::to_string(field_tag));
 }
 
 schema_definition::field_info protobuf_schema::get_field_info(int schema_id,
@@ -435,7 +436,8 @@ std::string protobuf_schema::get_message_field_type(int schema_id,
     }
     return fdesc->message_type()->full_name();
   }
-  throw std::invalid_argument("No field with tag: " + field_tag);
+  throw std::invalid_argument("No field with tag: " +
+      std::to_string(field_tag));
 }
 
 std::string protobuf_schema::get_enum_field_type(int schema_id, int field_tag) {
@@ -453,7 +455,8 @@ std::string protobuf_schema::get_enum_field_type(int schema_id, int field_tag) {
     }
     return fdesc->enum_type()->full_name();
   }
-  throw std::invalid_argument("No field with tag: " + field_tag);
+  throw std::invalid_argument("No field with tag: " +
+      std::to_string(field_tag));
 }
 
 int protobuf_schema::get_field_tag(int schema_id, const std::string& name) {

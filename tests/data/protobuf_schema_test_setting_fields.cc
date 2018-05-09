@@ -3,8 +3,8 @@
 #include <string>
 
 #include "io/io.h"
-#include "schema/protobuf_schema.h"
-#include "schema/protobuf_schema_message.h"
+#include "data/protobuf_schema.h"
+#include "data/protobuf_schema_message.h"
 #include "gtest/gtest.h"
 
 const char * TEST_MSG = "TestMsg";
