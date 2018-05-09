@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 
-#include "data/protobuf_schema.h"
-#include "data/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
 const char* FIRST_MESSAGE = "first_message";

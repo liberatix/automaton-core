@@ -7,7 +7,7 @@ cc_binary(
   srcs = ["protobuf_schema_test.cc",],
   deps = [
     "//io",
-    "//data:schema_google_protobufs"
+    "//data/protobuf",
   ],
 )
 
@@ -15,7 +15,7 @@ cc_test(
   name = "test_protobuf_schema_message",
   srcs = ["test_protobuf_schema_message.cc",],
   deps = [
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -25,7 +25,7 @@ cc_test(
   name = "protobuf_schema_definitions",
   srcs = ["protobuf_schema_gtest.cc",],
   deps = [
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -37,7 +37,7 @@ cc_test(
   data = ["//tests/data:test.proto"],
   deps = [
     "//io",
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -49,7 +49,7 @@ cc_test(
   data = ["//tests/data:invalid_data.proto"],
   deps = [
     "//io",
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -61,7 +61,7 @@ cc_test(
   data = ["//tests/data:test.proto"],
   deps = [
     "//io",
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -73,7 +73,7 @@ cc_test(
   data = ["//tests/data:many_fields.proto"],
   deps = [
     "//io",
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -85,7 +85,7 @@ cc_test(
   data = ["//tests/data:many_enums.proto"],
   deps = [
     "//io",
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -97,7 +97,7 @@ cc_test(
   data = ["//tests/data:many_enums.proto"],
   deps = [
     "//io",
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -107,7 +107,7 @@ cc_test(
   name = "protobuf_schema_test_empty_schema",
   srcs = ["protobuf_schema_test_empty_schema.cc",],
   deps = [
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -119,7 +119,7 @@ cc_test(
   data = ["//tests/data:test.proto"],
   deps = [
     "//io",
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -129,7 +129,7 @@ cc_test(
   name = "protobuf_schema_test_message_serialization",
   srcs = ["protobuf_schema_test_message_serialization.cc",],
   deps = [
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",
@@ -139,7 +139,7 @@ cc_test(
   name = "protobuf_schema_test_enums",
   srcs = ["protobuf_schema_test_enums.cc",],
   deps = [
-    "//data:schema_google_protobufs",
+    "//data/protobuf",
     "@gtest//:gtest_main",
   ],
   size = "small",

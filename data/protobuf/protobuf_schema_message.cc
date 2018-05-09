@@ -1,4 +1,4 @@
-#include "data/protobuf_schema_message.h"
+#include "data/protobuf/protobuf_schema_message.h"
 
 using google::protobuf::EnumDescriptor;
 using google::protobuf::FieldDescriptor;

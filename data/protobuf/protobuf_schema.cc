@@ -1,6 +1,6 @@
-#include "data/protobuf_schema.h"
-#include "data/protobuf_schema_definition.h"
-#include "data/protobuf_schema_message.h"
+#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema_message.h"
 
 using google::protobuf::Descriptor;
 using google::protobuf::DescriptorPool;
