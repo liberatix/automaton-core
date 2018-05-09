@@ -3,14 +3,14 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-	name = "protobuf",
+  name = "protobuf",
   srcs = [
+    "protobuf_factory.cc",
+    "protobuf_factory.h",
     "protobuf_schema.cc",
-	  "protobuf_schema.h",
-    "protobuf_schema_definition.cc",
-    "protobuf_schema_definition.h",
-    "protobuf_schema_message.cc",
-    "protobuf_schema_message.h",
+    "protobuf_schema.h",
+    "protobuf_msg.cc",
+    "protobuf_msg.h",
   ],
   deps = [
     "//data",

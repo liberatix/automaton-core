@@ -2,11 +2,11 @@
 #include <iostream>
 #include <string>
 
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema.h"
-#include "data/protobuf/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
-TEST(protobuf_schema, enums) {
+TEST(protobuf_factory, enums) {
   /**
 
     message A {
@@ -32,7 +32,7 @@ TEST(protobuf_schema, enums) {
 
   **/
 
-  protobuf_schema_definition custom_schema;
+  protobuf_schema custom_schema;
   int m1 = custom_schema.create_message("A");
   int m2 = custom_schema.create_message("B");
   int e1 = custom_schema.create_enum("inner_enum");
@@ -63,7 +63,7 @@ TEST(protobuf_schema, enums) {
   custom_schema.add_message(m1);
   custom_schema.add_message(m2);
 
-  protobuf_schema sc;
+  protobuf_factory sc;
   sc.import_schema_definition(&custom_schema, "test", "");
 
   msg * msg1 = sc.new_message("A");

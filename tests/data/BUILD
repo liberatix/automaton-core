@@ -12,8 +12,8 @@ cc_binary(
 )
 
 cc_test(
-  name = "test_protobuf_schema_message",
-  srcs = ["test_protobuf_schema_message.cc",],
+  name = "test_protobuf_msg",
+  srcs = ["test_protobuf_msg.cc",],
   deps = [
     "//data/protobuf",
     "@gtest//:gtest_main",

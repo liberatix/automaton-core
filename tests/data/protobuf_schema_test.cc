@@ -3,12 +3,12 @@
 #include <string>
 
 #include "io/io.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema.h"
-#include "data/protobuf/protobuf_schema_definition.h"
 
 int main(int argc, char* argv[]) {
   try {
-    protobuf_schema_definition custom_schema;
+    protobuf_schema custom_schema;
     int m1 = custom_schema.create_message("MyMessage");
     custom_schema.add_scalar_field(schema::field_info(1,
         schema::string, "string_field", "", false), m1);
@@ -26,13 +26,13 @@ int main(int argc, char* argv[]) {
     custom_schema.add_dependency("name1");
     custom_schema.add_dependency("name2");
 
-    protobuf_schema_definition custom_schema2;
+    protobuf_schema custom_schema2;
     int m2 = custom_schema2.create_message("TestMsg2");
     custom_schema2.add_scalar_field(schema::field_info(1,
         schema::field_type::string, "string_field", "", false), m1);
     custom_schema2.add_message(m2);
 
-    protobuf_schema sc;
+    protobuf_factory sc;
     sc.import_schema_from_string(
         get_file_contents("tests/data/test.proto"), "name1", "pack1");
     sc.import_schema_definition(&custom_schema2, "name2", "pack2");

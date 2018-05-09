@@ -3,12 +3,12 @@
 #include <string>
 
 #include "io/io.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema.h"
-#include "data/protobuf/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
-TEST(protobuf_schema, find_enum) {
-  protobuf_schema sc;
+TEST(protobuf_factory, find_enum) {
+  protobuf_factory sc;
   sc.import_schema_from_string(
       get_file_contents("tests/data/many_enums.proto"), "test", "");
   int id = sc.get_enum_id("enum5");
