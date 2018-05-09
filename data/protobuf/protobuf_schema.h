@@ -104,4 +104,4 @@ class protobuf_schema: public schema {
   void add_message_field(schema::field_info field, int message_id);
 };
 
-#endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_DEFINITION_H__
+#endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_H__
