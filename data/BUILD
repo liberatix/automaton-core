@@ -6,13 +6,13 @@ cc_library(
   name = "data",
   srcs = [
     "factory.cc",
-    "schema_definition.cc",
+    "schema.cc",
     "msg.cc",
   ],
   hdrs = [
     "factory.h",
-    "schema_definition.h",
-    "schema_exception.h",
+    "schema.h",
+    "data_exception.h",
     "msg.h",
   ],
   deps = [

@@ -1,6 +1,6 @@
-#include "data/schema_definition.h"
+#include "data/schema.h"
 
-schema_definition::field_info::field_info(
+schema::field_info::field_info(
     int tag,
     field_type type,
     const std::string& name,
@@ -13,15 +13,15 @@ schema_definition::field_info::field_info(
   this->is_repeated = is_repeated;
 }
 
-std::map<std::string, schema_definition::factory_function_schema_def>
-    schema_definition::schema_definition_factory;
+std::map<std::string, schema::factory_function_schema_def>
+    schema::schema_definition_factory;
 
-void schema_definition::register_factory(std::string name,
-    schema_definition::factory_function_schema_def func) {
+void schema::register_factory(std::string name,
+    schema::factory_function_schema_def func) {
   schema_definition_factory[name] = func;
 }
 
-schema_definition* schema_definition::create(std::string name) {
+schema* schema::create(std::string name) {
   auto it = schema_definition_factory.find(name);
   if (it == schema_definition_factory.end()) {
     return nullptr;

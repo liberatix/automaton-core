@@ -6,7 +6,7 @@
 #include <vector>
 #include <utility>
 
-#include "data/schema_definition.h"
+#include "data/schema.h"
 #include "data/msg.h"
 
 /** Schema data structure interface.
@@ -28,13 +28,14 @@ class factory {
 
   /**
     This function is used for include schema definitions that were created with
-    schema_definition. If the given schema_definition has dependencies, they
+    schema. If the given schema has dependencies, they
     must be imported first or exception will be thrown. Name will be used for
-    reference in schema_definition::add_dependency(). Package is used in
+    reference in schema::add_dependency(). Package is used in
     fully_qualified_type.
   */
-  virtual void import_schema_definition(schema_definition* schema,
-      const std::string& name, const std::string& package) = 0;
+  virtual void import_schema_definition(schema* schema,
+                                        const std::string& name,
+                                        const std::string& package) = 0;
 
   /**
     Prints information about an enum and its values. If the given enum id is not
@@ -92,7 +93,7 @@ class factory {
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  virtual schema_definition::field_info get_field_info(int schema_id,
+  virtual schema::field_info get_field_info(int schema_id,
                                                        int index) = 0;
 
   /**

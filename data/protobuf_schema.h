@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "data/factory.h"
-#include "data/schema_definition.h"
+#include "data/schema.h"
 #include "data/protobuf_schema_message.h"
 
 /**
@@ -110,14 +110,14 @@ class protobuf_schema: public factory {
       const std::string& name, const std::string& package);
 
  public:
-  static const std::map<schema_definition::field_type,
+  static const std::map<schema::field_type,
       google::protobuf::FieldDescriptorProto_Type> type_to_protobuf_type;
 
   static const std::map<google::protobuf::FieldDescriptor::Type,
-      schema_definition::field_type> protobuf_type_to_type;
+      schema::field_type> protobuf_type_to_type;
 
   static const std::map<google::protobuf::FieldDescriptor::CppType,
-      schema_definition::field_type> protobuf_ccptype_to_type;
+      schema::field_type> protobuf_ccptype_to_type;
 
   void register_self();
   /**
@@ -135,19 +135,19 @@ class protobuf_schema: public factory {
 
   /*
     This function is used for include schema definitions that were created with
-    schema_definition. If the given schema_definition has dependencies, they
+    schema. If the given schema has dependencies, they
     must be imported first or exception will be thrown. Name will be used for
-    reference in schema_definition::add_dependency().
+    reference in schema::add_dependency().
   */
-  void import_schema_definition(schema_definition* schema,
+  void import_schema_definition(schema* schema,
       const std::string& name, const std::string& package);
 
   /**
     following functions are too complicated for mvp.
   **/
   // void import_data(data* data_, const std::string& name);
-  // void import_message_to_schema(schema_definition* schema, int id, );
-  // void import_enum_to_schema(schema_definition* schema, int id, );
+  // void import_message_to_schema(schema* schema, int id, );
+  // void import_enum_to_schema(schema* schema, int id, );
 
   // std::string serialize_protocol();
 
@@ -206,7 +206,7 @@ class protobuf_schema: public factory {
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  schema_definition::field_info get_field_info(int schema_id, int index);
+  schema::field_info get_field_info(int schema_id, int index);
 
   /*
     Creates new message from a schema with schema_id. Returns id of the

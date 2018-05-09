@@ -10,7 +10,7 @@
 TEST(protobuf_schema, find_enum) {
   protobuf_schema sc;
   sc.import_schema_from_string(
-      get_file_contents("tests/schema/many_enums.proto"), "test", "");
+      get_file_contents("tests/data/many_enums.proto"), "test", "");
   int id = sc.get_enum_id("enum5");
   std::vector <std::pair<std::string, int> > info = sc.get_enum_values(id);
   EXPECT_EQ(info[0].first, "a");

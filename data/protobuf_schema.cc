@@ -4,43 +4,43 @@
 
 // Protobuf schema
 
-const std::map<schema_definition::field_type,
+const std::map<schema::field_type,
                google::protobuf::FieldDescriptorProto_Type>
 protobuf_schema::type_to_protobuf_type {
-  {schema_definition::string,
+  {schema::string,
       google::protobuf::FieldDescriptorProto_Type_TYPE_STRING},
-  {schema_definition::int32,
+  {schema::int32,
       google::protobuf::FieldDescriptorProto_Type_TYPE_INT32},
-  {schema_definition::enum_type,
+  {schema::enum_type,
       google::protobuf::FieldDescriptorProto_Type_TYPE_ENUM},
-  {schema_definition::message_type,
+  {schema::message_type,
       google::protobuf::FieldDescriptorProto_Type_TYPE_MESSAGE}
 };
 
 const std::map<google::protobuf::FieldDescriptor::Type,
-               schema_definition::field_type>
+               schema::field_type>
 protobuf_schema::protobuf_type_to_type {
   {google::protobuf::FieldDescriptor::Type::TYPE_STRING,
-      schema_definition::string},
+      schema::string},
   {google::protobuf::FieldDescriptor::Type::TYPE_INT32,
-      schema_definition::int32},
+      schema::int32},
   {google::protobuf::FieldDescriptor::Type::TYPE_ENUM,
-      schema_definition::enum_type},
+      schema::enum_type},
   {google::protobuf::FieldDescriptor::Type::TYPE_MESSAGE,
-      schema_definition::message_type}
+      schema::message_type}
 };
 
 const std::map<google::protobuf::FieldDescriptor::CppType,
-               schema_definition::field_type>
+               schema::field_type>
 protobuf_schema::protobuf_ccptype_to_type {
   {google::protobuf::FieldDescriptor::CPPTYPE_STRING,
-      schema_definition::string},
+      schema::string},
   {google::protobuf::FieldDescriptor::CPPTYPE_INT32,
-      schema_definition::int32},
+      schema::int32},
   {google::protobuf::FieldDescriptor::CPPTYPE_ENUM,
-      schema_definition::enum_type},
+      schema::enum_type},
   {google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE,
-      schema_definition::message_type}
+      schema::message_type}
 };
 
 protobuf_schema::protobuf_schema() {
@@ -171,7 +171,7 @@ void protobuf_schema::import_from_file_proto(
   }
 }
 
-void protobuf_schema::import_schema_definition(schema_definition* schema,
+void protobuf_schema::import_schema_definition(schema* schema,
     const std::string& name, const std::string& package) {
   if (schema == nullptr) {
     throw std::runtime_error("Schema reference is nullptr");
@@ -352,7 +352,7 @@ bool protobuf_schema::is_repeated(int schema_id, int field_tag) {
       std::to_string(field_tag));
 }
 
-schema_definition::field_info protobuf_schema::get_field_info(int schema_id,
+schema::field_info protobuf_schema::get_field_info(int schema_id,
       int index) {
   if (!(schema_id >= 0 && schema_id < schemas.size())) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
@@ -367,19 +367,19 @@ schema_definition::field_info protobuf_schema::get_field_info(int schema_id,
         std::to_string(index));
   }
   const google::protobuf::FieldDescriptor* fdesc = desc->field(index);
-  schema_definition::field_type type;
+  schema::field_type type;
   std::string full_type = "";
   if (fdesc->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
     full_type = fdesc->message_type()->full_name();
-    type = schema_definition::field_type::message_type;
+    type = schema::field_type::message_type;
   } else if (fdesc->cpp_type() ==
       google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
     full_type = fdesc->enum_type()->full_name();
-    type = schema_definition::field_type::enum_type;
+    type = schema::field_type::enum_type;
   } else {
     type = protobuf_ccptype_to_type.at(fdesc->cpp_type());
   }
-  return schema_definition::field_info(
+  return schema::field_info(
       fdesc->number(),
       type,
       fdesc->name(),

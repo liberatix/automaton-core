@@ -38,19 +38,19 @@ TEST(protobuf_schema, enums) {
   int e1 = custom_schema.create_enum("inner_enum");
   int e2 = custom_schema.create_enum("outer_enum");
 
-  custom_schema.add_scalar_field(schema_definition::field_info(1,
-      schema_definition::field_type::string, "string_field", "", false), m1);
-  custom_schema.add_enum_field(schema_definition::field_info(2,
-      schema_definition::field_type::enum_type, "inner_enum_field",
+  custom_schema.add_scalar_field(schema::field_info(1,
+      schema::string, "string_field", "", false), m1);
+  custom_schema.add_enum_field(schema::field_info(2,
+      schema::enum_type, "inner_enum_field",
           "A.inner_enum", false), m1);
-  custom_schema.add_enum_field(schema_definition::field_info(3,
-      schema_definition::field_type::enum_type, "outer_enum_field",
+  custom_schema.add_enum_field(schema::field_info(3,
+      schema::enum_type, "outer_enum_field",
       "outer_enum", false), m1);
-  custom_schema.add_enum_field(schema_definition::field_info(1,
-        schema_definition::field_type::enum_type, "enum_field1", "A.inner_enum",
+  custom_schema.add_enum_field(schema::field_info(1,
+        schema::enum_type, "enum_field1", "A.inner_enum",
         false), m2);
-  custom_schema.add_enum_field(schema_definition::field_info(2,
-      schema_definition::field_type::enum_type, "enum_field2", "outer_enum",
+  custom_schema.add_enum_field(schema::field_info(2,
+      schema::enum_type, "enum_field2", "outer_enum",
       true), m2);
 
   custom_schema.add_enum_value(e1, "inner_value1", 0);
