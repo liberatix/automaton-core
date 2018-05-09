@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "schema/schema_message.h"
+#include "data/schema_message.h"
 
 /**
   Google Protobuf schema_message implementation.

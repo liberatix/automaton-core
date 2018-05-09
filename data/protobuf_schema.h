@@ -19,9 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "schema/schema.h"
-#include "schema/schema_definition.h"
-#include "schema/protobuf_schema_message.h"
+#include "data/factory.h"
+#include "data/schema_definition.h"
+#include "data/protobuf_schema_message.h"
 
 /**
 This is helper class which is used while parsing proto file.

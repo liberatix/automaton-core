@@ -1,23 +1,23 @@
-#ifndef AUTOMATON_CORE_SCHEMA_SCHEMA_H_
-#define AUTOMATON_CORE_SCHEMA_SCHEMA_H_
+#ifndef AUTOMATON_CORE_DATA_FACTORY_H__
+#define AUTOMATON_CORE_DATA_FACTORY_H__
 
 #include <map>
 #include <string>
 #include <vector>
 #include <utility>
 
-#include "schema/schema_definition.h"
-#include "schema/schema_message.h"
+#include "data/schema_definition.h"
+#include "data/schema_message.h"
 
 /** Schema data structure interface.
 */
-class schema {
+class factory {
  public:
-  virtual ~schema() = 0;
+  virtual ~factory() = 0;
 
-  typedef schema* (*factory_function_schema)();
-  static void register_factory(std::string name, factory_function_schema func);
-  static schema* create(const std::string name);
+  typedef factory* (*data_factory_function)();
+  static void register_factory(std::string name, data_factory_function func);
+  static factory* create(const std::string name);
 
   /**
     This is needed for testing or if virtual std::string serialize_protocol()
@@ -167,7 +167,7 @@ class schema {
   virtual bool is_repeated(int schema_id, int tag) = 0;
 
  private:
-  static std::map<std::string, factory_function_schema> schema_factory;
+  static std::map<std::string, data_factory_function> schema_factory;
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_SCHEMA_H_
+#endif  // AUTOMATON_CORE_DATA_FACTORY_H__

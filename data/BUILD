@@ -3,14 +3,14 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "schema",
+  name = "data",
   srcs = [
-    "schema.cc",
+    "factory.cc",
     "schema_definition.cc",
     "schema_message.cc",
   ],
   hdrs = [
-    "schema.h",
+    "factory.h",
     "schema_definition.h",
     "schema_exception.h",
     "schema_message.h",
@@ -31,6 +31,6 @@ cc_library(
     "protobuf_schema_message.h",
   ],
   deps = [
-	  "//schema:schema",
+	  "//data",
   ],
 )

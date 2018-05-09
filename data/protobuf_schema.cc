@@ -1,6 +1,6 @@
-#include "schema/protobuf_schema.h"
-#include "schema/protobuf_schema_definition.h"
-#include "schema/protobuf_schema_message.h"
+#include "data/protobuf_schema.h"
+#include "data/protobuf_schema_definition.h"
+#include "data/protobuf_schema_message.h"
 
 // Protobuf schema
 
