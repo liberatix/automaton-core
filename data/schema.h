@@ -51,8 +51,7 @@ class schema {
   };
 
   typedef schema* (*factory_function_schema_def)();
-  static void register_factory(std::string name,
-                               factory_function_schema_def func);
+  static void register_factory(std::string name, factory_function_schema_def func);
   static schema* create(const std::string name);
 
   /**
@@ -87,8 +86,7 @@ class schema {
     doesn't exist, exception will be thrown.
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  virtual void add_enum_value(int enum_id, const std::string& value_name,
-      int value) = 0;
+  virtual void add_enum_value(int enum_id, const std::string& value_name, int value) = 0;
 
   /**
     Used to add nested message. Both messages must already exist. If any of
@@ -121,12 +119,10 @@ class schema {
   **/
   virtual void add_scalar_field(field_info field, int message_id) = 0;
   virtual void add_enum_field(field_info field, int message_id) = 0;
-  virtual void add_message_field(field_info field,
-      int message_id) = 0;
+  virtual void add_message_field(field_info field, int message_id) = 0;
 
  private:
-  static std::map<std::string, factory_function_schema_def>
-      schema_definition_factory;
+  static std::map<std::string, factory_function_schema_def> schema_definition_factory;
 };
 
 #endif  // AUTOMATON_CORE_DATA_SCHEMA_H__

@@ -24,10 +24,10 @@ using google::protobuf::io::Tokenizer;
 
 const std::map<schema::field_type, FieldDescriptorProto_Type>
 protobuf_factory::type_to_protobuf_type {
-  {schema::string, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_STRING}, // NOLINT
-  {schema::int32, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_INT32}, // NOLINT
-  {schema::enum_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_ENUM}, // NOLINT
-  {schema::message_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_MESSAGE}, // NOLINT
+  {schema::string, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_STRING},
+  {schema::int32, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_INT32},
+  {schema::enum_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_ENUM},
+  {schema::message_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_MESSAGE},
 };
 
 const std::map<FieldDescriptor::Type, schema::field_type>
@@ -104,8 +104,7 @@ bool protobuf_factory::contain_invalid_data(
   int number_fields = d->field_count();
   for (int i = 0; i < number_fields; i++) {
     const FieldDescriptor* fd = d->field(i);
-    if (fd->is_map() || protobuf_type_to_type.find(fd->type())
-        == protobuf_type_to_type.end()) {
+    if (fd->is_map() || protobuf_type_to_type.find(fd->type()) == protobuf_type_to_type.end()) {
       return true;
     }
   }
@@ -118,9 +117,9 @@ bool protobuf_factory::contain_invalid_data(
   return ans;
 }
 
-void protobuf_factory::import_from_file_proto(
-    FileDescriptorProto* fdp, const string& name,
-    const string& package) {
+void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
+                                              const string& name,
+                                              const string& package) {
   if (fdp == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -144,8 +143,7 @@ void protobuf_factory::import_from_file_proto(
   const FileDescriptor* fd =
       pool->BuildFileCollectingErrors(*fdp, &proto_error_collector_);
   if (proto_error_collector_.get_number_errors() > 0) {
-    throw std::runtime_error("Errors while parsing:\n" +
-        proto_error_collector_.get_all_errors());
+    throw std::runtime_error("Errors while parsing:\n" + proto_error_collector_.get_all_errors());
   }
 
   // Check for invalid data types
@@ -173,19 +171,18 @@ void protobuf_factory::import_from_file_proto(
   }
 }
 
-void protobuf_factory::import_schema_definition(schema* schema,
-    const string& name, const string& package) {
+void protobuf_factory::import_schema_definition(
+    schema* schema, const string& name, const string& package) {
   if (schema == nullptr) {
     throw std::runtime_error("Schema reference is nullptr");
   }
   // TODO(kari): schema need to be protobuf_factory
-  import_from_file_proto(
-      reinterpret_cast<protobuf_schema*>(schema)->get_descriptor(),
+  import_from_file_proto(reinterpret_cast<protobuf_schema*>(schema)->get_descriptor(),
       name, package);
 }
 
-void protobuf_factory::import_schema_from_string(const string& proto_def,
-      const string& package, const string& name) {
+void protobuf_factory::import_schema_from_string(
+    const string& proto_def, const string& package, const string& name) {
   FileDescriptorProto* fileproto = new FileDescriptorProto();
   std::istringstream stream(proto_def);
   IstreamInputStream is(&stream);
@@ -206,8 +203,7 @@ void protobuf_factory::import_schema_from_string(const string& proto_def,
   import_from_file_proto(fileproto, package, name);
 }
 
-void protobuf_factory::dump_message_schema(int schema_id,
-      std::ostream& ostream_) {
+void protobuf_factory::dump_message_schema(int schema_id, std::ostream& ostream_) {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -346,8 +342,7 @@ bool protobuf_factory::is_repeated(int schema_id, int field_tag) {
   if (fdesc) {
     return fdesc->is_repeated();
   }
-  throw std::invalid_argument("No field with tag: " +
-      std::to_string(field_tag));
+  throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
 }
 
 schema::field_info protobuf_factory::get_field_info(int schema_id,
@@ -360,8 +355,7 @@ schema::field_info protobuf_factory::get_field_info(int schema_id,
     throw std::runtime_error("Unexpected error");
   }
   if (index < 0 || index >= desc->field_count()) {
-    throw std::out_of_range("No field with such index: " +
-        std::to_string(index));
+    throw std::out_of_range("No field with such index: " + std::to_string(index));
   }
   const FieldDescriptor* fdesc = desc->field(index);
   schema::field_type type;
@@ -423,16 +417,14 @@ string protobuf_factory::get_message_field_type(int schema_id,
   if (schemas[schema_id]->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const FieldDescriptor* fdesc =
-      schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
     if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
       throw std::invalid_argument("Field is not message");
     }
     return fdesc->message_type()->full_name();
   }
-  throw std::invalid_argument("No field with tag: " +
-      std::to_string(field_tag));
+  throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
 }
 
 string protobuf_factory::get_enum_field_type(int schema_id, int field_tag) {
@@ -442,8 +434,7 @@ string protobuf_factory::get_enum_field_type(int schema_id, int field_tag) {
   if (schemas[schema_id]->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const FieldDescriptor* fdesc =
-      schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
     if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
       throw std::invalid_argument("Field is not enum");

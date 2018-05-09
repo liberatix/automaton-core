@@ -11,4 +11,4 @@ FILTERS=(
 FILTER_ARG=$(join_by "," "${FILTERS[@]}")
 
 find . -path ./third_party -prune -o -path "./bazel-*" -prune -o -iname *.cc -o -iname *.cpp -o -iname *.h | \
-  xargs cpplint.py --filter=$FILTER_ARG --linelength=120
+  xargs cpplint.py --filter=$FILTER_ARG --linelength=100

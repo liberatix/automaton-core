@@ -79,9 +79,8 @@ class protobuf_msg : public msg {
 
   std::string get_string(int field_tag);
 
-  void set_repeated_string(int field_tag,
-                                   const std::string& value,
-                                   int index);
+  void set_repeated_string(int field_tag, const std::string& value, int index);
+
   std::string get_repeated_string(int field_tag, int index);
 
   void set_int32(int field_tag, int32_t value);
@@ -104,14 +103,11 @@ class protobuf_msg : public msg {
     will just be added at the end (not on the specified index). If you use out
     of range index on get_repeated_message(), exception will be thrown.
   */
-  void set_message(int field_tag,
-                   const msg * sub_message);
+  void set_message(int field_tag, const msg * sub_message);
 
   msg * get_message(int field_tag);
 
-  void set_repeated_message(int field_tag,
-                            const msg * sub_message,
-                            int index);
+  void set_repeated_message(int field_tag, const msg * sub_message, int index);
 
   msg * get_repeated_message(int field_tag, int index);
 

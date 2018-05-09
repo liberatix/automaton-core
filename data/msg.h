@@ -7,7 +7,7 @@
 */
 class msg {
  public:
-  virtual ~msg() {}
+  virtual ~msg() = 0;
 
   /**
     Returns the name of the message schema.
@@ -51,9 +51,8 @@ class msg {
 
   virtual std::string get_string(int field_tag) = 0;
 
-  virtual void set_repeated_string(int field_tag,
-                                   const std::string& value,
-                                   int index) = 0;
+  virtual void set_repeated_string(int field_tag, const std::string& value, int index) = 0;
+
   virtual std::string get_repeated_string(int field_tag, int index) = 0;
 
   virtual void set_int32(int field_tag, int32_t value) = 0;
@@ -76,14 +75,11 @@ class msg {
     will just be added at the end (not on the specified index). If you use out
     of range index on get_repeated_message(), exception will be thrown.
   */
-  virtual void set_message(int field_tag,
-                           const msg * sub_message) = 0;
+  virtual void set_message(int field_tag, const msg * sub_message) = 0;
 
   virtual msg * get_message(int field_tag) = 0;
 
-  virtual void set_repeated_message(int field_tag,
-                                    const msg * sub_message,
-                                    int index) = 0;
+  virtual void set_repeated_message(int field_tag, const msg * sub_message, int index) = 0;
 
   virtual msg * get_repeated_message(int field_tag, int index) = 0;
 

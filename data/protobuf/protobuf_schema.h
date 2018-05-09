@@ -90,6 +90,7 @@ class protobuf_schema: public schema {
     with the given id doesn't exist, exception will be thrown.
   **/
   void add_message(int message_id);
+
   void add_enum(int enum_id, int message_id);
 
   /**
@@ -100,7 +101,9 @@ class protobuf_schema: public schema {
     exception will be thrown.
   **/
   void add_scalar_field(schema::field_info field, int message_id);
+
   void add_enum_field(schema::field_info field, int message_id);
+
   void add_message_field(schema::field_info field, int message_id);
 };
 

@@ -4,8 +4,7 @@ factory::~factory() {}
 
 std::map<std::string, factory::data_factory_function> factory::schema_factory;
 
-void factory::register_factory(std::string name,
-    factory::data_factory_function func) {
+void factory::register_factory(std::string name, factory::data_factory_function func) {
   schema_factory[name] = func;
 }
 
