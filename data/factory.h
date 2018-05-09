@@ -9,6 +9,8 @@
 #include "data/schema.h"
 #include "data/msg.h"
 
+namespace data {
+
 /** Schema data structure interface.
 */
 class factory {
@@ -169,5 +171,7 @@ class factory {
  private:
   static std::map<std::string, data_factory_function> schema_factory;
 };
+
+}  // namespace data
 
 #endif  // AUTOMATON_CORE_DATA_FACTORY_H__

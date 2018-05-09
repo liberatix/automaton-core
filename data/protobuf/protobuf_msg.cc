@@ -7,6 +7,9 @@ using google::protobuf::FieldDescriptor;
 using google::protobuf::Message;
 using google::protobuf::Reflection;
 
+namespace data {
+namespace protobuf {
+
 string protobuf_msg::get_message_type() {
   if (m == nullptr) {
     throw std::runtime_error("Unexpected error: No message");
@@ -433,3 +436,6 @@ int protobuf_msg::get_repeated_enum(int field_tag, int index) {
     throw std::out_of_range("Index out of range: " + std::to_string(index));
   }
 }
+
+}  // namespace protobuf
+}  // namespace data

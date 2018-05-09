@@ -20,6 +20,9 @@ using google::protobuf::compiler::Parser;
 using google::protobuf::io::IstreamInputStream;
 using google::protobuf::io::Tokenizer;
 
+namespace data {
+namespace protobuf {
+
 // Protobuf schema
 
 const std::map<schema::field_type, FieldDescriptorProto_Type>
@@ -542,3 +545,6 @@ int proto_error_collector::get_number_errors() {
 string proto_error_collector::get_all_errors() {
   return errors_list;
 }
+
+}  // namespace protobuf
+}  // namespace data

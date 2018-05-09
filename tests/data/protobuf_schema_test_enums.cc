@@ -6,6 +6,11 @@
 #include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
+using data::msg;
+using data::schema;
+using data::protobuf::protobuf_factory;
+using data::protobuf::protobuf_schema;
+
 TEST(protobuf_factory, enums) {
   /**
 

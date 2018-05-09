@@ -6,6 +6,8 @@
 #include "data/protobuf/protobuf_factory.h"
 #include "gtest/gtest.h"
 
+using data::protobuf::protobuf_factory;
+
 int main(int argc, char* argv[]) {
   try {
     protobuf_factory sc;

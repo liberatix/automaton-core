@@ -15,6 +15,9 @@
 
 #include "data/msg.h"
 
+namespace data {
+namespace protobuf {
+
 /**
   Google Protobuf msg implementation.
   
@@ -129,5 +132,8 @@ class protobuf_msg : public msg {
  private:
   google::protobuf::Message* m;
 };
+
+}  // namespace protobuf
+}  // namespace data
 
 #endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_MSG_H_

@@ -1,5 +1,7 @@
 #include "data/factory.h"
 
+namespace data {
+
 factory::~factory() {}
 
 std::map<std::string, factory::data_factory_function> factory::schema_factory;
@@ -16,3 +18,5 @@ factory* factory::create(std::string name) {
     return it->second();
   }
 }
+
+}  // namespace data

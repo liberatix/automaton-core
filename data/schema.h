@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+namespace data {
+
 /*
   TODO(kari): how to make difference between schema as a whole combo
   of message and enum schemas, and a single message/enum schema definition.
@@ -124,5 +126,7 @@ class schema {
  private:
   static std::map<std::string, factory_function_schema_def> schema_definition_factory;
 };
+
+}  // namespace data
 
 #endif  // AUTOMATON_CORE_DATA_SCHEMA_H__

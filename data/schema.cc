@@ -1,5 +1,7 @@
 #include "data/schema.h"
 
+namespace data {
+
 schema::field_info::field_info(int tag,
                                field_type type,
                                const std::string& name,
@@ -26,3 +28,5 @@ schema* schema::create(std::string name) {
     return it->second();
   }
 }
+
+}  // namespace data

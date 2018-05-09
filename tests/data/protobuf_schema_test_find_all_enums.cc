@@ -7,6 +7,8 @@
 
 #include "gtest/gtest.h"
 
+using data::protobuf::protobuf_factory;
+
 TEST(protobuf_factory, find_all_enums) {
   protobuf_factory sc;
   sc.import_schema_from_string(

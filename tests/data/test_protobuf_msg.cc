@@ -24,6 +24,11 @@ const char* VALUE_A = "value_A";
 const char* VALUE_B = "value_B";
 const char* VALUE_NESTED = "value_nested";
 
+using data::schema;
+using data::msg;
+using data::protobuf::protobuf_factory;
+using data::protobuf::protobuf_schema;
+
 /*
   first_message {
     string string_field_1 = 1;
