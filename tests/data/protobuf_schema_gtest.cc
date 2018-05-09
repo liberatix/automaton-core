@@ -3,11 +3,11 @@
 #include <string>
 
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 TEST(data_protobuf, messages) {
-  protobuf_schema_definition cs;
+  protobuf_schema cs;
   int m1 = cs.create_message("MyMessage");
   cs.add_scalar_field(
       schema::field_info(1, schema::string, "string_field", "", false), m1);
@@ -23,13 +23,13 @@ TEST(data_protobuf, messages) {
   cs.add_dependency("name1");
   cs.add_dependency("name2");
 
-  protobuf_schema_definition cs2;
+  protobuf_schema cs2;
   int m2 = cs2.create_message("TestMsg2");
   cs2.add_scalar_field(
       schema::field_info(1, schema::string, "string_field", "", false), m1);
   cs2.add_message(m2);
 
-  protobuf_schema_definition cs3;
+  protobuf_schema cs3;
   int m3 = cs3.create_message("TestMsg");
   cs3.add_scalar_field(
       schema::field_info(1, schema::string, "string_field", "", false), m1);

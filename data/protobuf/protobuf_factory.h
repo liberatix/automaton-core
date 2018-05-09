@@ -21,7 +21,7 @@
 
 #include "data/factory.h"
 #include "data/schema.h"
-#include "data/protobuf/protobuf_schema_message.h"
+#include "data/protobuf/protobuf_msg.h"
 
 /**
 This is helper class which is used while parsing proto file.
@@ -84,7 +84,7 @@ class protobuf_factory: public factory {
   std::vector<const google::protobuf::Message*> schemas;
 
   // Message instances
-  // std::vector <protobuf_schema_message> messages;
+  // std::vector <protobuf_msg> messages;
 
   /// Enum type name to index in vector enums
   std::map<std::string, int> enums_names;

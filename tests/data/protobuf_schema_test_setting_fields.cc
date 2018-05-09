@@ -4,7 +4,7 @@
 
 #include "io/io.h"
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_message.h"
+#include "data/protobuf/protobuf_msg.h"
 #include "gtest/gtest.h"
 
 const char * TEST_MSG = "TestMsg";

@@ -3,7 +3,7 @@
 #include <string>
 
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 TEST(protobuf_factory, enums) {
@@ -32,7 +32,7 @@ TEST(protobuf_factory, enums) {
 
   **/
 
-  protobuf_schema_definition custom_schema;
+  protobuf_schema custom_schema;
   int m1 = custom_schema.create_message("A");
   int m2 = custom_schema.create_message("B");
   int e1 = custom_schema.create_enum("inner_enum");

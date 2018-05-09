@@ -1,6 +1,6 @@
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_definition.h"
-#include "data/protobuf/protobuf_schema_message.h"
+#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_msg.h"
 
 using std::string;
 
@@ -180,7 +180,7 @@ void protobuf_factory::import_schema_definition(schema* schema,
   }
   // TODO(kari): schema need to be protobuf_factory
   import_from_file_proto(
-      reinterpret_cast<protobuf_schema_definition*>(schema)->get_descriptor(),
+      reinterpret_cast<protobuf_schema*>(schema)->get_descriptor(),
       name, package);
 }
 
@@ -250,7 +250,7 @@ msg* protobuf_factory::new_message(int schema_id) {
     throw std::runtime_error("Unexpected error");
   }
   Message* m = schemas[schema_id]->New();
-  return new protobuf_schema_message(m);
+  return new protobuf_msg(m);
 }
 
 msg* protobuf_factory::new_message(const char* schema_name) {

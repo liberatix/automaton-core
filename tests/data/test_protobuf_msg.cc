@@ -3,7 +3,7 @@
 #include <string>
 
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 const char* FIRST_MESSAGE = "first_message";
@@ -41,9 +41,9 @@ const char* VALUE_NESTED = "value_nested";
   }
 */
 
-TEST(protobuf_schema_message, messages) {
-  protobuf_schema_definition* csp = new protobuf_schema_definition();
-  protobuf_schema_definition& custom_schema = *csp;
+TEST(protobuf_msg, messages) {
+  protobuf_schema* csp = new protobuf_schema();
+  protobuf_schema& custom_schema = *csp;
   int m1 = custom_schema.create_message(FIRST_MESSAGE);
   int m2 = custom_schema.create_message(SECOND_MESSAGE);
   int m3 = custom_schema.create_message(NESTED_MESSAGE);

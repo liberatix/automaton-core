@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_DEFINITION_H__
-#define AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_DEFINITION_H__
+#ifndef AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_H__
+#define AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_H__
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -16,7 +16,7 @@
 
 #include "data/schema.h"
 
-class protobuf_schema_definition: public schema {
+class protobuf_schema: public schema {
  private:
   google::protobuf::Arena arena;
   google::protobuf::FileDescriptorProto* file_descriptor_proto;
@@ -24,8 +24,8 @@ class protobuf_schema_definition: public schema {
   std::vector <google::protobuf::EnumDescriptorProto*> enums;
 
  public:
-  protobuf_schema_definition();
-  ~protobuf_schema_definition();
+  protobuf_schema();
+  ~protobuf_schema();
 
   void register_self();
 

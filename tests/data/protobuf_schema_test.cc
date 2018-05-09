@@ -4,11 +4,11 @@
 
 #include "io/io.h"
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
 
 int main(int argc, char* argv[]) {
   try {
-    protobuf_schema_definition custom_schema;
+    protobuf_schema custom_schema;
     int m1 = custom_schema.create_message("MyMessage");
     custom_schema.add_scalar_field(schema::field_info(1,
         schema::string, "string_field", "", false), m1);
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     custom_schema.add_dependency("name1");
     custom_schema.add_dependency("name2");
 
-    protobuf_schema_definition custom_schema2;
+    protobuf_schema custom_schema2;
     int m2 = custom_schema2.create_message("TestMsg2");
     custom_schema2.add_scalar_field(schema::field_info(1,
         schema::field_type::string, "string_field", "", false), m1);

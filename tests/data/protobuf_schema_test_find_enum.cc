@@ -4,7 +4,7 @@
 
 #include "io/io.h"
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 TEST(protobuf_factory, find_enum) {

@@ -3,7 +3,7 @@
 #include <string>
 
 #include "data/protobuf/protobuf_factory.h"
-#include "data/protobuf/protobuf_schema_definition.h"
+#include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 TEST(protobuf_factory, message_serialization) {
@@ -13,7 +13,7 @@ TEST(protobuf_factory, message_serialization) {
       repeated int32 nint32_field = 2;
     }
   **/
-  protobuf_schema_definition custom_schema;
+  protobuf_schema custom_schema;
   int m1 = custom_schema.create_message("first_message");
   custom_schema.add_scalar_field(schema::field_info(1,
       schema::string, "string_field", "", false), m1);

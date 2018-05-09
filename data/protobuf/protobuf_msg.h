@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_MESSAGE_H__
-#define AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_MESSAGE_H__
+#ifndef AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_MSG_H_
+#define AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_MSG_H_
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -20,14 +20,14 @@
   
   This is a wrapper around google::protobuf::Message.
 */
-class protobuf_schema_message : public msg {
+class protobuf_msg : public msg {
  public:
   /**
     Constructs a protobuf msg implementation.
   */
-  explicit protobuf_schema_message(google::protobuf::Message * m) : m(m) {}
+  explicit protobuf_msg(google::protobuf::Message * m) : m(m) {}
 
-  ~protobuf_schema_message() {
+  ~protobuf_msg() {
     if (m != nullptr) {
       delete m;
     }
@@ -134,4 +134,4 @@ class protobuf_schema_message : public msg {
   google::protobuf::Message* m;
 };
 
-#endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_MESSAGE_H__
+#endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_MSG_H_
