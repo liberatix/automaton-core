@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_DATA_PROTOBUF_FACTORY_H_
-#define AUTOMATON_CORE_DATA_PROTOBUF_FACTORY_H_
+#ifndef AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_FACTORY_H_
+#define AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_FACTORY_H_
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -294,4 +294,4 @@ class protobuf_factory: public factory {
   bool is_repeated(int schema_id, int tag);
 };
 
-#endif  // AUTOMATON_CORE_DATA_PROTOBUF_FACTORY_H_
+#endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_FACTORY_H_
