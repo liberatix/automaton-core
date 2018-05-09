@@ -1,51 +1,52 @@
-#include "schema/protobuf_schema.h"
-#include "schema/protobuf_schema_definition.h"
-#include "schema/protobuf_schema_message.h"
+#include "data/protobuf_schema.h"
+#include "data/protobuf_schema_definition.h"
+#include "data/protobuf_schema_message.h"
+
+using google::protobuf::Descriptor;
+using google::protobuf::DescriptorPool;
+using google::protobuf::DynamicMessageFactory;
+using google::protobuf::EnumDescriptor;
+using google::protobuf::EnumValueDescriptor;
+using google::protobuf::FieldDescriptor;
+using google::protobuf::FieldDescriptorProto_Type;
+using google::protobuf::FileDescriptor;
+using google::protobuf::FileDescriptorProto;
+using google::protobuf::Message;
+
+using google::protobuf::compiler::Parser;
+
+using google::protobuf::io::IstreamInputStream;
+using google::protobuf::io::Tokenizer;
 
 // Protobuf schema
 
-const std::map<schema_definition::field_type,
-               google::protobuf::FieldDescriptorProto_Type>
+const std::map<schema::field_type, FieldDescriptorProto_Type>
 protobuf_schema::type_to_protobuf_type {
-  {schema_definition::string,
-      google::protobuf::FieldDescriptorProto_Type_TYPE_STRING},
-  {schema_definition::int32,
-      google::protobuf::FieldDescriptorProto_Type_TYPE_INT32},
-  {schema_definition::enum_type,
-      google::protobuf::FieldDescriptorProto_Type_TYPE_ENUM},
-  {schema_definition::message_type,
-      google::protobuf::FieldDescriptorProto_Type_TYPE_MESSAGE}
+  {schema::string, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_STRING}, // NOLINT
+  {schema::int32, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_INT32}, // NOLINT
+  {schema::enum_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_ENUM}, // NOLINT
+  {schema::message_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_MESSAGE}, // NOLINT
 };
 
-const std::map<google::protobuf::FieldDescriptor::Type,
-               schema_definition::field_type>
+const std::map<FieldDescriptor::Type, schema::field_type>
 protobuf_schema::protobuf_type_to_type {
-  {google::protobuf::FieldDescriptor::Type::TYPE_STRING,
-      schema_definition::string},
-  {google::protobuf::FieldDescriptor::Type::TYPE_INT32,
-      schema_definition::int32},
-  {google::protobuf::FieldDescriptor::Type::TYPE_ENUM,
-      schema_definition::enum_type},
-  {google::protobuf::FieldDescriptor::Type::TYPE_MESSAGE,
-      schema_definition::message_type}
+  {FieldDescriptor::TYPE_STRING, schema::string},
+  {FieldDescriptor::TYPE_INT32, schema::int32},
+  {FieldDescriptor::TYPE_ENUM, schema::enum_type},
+  {FieldDescriptor::TYPE_MESSAGE, schema::message_type},
 };
 
-const std::map<google::protobuf::FieldDescriptor::CppType,
-               schema_definition::field_type>
+const std::map<FieldDescriptor::CppType, schema::field_type>
 protobuf_schema::protobuf_ccptype_to_type {
-  {google::protobuf::FieldDescriptor::CPPTYPE_STRING,
-      schema_definition::string},
-  {google::protobuf::FieldDescriptor::CPPTYPE_INT32,
-      schema_definition::int32},
-  {google::protobuf::FieldDescriptor::CPPTYPE_ENUM,
-      schema_definition::enum_type},
-  {google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE,
-      schema_definition::message_type}
+  {FieldDescriptor::CPPTYPE_STRING, schema::string},
+  {FieldDescriptor::CPPTYPE_INT32, schema::int32},
+  {FieldDescriptor::CPPTYPE_ENUM, schema::enum_type},
+  {FieldDescriptor::CPPTYPE_MESSAGE, schema::message_type},
 };
 
 protobuf_schema::protobuf_schema() {
-  pool = new google::protobuf::DescriptorPool();
-  dynamic_message_factory = new google::protobuf::DynamicMessageFactory(pool);
+  pool = new DescriptorPool();
+  dynamic_message_factory = new DynamicMessageFactory(pool);
 }
 
 protobuf_schema::~protobuf_schema() {
@@ -55,18 +56,17 @@ protobuf_schema::~protobuf_schema() {
 
 void protobuf_schema::register_self() {
   protobuf_schema::register_factory("protobuf", [] {
-      return reinterpret_cast<schema*>(new protobuf_schema());
+      return reinterpret_cast<factory*>(new protobuf_schema());
   });
 }
 
-void protobuf_schema::extract_nested_messages(
-    const google::protobuf::Descriptor* d) {
+void protobuf_schema::extract_nested_messages(const Descriptor* d) {
   if (d == nullptr) {
     throw std::invalid_argument("Message descriptor is nullptr");
   }
   int num_msg = d->nested_type_count();
   for (int i = 0; i < num_msg; i++) {
-    const google::protobuf::Descriptor* desc = d->nested_type(i);
+    const Descriptor* desc = d->nested_type(i);
     schemas.push_back(dynamic_message_factory->GetPrototype(desc));
     schemas_names[desc->full_name()] = schemas.size() - 1;
     extract_nested_messages(desc);
@@ -74,25 +74,25 @@ void protobuf_schema::extract_nested_messages(
 }
 
 void protobuf_schema::extract_nested_enums(
-    const google::protobuf::Descriptor* d) {
+    const Descriptor* d) {
   if (d == nullptr) {
     throw std::invalid_argument("Message descriptor is nullptr");
   }
   int number_enums = d->enum_type_count();
   for (int i = 0; i < number_enums; i++) {
-    const google::protobuf::EnumDescriptor* edesc = d->enum_type(i);
+    const EnumDescriptor* edesc = d->enum_type(i);
     enums.push_back(edesc);
     enums_names[edesc->full_name()] = enums.size() - 1;
   }
   int num_msg = d->nested_type_count();
   for (int i = 0; i < num_msg; i++) {
-    const google::protobuf::Descriptor* desc = d->nested_type(i);
+    const Descriptor* desc = d->nested_type(i);
     extract_nested_enums(desc);
   }
 }
 
 bool protobuf_schema::contain_invalid_data(
-  const google::protobuf::Descriptor* d) {
+  const Descriptor* d) {
   if (d == nullptr) {
     throw std::invalid_argument("Unexpected error");
   }
@@ -101,7 +101,7 @@ bool protobuf_schema::contain_invalid_data(
   }
   int number_fields = d->field_count();
   for (int i = 0; i < number_fields; i++) {
-    const google::protobuf::FieldDescriptor* fd = d->field(i);
+    const FieldDescriptor* fd = d->field(i);
     if (fd->is_map() || protobuf_type_to_type.find(fd->type())
         == protobuf_type_to_type.end()) {
       return true;
@@ -110,14 +110,14 @@ bool protobuf_schema::contain_invalid_data(
   bool ans = false;
   int num_msg = d->nested_type_count();
   for (int i = 0; i < num_msg; i++) {
-    const google::protobuf::Descriptor* desc = d->nested_type(i);
+    const Descriptor* desc = d->nested_type(i);
     ans = ans | contain_invalid_data(desc);
   }
   return ans;
 }
 
 void protobuf_schema::import_from_file_proto(
-    google::protobuf::FileDescriptorProto* fdp, const std::string& name,
+    FileDescriptorProto* fdp, const std::string& name,
     const std::string& package) {
   if (fdp == nullptr) {
     throw std::runtime_error("Unexpected error");
@@ -139,7 +139,7 @@ void protobuf_schema::import_from_file_proto(
     }
   }
 
-  const google::protobuf::FileDescriptor* fd =
+  const FileDescriptor* fd =
       pool->BuildFileCollectingErrors(*fdp, &proto_error_collector_);
   if (proto_error_collector_.get_number_errors() > 0) {
     throw std::runtime_error("Errors while parsing:\n" +
@@ -149,14 +149,14 @@ void protobuf_schema::import_from_file_proto(
   // Check for invalid data types
   int number_messages = fd->message_type_count();
   for (int i = 0; i < number_messages; i++) {
-    const google::protobuf::Descriptor* desc = fd->message_type(i);
+    const Descriptor* desc = fd->message_type(i);
     if (contain_invalid_data(desc)) {
       throw std::runtime_error("Message contains invalid field type!");
     }
   }
 
   for (int i = 0; i < number_messages; i++) {
-    const google::protobuf::Descriptor* desc = fd->message_type(i);
+    const Descriptor* desc = fd->message_type(i);
     schemas.push_back(dynamic_message_factory->GetPrototype(desc));
     schemas_names[desc->full_name()] = schemas.size() - 1;
     extract_nested_messages(desc);
@@ -165,13 +165,13 @@ void protobuf_schema::import_from_file_proto(
 
   int number_enums = fd->enum_type_count();
   for (int i = 0; i < number_enums; i++) {
-    const google::protobuf::EnumDescriptor* edesc = fd->enum_type(i);
+    const EnumDescriptor* edesc = fd->enum_type(i);
     enums.push_back(edesc);
     enums_names[edesc->full_name()] = enums.size() - 1;
   }
 }
 
-void protobuf_schema::import_schema_definition(schema_definition* schema,
+void protobuf_schema::import_schema_definition(schema* schema,
     const std::string& name, const std::string& package) {
   if (schema == nullptr) {
     throw std::runtime_error("Schema reference is nullptr");
@@ -184,15 +184,14 @@ void protobuf_schema::import_schema_definition(schema_definition* schema,
 
 void protobuf_schema::import_schema_from_string(const std::string& proto_def,
       const std::string& package, const std::string& name) {
-  google::protobuf::FileDescriptorProto* fileproto =
-      new google::protobuf::FileDescriptorProto();
+  FileDescriptorProto* fileproto = new FileDescriptorProto();
   std::istringstream stream(proto_def);
-  google::protobuf::io::IstreamInputStream is(&stream);
-  google::protobuf::io::Tokenizer tok(&is, &io_error_collector_);
+  IstreamInputStream is(&stream);
+  Tokenizer tok(&is, &io_error_collector_);
   if (io_error_collector_.get_number_errors() > 0) {
     throw std::runtime_error(io_error_collector_.get_all_errors());
   }
-  google::protobuf::compiler::Parser parser;
+  Parser parser;
   parser.RecordErrorsTo(&io_error_collector_);
   if (io_error_collector_.get_number_errors() > 0) {
     throw std::runtime_error(io_error_collector_.get_all_errors());
@@ -210,8 +209,8 @@ void protobuf_schema::dump_message_schema(int schema_id,
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
-  const google::protobuf::Message* m = schemas[schema_id];
-  const google::protobuf::Descriptor* desc = m->GetDescriptor();
+  const Message* m = schemas[schema_id];
+  const Descriptor* desc = m->GetDescriptor();
   if (desc == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -219,14 +218,13 @@ void protobuf_schema::dump_message_schema(int schema_id,
   ostream_ << "Fields: " << std::endl;
   int field_count = desc->field_count();
   for (int i = 0; i < field_count; i++) {
-    const google::protobuf::FieldDescriptor* fd = desc->field(i);
+    const FieldDescriptor* fd = desc->field(i);
     ostream_ << "\n\tName: " << fd->name() << std::endl;
     ostream_ << "\tType: ";
-    if (fd->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+    if (fd->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
       ostream_ << "message type: " << fd->message_type()->full_name() <<
           std::endl;
-    } else if (fd->cpp_type() ==
-        google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+    } else if (fd->cpp_type() == FieldDescriptor::CPPTYPE_ENUM) {
       ostream_ << "enum type: " << fd->enum_type()->full_name() << std::endl;
     } else {
       ostream_ << protobuf_type_to_type.at(fd->type()) << std::endl;
@@ -242,18 +240,18 @@ void protobuf_schema::dump_message_schema(int schema_id,
   ostream_ << "\n}" << std::endl;
 }
 
-schema_message* protobuf_schema::new_message(int schema_id) {
+msg* protobuf_schema::new_message(int schema_id) {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
   if (schemas[schema_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  google::protobuf::Message* m = schemas[schema_id]->New();
+  Message* m = schemas[schema_id]->New();
   return new protobuf_schema_message(m);
 }
 
-schema_message* protobuf_schema::new_message(const char* schema_name) {
+msg* protobuf_schema::new_message(const char* schema_name) {
   return new_message(get_schema_id(schema_name));
 }
 
@@ -276,14 +274,14 @@ void protobuf_schema::dump_enum(int enum_id, std::ostream& ostream_) {
   if (enum_id < 0 || enum_id >= enums.size()) {
     throw std::out_of_range("No enum with id: " + std::to_string(enum_id));
   }
-  const google::protobuf::EnumDescriptor* edesc = enums[enum_id];
+  const EnumDescriptor* edesc = enums[enum_id];
   if (edesc == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   ostream_ << edesc->full_name() << " {" << std::endl;
   int values = edesc->value_count();
   for (int i = 0; i < values; i++) {
-    const google::protobuf::EnumValueDescriptor* evdesc = edesc->value(i);
+    const EnumValueDescriptor* evdesc = edesc->value(i);
     ostream_ << '\t' << evdesc->name() << " = " << evdesc->number() <<
         std::endl;
   }
@@ -298,8 +296,7 @@ int protobuf_schema::get_enum_value(int enum_id,
   if (enums[enum_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::EnumValueDescriptor* evd =
-      enums[enum_id]->FindValueByName(value_name);
+  const EnumValueDescriptor* evd = enums[enum_id]->FindValueByName(value_name);
   if (evd == nullptr) {
     throw std::invalid_argument("No enum value " + value_name);
   }
@@ -312,13 +309,13 @@ std::vector<std::pair<std::string, int> > protobuf_schema::get_enum_values(
     throw std::out_of_range("No enum with id: " + std::to_string(enum_id));
   }
   std::vector<std::pair<std::string, int> > result;
-  const google::protobuf::EnumDescriptor* edesc = enums[enum_id];
+  const EnumDescriptor* edesc = enums[enum_id];
   if (edesc == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
   int values = edesc->value_count();
   for (int i = 0; i < values; i++) {
-    const google::protobuf::EnumValueDescriptor* evdesc = edesc->value(i);
+    const EnumValueDescriptor* evdesc = edesc->value(i);
     result.push_back(std::make_pair(evdesc->name(), evdesc->number()));
   }
   return result;
@@ -328,8 +325,7 @@ int protobuf_schema::get_fields_number(int schema_id) {
   if (!(schema_id >= 0 && schema_id < schemas.size())) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
-  const google::protobuf::Descriptor* desc =
-      schemas[schema_id]->GetDescriptor();
+  const Descriptor* desc = schemas[schema_id]->GetDescriptor();
   if (desc == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -343,21 +339,21 @@ bool protobuf_schema::is_repeated(int schema_id, int field_tag) {
   if (schemas[schema_id]->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
     return fdesc->is_repeated();
   }
-  throw std::invalid_argument("No field with tag: " + field_tag);
+  throw std::invalid_argument("No field with tag: " +
+      std::to_string(field_tag));
 }
 
-schema_definition::field_info protobuf_schema::get_field_info(int schema_id,
+schema::field_info protobuf_schema::get_field_info(int schema_id,
       int index) {
   if (!(schema_id >= 0 && schema_id < schemas.size())) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
-  const google::protobuf::Descriptor* desc =
-      schemas[schema_id]->GetDescriptor();
+  const Descriptor* desc = schemas[schema_id]->GetDescriptor();
   if (desc == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -365,20 +361,19 @@ schema_definition::field_info protobuf_schema::get_field_info(int schema_id,
     throw std::out_of_range("No field with such index: " +
         std::to_string(index));
   }
-  const google::protobuf::FieldDescriptor* fdesc = desc->field(index);
-  schema_definition::field_type type;
+  const FieldDescriptor* fdesc = desc->field(index);
+  schema::field_type type;
   std::string full_type = "";
-  if (fdesc->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+  if (fdesc->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
     full_type = fdesc->message_type()->full_name();
-    type = schema_definition::field_type::message_type;
-  } else if (fdesc->cpp_type() ==
-      google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+    type = schema::message_type;
+  } else if (fdesc->cpp_type() == FieldDescriptor::CPPTYPE_ENUM) {
     full_type = fdesc->enum_type()->full_name();
-    type = schema_definition::field_type::enum_type;
+    type = schema::enum_type;
   } else {
     type = protobuf_ccptype_to_type.at(fdesc->cpp_type());
   }
-  return schema_definition::field_info(
+  return schema::field_info(
       fdesc->number(),
       type,
       fdesc->name(),
@@ -410,7 +405,7 @@ std::string protobuf_schema::get_field_type(int schema_id, int tag) {
   if (schemas[schema_id]->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       schemas[schema_id]->GetDescriptor()->FindFieldByNumber(tag);
   if (fdesc) {
     return fdesc->cpp_type_name();
@@ -426,16 +421,16 @@ std::string protobuf_schema::get_message_field_type(int schema_id,
   if (schemas[schema_id]->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
-    if (fdesc->cpp_type() !=
-        google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+    if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
       throw std::invalid_argument("Field is not message");
     }
     return fdesc->message_type()->full_name();
   }
-  throw std::invalid_argument("No field with tag: " + field_tag);
+  throw std::invalid_argument("No field with tag: " +
+      std::to_string(field_tag));
 }
 
 std::string protobuf_schema::get_enum_field_type(int schema_id, int field_tag) {
@@ -445,15 +440,16 @@ std::string protobuf_schema::get_enum_field_type(int schema_id, int field_tag) {
   if (schemas[schema_id]->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
-    if (fdesc->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+    if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
       throw std::invalid_argument("Field is not enum");
     }
     return fdesc->enum_type()->full_name();
   }
-  throw std::invalid_argument("No field with tag: " + field_tag);
+  throw std::invalid_argument("No field with tag: " +
+      std::to_string(field_tag));
 }
 
 int protobuf_schema::get_field_tag(int schema_id, const std::string& name) {
@@ -463,7 +459,7 @@ int protobuf_schema::get_field_tag(int schema_id, const std::string& name) {
   if (schemas[schema_id]->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const google::protobuf::FieldDescriptor* fdesc =
+  const FieldDescriptor* fdesc =
       schemas[schema_id]->GetDescriptor()->FindFieldByName(name);
   if (fdesc) {
     return fdesc->number();
@@ -516,7 +512,7 @@ proto_error_collector::proto_error_collector() {
 void proto_error_collector::AddError(
     const std::string& schema,  // File name in which the error occurred.
     const std::string& element_name,  // Full name of the erroneous element.
-    const google::protobuf::Message* descriptor,  // Descriptor of the
+    const Message* descriptor,  // Descriptor of the
         // erroneous element.
     ErrorLocation location,  // One of the location constants, above.
     const std::string& message) {  // Human-readable error message.
@@ -530,7 +526,7 @@ void proto_error_collector::AddError(
 void proto_error_collector::AddWarning(const std::string& schema,  // File
       // name in which the error occurred.
     const std::string& element_name,  // Full name of the erroneous element.
-    const google::protobuf::Message* descriptor,  // Descriptor of the erroneous
+    const Message* descriptor,  // Descriptor of the erroneous
         // element.
     ErrorLocation location,  // One of the location constants, above.
     const std::string& message) {  // Human-readable error message.

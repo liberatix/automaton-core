@@ -14,9 +14,9 @@
 #include <string>
 #include <vector>
 
-#include "schema/schema_definition.h"
+#include "data/schema.h"
 
-class protobuf_schema_definition: public schema_definition {
+class protobuf_schema_definition: public schema {
  private:
   google::protobuf::Arena arena;
   google::protobuf::FileDescriptorProto* file_descriptor_proto;
@@ -99,9 +99,9 @@ class protobuf_schema_definition: public schema_definition {
     add_message_field() is called but the provided field is scalar type),
     exception will be thrown.
   **/
-  void add_scalar_field(schema_definition::field_info field, int message_id);
-  void add_enum_field(schema_definition::field_info field, int message_id);
-  void add_message_field(schema_definition::field_info field, int message_id);
+  void add_scalar_field(schema::field_info field, int message_id);
+  void add_enum_field(schema::field_info field, int message_id);
+  void add_message_field(schema::field_info field, int message_id);
 };
 
 

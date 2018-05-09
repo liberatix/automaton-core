@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 
-#include "schema/protobuf_schema.h"
-#include "schema/protobuf_schema_definition.h"
+#include "data/protobuf_schema.h"
+#include "data/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
 TEST(protobuf_schema, message_serialization) {
@@ -15,17 +15,17 @@ TEST(protobuf_schema, message_serialization) {
   **/
   protobuf_schema_definition custom_schema;
   int m1 = custom_schema.create_message("first_message");
-  custom_schema.add_scalar_field(schema_definition::field_info(1,
-      schema_definition::field_type::string, "string_field", "", false), m1);
-  custom_schema.add_scalar_field(schema_definition::field_info(2,
-      schema_definition::field_type::int32, "int32_field", "", true), m1);
+  custom_schema.add_scalar_field(schema::field_info(1,
+      schema::string, "string_field", "", false), m1);
+  custom_schema.add_scalar_field(schema::field_info(2,
+      schema::int32, "int32_field", "", true), m1);
   custom_schema.add_message(m1);
 
   protobuf_schema sc;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  schema_message * msg1 = sc.new_message(0);
-  schema_message * msg2 = sc.new_message(0);
+  msg * msg1 = sc.new_message(0);
+  msg * msg2 = sc.new_message(0);
 
   msg1->set_string(1, "value");
   msg1->set_repeated_int32(2, 7, -1);

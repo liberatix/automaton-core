@@ -1,23 +1,23 @@
-#ifndef AUTOMATON_CORE_SCHEMA_SCHEMA_H_
-#define AUTOMATON_CORE_SCHEMA_SCHEMA_H_
+#ifndef AUTOMATON_CORE_DATA_FACTORY_H__
+#define AUTOMATON_CORE_DATA_FACTORY_H__
 
 #include <map>
 #include <string>
 #include <vector>
 #include <utility>
 
-#include "schema/schema_definition.h"
-#include "schema/schema_message.h"
+#include "data/schema.h"
+#include "data/msg.h"
 
 /** Schema data structure interface.
 */
-class schema {
+class factory {
  public:
-  virtual ~schema() = 0;
+  virtual ~factory() = 0;
 
-  typedef schema* (*factory_function_schema)();
-  static void register_factory(std::string name, factory_function_schema func);
-  static schema* create(const std::string name);
+  typedef factory* (*data_factory_function)();
+  static void register_factory(std::string name, data_factory_function func);
+  static factory* create(const std::string name);
 
   /**
     This is needed for testing or if virtual std::string serialize_protocol()
@@ -28,13 +28,14 @@ class schema {
 
   /**
     This function is used for include schema definitions that were created with
-    schema_definition. If the given schema_definition has dependencies, they
+    schema. If the given schema has dependencies, they
     must be imported first or exception will be thrown. Name will be used for
-    reference in schema_definition::add_dependency(). Package is used in
+    reference in schema::add_dependency(). Package is used in
     fully_qualified_type.
   */
-  virtual void import_schema_definition(schema_definition* schema,
-      const std::string& name, const std::string& package) = 0;
+  virtual void import_schema_definition(schema* schema,
+                                        const std::string& name,
+                                        const std::string& package) = 0;
 
   /**
     Prints information about an enum and its values. If the given enum id is not
@@ -92,7 +93,7 @@ class schema {
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  virtual schema_definition::field_info get_field_info(int schema_id,
+  virtual schema::field_info get_field_info(int schema_id,
                                                        int index) = 0;
 
   /**
@@ -102,7 +103,7 @@ class schema {
 
     If the given message_type_id is not valid, exception will be thrown.
   */
-  virtual schema_message* new_message(int message_type_id) = 0;
+  virtual msg* new_message(int message_type_id) = 0;
 
   /**
     Creates new message from a schema name.
@@ -112,7 +113,7 @@ class schema {
 
     If the given schema_name is not valid, exception will be thrown.
   */
-  virtual schema_message* new_message(const char* schema_name) = 0;
+  virtual msg* new_message(const char* schema_name) = 0;
 
   /** Returns the id of the schema with schema_name. Id is needed for creating
       new messages of that type, also getting information about the fields.
@@ -167,7 +168,7 @@ class schema {
   virtual bool is_repeated(int schema_id, int tag) = 0;
 
  private:
-  static std::map<std::string, factory_function_schema> schema_factory;
+  static std::map<std::string, data_factory_function> schema_factory;
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_SCHEMA_H_
+#endif  // AUTOMATON_CORE_DATA_FACTORY_H__

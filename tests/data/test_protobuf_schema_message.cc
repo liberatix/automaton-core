@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 
-#include "schema/protobuf_schema.h"
-#include "schema/protobuf_schema_definition.h"
+#include "data/protobuf_schema.h"
+#include "data/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
 const char* FIRST_MESSAGE = "first_message";
@@ -49,19 +49,20 @@ TEST(protobuf_schema_message, messages) {
   int m3 = custom_schema.create_message(NESTED_MESSAGE);
   int m4 = custom_schema.create_message(THIRD_MESSAGE);
 
-  custom_schema.add_scalar_field(schema_definition::field_info(1,
-      schema_definition::string, STRING_FIELD_1, "", false), m1);
-  custom_schema.add_scalar_field(schema_definition::field_info(1,
-      schema_definition::string, STRING_FIELD_2, "", false), m2);
-  custom_schema.add_scalar_field(schema_definition::field_info(1,
-      schema_definition::string, STRING_FIELD_NESTED, "", false), m3);
+  custom_schema.add_scalar_field(
+      schema::field_info(1, schema::string, STRING_FIELD_1, "", false), m1);
+  custom_schema.add_scalar_field(
+      schema::field_info(1, schema::string, STRING_FIELD_2, "", false), m2);
+  custom_schema.add_scalar_field(
+      schema::field_info(1, schema::string, STRING_FIELD_NESTED, "", false),
+      m3);
 
-  custom_schema.add_message_field(schema_definition::field_info(2,
-      schema_definition::message_type, MESSAGE_FIELD,
+  custom_schema.add_message_field(schema::field_info(2,
+      schema::message_type, MESSAGE_FIELD,
       SECOND_MESSAGE, false), m1);
 
-  custom_schema.add_message_field(schema_definition::field_info(1,
-      schema_definition::message_type, REPEATED_MSG_FIELD,
+  custom_schema.add_message_field(schema::field_info(1,
+      schema::message_type, REPEATED_MSG_FIELD,
       SECOND_MESSAGE, true), m4);
 
   custom_schema.add_nested_message(m1, m3);
@@ -73,13 +74,13 @@ TEST(protobuf_schema_message, messages) {
   protobuf_schema& sc = *scp;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  schema_message* msg1 = sc.new_message(FIRST_MESSAGE);
-  schema_message* msg2 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg3 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  msg* msg1 = sc.new_message(FIRST_MESSAGE);
+  msg* msg2 = sc.new_message(SECOND_MESSAGE);
+  msg* msg3 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
-  schema_message* msg4 = sc.new_message(FIRST_MESSAGE);
-  schema_message* msg5 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg6 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  msg* msg4 = sc.new_message(FIRST_MESSAGE);
+  msg* msg5 = sc.new_message(SECOND_MESSAGE);
+  msg* msg6 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
   msg1->set_string(1, VALUE_1);
   msg2->set_string(1, VALUE_2);
@@ -109,9 +110,9 @@ TEST(protobuf_schema_message, messages) {
   EXPECT_EQ(msg5->get_string(1), VALUE_2);
   EXPECT_EQ(msg6->get_string(1), VALUE_NESTED);
 
-  schema_message* msg7 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg8 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg9 = sc.new_message(THIRD_MESSAGE);
+  msg* msg7 = sc.new_message(SECOND_MESSAGE);
+  msg* msg8 = sc.new_message(SECOND_MESSAGE);
+  msg* msg9 = sc.new_message(THIRD_MESSAGE);
 
   msg7->set_string(1, VALUE_A);
   msg8->set_string(1, VALUE_B);
@@ -119,18 +120,18 @@ TEST(protobuf_schema_message, messages) {
   msg9->set_repeated_message(1, msg8, -1);
 
   EXPECT_EQ(msg9->get_repeated_field_size(1), 2);
-  schema_message* msg10 = msg9->get_repeated_message(1, 0);
-  schema_message* msg11 = msg9->get_repeated_message(1, 1);
+  msg* msg10 = msg9->get_repeated_message(1, 0);
+  msg* msg11 = msg9->get_repeated_message(1, 1);
   EXPECT_EQ(msg10->get_string(1), VALUE_A);
   EXPECT_EQ(msg11->get_string(1), VALUE_B);
 
-  schema_message* msg13 = sc.new_message(THIRD_MESSAGE);
+  msg* msg13 = sc.new_message(THIRD_MESSAGE);
   msg9->serialize_message(&data);
   msg13->deserialize_message(data);
 
   EXPECT_EQ(msg13->get_repeated_field_size(1), 2);
-  schema_message* msg14 = msg13->get_repeated_message(1, 0);
-  schema_message* msg15 = msg13->get_repeated_message(1, 1);
+  msg* msg14 = msg13->get_repeated_message(1, 0);
+  msg* msg15 = msg13->get_repeated_message(1, 1);
   EXPECT_EQ(msg14->get_string(1), VALUE_A);
   EXPECT_EQ(msg15->get_string(1), VALUE_B);
 
@@ -140,24 +141,24 @@ TEST(protobuf_schema_message, messages) {
           1),
       "message");
 
-  schema_definition::field_info field =
+  schema::field_info field =
       sc.get_field_info(sc.get_schema_id(FIRST_MESSAGE), 0);
   EXPECT_EQ(field.tag, 1);
-  EXPECT_EQ(field.type, schema_definition::field_type::string);
+  EXPECT_EQ(field.type, schema::field_type::string);
   EXPECT_EQ(field.name, STRING_FIELD_1);
   EXPECT_EQ(field.fully_qualified_type, "");
   EXPECT_EQ(field.is_repeated, false);
 
   field = sc.get_field_info(sc.get_schema_id(FIRST_MESSAGE), 1);
   EXPECT_EQ(field.tag, 2);
-  EXPECT_EQ(field.type, schema_definition::field_type::message_type);
+  EXPECT_EQ(field.type, schema::field_type::message_type);
   EXPECT_EQ(field.name, MESSAGE_FIELD);
   EXPECT_EQ(field.fully_qualified_type, SECOND_MESSAGE);
   EXPECT_EQ(field.is_repeated, false);
 
   field = sc.get_field_info(sc.get_schema_id(THIRD_MESSAGE), 0);
   EXPECT_EQ(field.tag, 1);
-  EXPECT_EQ(field.type, schema_definition::field_type::message_type);
+  EXPECT_EQ(field.type, schema::field_type::message_type);
   EXPECT_EQ(field.name, REPEATED_MSG_FIELD);
   EXPECT_EQ(field.fully_qualified_type, SECOND_MESSAGE);
   EXPECT_EQ(field.is_repeated, true);

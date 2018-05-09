@@ -1,11 +1,11 @@
-#ifndef AUTOMATON_CORE_SCHEMA_SCHEMA_DEFINITION_H__
-#define AUTOMATON_CORE_SCHEMA_SCHEMA_DEFINITION_H__
+#ifndef AUTOMATON_CORE_DATA_SCHEMA_H__
+#define AUTOMATON_CORE_DATA_SCHEMA_H__
 
 #include <map>
 #include <string>
 
 /*
-  TODO(kari): how to make difference between schema_definition as a whole combo
+  TODO(kari): how to make difference between schema as a whole combo
   of message and enum schemas, and a single message/enum schema definition.
   It may be confusing.
   TODO(kari): field_info may become class. There are too many functions
@@ -16,7 +16,7 @@
     and others
 */
 
-class schema_definition {
+class schema {
  public:
   /**
    Allowed data types.
@@ -50,10 +50,10 @@ class schema_definition {
         const std::string& fully_qualified_type, bool is_repeated);
   };
 
-  typedef schema_definition* (*factory_function_schema_def)();
+  typedef schema* (*factory_function_schema_def)();
   static void register_factory(std::string name,
                                factory_function_schema_def func);
-  static schema_definition* create(const std::string name);
+  static schema* create(const std::string name);
 
   /**
     If this schema (schema A) depends on another one (schema B), it must be
@@ -129,4 +129,4 @@ class schema_definition {
       schema_definition_factory;
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_SCHEMA_DEFINITION_H__
+#endif  // AUTOMATON_CORE_DATA_SCHEMA_H__

@@ -19,9 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "schema/schema.h"
-#include "schema/schema_definition.h"
-#include "schema/protobuf_schema_message.h"
+#include "data/factory.h"
+#include "data/schema.h"
+#include "data/protobuf_schema_message.h"
 
 /**
 This is helper class which is used while parsing proto file.
@@ -67,7 +67,7 @@ class proto_error_collector : public
   std::string get_all_errors();
 };
 
-class protobuf_schema: public schema {
+class protobuf_schema: public factory {
  private:
   io_error_collector io_error_collector_;
   proto_error_collector proto_error_collector_;
@@ -110,14 +110,14 @@ class protobuf_schema: public schema {
       const std::string& name, const std::string& package);
 
  public:
-  static const std::map<schema_definition::field_type,
+  static const std::map<schema::field_type,
       google::protobuf::FieldDescriptorProto_Type> type_to_protobuf_type;
 
   static const std::map<google::protobuf::FieldDescriptor::Type,
-      schema_definition::field_type> protobuf_type_to_type;
+      schema::field_type> protobuf_type_to_type;
 
   static const std::map<google::protobuf::FieldDescriptor::CppType,
-      schema_definition::field_type> protobuf_ccptype_to_type;
+      schema::field_type> protobuf_ccptype_to_type;
 
   void register_self();
   /**
@@ -135,19 +135,19 @@ class protobuf_schema: public schema {
 
   /*
     This function is used for include schema definitions that were created with
-    schema_definition. If the given schema_definition has dependencies, they
+    schema. If the given schema has dependencies, they
     must be imported first or exception will be thrown. Name will be used for
-    reference in schema_definition::add_dependency().
+    reference in schema::add_dependency().
   */
-  void import_schema_definition(schema_definition* schema,
+  void import_schema_definition(schema* schema,
       const std::string& name, const std::string& package);
 
   /**
     following functions are too complicated for mvp.
   **/
   // void import_data(data* data_, const std::string& name);
-  // void import_message_to_schema(schema_definition* schema, int id, );
-  // void import_enum_to_schema(schema_definition* schema, int id, );
+  // void import_message_to_schema(schema* schema, int id, );
+  // void import_enum_to_schema(schema* schema, int id, );
 
   // std::string serialize_protocol();
 
@@ -206,7 +206,7 @@ class protobuf_schema: public schema {
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  schema_definition::field_info get_field_info(int schema_id, int index);
+  schema::field_info get_field_info(int schema_id, int index);
 
   /*
     Creates new message from a schema with schema_id. Returns id of the
@@ -214,7 +214,7 @@ class protobuf_schema: public schema {
     serializing and deserializing, etc. If the given schema id is not valid,
     exception will be thrown.
   */
-  schema_message* new_message(int schema_id);
+  msg* new_message(int schema_id);
 
   /**
     Creates new message from a schema name.
@@ -224,7 +224,7 @@ class protobuf_schema: public schema {
 
     If the given schema_name is not valid, exception will be thrown.
   */
-  schema_message* new_message(const char* schema_name);
+  msg* new_message(const char* schema_name);
 
   /*
     Creates a copy of the message with the given id. If the given id is not

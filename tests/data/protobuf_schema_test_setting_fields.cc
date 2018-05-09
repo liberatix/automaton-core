@@ -3,22 +3,29 @@
 #include <string>
 
 #include "io/io.h"
-#include "schema/protobuf_schema.h"
-#include "schema/protobuf_schema_message.h"
+#include "data/protobuf_schema.h"
+#include "data/protobuf_schema_message.h"
 #include "gtest/gtest.h"
 
 const char * TEST_MSG = "TestMsg";
 
 TEST(protobuf_schema, setting_fields) {
+  std::cout << "0" << std::endl;
+
   protobuf_schema sc;
+
+  std::cout << "0a" << std::endl;
+
   sc.import_schema_from_string(
-      get_file_contents("tests/schema/test.proto"), "test", "");
+      get_file_contents("tests/data/test.proto"), "test", "");
 
   // *** String functions ***
 
+  std::cout << "1" << std::endl;
+
   // No such field
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_string(100, "value");
   }
   catch (std::invalid_argument& e) {
@@ -27,9 +34,11 @@ TEST(protobuf_schema, setting_fields) {
     EXPECT_EQ(message, "No field with tag: 100");
   }
 
+  std::cout << "2" << std::endl;
+
   // Data field is repeated
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_string(4, "value");
   }
   catch (std::invalid_argument& e) {
@@ -38,9 +47,11 @@ TEST(protobuf_schema, setting_fields) {
     EXPECT_EQ(message, "Field is repeated");
   }
 
+  std::cout << "3" << std::endl;
+
   // Field is not string
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_string(3, "value");
   }
   catch (std::invalid_argument& e) {
@@ -49,13 +60,15 @@ TEST(protobuf_schema, setting_fields) {
     EXPECT_EQ(message, "Field is not string");
   }
 
+  std::cout << "4" << std::endl;
+
   /**
     String array functions
   **/
 
   // No such field
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_repeated_string(100, "value", -1);
   }
   catch (std::invalid_argument& e) {
@@ -66,7 +79,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // Data field is not repeated
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_repeated_string(1, "value", -1);
   }
   catch (std::invalid_argument& e) {
@@ -77,7 +90,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // Field is not string
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_repeated_string(3, "value", -1);
   }
   catch (std::invalid_argument& e) {
@@ -90,7 +103,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // No such field
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_int32(100, 42);
   }
   catch (std::invalid_argument& e) {
@@ -101,7 +114,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // Data field is repeated
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_int32(7, 42);
   }
   catch (std::invalid_argument& e) {
@@ -112,7 +125,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // Field is not int32
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_int32(1, 42);
   }
   catch (std::invalid_argument& e) {
@@ -125,7 +138,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // No such field
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_repeated_int32(100, 42, -1);
   }
   catch (std::invalid_argument& e) {
@@ -136,7 +149,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // Data field is not repeated
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_repeated_int32(2, 42, -1);
   }
   catch (std::invalid_argument& e) {
@@ -147,7 +160,7 @@ TEST(protobuf_schema, setting_fields) {
 
   // Field is not int32
   try {
-    schema_message * msg = sc.new_message(TEST_MSG);
+    msg * msg = sc.new_message(TEST_MSG);
     msg->set_repeated_int32(4, 42, -1);
   }
   catch (std::invalid_argument& e) {

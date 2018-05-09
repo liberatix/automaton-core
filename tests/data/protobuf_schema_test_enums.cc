@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 
-#include "schema/protobuf_schema.h"
-#include "schema/protobuf_schema_definition.h"
+#include "data/protobuf_schema.h"
+#include "data/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
 TEST(protobuf_schema, enums) {
@@ -38,19 +38,19 @@ TEST(protobuf_schema, enums) {
   int e1 = custom_schema.create_enum("inner_enum");
   int e2 = custom_schema.create_enum("outer_enum");
 
-  custom_schema.add_scalar_field(schema_definition::field_info(1,
-      schema_definition::field_type::string, "string_field", "", false), m1);
-  custom_schema.add_enum_field(schema_definition::field_info(2,
-      schema_definition::field_type::enum_type, "inner_enum_field",
+  custom_schema.add_scalar_field(schema::field_info(1,
+      schema::string, "string_field", "", false), m1);
+  custom_schema.add_enum_field(schema::field_info(2,
+      schema::enum_type, "inner_enum_field",
           "A.inner_enum", false), m1);
-  custom_schema.add_enum_field(schema_definition::field_info(3,
-      schema_definition::field_type::enum_type, "outer_enum_field",
+  custom_schema.add_enum_field(schema::field_info(3,
+      schema::enum_type, "outer_enum_field",
       "outer_enum", false), m1);
-  custom_schema.add_enum_field(schema_definition::field_info(1,
-        schema_definition::field_type::enum_type, "enum_field1", "A.inner_enum",
+  custom_schema.add_enum_field(schema::field_info(1,
+        schema::enum_type, "enum_field1", "A.inner_enum",
         false), m2);
-  custom_schema.add_enum_field(schema_definition::field_info(2,
-      schema_definition::field_type::enum_type, "enum_field2", "outer_enum",
+  custom_schema.add_enum_field(schema::field_info(2,
+      schema::enum_type, "enum_field2", "outer_enum",
       true), m2);
 
   custom_schema.add_enum_value(e1, "inner_value1", 0);
@@ -66,8 +66,8 @@ TEST(protobuf_schema, enums) {
   protobuf_schema sc;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  schema_message * msg1 = sc.new_message("A");
-  schema_message * msg2 = sc.new_message("A");
+  msg * msg1 = sc.new_message("A");
+  msg * msg2 = sc.new_message("A");
 
   msg1->set_string(1, "value_string");
   int inner_enum_value = sc.get_enum_value(sc.get_enum_id("A.inner_enum"),
@@ -87,8 +87,8 @@ TEST(protobuf_schema, enums) {
   EXPECT_EQ(msg2->get_enum(2), 1);
   EXPECT_EQ(msg2->get_enum(3), 0);
 
-  schema_message * msg3 = sc.new_message(sc.get_schema_id("B"));
-  schema_message * msg4 = sc.new_message(sc.get_schema_id("B"));
+  msg * msg3 = sc.new_message(sc.get_schema_id("B"));
+  msg * msg4 = sc.new_message(sc.get_schema_id("B"));
 
   msg3->set_enum(1, 1);
   msg3->set_repeated_enum(2, 1, -1);
