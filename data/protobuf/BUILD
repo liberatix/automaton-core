@@ -6,7 +6,7 @@ cc_library(
   name = "protobuf",
   srcs = [
     "protobuf_factory.cc",
-	  "protobuf_factory.h",
+    "protobuf_factory.h",
     "protobuf_schema_definition.cc",
     "protobuf_schema_definition.h",
     "protobuf_schema_message.cc",
