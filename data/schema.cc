@@ -8,7 +8,7 @@ schema::field_info::field_info(int tag,
     : tag(tag)
     , type(type)
     , name(name)
-    , fully_qualified_type(fully_qualified_type),
+    , fully_qualified_type(fully_qualified_type)
     , is_repeated(is_repeated) {
 }
 
