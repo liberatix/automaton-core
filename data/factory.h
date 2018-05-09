@@ -24,7 +24,8 @@ class factory {
     exists.
   */
   virtual void import_schema_from_string(const std::string& protocol,
-      const std::string& name, const std::string& package) = 0;
+                                         const std::string& name,
+                                         const std::string& package) = 0;
 
   /**
     This function is used for include schema definitions that were created with
@@ -67,8 +68,7 @@ class factory {
     A pair represents the string name of the value and the int value. If no such
     enum exists, exception will be thrown.
   */
-  virtual std::vector<std::pair<std::string, int> >
-      get_enum_values(int enum_id) = 0;
+  virtual std::vector<std::pair<std::string, int> > get_enum_values(int enum_id) = 0;
 
   /**
     Prints information about a message schema and its fields. If the given
@@ -93,8 +93,7 @@ class factory {
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  virtual schema::field_info get_field_info(int schema_id,
-                                                       int index) = 0;
+  virtual schema::field_info get_field_info(int schema_id, int index) = 0;
 
   /**
     Creates new message from a schema with message_type_id. Returns the

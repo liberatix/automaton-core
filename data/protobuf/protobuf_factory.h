@@ -158,21 +158,20 @@ class protobuf_factory: public factory {
   void dump_enum(int enum_id, std::ostream& ostream_);
 
   /*
-    Returns the number of enums in the whole schema definition (both top-level
-    and nested).
+    Returns the number of enums in the whole schema definition (both top-level and nested).
   */
   int get_enums_number();
 
   /*
-    Get the id of the enum with enum_name. Id is needed for getting information
-    about the enum values. If enum with the given name doesn't exist, exception
-    will be thrown.
+    Get the id of the enum with enum_name. Id is needed for getting information about the enum
+    values. If enum with the given name doesn't exist, exception will be thrown.
   */
   int get_enum_id(const std::string& enum_name);
 
   /*
-    Returns enum value matching value name. If no such enum or name exists,
-    exception will be thrown.
+    Returns enum value matching value name.
+
+    If no such enum or name exists, exception will be thrown.
   */
   int get_enum_value(int enum_id, const std::string& value_name);
 
