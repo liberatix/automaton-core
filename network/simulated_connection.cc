@@ -8,37 +8,16 @@
 #include <sstream>
 #include <utility>
 
-/**
-  These will be removed when acceptor's address could be parsed. For now are
-  used when acceptor creates and pass new connection.
-**/
-const int DEFAULT_MAX_CONNECTIONS = 8;
-const int DEFAULT_BANDWITH = 64;
-
-bool simulation::q_comparator::operator() (const event& lhs, const event& rhs)
-    const {
-  if (lhs.time_of_handling == rhs.time_of_handling) {
-    return lhs.event_id > rhs.event_id;
-  }
-  return lhs.time_of_handling > rhs.time_of_handling;
-}
-
-unsigned int event::event_ids = 0;
 event::event() {
-  event_id = new_id();
-  type = event_type::default_event;
+  type_ = event::type::undefined;
   time_of_handling = 0;
-  connection_ = nullptr;
-  acceptor_ = nullptr;
+  recipient = 0;
   data = "";
-  id = 0;
-}
-unsigned int event::new_id() {
-  return ++event_ids;
+  message_id = 0;
 }
 std::string event::to_string() const {
   std::stringstream output;
-  switch (type) {
+  switch (type_) {
     case 0:
       output << "event: none / ";
       break;
@@ -65,32 +44,38 @@ std::string event::to_string() const {
       break;
   }
   output << "time:" << time_of_handling << " / ";
-  if (connection_) {
-    output << "connection:" << connection_->get_address() << " / ";
+  if (recipient) {
+    output << "connection id:" << recipient << " / ";
   }
-  if (acceptor_) {
-    output << "acceptor:" << acceptor_->address << " / ";
-  }
-  output << "data:" << data << " / id:" << id;
+  output << "data:" << data << " / id:" << message_id;
   return output.str();
 }
 
+connection_params::connection_params():min_lag(0), max_lag(0) {}
+acceptor_params::acceptor_params():max_connections(0), bandwidth(0) {}
+
 // SIMULATION
+
+bool simulation::q_comparator::operator() (const event& lhs, const event& rhs) const {
+  return lhs.time_of_handling > rhs.time_of_handling;
+}
 
 simulation* simulation::simulator = NULL;
 
 simulation::simulation():simulation_time(0) {
   connection::register_connection_type("sim", [](const std::string& address,
       connection::connection_handler* handler) {
-    return reinterpret_cast<connection*>(
-        new simulated_connection(address, handler));
+    return reinterpret_cast<connection*>(new simulated_connection(address, handler));
   });
   acceptor::register_acceptor_type("sim", [](const std::string& address,
-      acceptor::acceptor_handler* handler_, connection::connection_handler*
-      connections_handler_) {
+      acceptor::acceptor_handler* handler_,
+      connection::connection_handler* connections_handler_) {
     return reinterpret_cast<acceptor*>(new
         simulated_acceptor(address, handler_, connections_handler_));
   });
+  /// Makes connection id = 0 invalid
+  connections.push_back(nullptr);
+  std::srand(816405263);
 }
 simulation::~simulation() {}
 
@@ -105,28 +90,36 @@ simulation* simulation::get_simulator() {
   return simulator = new simulation();
 }
 void simulation::handle_event(const event& e) {
-  //  logging("Handling " + e.to_string());
+    // logging("HANDLING: " + e.to_string());
     simulation* sim = simulation::get_simulator();
-    switch (e.type) {
-      case event_type::disconnect: {
+    simulated_connection* connection_ = sim->get_connection(e.recipient);
+    if (!connection_) {
+      logging("ERROR: No such connection");
+      return;
+    }
+    switch (e.type_) {
+      case event::type::disconnect: {
+        // logging("disconnect 0");
         /**
           This event is created when the other endpoint has called disconnect().
           Sets connection state to disconnected.
           TODO(kari): If possible delete related events in the queue and
           delete connection fron map.
-        **/
-        if (e.connection_->connection_state == connection::state::connected) {
-          e.connection_->connection_state = connection::state::disconnected;
-          e.connection_->get_handler()->on_disconnected(e.connection_);
-        } else if (e.connection_->connection_state ==
-            connection::state::connecting) {
+        */
+        if (connection_->connection_state == connection::state::connected) {
+          connection_->connection_state = connection::state::disconnected;
+          connection_->get_handler()->on_disconnected(connection_);
+        } else if (connection_->connection_state ==
+              connection::state::connecting) {
             logging("error? : disconnecting but not connected yet");
           // error?
-          e.connection_->connection_state = connection::state::disconnected;
+          connection_->connection_state = connection::state::disconnected;
         }
+        // logging("disconnect 1");
         break;
       }
-      case event_type::connection_attempt: {
+      case event::type::connection_attempt: {
+          // logging("attempt 0");
         /**
           This event is created when the other endpoint has called connect().
           On_requested is called and if it returns true, new event with type
@@ -136,58 +129,49 @@ void simulation::handle_event(const event& e) {
           refused, new event type refuse is created.
         **/
         event new_event;
-        simulated_acceptor* acceptor_ = nullptr;
-        if (!e.acceptor_) {
-          acceptor_ = sim->get_acceptor(e.connection_->address_to);
-          if (!acceptor_ || !(acceptor_->started_accepting)) {
-            logging("ERROR: No such peer: " + e.connection_->address_to);
-            // TODO(kari): error no such peer /
-            break;
-          }
-        } else {
-          acceptor_ = e.acceptor_;
+        simulated_acceptor* acceptor_ =
+            sim->get_acceptor(connection_->remote_address);
+        if (!acceptor_ || !(acceptor_->started_accepting)) {
+          logging("ERROR: No such peer: " + connection_->remote_address);
+          // TODO(kari): error no such peer /
+          // logging("attempt 1.1");
+          break;
         }
-        if (acceptor_->get_handler()->on_requested(
-            std::to_string(e.connection_->address_from))) {
+        connection_params* params = &(connection_->parameters);
+        if (acceptor_->get_handler()->
+            on_requested(connection_->get_address())) {
           // logging("accepted");
-          new_event.type = event_type::accept;
-          new_event.connection_ = e.connection_;
-          simulated_connection* new_connection =
-              sim->get_connection(e.connection_->address_to,
-              e.connection_->address_from);
-          if (!new_connection) {
-            std::string new_addr =
-                std::to_string(e.connection_->parameters.min_lag) + ":" +
-                std::to_string(e.connection_->parameters.max_lag) + ":" +
-                std::to_string(DEFAULT_MAX_CONNECTIONS) + ":" +
-                std::to_string(DEFAULT_BANDWITH) + ":" +
-                std::to_string(e.connection_->address_to) + ":" +
-                std::to_string(e.connection_->address_from);
-            new_connection = new simulated_connection(new_addr,
-                acceptor_->accepted_connections_handler);
-            sim->add_connection(e.connection_->address_to,
-                e.connection_->address_from, new_connection);
-          }
-          new_connection->connection_state = connection::state::connected;
-          acceptor_->get_handler()->on_connected(new_connection,
-              std::to_string(e.connection_->address_from));
+          new_event.type_ = event::type::accept;
+          /**
+            Remote address of the other connection is 0 which means connect to
+            that address is not possible.
+          **/
+          std::string new_addr =
+              std::to_string(params->min_lag) + ":" +
+              std::to_string(params->max_lag) + ":0";
+          simulated_connection* remote_connection = new simulated_connection(
+              new_addr, acceptor_->accepted_connections_handler);
+          connection_->remote_connection_id = remote_connection->local_connection_id;
+          remote_connection->connection_state = connection::state::connected;
+          remote_connection->remote_connection_id = connection_->local_connection_id;
+          acceptor_->get_handler()->on_connected(remote_connection,
+              connection_->get_address());
           // TODO(kari): ? Call or not the connection's handler on_connect() ??
         } else {
           // logging("refused");
-          new_event.type = event_type::refuse;
-          new_event.connection_ = e.connection_;
+          new_event.type_ = event::type::refuse;
         }
-        new_event.event_id = event::new_id();
-        connection_params* params = &(new_event.connection_->parameters);
+        new_event.recipient = e.recipient;
         new_event.time_of_handling = (sim->get_time() >
-            new_event.connection_->last_event ? sim->get_time() :
-            new_event.connection_->last_event) + std::rand()%(params->max_lag -
-            params->min_lag) + params->min_lag;
-        new_event.connection_->last_event = new_event.time_of_handling;
+            connection_->time_stamp + 1 ? sim->get_time() :
+            connection_->time_stamp + 1) + connection_->get_lag();
+        connection_->time_stamp = new_event.time_of_handling;
         sim->push_event(new_event);
+        // logging("attempt 1.2");
         break;
       }
-      case event_type::send: {
+      case event::type::send: {
+        // logging("send 0");
         /**
           This event is created when send() is called. When tha lag passes it
           means that the other endpoint has received the message and read event
@@ -205,75 +189,84 @@ void simulation::handle_event(const event& e) {
           error 'operation cancelled' will happend, which also happen when
           disconnect has been called.
         **/
-        if (e.connection_->connection_state ==
+        if (connection_->connection_state ==
             connection::state::disconnected) {
           logging("ERROR: Operation cancelled");  // Or connection refused
+          /*
+            connection_->get_handler()->on_message_sent(connection_, e.message_id,
+              connection::error::operation_cancelled);
+          */
+          // logging("send 1.1");
           break;
         }
-        if (e.connection_->connection_state ==
+        if (connection_->connection_state ==
             connection::state::connecting) {
           logging("ERROR: Not connected yet. Event is postponed.");
           event new_event = e;
-          new_event.event_id = event::new_id();
-          new_event.time_of_handling = sim->get_time() + 1 >
-              e.connection_->last_event ? sim->get_time() + 1:
-              e.connection_->last_event;
-          new_event.connection_->last_event = new_event.time_of_handling;
+          new_event.time_of_handling = (sim->get_time() >
+              connection_->time_stamp ? sim->get_time():
+              connection_->time_stamp) + 1;
+          connection_->time_stamp = new_event.time_of_handling;
           sim->push_event(new_event);
+          // logging("send 1.2");
           break;
         }
-        simulated_connection* new_connection = sim->
-            get_connection(e.connection_->address_to,
-            e.connection_->address_from);
-        if (!new_connection) {
+        simulated_connection* remote_connection = sim->
+            get_connection(connection_->remote_connection_id);
+        if (!remote_connection) {
           logging("ERROR: no such peer in handle_event:send");
+          // logging("send 1.3");
           break;
         }
-        if (new_connection->connection_state ==
+        if (remote_connection->connection_state ==
             connection::state::disconnected) {
-          e.connection_->get_handler()->on_message_sent(e.connection_, e.id,
+          connection_->get_handler()->on_message_sent(connection_, e.message_id,
               connection::error::broken_pipe);
+          // logging("send 1.4");
           break;
         }
-        e.connection_->get_handler()->on_message_sent(e.connection_, e.id,
+        connection_->get_handler()->on_message_sent(connection_, e.message_id,
             connection::error::no_error);
         event new_event;
-        new_event.type = event_type::read;
-        new_event.connection_ = new_connection;
+        new_event.type_ = event::type::read;
+        new_event.recipient = connection_->remote_connection_id;
         new_event.data = e.data;
-        new_event.event_id = event::new_id();
         new_event.time_of_handling =
-          sim->get_time() > new_connection->last_event ?
-          sim->get_time() : new_connection->last_event;
-        new_connection->last_event = new_event.time_of_handling;
+          sim->get_time() > remote_connection->time_stamp + 1?
+          sim->get_time() : remote_connection->time_stamp + 1;
+        remote_connection->time_stamp = new_event.time_of_handling;
         push_event(new_event);
+        // logging("send 1.5");
         break;
       }
-      case event_type::read: {
+      case event::type::read: {
+        // logging("read 0");
         /**
           This event is created when send event from the other endpoint is
           handled. If no read() has been called, this event is postponed.
         **/
-        if (e.connection_->connection_state ==
+        if (connection_->connection_state ==
             connection::state::disconnected) {
           // BUG(kari): if a disconnect and connect again happen but a message
           // come with delay and is not cancelled because of disconnect,
           // the message will still arrive: FIX: find a way to delete events
           // (use other structure) or use connection ids
           logging("ERROR: Operation cancelled");
+          // logging("read 1.1");
           break;
         }
-        if (e.connection_->connection_state ==
+        if (connection_->connection_state ==
             connection::state::connecting) {
           logging("ERROR: Not connected yet. This should never happen.");
+          // logging("read 1.2");
           break;
         }
-        if (e.connection_->buffers.empty()) {
-          logging("no read buffers, event postponed");
+        if (connection_->buffers.empty()) {
+          // logging("no read buffers, event postponed");
           event new_event = e;
-          new_event.event_id = event::new_id();
           ++new_event.time_of_handling;
           push_event(new_event);
+          // logging("read 1.3");
           break;
         }
         /**
@@ -293,57 +286,83 @@ void simulation::handle_event(const event& e) {
             copied into the buffer and new read event with time = time + 1 is
             created for the rest.
         **/
-        bool read_some = e.connection_->expect_to_read.front() == 0;
-        unsigned int to_read = e.connection_->parameters.bandwidth <=
-            e.data.size() ? e.connection_->parameters.bandwidth : e.data.size();
-        if (!read_some) {
-          to_read = to_read <= (e.connection_->expect_to_read.front()
-            - e.connection_->bytes_read) ? to_read :
-            e.connection_->expect_to_read.front() - e.connection_->bytes_read;
-        } else {
-          to_read = to_read <= (e.connection_->buffers_sizes.front()
-              - e.connection_->bytes_read) ? to_read :
-              e.connection_->buffers_sizes.front() - e.connection_->bytes_read;
+
+        /**
+          Getting the acceptor related to that connection so we can get the
+          bandwidth.
+        */
+        simulated_acceptor* acceptor_ =
+            sim->get_acceptor(connection_->remote_address);
+        if (!acceptor_) {
+          simulated_connection* remote_connection =
+              sim->get_connection(connection_->remote_connection_id);
+          if (!remote_connection) {
+            logging("ERROR: No such peer");
+            // broken_pipe?
+            logging("read 1.5");
+            return;
+          }
+          acceptor_ = sim->get_acceptor(remote_connection->remote_address);
         }
-        std::memcpy(e.connection_->buffers.front() + e.connection_->bytes_read,
+        bool read_some = connection_->expect_to_read.front() == 0;
+        unsigned int bandwidth = acceptor_->parameters.bandwidth;
+        unsigned int to_read =
+            bandwidth <= e.data.size() ? bandwidth : e.data.size();
+        if (!read_some) {
+          to_read =
+              to_read <= (connection_->expect_to_read.front()
+              - connection_->bytes_read) ? to_read :
+              connection_->expect_to_read.front() - connection_->bytes_read;
+        } else {
+          to_read = to_read <= (connection_->buffers_sizes.front()
+              - connection_->bytes_read) ? to_read :
+              connection_->buffers_sizes.front() - connection_->bytes_read;
+        }
+        std::memcpy(connection_->buffers.front() + connection_->bytes_read,
             e.data.data(), to_read);
-        e.connection_->bytes_read += to_read;
+        connection_->bytes_read += to_read;
         // if it's time to call on_message_received (required number of bytes
         // are read)
-        if ((!read_some && e.connection_->expect_to_read.front() ==
-            e.connection_->bytes_read) || read_some) {
-          e.connection_->get_handler()->on_message_received(e.connection_,
-            e.connection_->buffers.front(), e.connection_->bytes_read,
-            e.connection_->read_ids.front());
-          e.connection_->buffers.pop();
-          e.connection_->buffers_sizes.pop();
-          e.connection_->expect_to_read.pop();
-          e.connection_->read_ids.pop();
-          e.connection_->bytes_read = 0;
+        if ((!read_some && connection_->expect_to_read.front() ==
+            connection_->bytes_read) || read_some) {
+          connection_->get_handler()->on_message_received(connection_,
+            connection_->buffers.front(), connection_->bytes_read,
+            connection_->read_ids.front());
+          connection_->buffers.pop();
+          connection_->buffers_sizes.pop();
+          connection_->expect_to_read.pop();
+          connection_->read_ids.pop();
+          connection_->bytes_read = 0;
         }
         if (to_read < e.data.size()) {
           event new_event = e;
-          new_event.event_id = event::new_id();
           new_event.data = new_event.data.substr(to_read);
           ++new_event.time_of_handling;
           push_event(new_event);
+        } else {
+          // TODO(kari): Call handler's on_message_sent here.
         }
+        // logging("read 1.6");
         break;
       }
-      case event_type::accept: {
+      case event::type::accept: {
+        // logging("accept 0");
         // TODO(kari): if no such connection, acceptor on error/ disconnected
-        e.connection_->connection_state = connection::state::connected;
-        e.connection_->get_handler()->on_connected(e.connection_);
+        connection_->connection_state = connection::state::connected;
+        connection_->get_handler()->on_connected(connection_);
+        // logging("accept 1");
         break;
       }
-      case event_type::refuse: {
+      case event::type::refuse: {
+        // logging("refuse 0");
         // TODO(kari): if no such connection, acceptor on error/ disconnected
-        e.connection_->connection_state = connection::state::disconnected;
-        e.connection_->get_handler()->on_error(e.connection_,
+        connection_->connection_state = connection::state::disconnected;
+        connection_->get_handler()->on_error(connection_,
             connection::error::connection_refused);
+        // logging("refuse 1");
         break;
       }
-      case event_type::error: {
+      case event::type::error: {
         break;
       }
       default:
@@ -352,6 +371,7 @@ void simulation::handle_event(const event& e) {
   }
 
 void simulation::process(uint64_t time_) {
+  // TODO(kari): Exception -> deadlock
   event e;
   q_mutex.lock();
   while (!event_q.empty() && event_q.top().time_of_handling < get_time()) {
@@ -360,7 +380,7 @@ void simulation::process(uint64_t time_) {
     event_q.pop();
   }
   for (uint64_t current_time = event_q.top().time_of_handling;
-      current_time <= time_ && !event_q.empty(); ++current_time) {
+      current_time <= time_ && !event_q.empty(); ) {
     set_time(current_time);
     while (!event_q.empty() && event_q.top().time_of_handling == current_time) {
       e = event_q.top();
@@ -368,6 +388,9 @@ void simulation::process(uint64_t time_) {
       q_mutex.unlock();
       handle_event(e);
       q_mutex.lock();
+    }
+    if (!event_q.empty()) {
+      current_time = event_q.top().time_of_handling;
     }
   }
   q_mutex.unlock();
@@ -387,24 +410,23 @@ void simulation::set_time(uint64_t time_) {
   }
 }
 
-void simulation::add_connection(int address_a, int address_b,
-    simulated_connection* connection_) {
+void simulation::add_connection(simulated_connection* connection_) {
   std::lock_guard<std::mutex> lock(connections_mutex);
-  connections[std::make_pair(address_a, address_b)] = connection_;
+  connections.push_back(connection_);
+  connection_->local_connection_id = connections.size() - 1;
 }
-simulated_connection* simulation::get_connection(int address_a, int address_b) {
+simulated_connection* simulation::get_connection(uint32_t index) {
   std::lock_guard<std::mutex> lock(connections_mutex);
-  auto iterator_ = connections.find(std::make_pair(address_a, address_b));
-  if (iterator_ == connections.end()) {
+  if (index >= connections.size()) {
     return nullptr;
   }
-  return iterator_->second;
+  return connections[index];
 }
-void simulation::add_acceptor(int address, simulated_acceptor* acceptor_) {
+void simulation::add_acceptor(uint32_t address, simulated_acceptor* acceptor_) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   acceptors[address] = acceptor_;
 }
-simulated_acceptor* simulation::get_acceptor(int address) {
+simulated_acceptor* simulation::get_acceptor(uint32_t address) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   auto iterator_ = acceptors.find(address);
   if (iterator_ == acceptors.end()) {
@@ -423,25 +445,23 @@ void simulation::print_q() {
 
 void simulation::print_connections() {
   std::lock_guard<std::mutex> lock(connections_mutex);
-  for (auto it = connections.begin(); it != connections.end(); ++it) {
-    logging(it->second->get_address());
+  for (unsigned int i = 0; i < connections.size(); ++i) {
+    logging(connections[i]->get_address());
   }
 }
 
 // CONNECTION
 
 simulated_connection::simulated_connection(const std::string& address_,
-    connection_handler* handler_):connection(handler_), last_event(0),
+    connection_handler* handler_):connection(handler_), time_stamp(0),
     bytes_read(0) {
   connection_state = connection::state::disconnected;
-  if (!parse_address(address_) || address_to == address_from) {
+  if (!parse_address(address_)) {
     logging("ERROR: Connection creation failed : " + address_);
-  /*} else if (get_connection(address_from, address_to)) {
-    logging("Connection creation failed: connection already exists: "
-        + address_);*/
+    remote_address = 0;
   } else {
     // logging("Connection created: " + address_);
-    simulation::get_simulator()->add_connection(address_from, address_to, this);
+    simulation::get_simulator()->add_connection(this);
   }
 }
 
@@ -461,18 +481,16 @@ void simulated_connection::async_send(const std::string& message, unsigned
     return;
   }
   // logging("Send called with message <" + message + "> with id: " +
-  //    std::to_string(id));
+  // std::to_string(id));
   simulation* sim = simulation::get_simulator();
   event new_event;
-  new_event.type = event_type::send;
-  new_event.connection_ = this;
-  new_event.event_id = event::new_id();
+  new_event.type_ = event::type::send;
+  new_event.recipient = local_connection_id;
   new_event.data = message;  // TODO(kari): is this a copy
-  new_event.id = id;
-  new_event.time_of_handling = (sim->get_time() > last_event ?
-      sim->get_time() : last_event) + std::rand()%(parameters.max_lag -
-      parameters.min_lag) + parameters.min_lag;
-  last_event = new_event.time_of_handling;
+  new_event.message_id = id;
+  new_event.time_of_handling =
+      (sim->get_time() > time_stamp + 1 ? sim->get_time() : time_stamp + 1) + get_lag();
+  time_stamp = new_event.time_of_handling;
   sim->push_event(new_event);
 }
 void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
@@ -495,32 +513,24 @@ void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
 bool simulated_connection::parse_address(const std::string& address) {
   // TODO(kari): Make better regex. First one didn't work so this one was used
   // to save time on thinking about regexes
-  std::regex rgx_sim("(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+)");
+  std::regex rgx_sim("(\\d+):(\\d+):(\\d+)");
   std::smatch match;
-  /*logging(address);
+  /* logging(address);
   if (std::regex_match(address.begin(), address.end(), match, rgx_sim)) {
     for (int i = 0; i < match.size(); ++i) {
       logging(match[i]);
     }
   }
-  return false;*/
+  return false; */
   if (std::regex_match(address.begin(), address.end(), match, rgx_sim) &&
-      match.size() == 7) {  // == size of the fields in connection_params + 3
-    parameters.min_lag = std::stoi(match[1]);
-    parameters.max_lag = std::stoi(match[2]);
-    parameters.max_connections = std::stoi(match[3]);
-    parameters.bandwidth = std::stoi(match[4]);
-    address_from = std::stoi(match[5]);
-    address_to = std::stoi(match[6]);
+      std::stoul(match[1]) <= std::stoul(match[2]) &&
+      match.size() == 4) {  // == size of the fields in connection_params + 3
+    parameters.min_lag = std::stoul(match[1]);
+    parameters.max_lag = std::stoul(match[2]);
+    remote_address = std::stoul(match[3]);
     return true;
   } else {
     logging("ERROR: Could not resolve address and parameters in " + address);
-    parameters.min_lag = 0;
-    parameters.max_lag = 0;
-    parameters.max_connections = 0;
-    parameters.bandwidth = 0;
-    address_from = 0;
-    address_to = 0;
   }
   return false;
 }
@@ -529,9 +539,19 @@ connection::state simulated_connection::get_state() const {
   return connection_state;
 }
 std::string simulated_connection::get_address() const {
-  return std::to_string(address_from) + ":" + std::to_string(address_to);
+  return "conn_id:" + std::to_string(local_connection_id) + "->accptr:" +
+      std::to_string(remote_address);
+}
+unsigned int simulated_connection::get_lag() const {
+  if (parameters.min_lag == parameters.max_lag) {
+    return parameters.min_lag;
+  }
+  return std::rand()%(parameters.max_lag - parameters.min_lag) + parameters.min_lag;
 }
 void simulated_connection::connect() {
+  if (!remote_address) {
+    logging("Cannot connect: No address to connect to!");
+  }
   /**
     This function creates connection_attempt event and changes the connection
     state to connectig.
@@ -540,15 +560,12 @@ void simulated_connection::connect() {
   connection_state = connection::state::connecting;
   simulation* sim = simulation::get_simulator();
   event new_event;
-  new_event.type = event_type::connection_attempt;
-  new_event.connection_ = this;
-  new_event.event_id = event::new_id();
-  new_event.acceptor_ = sim->get_acceptor(address_to);
+  new_event.type_ = event::type::connection_attempt;
+  new_event.recipient = local_connection_id;
   new_event.data = "";
-  new_event.time_of_handling = (sim->get_time() > last_event ?
-      sim->get_time() : last_event) + std::rand()%(parameters.max_lag -
-      parameters.min_lag) + parameters.min_lag;
-  last_event = new_event.time_of_handling;
+  new_event.time_of_handling =
+      (sim->get_time() > time_stamp + 1 ? sim->get_time() : time_stamp + 1) + get_lag();
+  time_stamp = new_event.time_of_handling;
   sim->push_event(new_event);
 }
 void simulated_connection::disconnect() {
@@ -561,17 +578,16 @@ void simulated_connection::disconnect() {
     clear_queues();
     simulation* sim = simulation::get_simulator();
     simulated_connection* connection_ =
-        sim->get_connection(address_to, address_from);
+        sim->get_connection(remote_connection_id);
     if (connection_) {
       event new_event;
-      new_event.type = event_type::disconnect;
-      new_event.connection_ = connection_;
-      new_event.event_id = event::new_id();
+      new_event.type_ = event::type::disconnect;
+      new_event.recipient = local_connection_id;
       new_event.data = "";
-      new_event.time_of_handling = (sim->get_time() > last_event ?
-          sim->get_time() : last_event) + std::rand()%(parameters.max_lag -
-          parameters.min_lag) + parameters.min_lag;
-      last_event = new_event.time_of_handling;
+      new_event.time_of_handling =
+          (sim->get_time() > time_stamp + 1 ? sim->get_time() : time_stamp + 1)
+          + get_lag();
+      time_stamp = new_event.time_of_handling;
       sim->push_event(new_event);
     }
     handler->on_disconnected(this);
@@ -596,13 +612,38 @@ void simulated_connection::clear_queues() {
 simulated_acceptor::simulated_acceptor(const std::string& address_,
     acceptor::acceptor_handler* handler_,
     connection::connection_handler* connections_handler):
-    acceptor(handler_), address(address_),
-    started_accepting(false),
+    acceptor(handler_), started_accepting(false),
     accepted_connections_handler(connections_handler) {
-  simulation::get_simulator()->add_acceptor(std::stoi(address_), this);
+  if (parse_address(address_)) {
+    if (!address) {
+      logging("Error: Could not create acceptor. Acceptor address should be > 0");
+    } else {
+      simulation::get_simulator()->add_acceptor(address, this);
+    }
+  } else {
+    logging("Error while creating acceptor");
+    address = 0;
+  }
+}
+bool simulated_acceptor::parse_address(const std::string& address_) {
+  std::regex rgx_sim("(\\d+):(\\d+):(\\d+)");
+  std::smatch match;
+  if (std::regex_match(address_.begin(), address_.end(), match, rgx_sim) &&
+      match.size() == 4) {  // == size of the fields in acceptor_params + 2
+    parameters.max_connections = std::stoul(match[1]);
+    parameters.bandwidth = std::stoul(match[2]);
+    address = std::stoul(match[3]);
+    return true;
+  } else {
+    logging("ERROR: Could not resolve address and parameters in " + address_);
+  }
+  return false;
 }
 
 void simulated_acceptor::start_accepting() {
+  if (!address) {
+    logging("Acceptor's address is not valid! Could not accept");
+  }
   started_accepting = true;
 }
 
@@ -614,18 +655,4 @@ static std::mutex console_mutex;
 void logging(const std::string& s) {
   std::lock_guard<std::mutex> lock(console_mutex);
   std::cout << s << std::endl;
-}
-
-std::string string_to_hex(const std::string& input) {
-    static const char* const lut = "0123456789ABCDEF";
-    size_t len = input.length();
-
-    std::string output;
-    output.reserve(2 * len);
-    for (size_t i = 0; i < len; ++i) {
-        const unsigned char c = input[i];
-        output.push_back(lut[c >> 4]);
-        output.push_back(lut[c & 15]);
-    }
-    return output;
 }

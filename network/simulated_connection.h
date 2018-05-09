@@ -11,45 +11,49 @@
 #include "network/acceptor.h"
 #include "network/connection.h"
 
-void simulation_init();
-/**
-  1. Peer A makes connection attemp to peer B when connect() is called.
-  2. Peer B can accept or refuse
-  ...
-**/
-enum event_type {
-  default_event = 0,  //
-  disconnect = 1,  // this is created when disconnect is called and handled on
-  // the other end after some lag
-  connection_attempt = 2,  // this is created when connect is called and handled
-  // on the other end after some lag; on_requested is called
-  send = 3,  // this is created when send is called and handled after some lag;
-  // when handling send on_message_sent is called and read events are generated
-  // for the other end
-  read = 4,  // a message need to be read and on_message_received to be called
-  // if no read has been called, event time is increased
-  accept = 5,  // this is created when a connection is accepted (on_requested
-  // returns true) and handled on the other end afted some lag
-  refuse = 6,  // as above
-  error = 7
-};
-
 class simulated_connection;
 class simulated_acceptor;
 // this could be protobuf message
 // TODO(kari): Shrink it
 struct event {
-  static unsigned int event_ids;
-  static unsigned int new_id();  // gives unique event id
-
-  unsigned int event_id;
-  event_type type;
-  // unsigned int time_created;
-  uint64_t time_of_handling;  // used for sorting in the event queue;
-  simulated_connection* connection_;
-  simulated_acceptor* acceptor_;
+  enum type {
+    undefined = 0,
+    /**
+      This is created when disconnect is called and handled on
+      the other end after some lag
+    */
+    disconnect = 1,
+    /**
+      This is created when connect is called and handled
+      on the other end after some lag; on_requested is called
+    */
+    connection_attempt = 2,
+    /**
+      This is created when send is called and handled after some lag; when
+      handling send, on_message_sent is called and read events are generated
+      for the other end.
+    */
+    send = 3,
+    /**
+     A message need to be read and on_message_received to be called. If no read
+     has been called, event time is increased
+    */
+    read = 4,
+    /**
+      This is created when a connection is accepted (on_requested returns true)
+      and handled on the other end afted some lag.
+    */
+    accept = 5,
+    refuse = 6,  // as above
+    error = 7
+  };
+  type type_;
+  /// uint64_t time_created;
+  uint64_t time_of_handling;
+  /// acceptor's address OR connection's ID in the vector
+  unsigned int recipient;
   std::string data;
-  unsigned int id;  // used for sorting in the event queue;
+  unsigned int message_id;
   event();
   std::string to_string() const;
 };
@@ -58,8 +62,12 @@ struct event {
 struct connection_params {
   unsigned int min_lag;
   unsigned int max_lag;
+  connection_params();
+};
+struct acceptor_params {
   unsigned int max_connections;
   unsigned int bandwidth;
+  acceptor_params();
 };
 
 /**
@@ -75,29 +83,15 @@ class simulation {
   struct q_comparator {
     bool operator() (const event& lhs, const event& rhs) const;
   };
-
-  // TODO(kari): remove this
-  /*class map_comparator {
-   public:
-    bool operator() (const std::pair<int, int>& lhs,
-        const std::pair<int, int>& rhs) const {
-      if (lhs.first == rhs.first) {
-        return lhs.second < rhs.second;
-      }
-      return lhs.first < rhs.first;
-    }
-  };*/
-
   /**
-    Map storing created connections where the key is <address_A, address_B> and
-    the value represents connection A->B. B->A is stored separately.
+    Vector storing created connections.
   **/
-  std::map<std::pair<int, int>, simulated_connection*> connections;
+  std::vector<simulated_connection*> connections;
   std::mutex connections_mutex;
   /**
     Map storing created acceptors where the key is the address.
   **/
-  std::map<int, simulated_acceptor*> acceptors;
+  std::map<uint32_t, simulated_acceptor*> acceptors;
   std::mutex acceptors_mutex;
   /**
     Priority queue storing the events that need to be handled. Lower time of
@@ -144,11 +138,10 @@ class simulation {
     Process all events from simulation_time to the given time.
   **/
   void process(uint64_t time);
-  void add_connection(int address_a, int address_b,
-      simulated_connection* connection_);
-  void add_acceptor(int address, simulated_acceptor* acceptor_);
-  simulated_connection* get_connection(int address_a, int address_b);
-  simulated_acceptor* get_acceptor(int address);
+  void add_connection(simulated_connection* connection_);
+  void add_acceptor(uint32_t address, simulated_acceptor* acceptor_);
+  simulated_connection* get_connection(unsigned int connection_index);
+  simulated_acceptor* get_acceptor(uint32_t address);
   // DEBUG
   void print_q();
   void print_connections();
@@ -156,12 +149,16 @@ class simulation {
 
 class simulated_connection: public connection {
  public:
-  int address_from;
-  int address_to;
+  uint32_t remote_address;
+  unsigned int local_connection_id;
+  unsigned int remote_connection_id;
   state connection_state;
-  unsigned int last_event;  // this is used when setting event time to prevent
-  // events that are called before others to be handled firts because they had
-  // maller lag
+  /**
+    This is used when setting event time to prevent
+    events that are called before others to be handled first because they had
+    smaller lag
+  */
+  unsigned int time_stamp;  // time_stamp
   connection_params parameters;
 
   /**
@@ -189,6 +186,7 @@ class simulated_connection: public connection {
 
   state get_state() const;
   std::string get_address() const;
+  unsigned int get_lag() const;
   void connect();
   void disconnect();
   connection_handler* get_handler();
@@ -201,7 +199,8 @@ class simulated_connection: public connection {
 
 class simulated_acceptor: public acceptor {
  public:
-  std::string address;
+  uint32_t address;  // first 13 bits acceprors, second 19 - ports/connections
+  acceptor_params parameters;
   bool started_accepting;
   connection::connection_handler* accepted_connections_handler;
   simulated_acceptor(const std::string& address_, acceptor::acceptor_handler*
