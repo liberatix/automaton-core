@@ -30,7 +30,6 @@ cc_library(
     "protobuf_schema_message.cc",
     "protobuf_schema_message.h",
   ],
-  copts = ["-Wno-sign-compare"],
   deps = [
 	  "//schema:schema",
   ],
