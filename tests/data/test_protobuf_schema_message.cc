@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
@@ -70,8 +70,8 @@ TEST(protobuf_schema_message, messages) {
   custom_schema.add_message(m2);
   custom_schema.add_message(m4);
 
-  protobuf_schema* scp = new protobuf_schema();
-  protobuf_schema& sc = *scp;
+  protobuf_factory* scp = new protobuf_factory();
+  protobuf_factory& sc = *scp;
   sc.import_schema_definition(&custom_schema, "test", "");
 
   msg* msg1 = sc.new_message(FIRST_MESSAGE);

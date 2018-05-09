@@ -3,16 +3,16 @@
 #include <string>
 
 #include "io/io.h"
-#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema_message.h"
 #include "gtest/gtest.h"
 
 const char * TEST_MSG = "TestMsg";
 
-TEST(protobuf_schema, setting_fields) {
+TEST(protobuf_factory, setting_fields) {
   std::cout << "0" << std::endl;
 
-  protobuf_schema sc;
+  protobuf_factory sc;
 
   std::cout << "0a" << std::endl;
 

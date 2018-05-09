@@ -2,14 +2,14 @@
 #include <iostream>
 #include <string>
 
-#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
 int main(int argc, char* argv[]) {
   try {
     protobuf_schema_definition custom_schema;
-    protobuf_schema sc;
+    protobuf_factory sc;
     sc.import_schema_definition(&custom_schema, "test", "");
   }
   catch (std::exception& e) {

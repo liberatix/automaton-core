@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
@@ -35,7 +35,7 @@ TEST(data_protobuf, messages) {
       schema::field_info(1, schema::string, "string_field", "", false), m1);
   cs3.add_message(m3);
 
-  protobuf_schema sc;
+  protobuf_factory sc;
   sc.import_schema_definition(&cs3, "name1", "pack1");
   sc.import_schema_definition(&cs2, "name2", "pack2");
   sc.import_schema_definition(&cs, "name3", "pack2");

@@ -2,11 +2,11 @@
 #include <iostream>
 #include <string>
 
-#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema_definition.h"
 #include "gtest/gtest.h"
 
-TEST(protobuf_schema, message_serialization) {
+TEST(protobuf_factory, message_serialization) {
   /**
     first_message {
       string string_field = 1;
@@ -21,7 +21,7 @@ TEST(protobuf_schema, message_serialization) {
       schema::int32, "int32_field", "", true), m1);
   custom_schema.add_message(m1);
 
-  protobuf_schema sc;
+  protobuf_factory sc;
   sc.import_schema_definition(&custom_schema, "test", "");
 
   msg * msg1 = sc.new_message(0);

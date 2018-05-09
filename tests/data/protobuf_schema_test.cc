@@ -3,7 +3,7 @@
 #include <string>
 
 #include "io/io.h"
-#include "data/protobuf/protobuf_schema.h"
+#include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema_definition.h"
 
 int main(int argc, char* argv[]) {
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
         schema::field_type::string, "string_field", "", false), m1);
     custom_schema2.add_message(m2);
 
-    protobuf_schema sc;
+    protobuf_factory sc;
     sc.import_schema_from_string(
         get_file_contents("tests/data/test.proto"), "name1", "pack1");
     sc.import_schema_definition(&custom_schema2, "name2", "pack2");
