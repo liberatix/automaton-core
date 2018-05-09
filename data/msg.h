@@ -1,13 +1,13 @@
-#ifndef AUTOMATON_CORE_SCHEMA_SCHEMA_MESSAGE_H__
-#define AUTOMATON_CORE_SCHEMA_SCHEMA_MESSAGE_H__
+#ifndef AUTOMATON_CORE_SCHEMA_msg_H__
+#define AUTOMATON_CORE_SCHEMA_msg_H__
 
 #include <string>
 
 /** Schema message interface
 */
-class schema_message {
+class msg {
  public:
-  virtual ~schema_message() {}
+  virtual ~msg() {}
 
   /**
     Returns the name of the message schema.
@@ -77,15 +77,15 @@ class schema_message {
     of range index on get_repeated_message(), exception will be thrown.
   */
   virtual void set_message(int field_tag,
-                           const schema_message * sub_message) = 0;
+                           const msg * sub_message) = 0;
 
-  virtual schema_message * get_message(int field_tag) = 0;
+  virtual msg * get_message(int field_tag) = 0;
 
   virtual void set_repeated_message(int field_tag,
-                                    const schema_message * sub_message,
+                                    const msg * sub_message,
                                     int index) = 0;
 
-  virtual schema_message * get_repeated_message(int field_tag, int index) = 0;
+  virtual msg * get_repeated_message(int field_tag, int index) = 0;
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if
@@ -103,4 +103,4 @@ class schema_message {
   virtual int get_repeated_enum(int field_tag, int index) = 0;
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_SCHEMA_MESSAGE_H__
+#endif  // AUTOMATON_CORE_SCHEMA_msg_H__

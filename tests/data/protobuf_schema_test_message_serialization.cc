@@ -24,8 +24,8 @@ TEST(protobuf_schema, message_serialization) {
   protobuf_schema sc;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  schema_message * msg1 = sc.new_message(0);
-  schema_message * msg2 = sc.new_message(0);
+  msg * msg1 = sc.new_message(0);
+  msg * msg2 = sc.new_message(0);
 
   msg1->set_string(1, "value");
   msg1->set_repeated_int32(2, 7, -1);

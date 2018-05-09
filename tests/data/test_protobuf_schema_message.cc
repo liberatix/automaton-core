@@ -73,13 +73,13 @@ TEST(protobuf_schema_message, messages) {
   protobuf_schema& sc = *scp;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  schema_message* msg1 = sc.new_message(FIRST_MESSAGE);
-  schema_message* msg2 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg3 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  msg* msg1 = sc.new_message(FIRST_MESSAGE);
+  msg* msg2 = sc.new_message(SECOND_MESSAGE);
+  msg* msg3 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
-  schema_message* msg4 = sc.new_message(FIRST_MESSAGE);
-  schema_message* msg5 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg6 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  msg* msg4 = sc.new_message(FIRST_MESSAGE);
+  msg* msg5 = sc.new_message(SECOND_MESSAGE);
+  msg* msg6 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
   msg1->set_string(1, VALUE_1);
   msg2->set_string(1, VALUE_2);
@@ -109,9 +109,9 @@ TEST(protobuf_schema_message, messages) {
   EXPECT_EQ(msg5->get_string(1), VALUE_2);
   EXPECT_EQ(msg6->get_string(1), VALUE_NESTED);
 
-  schema_message* msg7 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg8 = sc.new_message(SECOND_MESSAGE);
-  schema_message* msg9 = sc.new_message(THIRD_MESSAGE);
+  msg* msg7 = sc.new_message(SECOND_MESSAGE);
+  msg* msg8 = sc.new_message(SECOND_MESSAGE);
+  msg* msg9 = sc.new_message(THIRD_MESSAGE);
 
   msg7->set_string(1, VALUE_A);
   msg8->set_string(1, VALUE_B);
@@ -119,18 +119,18 @@ TEST(protobuf_schema_message, messages) {
   msg9->set_repeated_message(1, msg8, -1);
 
   EXPECT_EQ(msg9->get_repeated_field_size(1), 2);
-  schema_message* msg10 = msg9->get_repeated_message(1, 0);
-  schema_message* msg11 = msg9->get_repeated_message(1, 1);
+  msg* msg10 = msg9->get_repeated_message(1, 0);
+  msg* msg11 = msg9->get_repeated_message(1, 1);
   EXPECT_EQ(msg10->get_string(1), VALUE_A);
   EXPECT_EQ(msg11->get_string(1), VALUE_B);
 
-  schema_message* msg13 = sc.new_message(THIRD_MESSAGE);
+  msg* msg13 = sc.new_message(THIRD_MESSAGE);
   msg9->serialize_message(&data);
   msg13->deserialize_message(data);
 
   EXPECT_EQ(msg13->get_repeated_field_size(1), 2);
-  schema_message* msg14 = msg13->get_repeated_message(1, 0);
-  schema_message* msg15 = msg13->get_repeated_message(1, 1);
+  msg* msg14 = msg13->get_repeated_message(1, 0);
+  msg* msg15 = msg13->get_repeated_message(1, 1);
   EXPECT_EQ(msg14->get_string(1), VALUE_A);
   EXPECT_EQ(msg15->get_string(1), VALUE_B);
 

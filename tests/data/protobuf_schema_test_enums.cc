@@ -66,8 +66,8 @@ TEST(protobuf_schema, enums) {
   protobuf_schema sc;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  schema_message * msg1 = sc.new_message("A");
-  schema_message * msg2 = sc.new_message("A");
+  msg * msg1 = sc.new_message("A");
+  msg * msg2 = sc.new_message("A");
 
   msg1->set_string(1, "value_string");
   int inner_enum_value = sc.get_enum_value(sc.get_enum_id("A.inner_enum"),
@@ -87,8 +87,8 @@ TEST(protobuf_schema, enums) {
   EXPECT_EQ(msg2->get_enum(2), 1);
   EXPECT_EQ(msg2->get_enum(3), 0);
 
-  schema_message * msg3 = sc.new_message(sc.get_schema_id("B"));
-  schema_message * msg4 = sc.new_message(sc.get_schema_id("B"));
+  msg * msg3 = sc.new_message(sc.get_schema_id("B"));
+  msg * msg4 = sc.new_message(sc.get_schema_id("B"));
 
   msg3->set_enum(1, 1);
   msg3->set_repeated_enum(2, 1, -1);

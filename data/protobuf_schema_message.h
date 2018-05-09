@@ -13,17 +13,17 @@
 
 #include <string>
 
-#include "data/schema_message.h"
+#include "data/msg.h"
 
 /**
-  Google Protobuf schema_message implementation.
+  Google Protobuf msg implementation.
   
   This is a wrapper around google::protobuf::Message.
 */
-class protobuf_schema_message : public schema_message {
+class protobuf_schema_message : public msg {
  public:
   /**
-    Constructs a protobuf schema_message implementation.
+    Constructs a protobuf msg implementation.
   */
   explicit protobuf_schema_message(google::protobuf::Message * m) : m(m) {}
 
@@ -105,15 +105,15 @@ class protobuf_schema_message : public schema_message {
     of range index on get_repeated_message(), exception will be thrown.
   */
   void set_message(int field_tag,
-                   const schema_message * sub_message);
+                   const msg * sub_message);
 
-  schema_message * get_message(int field_tag);
+  msg * get_message(int field_tag);
 
   void set_repeated_message(int field_tag,
-                            const schema_message * sub_message,
+                            const msg * sub_message,
                             int index);
 
-  schema_message * get_repeated_message(int field_tag, int index);
+  msg * get_repeated_message(int field_tag, int index);
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if

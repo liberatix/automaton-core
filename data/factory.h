@@ -7,7 +7,7 @@
 #include <utility>
 
 #include "data/schema_definition.h"
-#include "data/schema_message.h"
+#include "data/msg.h"
 
 /** Schema data structure interface.
 */
@@ -102,7 +102,7 @@ class factory {
 
     If the given message_type_id is not valid, exception will be thrown.
   */
-  virtual schema_message* new_message(int message_type_id) = 0;
+  virtual msg* new_message(int message_type_id) = 0;
 
   /**
     Creates new message from a schema name.
@@ -112,7 +112,7 @@ class factory {
 
     If the given schema_name is not valid, exception will be thrown.
   */
-  virtual schema_message* new_message(const char* schema_name) = 0;
+  virtual msg* new_message(const char* schema_name) = 0;
 
   /** Returns the id of the schema with schema_name. Id is needed for creating
       new messages of that type, also getting information about the fields.

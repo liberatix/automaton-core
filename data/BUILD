@@ -7,13 +7,13 @@ cc_library(
   srcs = [
     "factory.cc",
     "schema_definition.cc",
-    "schema_message.cc",
+    "msg.cc",
   ],
   hdrs = [
     "factory.h",
     "schema_definition.h",
     "schema_exception.h",
-    "schema_message.h",
+    "msg.h",
   ],
   deps = [
 	  "@com_google_protobuf//:protobuf",

@@ -224,8 +224,8 @@ int32_t protobuf_schema_message::get_repeated_int32(int field_tag, int index) {
   }
 }
 
-void protobuf_schema_message::set_message(int field_tag,
-    const schema_message * sub_message) {
+void protobuf_schema_message::set_message(
+    int field_tag, const msg* sub_message) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error: No message");
   }
@@ -259,7 +259,7 @@ void protobuf_schema_message::set_message(int field_tag,
 }
 
 // makes a COPY of the message and returns its id
-schema_message * protobuf_schema_message::get_message(int field_tag) {
+msg * protobuf_schema_message::get_message(int field_tag) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -286,7 +286,7 @@ schema_message * protobuf_schema_message::get_message(int field_tag) {
 }
 
 void protobuf_schema_message::set_repeated_message(
-    int field_tag, const schema_message * sub_message, int index = -1) {
+    int field_tag, const msg * sub_message, int index = -1) {
   if (m == nullptr || m->GetDescriptor() == nullptr || sub_message == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -326,7 +326,7 @@ void protobuf_schema_message::set_repeated_message(
 }
 
 // Returns copy of the message
-schema_message * protobuf_schema_message::get_repeated_message(
+msg * protobuf_schema_message::get_repeated_message(
     int field_tag, int index) {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
