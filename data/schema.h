@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_SCHEMA_SCHEMA_DEFINITION_H__
-#define AUTOMATON_CORE_SCHEMA_SCHEMA_DEFINITION_H__
+#ifndef AUTOMATON_CORE_DATA_SCHEMA_H__
+#define AUTOMATON_CORE_DATA_SCHEMA_H__
 
 #include <map>
 #include <string>
@@ -129,4 +129,4 @@ class schema {
       schema_definition_factory;
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_SCHEMA_DEFINITION_H__
+#endif  // AUTOMATON_CORE_DATA_SCHEMA_H__

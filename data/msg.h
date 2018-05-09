@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_SCHEMA_msg_H__
-#define AUTOMATON_CORE_SCHEMA_msg_H__
+#ifndef AUTOMATON_CORE_DATA_MSG_H__
+#define AUTOMATON_CORE_DATA_MSG_H__
 
 #include <string>
 
@@ -103,4 +103,4 @@ class msg {
   virtual int get_repeated_enum(int field_tag, int index) = 0;
 };
 
-#endif  // AUTOMATON_CORE_SCHEMA_msg_H__
+#endif  // AUTOMATON_CORE_DATA_MSG_H__
