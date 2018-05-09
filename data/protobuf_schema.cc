@@ -371,11 +371,11 @@ schema::field_info protobuf_schema::get_field_info(int schema_id,
   std::string full_type = "";
   if (fdesc->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
     full_type = fdesc->message_type()->full_name();
-    type = schema::field_type::message_type;
+    type = schema::message_type;
   } else if (fdesc->cpp_type() ==
       google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
     full_type = fdesc->enum_type()->full_name();
-    type = schema::field_type::enum_type;
+    type = schema::enum_type;
   } else {
     type = protobuf_ccptype_to_type.at(fdesc->cpp_type());
   }

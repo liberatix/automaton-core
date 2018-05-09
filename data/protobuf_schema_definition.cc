@@ -121,9 +121,9 @@ void protobuf_schema_definition::add_scalar_field(
     throw std::out_of_range("No message with id: "
         + std::to_string(message_id));
   }
-  if (field.type == schema::field_type::message_type ||
-      field.type == schema::field_type::enum_type ||
-      field.type == schema::field_type::unknown) {
+  if (field.type == schema::message_type ||
+      field.type == schema::enum_type ||
+      field.type == schema::unknown) {
     throw std::invalid_argument("Wrong field type");
   }
   google::protobuf::DescriptorProto* dpr = messages[message_id];
@@ -146,7 +146,7 @@ void protobuf_schema_definition::add_enum_field(
     throw std::out_of_range("No message with id: "
         + std::to_string(message_id));
   }
-  if (field.type != schema::field_type::enum_type) {
+  if (field.type != schema::enum_type) {
     throw std::invalid_argument("Wrong field type");
   }
   google::protobuf::DescriptorProto* dpr = messages[message_id];
@@ -170,7 +170,7 @@ void protobuf_schema_definition::add_message_field(
     throw std::out_of_range("No message with id: "
         + std::to_string(message_id));
   }
-  if (field.type != schema::field_type::message_type) {
+  if (field.type != schema::message_type) {
     throw std::invalid_argument("Wrong field type");
   }
   google::protobuf::DescriptorProto* dpr = messages[message_id];
