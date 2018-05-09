@@ -60,8 +60,7 @@ void protobuf_schema::register_self() {
   });
 }
 
-void protobuf_schema::extract_nested_messages(
-    const Descriptor* d) {
+void protobuf_schema::extract_nested_messages(const Descriptor* d) {
   if (d == nullptr) {
     throw std::invalid_argument("Message descriptor is nullptr");
   }
@@ -185,8 +184,7 @@ void protobuf_schema::import_schema_definition(schema* schema,
 
 void protobuf_schema::import_schema_from_string(const std::string& proto_def,
       const std::string& package, const std::string& name) {
-  FileDescriptorProto* fileproto =
-      new FileDescriptorProto();
+  FileDescriptorProto* fileproto = new FileDescriptorProto();
   std::istringstream stream(proto_def);
   IstreamInputStream is(&stream);
   Tokenizer tok(&is, &io_error_collector_);
@@ -226,8 +224,7 @@ void protobuf_schema::dump_message_schema(int schema_id,
     if (fd->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
       ostream_ << "message type: " << fd->message_type()->full_name() <<
           std::endl;
-    } else if (fd->cpp_type() ==
-        FieldDescriptor::CPPTYPE_ENUM) {
+    } else if (fd->cpp_type() == FieldDescriptor::CPPTYPE_ENUM) {
       ostream_ << "enum type: " << fd->enum_type()->full_name() << std::endl;
     } else {
       ostream_ << protobuf_type_to_type.at(fd->type()) << std::endl;
@@ -299,8 +296,7 @@ int protobuf_schema::get_enum_value(int enum_id,
   if (enums[enum_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  const EnumValueDescriptor* evd =
-      enums[enum_id]->FindValueByName(value_name);
+  const EnumValueDescriptor* evd = enums[enum_id]->FindValueByName(value_name);
   if (evd == nullptr) {
     throw std::invalid_argument("No enum value " + value_name);
   }

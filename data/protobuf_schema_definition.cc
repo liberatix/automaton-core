@@ -20,9 +20,8 @@ protobuf_schema_definition::protobuf_schema_definition() {
 
 protobuf_schema_definition::~protobuf_schema_definition() {}
 
-FileDescriptorProto*
-    protobuf_schema_definition::get_descriptor() {
-        return file_descriptor_proto;
+FileDescriptorProto* protobuf_schema_definition::get_descriptor() {
+  return file_descriptor_proto;
 }
 
 void protobuf_schema_definition::register_self() {
@@ -32,23 +31,20 @@ void protobuf_schema_definition::register_self() {
   });
 }
 
-void protobuf_schema_definition::add_dependency(const std::string&
-    schema_name) {
+void protobuf_schema_definition::add_dependency(
+    const std::string& schema_name) {
   file_descriptor_proto->add_dependency(schema_name);
 }
 
-int protobuf_schema_definition::create_message(const std::string&
-    message_name) {
-  messages.push_back(
-      Arena::Create
-          <DescriptorProto>(&arena));
+int protobuf_schema_definition::create_message(
+    const std::string& message_name) {
+  messages.push_back(Arena::Create<DescriptorProto>(&arena));
   messages[messages.size() - 1]->set_name(message_name);
   return messages.size() - 1;
 }
 
 int protobuf_schema_definition::create_enum(const std::string& enum_name) {
-  enums.push_back(Arena::Create<
-      EnumDescriptorProto>(&arena));
+  enums.push_back(Arena::Create<EnumDescriptorProto>(&arena));
   enums[enums.size() - 1]->set_name(enum_name);
   return enums.size() - 1;
 }
@@ -93,8 +89,7 @@ void protobuf_schema_definition::add_message(int message_id) {
   if (messages[message_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
-  DescriptorProto* m =
-      file_descriptor_proto->add_message_type();
+  DescriptorProto* m = file_descriptor_proto->add_message_type();
   m->CopyFrom(*messages[message_id]);
 }
 
