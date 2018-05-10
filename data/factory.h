@@ -2,9 +2,10 @@
 #define AUTOMATON_CORE_DATA_FACTORY_H__
 
 #include <map>
+#include <memory>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "data/schema.h"
 #include "data/msg.h"
@@ -104,7 +105,7 @@ class factory {
 
     If the given message_type_id is not valid, exception will be thrown.
   */
-  virtual msg* new_message(int message_type_id) = 0;
+  virtual std::unique_ptr<msg> new_message(int message_type_id) = 0;
 
   /**
     Creates new message from a schema name.
@@ -114,7 +115,7 @@ class factory {
 
     If the given schema_name is not valid, exception will be thrown.
   */
-  virtual msg* new_message(const char* schema_name) = 0;
+  virtual std::unique_ptr<msg> new_message(const char* schema_name) = 0;
 
   /** Returns the id of the schema with schema_name. Id is needed for creating
       new messages of that type, also getting information about the fields.

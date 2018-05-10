@@ -241,7 +241,7 @@ void protobuf_factory::dump_message_schema(int schema_id, std::ostream& ostream_
   ostream_ << "\n}" << std::endl;
 }
 
-msg* protobuf_factory::new_message(int schema_id) {
+std::unique_ptr<msg> protobuf_factory::new_message(int schema_id) {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -249,10 +249,10 @@ msg* protobuf_factory::new_message(int schema_id) {
     throw std::runtime_error("Unexpected error");
   }
   Message* m = schemas[schema_id]->New();
-  return new protobuf_msg(m);
+  return std::unique_ptr<msg>(new protobuf_msg(m));
 }
 
-msg* protobuf_factory::new_message(const char* schema_name) {
+std::unique_ptr<msg> protobuf_factory::new_message(const char* schema_name) {
   return new_message(get_schema_id(schema_name));
 }
 

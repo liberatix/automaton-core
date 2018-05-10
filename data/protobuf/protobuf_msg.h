@@ -11,6 +11,7 @@
 #include <google/protobuf/io/tokenizer.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
+#include <memory>
 #include <string>
 
 #include "data/msg.h"
@@ -29,16 +30,6 @@ class protobuf_msg : public msg {
     Constructs a protobuf msg implementation.
   */
   explicit protobuf_msg(google::protobuf::Message * m) : m(m) {}
-
-  ~protobuf_msg() {
-    if (m != nullptr) {
-      delete m;
-    }
-  }
-
-  operator google::protobuf::Message*() {
-    return m;
-  }
 
   /**
     Returns the name of the message schema.
@@ -106,13 +97,13 @@ class protobuf_msg : public msg {
     will just be added at the end (not on the specified index). If you use out
     of range index on get_repeated_message(), exception will be thrown.
   */
-  void set_message(int field_tag, const msg * sub_message);
+  void set_message(int field_tag, const msg& sub_message);
 
-  msg * get_message(int field_tag);
+  std::unique_ptr<msg> get_message(int field_tag);
 
-  void set_repeated_message(int field_tag, const msg * sub_message, int index);
+  void set_repeated_message(int field_tag, const msg& sub_message, int index);
 
-  msg * get_repeated_message(int field_tag, int index);
+  std::unique_ptr<msg> get_repeated_message(int field_tag, int index);
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if
@@ -130,7 +121,7 @@ class protobuf_msg : public msg {
   int get_repeated_enum(int field_tag, int index);
 
  private:
-  google::protobuf::Message* m;
+  std::unique_ptr<google::protobuf::Message> m;
 };
 
 }  // namespace protobuf
