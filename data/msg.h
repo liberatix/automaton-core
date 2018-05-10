@@ -1,6 +1,7 @@
 #ifndef AUTOMATON_CORE_DATA_MSG_H__
 #define AUTOMATON_CORE_DATA_MSG_H__
 
+#include <memory>
 #include <string>
 
 namespace data {
@@ -9,6 +10,12 @@ namespace data {
 */
 class msg {
  public:
+  msg() {}
+
+  // TODO(asen): Produce a copy of the message.
+  // Disable copy constructor for now.
+  msg(const msg& that) = delete;
+
   virtual ~msg() = 0;
 
   /**
@@ -77,13 +84,13 @@ class msg {
     will just be added at the end (not on the specified index). If you use out
     of range index on get_repeated_message(), exception will be thrown.
   */
-  virtual void set_message(int field_tag, const msg * sub_message) = 0;
+  virtual void set_message(int field_tag, const msg& sub_message) = 0;
 
-  virtual msg * get_message(int field_tag) = 0;
+  virtual std::unique_ptr<msg> get_message(int field_tag) = 0;
 
-  virtual void set_repeated_message(int field_tag, const msg * sub_message, int index) = 0;
+  virtual void set_repeated_message(int field_tag, const msg& sub_message, int index) = 0;
 
-  virtual msg * get_repeated_message(int field_tag, int index) = 0;
+  virtual std::unique_ptr<msg> get_repeated_message(int field_tag, int index) = 0;
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if

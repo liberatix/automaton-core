@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -218,7 +219,7 @@ class protobuf_factory: public factory {
     serializing and deserializing, etc. If the given schema id is not valid,
     exception will be thrown.
   */
-  msg* new_message(int schema_id);
+  std::unique_ptr<msg> new_message(int schema_id);
 
   /**
     Creates new message from a schema name.
@@ -228,7 +229,7 @@ class protobuf_factory: public factory {
 
     If the given schema_name is not valid, exception will be thrown.
   */
-  msg* new_message(const char* schema_name);
+  std::unique_ptr<msg> new_message(const char* schema_name);
 
   /*
     Creates a copy of the message with the given id. If the given id is not

@@ -47,8 +47,7 @@ using data::protobuf::protobuf_schema;
 */
 
 TEST(protobuf_msg, messages) {
-  protobuf_schema* csp = new protobuf_schema();
-  protobuf_schema& custom_schema = *csp;
+  protobuf_schema custom_schema;
   int m1 = custom_schema.create_message(FIRST_MESSAGE);
   int m2 = custom_schema.create_message(SECOND_MESSAGE);
   int m3 = custom_schema.create_message(NESTED_MESSAGE);
@@ -79,18 +78,18 @@ TEST(protobuf_msg, messages) {
   protobuf_factory& sc = *scp;
   sc.import_schema_definition(&custom_schema, "test", "");
 
-  msg* msg1 = sc.new_message(FIRST_MESSAGE);
-  msg* msg2 = sc.new_message(SECOND_MESSAGE);
-  msg* msg3 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  auto msg1 = sc.new_message(FIRST_MESSAGE);
+  auto msg2 = sc.new_message(SECOND_MESSAGE);
+  auto msg3 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
-  msg* msg4 = sc.new_message(FIRST_MESSAGE);
-  msg* msg5 = sc.new_message(SECOND_MESSAGE);
-  msg* msg6 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  auto msg4 = sc.new_message(FIRST_MESSAGE);
+  auto msg5 = sc.new_message(SECOND_MESSAGE);
+  auto msg6 = sc.new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
   msg1->set_string(1, VALUE_1);
   msg2->set_string(1, VALUE_2);
   msg3->set_string(1, VALUE_NESTED);
-  msg1->set_message(2, msg2);
+  msg1->set_message(2, *msg2);
 
   std::cout << "MSG1: " << msg1->to_string() << std::endl <<
                "MSG2: " << msg2->to_string() << std::endl <<
@@ -115,28 +114,28 @@ TEST(protobuf_msg, messages) {
   EXPECT_EQ(msg5->get_string(1), VALUE_2);
   EXPECT_EQ(msg6->get_string(1), VALUE_NESTED);
 
-  msg* msg7 = sc.new_message(SECOND_MESSAGE);
-  msg* msg8 = sc.new_message(SECOND_MESSAGE);
-  msg* msg9 = sc.new_message(THIRD_MESSAGE);
+  auto msg7 = sc.new_message(SECOND_MESSAGE);
+  auto msg8 = sc.new_message(SECOND_MESSAGE);
+  auto msg9 = sc.new_message(THIRD_MESSAGE);
 
   msg7->set_string(1, VALUE_A);
   msg8->set_string(1, VALUE_B);
-  msg9->set_repeated_message(1, msg7, -1);
-  msg9->set_repeated_message(1, msg8, -1);
+  msg9->set_repeated_message(1, *msg7, -1);
+  msg9->set_repeated_message(1, *msg8, -1);
 
   EXPECT_EQ(msg9->get_repeated_field_size(1), 2);
-  msg* msg10 = msg9->get_repeated_message(1, 0);
-  msg* msg11 = msg9->get_repeated_message(1, 1);
+  auto msg10 = msg9->get_repeated_message(1, 0);
+  auto msg11 = msg9->get_repeated_message(1, 1);
   EXPECT_EQ(msg10->get_string(1), VALUE_A);
   EXPECT_EQ(msg11->get_string(1), VALUE_B);
 
-  msg* msg13 = sc.new_message(THIRD_MESSAGE);
+  auto msg13 = sc.new_message(THIRD_MESSAGE);
   msg9->serialize_message(&data);
   msg13->deserialize_message(data);
 
   EXPECT_EQ(msg13->get_repeated_field_size(1), 2);
-  msg* msg14 = msg13->get_repeated_message(1, 0);
-  msg* msg15 = msg13->get_repeated_message(1, 1);
+  auto msg14 = msg13->get_repeated_message(1, 0);
+  auto msg15 = msg13->get_repeated_message(1, 1);
   EXPECT_EQ(msg14->get_string(1), VALUE_A);
   EXPECT_EQ(msg15->get_string(1), VALUE_B);
 
@@ -168,24 +167,21 @@ TEST(protobuf_msg, messages) {
   EXPECT_EQ(field.fully_qualified_type, SECOND_MESSAGE);
   EXPECT_EQ(field.is_repeated, true);
 
-  delete msg1;
-  delete msg2;
-  delete msg3;
-  delete msg4;
-  delete msg5;
-  delete msg6;
-  delete msg7;
-  delete msg8;
-  delete msg9;
-  delete msg10;
-  delete msg11;
-  // delete msg12;
-  delete msg13;
-  delete msg14;
-  delete msg15;
-
-  delete scp;
-  delete csp;
+  msg1.release();
+  msg2.release();
+  msg3.release();
+  msg4.release();
+  msg5.release();
+  msg6.release();
+  msg7.release();
+  msg8.release();
+  msg9.release();
+  msg10.release();
+  msg11.release();
+  // msg12.release();
+  msg13.release();
+  msg14.release();
+  msg15.release();
 
   google::protobuf::ShutdownProtobufLibrary();
 }
