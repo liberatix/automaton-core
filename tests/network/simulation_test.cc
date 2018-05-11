@@ -24,7 +24,7 @@ std::string create_acceptor_address(uint32_t address,
                                       unsigned int min_connections = 4,
                                       unsigned int max_connections = 16,
                                       unsigned int min_bandwidth = 1,
-                                      unsigned int max_bandwidth = 64) {
+                                      unsigned int max_bandwidth = 4) {
   std::stringstream s;
   unsigned int conns;
   conns = std::rand() % max_connections;
@@ -37,12 +37,11 @@ std::string create_acceptor_address(uint32_t address,
 
 class handler: public connection::connection_handler {
  public:
-  void on_message_received(connection* c, char* buffer, unsigned int bytes_read,
-      unsigned int id) {
+  void on_message_received(connection* c, char* buffer, unsigned int bytes_read, unsigned int id) {
     std::string message = std::string(buffer, bytes_read);
     logging("Message \"" + message + "\" received in <" + c->get_address() + ">");
-    if (message.compare("Thank you!")) {
-      c->async_send("Thank you!", send_counter++);
+    if (send_counter < 10) {
+      c -> async_send("Thank you!", send_counter++);
     }
     c -> async_read(buffer, 128, 0, read_counter++);
   }
@@ -81,7 +80,7 @@ class lis_handler: public acceptor::acceptor_handler {
   void on_connected(connection* c, const std::string& address) {
     // logging("Accepted connection from: " + address);
     char* buffer = new char[128];
-    c->async_read(buffer, 128, 0, read_counter++);
+    c->async_read(buffer, 24, 5, read_counter++);
   }
   void on_error(connection::error e) {
     logging("Error (acceptor): " + std::to_string(e));
@@ -89,69 +88,77 @@ class lis_handler: public acceptor::acceptor_handler {
 };
 
 int main() {
-  handler handler_;
-  lis_handler lis_handler_;
-  simulation* sim = simulation::get_simulator();
-  acceptor* acceptorA = acceptor::create("sim",
-                                        create_acceptor_address(1),
-                                        &lis_handler_,
-                                        &handler_);
-  acceptor* acceptorB = acceptor::create("sim",
-                                        create_acceptor_address(2),
-                                        &lis_handler_,
-                                        &handler_);
-  acceptorB->start_accepting();
-  acceptorA->start_accepting();
-  acceptor* acceptorC = acceptor::create("sim",
-                                        create_acceptor_address(3),
-                                        &lis_handler_,
-                                        &handler_);
-  acceptorC->start_accepting();
-  connection* connection_ab = connection::create("sim",
-                                            create_connection_address(3),
-                                            &handler_);
-  connection_ab -> connect();
-  connection_ab -> async_read(new char[128], 128, 0, read_counter++);
-  connection* connection_ac = connection::create("sim",
-                                            create_connection_address(3),
-                                            &handler_);
-  connection_ac -> connect();
-  connection_ac -> async_read(new char[128], 128, 0, read_counter++);
-  connection_ac -> async_send("B0", send_counter++);
-  // connection_bc -> async_send("B1", send_counter++);
-  // connection_bc -> async_send("B2", send_counter++);
-  // connection_ac -> disconnect();
-  // connection_bc -> async_send("B2", send_counter++);  // Error
-  connection_ab -> async_send("A0", send_counter++);
-  for (int i = 0; i <= 35; i++) {
-    logging("PROCESSING: " + std::to_string(i));
-    sim->process(i);
-  }
-  /*
-  connection_ab -> async_send("A1", send_counter++);
-  connection_ab -> async_send("A2", send_counter++);
+  try {
+    handler handler_;
+    lis_handler lis_handler_;
+    simulation* sim = simulation::get_simulator();
+    acceptor* acceptorA = acceptor::create("sim",
+                                          create_acceptor_address(1),
+                                          &lis_handler_,
+                                          &handler_);
+    acceptor* acceptorB = acceptor::create("sim",
+                                          create_acceptor_address(2),
+                                          &lis_handler_,
+                                          &handler_);
+    acceptorB->start_accepting();
+    acceptorA->start_accepting();
+    acceptor* acceptorC = acceptor::create("sim",
+                                          create_acceptor_address(3),
+                                          &lis_handler_,
+                                          &handler_);
+    acceptorC->start_accepting();
+    connection* connection_ab = connection::create("sim",
+                                              create_connection_address(3),
+                                              &handler_);
+    connection_ab -> connect();
+    connection_ab -> async_read(new char[128], 128, 4, read_counter++);
+    connection* connection_ac = connection::create("sim",
+                                              create_connection_address(3),
+                                              &handler_);
+    connection_ac -> connect();
+    connection_ac -> async_read(new char[128], 128, 0, read_counter++);
+    connection_ac -> async_send("B0", send_counter++);
+    // connection_bc -> async_send("B1", send_counter++);
+    // connection_bc -> async_send("B2", send_counter++);
+    // connection_ac -> disconnect();
+    // connection_bc -> async_send("B2", send_counter++);  // Error
+    connection_ab -> async_send("A0", send_counter++);
 
-  /*connection* connection_bc = connection::create("sim", address_c, &handlerB);
-  connection_bc -> connect();
-  connection_bc -> async_read(buffer_bc, 128, 0);
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  connection_bc -> async_send("C0", send_counter++);
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  connection_bc -> async_send("C1", send_counter++);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  connection_bc -> async_send("C2", send_counter++);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  connection_bc -> disconnect();
-  connection_bc -> connect();
-  connection_bc -> async_read(buffer_bc, 128, 0);
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  connection_bc -> async_send("C0", send_counter++);
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  connection_bc -> async_send("C1", send_counter++);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  connection_bc -> async_send("C2", send_counter++);
-  std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-  connection_ab->disconnect();*/
-  // sim->print_q();
+    connection_ab -> async_send("A1", send_counter++);
+    connection_ab -> async_send("A2", send_counter++);
+    // connection* connection_bc = connection::create("sim", address_c, &handlerB);
+    // connection_bc -> connect();
+    // connection_bc -> async_read(buffer_bc, 128, 0);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // connection_bc -> async_send("C0", send_counter++);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // connection_bc -> async_send("C1", send_counter++);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // connection_bc -> async_send("C2", send_counter++);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // connection_bc -> disconnect();
+    // connection_bc -> connect();
+    // connection_bc -> async_read(buffer_bc, 128, 0);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // connection_bc -> async_send("C0", send_counter++);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // connection_bc -> async_send("C1", send_counter++);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // connection_bc -> async_send("C2", send_counter++);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    // connection_ab->disconnect();
+    // ==============================================
+    for (int i = 0; i <= 35; i++) {
+      logging("PROCESSING: " + std::to_string(i));
+      // sim->print_connections();
+      sim->process(i);
+    }
+    // sim->print_q();
+  } catch (std::exception e) {
+    logging("EXCEPTION ");
+    logging(e.what());
+  } catch(...) {
+    logging("EXCEPTION!");
+  }
   return 0;
 }

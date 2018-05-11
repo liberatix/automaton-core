@@ -18,33 +18,12 @@ class simulated_acceptor;
 struct event {
   enum type {
     undefined = 0,
-    /**
-      This is created when disconnect is called and handled on
-      the other end after some lag
-    */
     disconnect = 1,
-    /**
-      This is created when connect is called and handled
-      on the other end after some lag; on_requested is called
-    */
     connection_attempt = 2,
-    /**
-      This is created when send is called and handled after some lag; when
-      handling send, on_message_sent is called and read events are generated
-      for the other end.
-    */
     send = 3,
-    /**
-     A message need to be read and on_message_received to be called. If no read
-     has been called, event time is increased
-    */
-    read = 4,
-    /**
-      This is created when a connection is accepted (on_requested returns true)
-      and handled on the other end afted some lag.
-    */
-    accept = 5,
-    refuse = 6,  // as above
+    accept = 4,
+    refuse = 5,
+    ack_received = 6,
     error = 7
   };
   type type_;
@@ -139,9 +118,11 @@ class simulation {
   **/
   void process(uint64_t time);
   void add_connection(simulated_connection* connection_);
+  void remove_connection(unsigned int connection_id);
   void add_acceptor(uint32_t address, simulated_acceptor* acceptor_);
   simulated_connection* get_connection(unsigned int connection_index);
   simulated_acceptor* get_acceptor(uint32_t address);
+  simulated_acceptor* get_acceptor_by_connection(unsigned int connection_id);
   // DEBUG
   void print_q();
   void print_connections();
@@ -154,9 +135,11 @@ class simulated_connection: public connection {
   unsigned int remote_connection_id;
   state connection_state;
   /**
-    This is used when setting event time to prevent
-    events that are called before others to be handled first because they had
-    smaller lag
+    This is used when setting event time to prevent events that are called before others to be
+    handled first because they had smaller lag. It shows the last time when THIS endpoint send
+    something to the other (message, acknowlede). When the other send acknowlede of some kind,
+    this time_stamp is NOT taken into account and it is possible 2 events for this connection to be
+    in the event queue at the same time.
   */
   unsigned int time_stamp;  // time_stamp
   connection_params parameters;
@@ -168,13 +151,22 @@ class simulated_connection: public connection {
   std::queue<char*> buffers;
   std::queue<unsigned int> buffers_sizes;
   std::queue<unsigned int> expect_to_read;
-  std::queue<int> read_ids;
+  std::queue<unsigned int> read_ids;
   /**
     Bytes that are already read, but not yet passed to the handler. When
     bytes_read is equal to expect_to_read, on_message_received is called and
     bytes_read becomes 0.
   **/
   unsigned int bytes_read;
+
+  /**
+    Queue storing message_id and how many bytes from this message have left and should be
+    sent
+  */
+  std::queue<std::pair<unsigned int, unsigned int> > sending;
+
+  std::queue<std::string> receive_buffer;
+
 
   simulated_connection(const std::string& address_,
       connection_handler* handler_);
@@ -183,6 +175,7 @@ class simulated_connection: public connection {
   void async_send(const std::string& message, unsigned int message_id);
   void async_read(char* buffer, unsigned int buffer_size,
       unsigned int num_bytes, unsigned int id);
+  void handle_read();
 
   state get_state() const;
   std::string get_address() const;
