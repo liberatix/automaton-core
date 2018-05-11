@@ -36,13 +36,13 @@ class protobuf_msg : public msg {
 
     If schema with the given name doesn't exist, exception will be thrown.
   */
-  std::string get_message_type();
+  std::string get_message_type() const;
 
   /** Returns the size of the repeated field in the given message. If no such
       message or field exists or if the field is not repeated, exception will be
       thrown.
   */
-  int get_repeated_field_size(int field_tag);
+  int get_repeated_field_size(int field_tag) const;
 
   /** Serializes the given message into the given string. If no such message
       exists or some error while serializing happens, exception will be thrown.
@@ -71,19 +71,19 @@ class protobuf_msg : public msg {
   */
   void set_string(int field_tag, const std::string& value);
 
-  std::string get_string(int field_tag);
+  std::string get_string(int field_tag) const;
 
   void set_repeated_string(int field_tag, const std::string& value, int index);
 
-  std::string get_repeated_string(int field_tag, int index);
+  std::string get_repeated_string(int field_tag, int index) const;
 
   void set_int32(int field_tag, int32_t value);
 
-  int32_t get_int32(int field_tag);
+  int32_t get_int32(int field_tag) const;
 
   void set_repeated_int32(int field_tag, int32_t value, int index);
 
-  int32_t get_repeated_int32(int field_tag, int index);
+  int32_t get_repeated_int32(int field_tag, int index) const;
 
   /*
     Setters and getters for message type fields. When you use setters, you
@@ -99,11 +99,11 @@ class protobuf_msg : public msg {
   */
   void set_message(int field_tag, const msg& sub_message);
 
-  std::unique_ptr<msg> get_message(int field_tag);
+  std::unique_ptr<msg> get_message(int field_tag) const;
 
   void set_repeated_message(int field_tag, const msg& sub_message, int index);
 
-  std::unique_ptr<msg> get_repeated_message(int field_tag, int index);
+  std::unique_ptr<msg> get_repeated_message(int field_tag, int index) const;
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if
@@ -114,11 +114,11 @@ class protobuf_msg : public msg {
   */
   void set_enum(int field_tag, int value);
 
-  int get_enum(int field_tag);
+  int get_enum(int field_tag) const;
 
   void set_repeated_enum(int field_tag, int value, int index);
 
-  int get_repeated_enum(int field_tag, int index);
+  int get_repeated_enum(int field_tag, int index) const;
 
  private:
   std::unique_ptr<google::protobuf::Message> m;

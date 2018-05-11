@@ -23,13 +23,13 @@ class msg {
 
     If schema with the given name doesn't exist, exception will be thrown.
   */
-  virtual std::string get_message_type() = 0;
+  virtual std::string get_message_type() const = 0;
 
   /** Returns the size of the repeated field in the given message. If no such
       message or field exists or if the field is not repeated, exception will be
       thrown.
   */
-  virtual int get_repeated_field_size(int field_tag) = 0;
+  virtual int get_repeated_field_size(int field_tag) const = 0;
 
   /** Serializes the given message into the given string. If no such message
       exists or some error while serializing happens, exception will be thrown.
@@ -58,19 +58,19 @@ class msg {
   */
   virtual void set_string(int field_tag, const std::string& value) = 0;
 
-  virtual std::string get_string(int field_tag) = 0;
+  virtual std::string get_string(int field_tag) const = 0;
 
   virtual void set_repeated_string(int field_tag, const std::string& value, int index) = 0;
 
-  virtual std::string get_repeated_string(int field_tag, int index) = 0;
+  virtual std::string get_repeated_string(int field_tag, int index) const = 0;
 
   virtual void set_int32(int field_tag, int32_t value) = 0;
 
-  virtual int32_t get_int32(int field_tag) = 0;
+  virtual int32_t get_int32(int field_tag) const = 0;
 
   virtual void set_repeated_int32(int field_tag, int32_t value, int index) = 0;
 
-  virtual int32_t get_repeated_int32(int field_tag, int index) = 0;
+  virtual int32_t get_repeated_int32(int field_tag, int index) const = 0;
 
   /*
     Setters and getters for message type fields. When you use setters, you
@@ -86,11 +86,11 @@ class msg {
   */
   virtual void set_message(int field_tag, const msg& sub_message) = 0;
 
-  virtual std::unique_ptr<msg> get_message(int field_tag) = 0;
+  virtual std::unique_ptr<msg> get_message(int field_tag) const = 0;
 
   virtual void set_repeated_message(int field_tag, const msg& sub_message, int index) = 0;
 
-  virtual std::unique_ptr<msg> get_repeated_message(int field_tag, int index) = 0;
+  virtual std::unique_ptr<msg> get_repeated_message(int field_tag, int index) const = 0;
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if
@@ -101,11 +101,11 @@ class msg {
   */
   virtual void set_enum(int field_tag, int value) = 0;
 
-  virtual int get_enum(int field_tag) = 0;
+  virtual int get_enum(int field_tag) const = 0;
 
   virtual void set_repeated_enum(int field_tag, int value, int index) = 0;
 
-  virtual int get_repeated_enum(int field_tag, int index) = 0;
+  virtual int get_repeated_enum(int field_tag, int index) const = 0;
 };
 
 }  // namespace data
