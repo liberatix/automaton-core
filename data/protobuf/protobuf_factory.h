@@ -166,27 +166,27 @@ class protobuf_factory: public factory {
   /*
     Returns the number of enums in the whole schema definition (both top-level and nested).
   */
-  int get_enums_number();
+  int get_enums_number() const;
 
   /*
     Get the id of the enum with enum_name. Id is needed for getting information about the enum
     values. If enum with the given name doesn't exist, exception will be thrown.
   */
-  int get_enum_id(const std::string& enum_name);
+  int get_enum_id(const std::string& enum_name) const;
 
   /*
     Returns enum value matching value name.
 
     If no such enum or name exists, exception will be thrown.
   */
-  int get_enum_value(int enum_id, const std::string& value_name);
+  int get_enum_value(int enum_id, const std::string& value_name) const;
 
   /*
     Returns a vector of pairs containing info about the values in this enum.
     A pair represents the string name of the value and the int value. If no such
     enum exists, exception will be thrown.
   */
-  std::vector<std::pair<std::string, int> > get_enum_values(int enum_id);
+  std::vector<std::pair<std::string, int> > get_enum_values(int enum_id) const;
 
   /*
     Prints information about a message schema and its fields. If the given
@@ -198,20 +198,20 @@ class protobuf_factory: public factory {
     Returns the number of messages in the whole schema definition (both
     top-level and nested).
   */
-  int get_schemas_number();
+  int get_schemas_number() const;
 
   /*
     Returns the number of fields in the schema with the given id. If no such
     schema exists, exception will be thrown.
   */
-  int get_fields_number(int schema_id);
+  int get_fields_number(int schema_id) const;
 
   /*
     Returns info about the specified field. Index must be >= 0 and <
     get_fields_number(schema_id). If no such schema or such field exists,
     exception will be thrown.
   */
-  schema::field_info get_field_info(int schema_id, int index);
+  schema::field_info get_field_info(int schema_id, int index) const;
 
   /*
     Creates new message from a schema with schema_id. Returns id of the
@@ -242,19 +242,19 @@ class protobuf_factory: public factory {
     messages of that type, also getting information about the fields. If schema
     with the given name doesn't exist, exception will be thrown.
   */
-  int get_schema_id(const std::string& schema_name);
+  int get_schema_id(const std::string& schema_name) const;
 
   /*
     Returns the name of the schema of message with the given id. If schema with
     the given name doesn't exist, exception will be thrown.
   */
-  std::string get_schema_name(int schema_id);
+  std::string get_schema_name(int schema_id) const;
 
   /*
     Returns the schema id of the message with the given id. If such message
     doesn't exist, exception will be thrown.
   */
-  int get_message_schema_id(int message_id);
+  int get_message_schema_id(int message_id) const;
 
   /*
     Returns the type (as a string) of the field with the given tag in the
@@ -267,7 +267,7 @@ class protobuf_factory: public factory {
     Use the result of this function in set_*() and get_*() and in
     set_repeated_*() and get_repeated_*() if the field is repeated.
   */
-  std::string get_field_type(int schema_id, int tag);
+  std::string get_field_type(int schema_id, int tag) const;
 
   /*
     If the type of the field is message, returns the fully-qualified name of
@@ -275,21 +275,21 @@ class protobuf_factory: public factory {
     field with the given tag or the field type is not message,
     exception will be thrown.
   */
-  std::string get_message_field_type(int schema_id, int tag);
+  std::string get_message_field_type(int schema_id, int tag) const;
 
   /*
     If the type of the field is enum, returns the fully-qualified name of
     the enum type. If the given schema id is not valid or if there is no field
     with the given tag or the field type is not enum, exception will be thrown.
   */
-  std::string get_enum_field_type(int schema_id, int tag);
+  std::string get_enum_field_type(int schema_id, int tag) const;
 
   /*
     Returns the tag of the field with the given name in the schema with the
     given id. If the given schema id is not valid or there is no field with the
     given name, exception will be thrown.
   */
-  int get_field_tag(int schema_id, const std::string& name);
+  int get_field_tag(int schema_id, const std::string& name) const;
 
   /*
     Returns true if the field is repeated, false, otherwise. If the given schema
