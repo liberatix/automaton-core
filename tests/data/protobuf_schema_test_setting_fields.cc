@@ -28,7 +28,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // No such field
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_string(100, "value");
   }
   catch (std::invalid_argument& e) {
@@ -41,7 +41,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is repeated
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_string(4, "value");
   }
   catch (std::invalid_argument& e) {
@@ -54,7 +54,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Field is not string
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_string(3, "value");
   }
   catch (std::invalid_argument& e) {
@@ -71,7 +71,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // No such field
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_repeated_string(100, "value", -1);
   }
   catch (std::invalid_argument& e) {
@@ -82,7 +82,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is not repeated
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_repeated_string(1, "value", -1);
   }
   catch (std::invalid_argument& e) {
@@ -93,7 +93,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Field is not string
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_repeated_string(3, "value", -1);
   }
   catch (std::invalid_argument& e) {
@@ -106,7 +106,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // No such field
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_int32(100, 42);
   }
   catch (std::invalid_argument& e) {
@@ -117,7 +117,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is repeated
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_int32(7, 42);
   }
   catch (std::invalid_argument& e) {
@@ -128,7 +128,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Field is not int32
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_int32(1, 42);
   }
   catch (std::invalid_argument& e) {
@@ -141,7 +141,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // No such field
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_repeated_int32(100, 42, -1);
   }
   catch (std::invalid_argument& e) {
@@ -152,7 +152,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is not repeated
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_repeated_int32(2, 42, -1);
   }
   catch (std::invalid_argument& e) {
@@ -163,7 +163,7 @@ TEST(protobuf_factory, setting_fields) {
 
   // Field is not int32
   try {
-    msg * msg = sc.new_message(TEST_MSG);
+    auto msg = sc.new_message(TEST_MSG);
     msg->set_repeated_int32(4, 42, -1);
   }
   catch (std::invalid_argument& e) {
