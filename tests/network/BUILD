@@ -3,3 +3,9 @@ cc_binary (
 	srcs = ["tcp_impl_test.cc",],
 	deps = ["//network:network_tcp",]
 )
+
+cc_binary (
+	name = "simulation_test",
+	srcs = ["simulation_test.cc",],
+	deps = ["//network:simulated_connection",]
+)
