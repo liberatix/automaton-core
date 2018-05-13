@@ -12,22 +12,23 @@
   Class that represents a connection between two peers. It is used to connect to
   remote peer or is used by the acceptor class when accepts an incoming
   connection.
-**/
+*/
 
 class connection {
  public:
   /**
     TODO(kari)
-  **/
+  */
   enum state {
     invalid_state = 0,
     connecting = 1,
     connected = 2,
     disconnected = 3,
   };
+
   /**
     TODO(kari)
-  **/
+  */
   enum error {
     no_error = 0,
     unknown = 1,
@@ -52,7 +53,7 @@ class connection {
         by the local or the remote peer
       - on_error will be invoked when an error happens while listening or
         accepting.
-  **/
+  */
   class connection_handler {
    public:
     virtual void on_message_received(connection* c, char* buffer,
@@ -68,7 +69,7 @@ class connection {
     Function that is used to send message to the remote peer. Id shows the
     sequence_id at the time of sending the message. On_message_sent should be
     invoked once the message was sent successfully.
-  **/
+  */
   virtual void async_send(const std::string& message, unsigned int id = 0) = 0;
   virtual void async_read(char* buffer, unsigned int buffer_size,
       unsigned int num_bytes = 0, unsigned int id = 0) = 0;
@@ -83,7 +84,7 @@ class connection {
     The child class should first be registered using register_acceptor_type
     function. The function returns object from the specified class. If no such
     class type was registered, NULL will be returned.
-  **/
+  */
   static connection* create(const std::string& type, const std::string& address,
       connection_handler* handler);
 
@@ -97,14 +98,14 @@ class connection {
     object. See "typedef connection* (*factory_function)..." above to check what
     arguments should this function accept. If such type name exists in the
     registry, the factory_function pointer will be overriden.
-  **/
+  */
   static void register_connection_type(const std::string& type,
       factory_function func);
 
  protected:
   /**
   Class constructor.
-  **/
+  */
   explicit connection(connection_handler* handler_);
 
   /**
@@ -112,14 +113,14 @@ class connection {
     If no handler or a handler with empty function implementations is provided,
     client will not have access to events information like connect/ disconnect,
     received messages or an error that happend.
-  **/
+  */
   connection_handler* handler;
 
  private:
   /**
     Map that stores registered child classes and pointers to funtions that are
     used to create objects.
-  **/
+  */
   static std::map<std::string, factory_function> connection_factory;
 };
 
