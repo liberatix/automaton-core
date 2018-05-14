@@ -10,14 +10,14 @@ using google::protobuf::Reflection;
 namespace data {
 namespace protobuf {
 
-string protobuf_msg::get_message_type() {
+string protobuf_msg::get_message_type() const {
   if (m == nullptr) {
     throw std::runtime_error("Unexpected error: No message");
   }
   return m->GetTypeName();
 }
 
-int protobuf_msg::get_repeated_field_size(int field_tag) {
+int protobuf_msg::get_repeated_field_size(int field_tag) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -74,7 +74,7 @@ void protobuf_msg::set_string(int field_tag, const string& value) {
   m->GetReflection()->SetString(m.get(), fdesc, value);
 }
 
-string protobuf_msg::get_string(int field_tag) {
+string protobuf_msg::get_string(int field_tag) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -115,8 +115,7 @@ void protobuf_msg::set_repeated_string(int field_tag,
   }
 }
 
-string protobuf_msg::get_repeated_string(
-      int field_tag, int index) {
+string protobuf_msg::get_repeated_string(int field_tag, int index) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -156,7 +155,7 @@ void protobuf_msg::set_int32(int field_tag, int32_t value) {
   m->GetReflection()->SetInt32(m.get(), fdesc, value);
 }
 
-int32_t protobuf_msg::get_int32(int field_tag) {
+int32_t protobuf_msg::get_int32(int field_tag) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -198,7 +197,7 @@ void protobuf_msg::set_repeated_int32(
   }
 }
 
-int32_t protobuf_msg::get_repeated_int32(int field_tag, int index) {
+int32_t protobuf_msg::get_repeated_int32(int field_tag, int index) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -253,7 +252,7 @@ void protobuf_msg::set_message(int field_tag, const msg& sub_message) {
 }
 
 // makes a COPY of the message and returns its id
-std::unique_ptr<msg> protobuf_msg::get_message(int field_tag) {
+std::unique_ptr<msg> protobuf_msg::get_message(int field_tag) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -316,7 +315,7 @@ void protobuf_msg::set_repeated_message(int field_tag, const msg& sub_message, i
 }
 
 // Returns copy of the message
-std::unique_ptr<msg> protobuf_msg::get_repeated_message(int field_tag, int index) {
+std::unique_ptr<msg> protobuf_msg::get_repeated_message(int field_tag, int index) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -364,7 +363,7 @@ void protobuf_msg::set_enum(int field_tag, int value) {
   m->GetReflection()->SetEnumValue(m.get(), fdesc, value);
 }
 
-int protobuf_msg::get_enum(int field_tag) {
+int protobuf_msg::get_enum(int field_tag) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -409,7 +408,7 @@ void protobuf_msg::set_repeated_enum(int field_tag, int value, int index = -1) {
   }
 }
 
-int protobuf_msg::get_repeated_enum(int field_tag, int index) {
+int protobuf_msg::get_repeated_enum(int field_tag, int index) const {
   if (m == nullptr || m->GetDescriptor() == nullptr) {
     throw std::runtime_error("Unexpected error");
   }

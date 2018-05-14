@@ -15,6 +15,7 @@ event::event() {
   data = "";
   message_id = 0;
 }
+
 std::string event::to_string() const {
   std::stringstream output;
   switch (type_) {
@@ -77,18 +78,21 @@ simulation::simulation():simulation_time(0) {
   connections.push_back(nullptr);
   std::srand(816405263);
 }
+
 simulation::~simulation() {}
 
 void simulation::push_event(const event& event_) {
   std::lock_guard<std::mutex> lock(q_mutex);
   event_q.push(event_);
 }
+
 simulation* simulation::get_simulator() {
   if (simulator) {
     return simulator;
   }
   return simulator = new simulation();
 }
+
 void simulation::handle_event(const event& e) {
   // logging("HANDLING: " + e.to_string());
   simulation* sim = simulation::get_simulator();
@@ -146,7 +150,7 @@ void simulation::handle_event(const event& e) {
         /**
           Remote address of the other connection is 0 which means connect to that address is not
           possible.
-        **/
+        */
         std::string new_addr =
             std::to_string(params->min_lag) + ":" + std::to_string(params->max_lag) + ":0";
         simulated_connection* new_connection =
@@ -434,6 +438,7 @@ void simulated_connection::handle_read() {
     }
   }
 }
+
 void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
     unsigned int num_bytes = 0, unsigned int id = 0) {
   // logging("async_read called");
@@ -441,7 +446,7 @@ void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
     This function does not create event. Actual reading will happen when the
     other endpoint sends a message and it arrives (send event is handled and
     read event is created).
-  **/
+  */
   if (num_bytes > buffer_size) {
     logging("ERROR: Buffer size is smaller than needed! Reading aborted!");
     return;
@@ -455,6 +460,7 @@ void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
     handle_read();
   }
 }
+
 bool simulated_connection::parse_address(const std::string& address) {
   std::regex rgx_sim("(\\d+):(\\d+):(\\d+)");
   std::smatch match;
@@ -479,16 +485,19 @@ bool simulated_connection::parse_address(const std::string& address) {
 connection::state simulated_connection::get_state() const {
   return connection_state;
 }
+
 std::string simulated_connection::get_address() const {
   return "conn_id:" + std::to_string(local_connection_id) + "/remote_conn_id:" +
       std::to_string(remote_connection_id) + "/accptr:" + std::to_string(remote_address);
 }
+
 unsigned int simulated_connection::get_lag() const {
   if (parameters.min_lag == parameters.max_lag) {
     return parameters.min_lag;
   }
   return std::rand() % (parameters.max_lag - parameters.min_lag) + parameters.min_lag;
 }
+
 void simulated_connection::connect() {
   if (!remote_address) {
     throw std::runtime_error("Cannot connect: No address to connect to!");
@@ -504,6 +513,7 @@ void simulated_connection::connect() {
   time_stamp = new_event.time_of_handling;
   sim->push_event(new_event);
 }
+
 void simulated_connection::disconnect() {
     // // logging("disconnected called");
     // if (connection_state != connection::state::connected) {
@@ -545,7 +555,7 @@ void simulated_connection::clear_queues() {
   std::swap(read_ids, empty_read_ids);
   std::queue<std::pair<unsigned int, unsigned int> > empty_sending;
   std::swap(sending, empty_sending);
-  std::queue<unsigned int, unsigned int> empty_receive_buffer;
+  std::queue<std::string> empty_receive_buffer;
   std::swap(receive_buffer, empty_receive_buffer);
 }
 // ACCEPTOR
@@ -567,6 +577,7 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
     address = 0;
   }
 }
+
 bool simulated_acceptor::parse_address(const std::string& address_) {
   std::regex rgx_sim("(\\d+):(\\d+):(\\d+)");
   std::smatch match;

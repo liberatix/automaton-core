@@ -256,19 +256,19 @@ std::unique_ptr<msg> protobuf_factory::new_message(const char* schema_name) {
   return new_message(get_schema_id(schema_name));
 }
 
-int protobuf_factory::get_schemas_number() {
+int protobuf_factory::get_schemas_number() const {
   return schemas.size();
 }
 
-int protobuf_factory::get_enums_number() {
+int protobuf_factory::get_enums_number() const {
   return enums.size();
 }
 
-int protobuf_factory::get_enum_id(const string& enum_name) {
+int protobuf_factory::get_enum_id(const string& enum_name) const {
   if (enums_names.find(enum_name) == enums_names.end()) {
     throw std::invalid_argument("No enum '" + enum_name + '\'');
   }
-  return enums_names[enum_name];
+  return enums_names.at(enum_name);
 }
 
 void protobuf_factory::dump_enum(int enum_id, std::ostream& ostream_) {
@@ -289,8 +289,7 @@ void protobuf_factory::dump_enum(int enum_id, std::ostream& ostream_) {
   ostream_ << "}" << std::endl;
 }
 
-int protobuf_factory::get_enum_value(int enum_id,
-    const string& value_name) {
+int protobuf_factory::get_enum_value(int enum_id, const string& value_name) const {
   if (enum_id < 0 || enum_id >= enums.size()) {
     throw std::out_of_range("No enum with id: " + std::to_string(enum_id));
   }
@@ -305,7 +304,7 @@ int protobuf_factory::get_enum_value(int enum_id,
 }
 
 std::vector<std::pair<string, int> > protobuf_factory::get_enum_values(
-      int enum_id) {
+      int enum_id) const {
   if (enum_id < 0 || enum_id >= enums.size()) {
     throw std::out_of_range("No enum with id: " + std::to_string(enum_id));
   }
@@ -322,7 +321,7 @@ std::vector<std::pair<string, int> > protobuf_factory::get_enum_values(
   return result;
 }
 
-int protobuf_factory::get_fields_number(int schema_id) {
+int protobuf_factory::get_fields_number(int schema_id) const {
   if (!(schema_id >= 0 && schema_id < schemas.size())) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -348,8 +347,7 @@ bool protobuf_factory::is_repeated(int schema_id, int field_tag) {
   throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
 }
 
-schema::field_info protobuf_factory::get_field_info(int schema_id,
-      int index) {
+schema::field_info protobuf_factory::get_field_info(int schema_id, int index) const {
   if (!(schema_id >= 0 && schema_id < schemas.size())) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -380,14 +378,14 @@ schema::field_info protobuf_factory::get_field_info(int schema_id,
       fdesc->is_repeated());
 }
 
-int protobuf_factory::get_schema_id(const string& message_name) {
+int protobuf_factory::get_schema_id(const string& message_name) const {
   if (schemas_names.find(message_name) == schemas_names.end()) {
     throw std::invalid_argument("No schema '" + message_name + '\'');
   }
-  return schemas_names[message_name];
+  return schemas_names.at(message_name);
 }
 
-string protobuf_factory::get_schema_name(int schema_id) {
+string protobuf_factory::get_schema_name(int schema_id) const {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -397,7 +395,7 @@ string protobuf_factory::get_schema_name(int schema_id) {
   return schemas[schema_id]->GetTypeName();
 }
 
-string protobuf_factory::get_field_type(int schema_id, int tag) {
+string protobuf_factory::get_field_type(int schema_id, int tag) const {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -412,8 +410,7 @@ string protobuf_factory::get_field_type(int schema_id, int tag) {
   throw std::invalid_argument("No field with tag: " + std::to_string(tag));
 }
 
-string protobuf_factory::get_message_field_type(int schema_id,
-      int field_tag) {
+string protobuf_factory::get_message_field_type(int schema_id, int field_tag) const {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -430,7 +427,7 @@ string protobuf_factory::get_message_field_type(int schema_id,
   throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
 }
 
-string protobuf_factory::get_enum_field_type(int schema_id, int field_tag) {
+string protobuf_factory::get_enum_field_type(int schema_id, int field_tag) const {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
@@ -448,7 +445,7 @@ string protobuf_factory::get_enum_field_type(int schema_id, int field_tag) {
       std::to_string(field_tag));
 }
 
-int protobuf_factory::get_field_tag(int schema_id, const string& name) {
+int protobuf_factory::get_field_tag(int schema_id, const string& name) const {
   if (schema_id < 0 || schema_id >= schemas.size()) {
     throw std::out_of_range("No schema with id: " + std::to_string(schema_id));
   }
