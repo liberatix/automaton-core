@@ -130,7 +130,8 @@ void simulation::handle_event(const event& e) {
         refused, new event type refuse is created.
       **/
       if (connection_->connection_state == connection::state::disconnected) {
-
+        logging("ERROR: Peer requesting connection has disconnected!");
+        break;
       }
       event new_event;
       new_event.recipient = e.recipient;
@@ -174,12 +175,18 @@ void simulation::handle_event(const event& e) {
       /**
         This is when the message is received from connection in remote.
       */
+      /**
+      TODO(kari):
+      1. if connection_->state == disconnected --> operation cancelled / closed by peer;
+       remote connection won't be able to send ack to connection and needs to call on_disconnect
+      2. if !remote_connection || remote_connection->get_state() != connection::state::connected
+        --> broken_pipe (&& this is still connected; haven't received disconnect message yet)
+      */
       simulated_connection* remote_connection =
           sim->get_connection(connection_->remote_connection_id);
       // logging("send 1");
-      if (remote_connection->get_state() != connection::state::connected) {
-        // ack to remote -> broken_pipe
-        // logging("send 1.1");
+      if (!remote_connection || remote_connection->get_state() != connection::state::connected) {
+        logging("ERROR in handling send!")
         break;
       }
       if (e.message_id != connection_->sending.front().first) {
@@ -197,10 +204,7 @@ void simulation::handle_event(const event& e) {
       unsigned int bytes_left = connection_->sending.front().second;
       unsigned int bytes_to_send = bytes_left < bandwidth ? bytes_left : bandwidth;
       remote_connection->receive_buffer.push(e.data.substr((e.data.size() - bytes_left),
-                                                        bytes_to_send));
-
-      // logging("bandwidth:" + std::to_string(bandwidth) + " bytes_left: " +
-      //    std::to_string(bytes_left) + " to_send: " + std::to_string(bytes_to_send));
+                                                            bytes_to_send));
       connection_->sending.front().second -= bytes_to_send;
       /// If the connection can read
       if (remote_connection->read_ids.size()) {
