@@ -186,7 +186,7 @@ void simulation::handle_event(const event& e) {
           sim->get_connection(connection_->remote_connection_id);
       // logging("send 1");
       if (!remote_connection || remote_connection->get_state() != connection::state::connected) {
-        logging("ERROR in handling send!")
+        logging("ERROR in handling send!");
         break;
       }
       if (e.message_id != connection_->sending.front().first) {
