@@ -90,175 +90,175 @@ simulation* simulation::get_simulator() {
   return simulator = new simulation();
 }
 void simulation::handle_event(const event& e) {
-    // logging("HANDLING: " + e.to_string());
-    simulation* sim = simulation::get_simulator();
-    simulated_connection* connection_ = sim->get_connection(e.recipient);
-    if (!connection_) {
-      throw std::runtime_error("ERROR: No such connection");
-      return;
-    }
-    switch (e.type_) {
-      case event::type::disconnect: {
-        // logging("disconnect 0");
-        /**
-          This event is created when the other endpoint has called disconnect().
-          Sets connection state to disconnected.
-          TODO(kari): If possible delete related events in the queue and
-          delete connection fron map. NOTE: Maybe it is better not to delete events
-          so proper errors could be passed (operation cancelled, broken_pipe, etc.)
-        */
-        if (connection_->connection_state == connection::state::connected) {
-          logging("Other peer closed connection in: " + connection_->get_address());
-          connection_->connection_state = connection::state::disconnected;
-          connection_->get_handler()->on_disconnected(connection_);
-          // TODO(kari): Clear queues and call handlers with error, delete connection ids
-        }
-        // logging("disconnect 1");
-        break;
-      }
-      case event::type::connection_attempt: {
-          // logging("attempt 0");
-        /**
-          This event is created when the other endpoint has called connect(). On_requested is called
-          and if it returns true, new event with type accept is created, new connection is created
-          from this endpoint to the other, the new connection's state is set to connected and
-          on_connect in acceptor's handler is called. If the connections is
-          refused, new event type refuse is created.
-        **/
-        if (connection_->connection_state == connection::state::disconnected) {
-          
-        }
-        event new_event;
-        new_event.recipient = e.recipient;
-        new_event.time_of_handling = sim->get_time() + connection_->get_lag();
-        simulated_acceptor* acceptor_ = sim->get_acceptor(connection_->remote_address);
-        if (!acceptor_ || !(acceptor_->started_accepting)) {
-          logging("ERROR: Connection request but no such peer: " + connection_->get_address());
-          // TODO(kari): error no such peer /
-          // new_event.type_ = event::type::error;
-          // logging("attempt 1.1");
-          break;
-        }
-        connection_params* params = &(connection_->parameters);
-        if (acceptor_->get_handler()->on_requested(connection_->get_address())) {
-          // logging("accepted");
-          new_event.type_ = event::type::accept;
-          /**
-            Remote address of the other connection is 0 which means connect to that address is not
-            possible.
-          **/
-          std::string new_addr =
-              std::to_string(params->min_lag) + ":" + std::to_string(params->max_lag) + ":0";
-          simulated_connection* new_connection =
-              new simulated_connection(new_addr, acceptor_->accepted_connections_handler);
-          connection_->remote_connection_id = new_connection->local_connection_id;
-          new_connection->connection_state = connection::state::connected;
-          new_connection->remote_connection_id = connection_->local_connection_id;
-          new_connection->time_stamp = new_event.time_of_handling;
-          acceptor_->get_handler()->on_connected(new_connection, connection_->get_address());
-          new_connection->get_handler()->on_connected(new_connection);
-        } else {
-          // logging("refused");
-          new_event.type_ = event::type::refuse;
-        }
-        sim->push_event(new_event);
-        // logging("attempt 1.2");
-        break;
-      }
-      case event::type::send: {
-        // logging("send 0");
-        /**
-          This is when the message is received from connection in remote.
-        */
-        simulated_connection* remote_connection =
-            sim->get_connection(connection_->remote_connection_id);
-        // logging("send 1");
-        if (remote_connection->get_state() != connection::state::connected) {
-          // ack to remote -> broken_pipe
-          // logging("send 1.1");
-          break;
-        }
-        if (e.message_id != connection_->sending.front().first) {
-          throw std::invalid_argument("ERROR: Message handling order is incorrect! This should"
-              "never happen!");
-        }
-        simulated_acceptor* acceptor_ = sim->get_acceptor_by_connection(e.recipient);
-        if (!acceptor_) {
-          throw std::runtime_error("ERROR: No acceptor acceptor found in both connections while"
-              "handling read! This should never happen!");
-          break;
-        }
-        // logging("send 5");
-        unsigned int bandwidth = acceptor_->parameters.bandwidth;
-        unsigned int bytes_left = connection_->sending.front().second;
-        unsigned int bytes_to_send = bytes_left < bandwidth ? bytes_left : bandwidth;
-        remote_connection->receive_buffer.push(e.data.substr((e.data.size() - bytes_left),
-                                                          bytes_to_send));
-
-        // logging("bandwidth:" + std::to_string(bandwidth) + " bytes_left: " +
-        //    std::to_string(bytes_left) + " to_send: " + std::to_string(bytes_to_send));
-        connection_->sending.front().second -= bytes_to_send;
-        /// If the connection can read
-        if (remote_connection->read_ids.size()) {
-          remote_connection->handle_read();
-        }
-        if (connection_->sending.front().second == 0) {
-          // logging("send 6");
-          event new_event;
-          new_event.type_ = event::type::ack_received;
-          new_event.message_id = e.message_id;
-          new_event.data = std::to_string(connection::error::no_error);
-          new_event.recipient = connection_->local_connection_id;
-          new_event.time_of_handling = (sim->get_time() > remote_connection->time_stamp + 1 ?
-                                        sim->get_time() : remote_connection->time_stamp + 1)
-                                        + connection_->get_lag();
-          remote_connection->time_stamp = new_event.time_of_handling;
-          sim->push_event(new_event);
-          connection_->sending.pop();
-        } else {
-          // logging("send 7");
-          // If the remote connection has not disconnected and still can send data
-          if (connection_->get_state() == connection::state::connected) {
-            event new_event = e;
-            ++new_event.time_of_handling;
-            sim->push_event(new_event);
-          }
-        }
-        // logging("send 8");
-        break;
-      }
-      case event::type::accept: {
-        // logging("accept 0");
-        // TODO(kari): if no such connection, acceptor on error/ disconnected
-        connection_->connection_state = connection::state::connected;
-        connection_->get_handler()->on_connected(connection_);
-        // logging("accept 1");
-        break;
-      }
-      case event::type::refuse: {
-        // logging("refuse 0");
-        // TODO(kari): if no such connection, acceptor on error/ disconnected
-        connection_->connection_state = connection::state::disconnected;
-        connection_->get_handler()->on_error(connection_,
-            connection::error::connection_refused);
-        // logging("refuse 1");
-        break;
-      }
-      case event::type::ack_received: {
-        // if (connection_->connection_state == connection::state::disconnected) {
-        //   // TODO(kari): Possible: broken_pipe, operation_cancelled
-        // }
-        connection_->get_handler()->on_message_sent(connection_, e.message_id,
-            static_cast<connection::error>(std::stoi(e.data)));
-        break;
-      }
-      case event::type::error: {
-        break;
-      }
-      default:
-        break;
-    }
+  // logging("HANDLING: " + e.to_string());
+  simulation* sim = simulation::get_simulator();
+  simulated_connection* connection_ = sim->get_connection(e.recipient);
+  if (!connection_) {
+    throw std::runtime_error("ERROR: No such connection");
+    return;
   }
+  switch (e.type_) {
+    case event::type::disconnect: {
+      // logging("disconnect 0");
+      /**
+        This event is created when the other endpoint has called disconnect().
+        Sets connection state to disconnected.
+        TODO(kari): If possible delete related events in the queue and
+        delete connection fron map. NOTE: Maybe it is better not to delete events
+        so proper errors could be passed (operation cancelled, broken_pipe, etc.)
+      */
+      if (connection_->connection_state == connection::state::connected) {
+        logging("Other peer closed connection in: " + connection_->get_address());
+        connection_->connection_state = connection::state::disconnected;
+        connection_->get_handler()->on_disconnected(connection_);
+        // TODO(kari): Clear queues and call handlers with error, delete connection ids
+      }
+      // logging("disconnect 1");
+      break;
+    }
+    case event::type::connection_attempt: {
+        // logging("attempt 0");
+      /**
+        This event is created when the other endpoint has called connect(). On_requested is called
+        and if it returns true, new event with type accept is created, new connection is created
+        from this endpoint to the other, the new connection's state is set to connected and
+        on_connect in acceptor's handler is called. If the connections is
+        refused, new event type refuse is created.
+      **/
+      if (connection_->connection_state == connection::state::disconnected) {
+
+      }
+      event new_event;
+      new_event.recipient = e.recipient;
+      new_event.time_of_handling = sim->get_time() + connection_->get_lag();
+      simulated_acceptor* acceptor_ = sim->get_acceptor(connection_->remote_address);
+      if (!acceptor_ || !(acceptor_->started_accepting)) {
+        logging("ERROR: Connection request but no such peer: " + connection_->get_address());
+        // TODO(kari): error no such peer /
+        // new_event.type_ = event::type::error;
+        // logging("attempt 1.1");
+        break;
+      }
+      connection_params* params = &(connection_->parameters);
+      if (acceptor_->get_handler()->on_requested(connection_->get_address())) {
+        // logging("accepted");
+        new_event.type_ = event::type::accept;
+        /**
+          Remote address of the other connection is 0 which means connect to that address is not
+          possible.
+        **/
+        std::string new_addr =
+            std::to_string(params->min_lag) + ":" + std::to_string(params->max_lag) + ":0";
+        simulated_connection* new_connection =
+            new simulated_connection(new_addr, acceptor_->accepted_connections_handler);
+        connection_->remote_connection_id = new_connection->local_connection_id;
+        new_connection->connection_state = connection::state::connected;
+        new_connection->remote_connection_id = connection_->local_connection_id;
+        new_connection->time_stamp = new_event.time_of_handling;
+        acceptor_->get_handler()->on_connected(new_connection, connection_->get_address());
+        new_connection->get_handler()->on_connected(new_connection);
+      } else {
+        // logging("refused");
+        new_event.type_ = event::type::refuse;
+      }
+      sim->push_event(new_event);
+      // logging("attempt 1.2");
+      break;
+    }
+    case event::type::send: {
+      // logging("send 0");
+      /**
+        This is when the message is received from connection in remote.
+      */
+      simulated_connection* remote_connection =
+          sim->get_connection(connection_->remote_connection_id);
+      // logging("send 1");
+      if (remote_connection->get_state() != connection::state::connected) {
+        // ack to remote -> broken_pipe
+        // logging("send 1.1");
+        break;
+      }
+      if (e.message_id != connection_->sending.front().first) {
+        throw std::invalid_argument("ERROR: Message handling order is incorrect! This should"
+            "never happen!");
+      }
+      simulated_acceptor* acceptor_ = sim->get_acceptor_by_connection(e.recipient);
+      if (!acceptor_) {
+        throw std::runtime_error("ERROR: No acceptor acceptor found in both connections while"
+            "handling read! This should never happen!");
+        break;
+      }
+      // logging("send 5");
+      unsigned int bandwidth = acceptor_->parameters.bandwidth;
+      unsigned int bytes_left = connection_->sending.front().second;
+      unsigned int bytes_to_send = bytes_left < bandwidth ? bytes_left : bandwidth;
+      remote_connection->receive_buffer.push(e.data.substr((e.data.size() - bytes_left),
+                                                        bytes_to_send));
+
+      // logging("bandwidth:" + std::to_string(bandwidth) + " bytes_left: " +
+      //    std::to_string(bytes_left) + " to_send: " + std::to_string(bytes_to_send));
+      connection_->sending.front().second -= bytes_to_send;
+      /// If the connection can read
+      if (remote_connection->read_ids.size()) {
+        remote_connection->handle_read();
+      }
+      if (connection_->sending.front().second == 0) {
+        // logging("send 6");
+        event new_event;
+        new_event.type_ = event::type::ack_received;
+        new_event.message_id = e.message_id;
+        new_event.data = std::to_string(connection::error::no_error);
+        new_event.recipient = connection_->local_connection_id;
+        new_event.time_of_handling = (sim->get_time() > remote_connection->time_stamp + 1 ?
+                                      sim->get_time() : remote_connection->time_stamp + 1)
+                                      + connection_->get_lag();
+        remote_connection->time_stamp = new_event.time_of_handling;
+        sim->push_event(new_event);
+        connection_->sending.pop();
+      } else {
+        // logging("send 7");
+        // If the remote connection has not disconnected and still can send data
+        if (connection_->get_state() == connection::state::connected) {
+          event new_event = e;
+          ++new_event.time_of_handling;
+          sim->push_event(new_event);
+        }
+      }
+      // logging("send 8");
+      break;
+    }
+    case event::type::accept: {
+      // logging("accept 0");
+      // TODO(kari): if no such connection, acceptor on error/ disconnected
+      connection_->connection_state = connection::state::connected;
+      connection_->get_handler()->on_connected(connection_);
+      // logging("accept 1");
+      break;
+    }
+    case event::type::refuse: {
+      // logging("refuse 0");
+      // TODO(kari): if no such connection, acceptor on error/ disconnected
+      connection_->connection_state = connection::state::disconnected;
+      connection_->get_handler()->on_error(connection_,
+          connection::error::connection_refused);
+      // logging("refuse 1");
+      break;
+    }
+    case event::type::ack_received: {
+      // if (connection_->connection_state == connection::state::disconnected) {
+      //   // TODO(kari): Possible: broken_pipe, operation_cancelled
+      // }
+      connection_->get_handler()->on_message_sent(connection_, e.message_id,
+          static_cast<connection::error>(std::stoi(e.data)));
+      break;
+    }
+    case event::type::error: {
+      break;
+    }
+    default:
+      break;
+  }
+}
 
 void simulation::process(uint64_t time_) {
   // TODO(kari): Exception -> deadlock
