@@ -94,39 +94,40 @@ void simulation::handle_event(const event& e) {
     simulation* sim = simulation::get_simulator();
     simulated_connection* connection_ = sim->get_connection(e.recipient);
     if (!connection_) {
-      /// This could also happen after disconnect
-      logging("ERROR: No such connection");
+      throw std::runtime_error("ERROR: No such connection");
       return;
     }
     switch (e.type_) {
       case event::type::disconnect: {
         // logging("disconnect 0");
-        // /**
-        //   This event is created when the other endpoint has called disconnect().
-        //   Sets connection state to disconnected.
-        // TODO(kari): If possible delete related events in the queue and
-        //   delete connection fron map. NOTE: Maybe it is better not to delete events
-        //   so proper errors could be passed (operation cancelled, broken_pipe, etc.)
-        // */
-        // if (connection_->connection_state == connection::state::connected) {
-        //   logging("Other peer closed connection in: " + connection_->get_address());
-        //   connection_->connection_state = connection::state::disconnected;
-        //   connection_->get_handler()->on_disconnected(connection_);
-        // TODO(kari): Clear queues and call handlers with error, delete connection ids
-        // }
-        // ogging("disconnect 1");
+        /**
+          This event is created when the other endpoint has called disconnect().
+          Sets connection state to disconnected.
+          TODO(kari): If possible delete related events in the queue and
+          delete connection fron map. NOTE: Maybe it is better not to delete events
+          so proper errors could be passed (operation cancelled, broken_pipe, etc.)
+        */
+        if (connection_->connection_state == connection::state::connected) {
+          logging("Other peer closed connection in: " + connection_->get_address());
+          connection_->connection_state = connection::state::disconnected;
+          connection_->get_handler()->on_disconnected(connection_);
+          // TODO(kari): Clear queues and call handlers with error, delete connection ids
+        }
+        // logging("disconnect 1");
         break;
       }
       case event::type::connection_attempt: {
           // logging("attempt 0");
         /**
-          This event is created when the other endpoint has called connect().
-          On_requested is called and if it returns true, new event with type
-          accept is created, new connection is created from this endpoint to
-          the other, the new connection's state is set to connected and
+          This event is created when the other endpoint has called connect(). On_requested is called
+          and if it returns true, new event with type accept is created, new connection is created
+          from this endpoint to the other, the new connection's state is set to connected and
           on_connect in acceptor's handler is called. If the connections is
           refused, new event type refuse is created.
         **/
+        if (connection_->connection_state == connection::state::disconnected) {
+          
+        }
         event new_event;
         new_event.recipient = e.recipient;
         new_event.time_of_handling = sim->get_time() + connection_->get_lag();
@@ -544,7 +545,8 @@ void simulated_connection::clear_queues() {
   std::swap(read_ids, empty_read_ids);
   std::queue<std::pair<unsigned int, unsigned int> > empty_sending;
   std::swap(sending, empty_sending);
-  // TODO(kari): receive buffer
+  std::queue<unsigned int, unsigned int> empty_receive_buffer;
+  std::swap(receive_buffer, empty_receive_buffer);
 }
 // ACCEPTOR
 
