@@ -125,6 +125,8 @@ class simulation {
   /** Returns current simulation time */
   uint64_t get_time();
 
+  bool is_queue_empty();
+
   /**
     Process all events from simulation_time to the given time.
   */

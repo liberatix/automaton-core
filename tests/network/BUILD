@@ -9,3 +9,9 @@ cc_binary (
 	srcs = ["simulation_test.cc",],
 	deps = ["//network:simulated_connection",]
 )
+
+cc_binary (
+	name = "simulation_big_test",
+	srcs = ["simulation_big_test.cc",],
+	deps = ["//network:simulated_connection",]
+)

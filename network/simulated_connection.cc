@@ -98,39 +98,41 @@ void simulation::handle_event(const event& e) {
   simulation* sim = simulation::get_simulator();
   simulated_connection* connection_ = sim->get_connection(e.recipient);
   if (!connection_) {
-    /// This could also happen after disconnect
-    logging("ERROR: No such connection");
+    throw std::runtime_error("ERROR: No such connection");
     return;
   }
   switch (e.type_) {
     case event::type::disconnect: {
       // logging("disconnect 0");
-      // /**
-      //   This event is created when the other endpoint has called disconnect().
-      //   Sets connection state to disconnected.
-      // TODO(kari): If possible delete related events in the queue and
-      //   delete connection fron map. NOTE: Maybe it is better not to delete events
-      //   so proper errors could be passed (operation cancelled, broken_pipe, etc.)
-      // */
-      // if (connection_->connection_state == connection::state::connected) {
-      //   logging("Other peer closed connection in: " + connection_->get_address());
-      //   connection_->connection_state = connection::state::disconnected;
-      //   connection_->get_handler()->on_disconnected(connection_);
-      // TODO(kari): Clear queues and call handlers with error, delete connection ids
-      // }
-      // ogging("disconnect 1");
+      /**
+        This event is created when the other endpoint has called disconnect().
+        Sets connection state to disconnected.
+        TODO(kari): If possible delete related events in the queue and
+        delete connection fron map. NOTE: Maybe it is better not to delete events
+        so proper errors could be passed (operation cancelled, broken_pipe, etc.)
+      */
+      if (connection_->connection_state == connection::state::connected) {
+        logging("Other peer closed connection in: " + connection_->get_address());
+        connection_->connection_state = connection::state::disconnected;
+        connection_->get_handler()->on_disconnected(connection_);
+        // TODO(kari): Clear queues and call handlers with error, delete connection ids
+      }
+      // logging("disconnect 1");
       break;
     }
     case event::type::connection_attempt: {
         // logging("attempt 0");
       /**
-        This event is created when the other endpoint has called connect().
-        On_requested is called and if it returns true, new event with type
-        accept is created, new connection is created from this endpoint to
-        the other, the new connection's state is set to connected and
+        This event is created when the other endpoint has called connect(). On_requested is called
+        and if it returns true, new event with type accept is created, new connection is created
+        from this endpoint to the other, the new connection's state is set to connected and
         on_connect in acceptor's handler is called. If the connections is
         refused, new event type refuse is created.
-      */
+      **/
+      if (connection_->connection_state == connection::state::disconnected) {
+        logging("ERROR: Peer requesting connection has disconnected!");
+        break;
+      }
       event new_event;
       new_event.recipient = e.recipient;
       new_event.time_of_handling = sim->get_time() + connection_->get_lag();
@@ -173,12 +175,18 @@ void simulation::handle_event(const event& e) {
       /**
         This is when the message is received from connection in remote.
       */
+      /**
+      TODO(kari):
+      1. if connection_->state == disconnected --> operation cancelled / closed by peer;
+       remote connection won't be able to send ack to connection and needs to call on_disconnect
+      2. if !remote_connection || remote_connection->get_state() != connection::state::connected
+        --> broken_pipe (&& this is still connected; haven't received disconnect message yet)
+      */
       simulated_connection* remote_connection =
           sim->get_connection(connection_->remote_connection_id);
       // logging("send 1");
-      if (remote_connection->get_state() != connection::state::connected) {
-        // ack to remote -> broken_pipe
-        // logging("send 1.1");
+      if (!remote_connection || remote_connection->get_state() != connection::state::connected) {
+        logging("ERROR in handling send!");
         break;
       }
       if (e.message_id != connection_->sending.front().first) {
@@ -196,10 +204,7 @@ void simulation::handle_event(const event& e) {
       unsigned int bytes_left = connection_->sending.front().second;
       unsigned int bytes_to_send = bytes_left < bandwidth ? bytes_left : bandwidth;
       remote_connection->receive_buffer.push(e.data.substr((e.data.size() - bytes_left),
-                                                        bytes_to_send));
-
-      // logging("bandwidth:" + std::to_string(bandwidth) + " bytes_left: " +
-      //    std::to_string(bytes_left) + " to_send: " + std::to_string(bytes_to_send));
+                                                            bytes_to_send));
       connection_->sending.front().second -= bytes_to_send;
       /// If the connection can read
       if (remote_connection->read_ids.size()) {
@@ -272,18 +277,20 @@ void simulation::process(uint64_t time_) {
         event_q.top().to_string());
     event_q.pop();
   }
-  for (uint64_t current_time = event_q.top().time_of_handling;
-      current_time <= time_ && !event_q.empty(); ) {
-    set_time(current_time);
-    while (!event_q.empty() && event_q.top().time_of_handling == current_time) {
-      e = event_q.top();
-      event_q.pop();
-      q_mutex.unlock();
-      handle_event(e);
-      q_mutex.lock();
-    }
-    if (!event_q.empty()) {
-      current_time = event_q.top().time_of_handling;
+  if (!event_q.empty()) {
+    for (uint64_t current_time = event_q.top().time_of_handling;
+        current_time <= time_ && !event_q.empty(); ) {
+      set_time(current_time);
+      while (!event_q.empty() && event_q.top().time_of_handling == current_time) {
+        e = event_q.top();
+        event_q.pop();
+        q_mutex.unlock();
+        handle_event(e);
+        q_mutex.lock();
+      }
+      if (!event_q.empty()) {
+        current_time = event_q.top().time_of_handling;
+      }
     }
   }
   q_mutex.unlock();
@@ -301,6 +308,11 @@ void simulation::set_time(uint64_t time_) {
   } else {
     simulation_time = time_;
   }
+}
+
+bool simulation::is_queue_empty() {
+  std::lock_guard<std::mutex> lock(q_mutex);
+  return event_q.empty();
 }
 
 void simulation::add_connection(simulated_connection* connection_) {
@@ -376,20 +388,19 @@ simulated_connection::simulated_connection(const std::string& address_,
         remote_connection_id(0), time_stamp(0), bytes_read(0) {
   connection_state = connection::state::disconnected;
   if (!parse_address(address_)) {
-    throw std::runtime_error("ERROR: Connection creation failed! Could not resolve address and"
+    throw std::runtime_error("ERROR: Connection creation failed! Could not resolve address and "
                             "parameters in: " + address_);
-  } else {
-    // logging("Connection created: " + address_);
-    simulation::get_simulator()->add_connection(this);
   }
+  simulation::get_simulator()->add_connection(this);
+  // logging("Connection created: " + address_);
 }
 
 void simulated_connection::async_send(const std::string& message, unsigned int id = 0) {
   if (message.size() < 1) {
-    // logging("Send called but no message: id -> " + std::to_string(id));
+    logging("Send called but no message: id -> " + std::to_string(id));
     return;
   }
-  // logging("Send called with message <" + message + "> with id: " +
+  // logging("Send called with message <" + message + ">");
   // if (connection_state != connection::state::connected && ! remote_address)
   unsigned int bandwidth =
       simulation::get_simulator()->get_acceptor_by_connection(local_connection_id)->
@@ -427,13 +438,15 @@ void simulated_connection::handle_read() {
       }
     }
     if (read_some || bytes_read == expect_to_read.front()) {
-      handler->on_message_received(this, buffers.front(), bytes_read,
-          read_ids.front());
+      char* buffer = buffers.front();
+      unsigned int id = read_ids.front();
+      unsigned int bytes = bytes_read;
       buffers.pop();
       buffers_sizes.pop();
       expect_to_read.pop();
       read_ids.pop();
       bytes_read = 0;
+      handler->on_message_received(this, buffer, bytes, id);
     }
   }
 }
@@ -514,7 +527,7 @@ void simulated_connection::connect() {
 }
 
 void simulated_connection::disconnect() {
-    // // logging("disconnected called");
+    // logging("disconnected called");
     // if (connection_state != connection::state::connected) {
     //   return;
     // }
@@ -554,7 +567,8 @@ void simulated_connection::clear_queues() {
   std::swap(read_ids, empty_read_ids);
   std::queue<std::pair<unsigned int, unsigned int> > empty_sending;
   std::swap(sending, empty_sending);
-  // TODO(kari): receive buffer
+  std::queue<std::string> empty_receive_buffer;
+  std::swap(receive_buffer, empty_receive_buffer);
 }
 // ACCEPTOR
 
@@ -570,7 +584,7 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
       simulation::get_simulator()->add_acceptor(address, this);
     }
   } else {
-    throw std::runtime_error("ERROR: Acceptor creation failed! Could not resolve address and"
+    throw std::runtime_error("ERROR: Acceptor creation failed! Could not resolve address and "
                             "parameters in " + address_);
     address = 0;
   }

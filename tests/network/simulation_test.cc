@@ -12,9 +12,13 @@ std::string create_connection_address(unsigned int num_acceptors,
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
   unsigned int mn, mx;
-  mn = std::rand() % (max_lag - min_lag) + min_lag;
-  mx = std::rand() % (max_lag - min_lag) + min_lag;
-  s << (mn < mx ? mn : mx) << ':' << (mn < mx ? mx : mn) << ':';
+  if (min_lag == max_lag) {
+    s << min_lag << ':' << max_lag << ':';
+  } else {
+    mn = std::rand() % (max_lag - min_lag + 1) + min_lag;
+    mx = std::rand() % (max_lag - min_lag + 1) + min_lag;
+    s << (mn < mx ? mn : mx) << ':' << (mn < mx ? mx : mn) << ':';
+  }
   /// For test purposes if we have n acceptors, their addresses are in range 1-n
   s << (std::rand() % num_acceptors + 1);
   logging("Created connection address: " + s.str());
@@ -29,8 +33,8 @@ std::string create_acceptor_address(uint32_t address,
   unsigned int conns;
   conns = std::rand() % max_connections;
   conns = conns > min_connections ? conns : min_connections;
-  s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth) + min_bandwidth)
-      << ':' << address;
+  s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) <<
+      ':' << address;
   logging("Created acceptor address: " + s.str());
   return s.str();
 }
@@ -80,7 +84,7 @@ class lis_handler: public acceptor::acceptor_handler {
   void on_connected(connection* c, const std::string& address) {
     // logging("Accepted connection from: " + address);
     char* buffer = new char[128];
-    c->async_read(buffer, 24, 5, read_counter++);
+    c->async_read(buffer, 128, 5, read_counter++);
   }
   void on_error(connection::error e) {
     logging("Error (acceptor): " + std::to_string(e));
@@ -148,15 +152,14 @@ int main() {
     // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     // connection_ab->disconnect();
     // ==============================================
-    for (int i = 0; i <= 35; i++) {
+    for (int i = 0; i <= 35 || !sim->is_queue_empty(); i++) {
       logging("PROCESSING: " + std::to_string(i));
       // sim->print_connections();
       sim->process(i);
     }
     // sim->print_q();
-  } catch (std::exception e) {
-    logging("EXCEPTION ");
-    logging(e.what());
+  } catch (std::exception& e) {
+    logging("EXCEPTION " + std::string(e.what()));
   } catch(...) {
     logging("EXCEPTION!");
   }
