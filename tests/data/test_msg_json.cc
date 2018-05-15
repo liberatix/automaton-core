@@ -35,14 +35,14 @@ class test_msg_json : public ::testing::Test {
  protected:
   // You can define per-test set-up and tear-down logic as usual.
   virtual void SetUp() {
-    ps.reset(new protobuf_schema());
-    pf.reset(new protobuf_factory());
+    pb_schema.reset(new protobuf_schema());
+    pb_factory.reset(new protobuf_factory());
     setup_schema();
   }
 
   virtual void TearDown() {
-    ps.release();
-    pf.release();
+    pb_schema.release();
+    pb_factory.release();
   }
 
   /*
@@ -63,49 +63,49 @@ class test_msg_json : public ::testing::Test {
     }
   */
   void setup_schema() {
-    int m1 = ps->create_message(FIRST_MESSAGE);
-    int m2 = ps->create_message(SECOND_MESSAGE);
-    int m3 = ps->create_message(NESTED_MESSAGE);
-    int m4 = ps->create_message(THIRD_MESSAGE);
+    int m1 = pb_schema->create_message(FIRST_MESSAGE);
+    int m2 = pb_schema->create_message(SECOND_MESSAGE);
+    int m3 = pb_schema->create_message(NESTED_MESSAGE);
+    int m4 = pb_schema->create_message(THIRD_MESSAGE);
 
-    ps->add_scalar_field(
+    pb_schema->add_scalar_field(
         schema::field_info(1, schema::string, STRING_FIELD_1, "", false), m1);
-    ps->add_scalar_field(
+    pb_schema->add_scalar_field(
         schema::field_info(1, schema::string, STRING_FIELD_2, "", false), m2);
-    ps->add_scalar_field(
+    pb_schema->add_scalar_field(
         schema::field_info(1, schema::string, STRING_FIELD_NESTED, "", false),
         m3);
 
-    ps->add_message_field(schema::field_info(2,
+    pb_schema->add_message_field(schema::field_info(2,
         schema::message_type, MESSAGE_FIELD,
         SECOND_MESSAGE, false), m1);
 
-    ps->add_scalar_field(
+    pb_schema->add_scalar_field(
         schema::field_info(3, schema::string, REPEATED_STRING_FIELD, "", true), m1);
 
-    ps->add_message_field(schema::field_info(1,
+    pb_schema->add_message_field(schema::field_info(1,
         schema::message_type, REPEATED_MSG_FIELD,
         SECOND_MESSAGE, true), m4);
 
-    ps->add_nested_message(m1, m3);
-    ps->add_message(m1);
-    ps->add_message(m2);
-    ps->add_message(m4);
+    pb_schema->add_nested_message(m1, m3);
+    pb_schema->add_message(m1);
+    pb_schema->add_message(m2);
+    pb_schema->add_message(m4);
   }
 
-  static std::unique_ptr<protobuf_schema> ps;
-  static std::unique_ptr<protobuf_factory> pf;
+  static std::unique_ptr<protobuf_schema> pb_schema;
+  static std::unique_ptr<protobuf_factory> pb_factory;
 };
 
-std::unique_ptr<protobuf_schema> test_msg_json::ps;
-std::unique_ptr<protobuf_factory> test_msg_json::pf;
+std::unique_ptr<protobuf_schema> test_msg_json::pb_schema;
+std::unique_ptr<protobuf_factory> test_msg_json::pb_factory;
 
 TEST_F(test_msg_json, serialize_json) {
-  pf->import_schema_definition(ps.get(), "test", "");
+  pb_factory->import_schema_definition(pb_schema.get(), "test", "");
 
-  auto msg1 = pf->new_message(FIRST_MESSAGE);
-  auto msg2 = pf->new_message(SECOND_MESSAGE);
-  auto msg3 = pf->new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  auto msg1 = pb_factory->new_message(FIRST_MESSAGE);
+  auto msg2 = pb_factory->new_message(SECOND_MESSAGE);
+  auto msg3 = pb_factory->new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
   msg1->set_string(1, VALUE_1);
 
@@ -121,7 +121,7 @@ TEST_F(test_msg_json, serialize_json) {
   std::cout << json << std::endl;
 
   // Serialize from JSON.
-  auto msg4 = pf->new_message(FIRST_MESSAGE);
+  auto msg4 = pb_factory->new_message(FIRST_MESSAGE);
   msg4->from_json(json);
   std::cout << "DESERIALIZED MSG: " << msg4->to_string() << std::endl;
 
