@@ -56,6 +56,16 @@ class protobuf_msg : public msg {
   */
   bool deserialize_message(const std::string& input);
 
+  /**
+    Serializes message to JSON string.
+  */
+  bool to_json(std::string* output);
+
+  /**
+    Deserializes message from JSON string.
+  */
+  bool from_json(const std::string& input);
+
   /** Returns human readable representation of the message with the given id. If
       message id is not valid, exception will be thrown.
   */

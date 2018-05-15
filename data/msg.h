@@ -43,6 +43,16 @@ class msg {
   */
   virtual bool deserialize_message(const std::string& input) = 0;
 
+  /**
+    Serializes message to JSON string.
+  */
+  virtual bool to_json(std::string* output) = 0;
+
+  /**
+    Deserializes message from JSON string.
+  */
+  virtual bool from_json(const std::string& input) = 0;
+
   /** Returns human readable representation of the message with the given id. If
       message id is not valid, exception will be thrown.
   */
