@@ -388,12 +388,11 @@ simulated_connection::simulated_connection(const std::string& address_,
         remote_connection_id(0), time_stamp(0), bytes_read(0) {
   connection_state = connection::state::disconnected;
   if (!parse_address(address_)) {
-    throw std::runtime_error("ERROR: Connection creation failed! Could not resolve address and"
+    throw std::runtime_error("ERROR: Connection creation failed! Could not resolve address and "
                             "parameters in: " + address_);
-  } else {
-    // logging("Connection created: " + address_);
-    simulation::get_simulator()->add_connection(this);
   }
+  simulation::get_simulator()->add_connection(this);
+  // logging("Connection created: " + address_);
 }
 
 void simulated_connection::async_send(const std::string& message, unsigned int id = 0) {
@@ -439,13 +438,15 @@ void simulated_connection::handle_read() {
       }
     }
     if (read_some || bytes_read == expect_to_read.front()) {
-      handler->on_message_received(this, buffers.front(), bytes_read,
-          read_ids.front());
+      char* buffer = buffers.front();
+      unsigned int id = read_ids.front();
+      unsigned int bytes = bytes_read;
       buffers.pop();
       buffers_sizes.pop();
       expect_to_read.pop();
       read_ids.pop();
       bytes_read = 0;
+      handler->on_message_received(this, buffer, bytes, id);
     }
   }
 }
@@ -583,7 +584,7 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
       simulation::get_simulator()->add_acceptor(address, this);
     }
   } else {
-    throw std::runtime_error("ERROR: Acceptor creation failed! Could not resolve address and"
+    throw std::runtime_error("ERROR: Acceptor creation failed! Could not resolve address and "
                             "parameters in " + address_);
     address = 0;
   }

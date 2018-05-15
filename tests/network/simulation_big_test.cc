@@ -3,50 +3,72 @@
 #include <sstream>
 #include "network/simulated_connection.h"
 
-std::string create_connection_address(unsigned int num_acceptors,
-                                      unsigned int this_acceptor,
-                                      unsigned int min_lag = 200,
-                                      unsigned int max_lag = 1000) {
+/// Constants
+
+static const unsigned int NUMBER_NODES = 1000;
+// These include only the peers that a node connects to, not the accepted ones
+static const unsigned int NUMBER_PEERS_IN_NODE = 2;
+static const unsigned int MIN_LAG = 200;
+static const unsigned int MAX_LAG = 1000;
+static const unsigned int MIN_CONNECTIONS = 0;
+static const unsigned int MAX_CONNECTIONS = 1;
+static const unsigned int MIN_BANDWIDTH = 16;
+static const unsigned int MAX_BANDWIDTH = 16;
+static const unsigned int LOOP_STEP = 100;
+static const unsigned int PROCESS_STEP = 800;
+static const unsigned int BLOCK_CREATION_STEP = 1600;
+static const unsigned int MAX_SIMULATION_TIME = 300000;
+
+/// Global variables
+
+class node;
+/// height -> how many connections have that height
+static std::map<unsigned int, unsigned int> heights_count;
+static std::vector<node*> nodes(NUMBER_NODES);
+
+/// Helper functions for creating addresses
+
+std::string create_connection_address(unsigned int num_acceptors, unsigned int this_acceptor,
+                                      unsigned int min_lag, unsigned int max_lag) {
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
   unsigned int mn, mx, acc;
   if (min_lag == max_lag) {
     s << min_lag << ':' << max_lag << ':';
   } else {
-    mn = std::rand() % (max_lag - min_lag) + min_lag;
-    mx = std::rand() % (max_lag - min_lag) + min_lag;
+    mn = std::rand() % (max_lag - min_lag + 1) + min_lag;
+    mx = std::rand() % (max_lag - min_lag + 1) + min_lag;
     s << (mn < mx ? mn : mx) << ':' << (mn < mx ? mx : mn) << ':';
   }
   /// For test purposes if we have n acceptors, their addresses are in range 1-n
-  acc = (std::rand() % num_acceptors + 1);
-  /// Prevent creating connection to self
-  while (acc == this_acceptor) {
+  do {
     acc = (std::rand() % num_acceptors + 1);
-  }
+  } while (acc == this_acceptor);
   s << acc;
   // logging("Created connection address: " + s.str());
   return s.str();
 }
+std::string create_connection_address(unsigned int num_acceptors, unsigned int this_acceptor) {
+  return create_connection_address(num_acceptors, this_acceptor, MIN_LAG, MAX_LAG);
+}
 std::string create_acceptor_address(uint32_t address,
-                                      unsigned int min_connections = 4,
-                                      unsigned int max_connections = 16,
-                                      unsigned int min_bandwidth = 16,
-                                      unsigned int max_bandwidth = 16) {
+                                    unsigned int min_connections, unsigned int max_connections,
+                                    unsigned int min_bandwidth, unsigned int max_bandwidth) {
   std::stringstream s;
   unsigned int conns;
-  unsigned int bandwidth = min_bandwidth == max_bandwidth ?
-      min_bandwidth : (std::rand() % (max_bandwidth - min_bandwidth) + min_bandwidth);
   conns = std::rand() % max_connections;
   conns = conns > min_connections ? conns : min_connections;
-  s << conns << ':' << bandwidth << ':' << address;
+  s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) << ':'
+      << address;
   // logging("Created acceptor address: " + s.str());
   return s.str();
 }
+std::string create_acceptor_address(uint32_t address) {
+  return create_acceptor_address(address, MIN_CONNECTIONS, MAX_CONNECTIONS, MIN_BANDWIDTH,
+                                MAX_BANDWIDTH);
+}
 
-static const int NUMBER_NODES = 1000;
-// These include only the peers that a node connects to, not the accepted ones
-static const int NUMBER_PEERS_IN_NODE = 2;
-
+/// Class node
 class node {
  public:
   unsigned int height;
@@ -59,11 +81,8 @@ class node {
     }
   }
 };
-/// height -> how many connections have that height
-static std::map<unsigned int, unsigned int> heights_count;
-static std::vector<node*> nodes(NUMBER_NODES);
-static unsigned int current_height = 0;
 
+/// Connection handler
 class handler: public connection::connection_handler {
  public:
   node* node_;
@@ -100,6 +119,7 @@ class handler: public connection::connection_handler {
   }
 };
 
+/// Acceptor handler
 class lis_handler: public acceptor::acceptor_handler {
  public:
   node* node_;
@@ -119,10 +139,11 @@ class lis_handler: public acceptor::acceptor_handler {
   }
 };
 
+/// Function that collects and prints test results
 void collect_stats() {
   heights_count.clear();
   // logging("Nodes size: " + std::to_string(nodes.size()));
-  for (int i = 0; i < NUMBER_NODES; ++i) {
+  for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
     heights_count[nodes[i]->height]++;
   }
   logging("==== Heights ====");
@@ -135,7 +156,7 @@ void collect_stats() {
 int main() {
   try {
     simulation* sim = simulation::get_simulator();
-    for (int i = 0; i < NUMBER_NODES; ++i) {
+    for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
       nodes[i] = new node();
       nodes[i]->height = 0;
       nodes[i]->handler_ = new handler(nodes[i]);
@@ -144,8 +165,8 @@ int main() {
                           nodes[i]->handler_);
       nodes[i]->acceptor_->start_accepting();
     }
-    for (int i = 0; i < NUMBER_NODES; ++i) {
-      for (int j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
+    for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
+      for (unsigned int j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
         connection* new_connection = connection::create("sim",
                                                         create_connection_address(NUMBER_NODES, i),
                                                         nodes[i]->handler_);
@@ -155,23 +176,22 @@ int main() {
       }
     }
     // ==============================================
-    for (int i = 0; i <= 15000000 || !sim->is_queue_empty(); i+=100) {
-      if (i % 1000 == 0) {
+    for (unsigned int i = 0; i < MAX_SIMULATION_TIME; i += LOOP_STEP) {
+      if (i % PROCESS_STEP == 0) {
         logging("PROCESSING: " + std::to_string(i));
         // sim->print_connections();
         sim->process(i);
-        if (i % 16000 == 0) {
+        if (i % BLOCK_CREATION_STEP == 0) {
           int n = std::rand() % NUMBER_NODES;
-          nodes[n]->height = ++current_height;
+          ++nodes[n]->height;
           nodes[n]->send_height();
         }
       }
       collect_stats();
     }
     // sim->print_q();
-  } catch (std::exception e) {
-    logging("EXCEPTION");
-    logging(e.what());
+  } catch (std::exception& e) {
+    logging("EXCEPTION " + std::string(e.what()));
   } catch(...) {
     logging("EXCEPTION!");
   }
