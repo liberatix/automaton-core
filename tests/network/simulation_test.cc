@@ -12,9 +12,13 @@ std::string create_connection_address(unsigned int num_acceptors,
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
   unsigned int mn, mx;
-  mn = std::rand() % (max_lag - min_lag) + min_lag;
-  mx = std::rand() % (max_lag - min_lag) + min_lag;
-  s << (mn < mx ? mn : mx) << ':' << (mn < mx ? mx : mn) << ':';
+  if (min_lag == max_lag) {
+    s << min_lag << ':' << max_lag << ':';
+  } else {
+    mn = std::rand() % (max_lag - min_lag) + min_lag;
+    mx = std::rand() % (max_lag - min_lag) + min_lag;
+    s << (mn < mx ? mn : mx) << ':' << (mn < mx ? mx : mn) << ':';
+  }
   /// For test purposes if we have n acceptors, their addresses are in range 1-n
   s << (std::rand() % num_acceptors + 1);
   logging("Created connection address: " + s.str());
@@ -29,8 +33,9 @@ std::string create_acceptor_address(uint32_t address,
   unsigned int conns;
   conns = std::rand() % max_connections;
   conns = conns > min_connections ? conns : min_connections;
-  s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth) + min_bandwidth)
-      << ':' << address;
+  unsigned int bandwidth = min_bandwidth == max_bandwidth ?
+      min_bandwidth : (std::rand() % (max_bandwidth - min_bandwidth) + min_bandwidth);
+  s << conns << ':' << bandwidth << ':' << address;
   logging("Created acceptor address: " + s.str());
   return s.str();
 }

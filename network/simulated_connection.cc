@@ -277,18 +277,20 @@ void simulation::process(uint64_t time_) {
         event_q.top().to_string());
     event_q.pop();
   }
-  for (uint64_t current_time = event_q.top().time_of_handling;
-      current_time <= time_ && !event_q.empty(); ) {
-    set_time(current_time);
-    while (!event_q.empty() && event_q.top().time_of_handling == current_time) {
-      e = event_q.top();
-      event_q.pop();
-      q_mutex.unlock();
-      handle_event(e);
-      q_mutex.lock();
-    }
-    if (!event_q.empty()) {
-      current_time = event_q.top().time_of_handling;
+  if (!event_q.empty()) {
+    for (uint64_t current_time = event_q.top().time_of_handling;
+        current_time <= time_ && !event_q.empty(); ) {
+      set_time(current_time);
+      while (!event_q.empty() && event_q.top().time_of_handling == current_time) {
+        e = event_q.top();
+        event_q.pop();
+        q_mutex.unlock();
+        handle_event(e);
+        q_mutex.lock();
+      }
+      if (!event_q.empty()) {
+        current_time = event_q.top().time_of_handling;
+      }
     }
   }
   q_mutex.unlock();
@@ -306,6 +308,11 @@ void simulation::set_time(uint64_t time_) {
   } else {
     simulation_time = time_;
   }
+}
+
+bool simulation::is_queue_empty() {
+  std::lock_guard<std::mutex> lock(q_mutex);
+  return event_q.empty();
 }
 
 void simulation::add_connection(simulated_connection* connection_) {
@@ -391,10 +398,10 @@ simulated_connection::simulated_connection(const std::string& address_,
 
 void simulated_connection::async_send(const std::string& message, unsigned int id = 0) {
   if (message.size() < 1) {
-    // logging("Send called but no message: id -> " + std::to_string(id));
+    logging("Send called but no message: id -> " + std::to_string(id));
     return;
   }
-  // logging("Send called with message <" + message + "> with id: " +
+  // logging("Send called with message <" + message + ">");
   // if (connection_state != connection::state::connected && ! remote_address)
   unsigned int bandwidth =
       simulation::get_simulator()->get_acceptor_by_connection(local_connection_id)->
@@ -519,7 +526,7 @@ void simulated_connection::connect() {
 }
 
 void simulated_connection::disconnect() {
-    // // logging("disconnected called");
+    // logging("disconnected called");
     // if (connection_state != connection::state::connected) {
     //   return;
     // }
