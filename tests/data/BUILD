@@ -12,6 +12,16 @@ cc_binary(
 )
 
 cc_test(
+  name = "test_msg_json",
+  srcs = ["test_msg_json.cc",],
+  deps = [
+    "//data/protobuf",
+    "@gtest//:gtest_main",
+  ],
+  size = "small",
+)
+
+cc_test(
   name = "test_protobuf_msg",
   srcs = ["test_protobuf_msg.cc",],
   deps = [

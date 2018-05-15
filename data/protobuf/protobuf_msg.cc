@@ -1,11 +1,17 @@
 #include "data/protobuf/protobuf_msg.h"
 
+#include <google/protobuf/util/json_util.h>
+
 using std::string;
 
+using google::protobuf::Descriptor;
 using google::protobuf::EnumDescriptor;
 using google::protobuf::FieldDescriptor;
 using google::protobuf::Message;
 using google::protobuf::Reflection;
+
+using google::protobuf::util::MessageToJsonString;
+using google::protobuf::util::JsonStringToMessage;
 
 namespace data {
 namespace protobuf {
@@ -47,6 +53,33 @@ bool protobuf_msg::deserialize_message(const string& input) {
     throw std::runtime_error("Unexpected error: No message");
   }
   return m->ParseFromString(input);  // TODO(kari): Handle errors.
+}
+
+bool protobuf_msg::to_json(string* output) {
+  if (output == nullptr) {
+    throw std::invalid_argument("No output provided");
+  }
+  if (m == nullptr) {
+    throw std::runtime_error("Unexpected error: No message");
+  }
+  auto status = MessageToJsonString(*m, output);
+  if (!status.ok()) {
+    // TODO(asen): Needs better error handling
+    std::cout << status.error_message() << std::endl;
+  }
+  return status.ok();
+}
+
+bool protobuf_msg::from_json(const string& input) {
+  if (m == nullptr) {
+    throw std::runtime_error("Unexpected error: No message");
+  }
+  auto status = JsonStringToMessage(input, m.get());
+  if (!status.ok()) {
+    // TODO(asen): Needs better error handling
+    std::cout << status.error_message() << std::endl;
+  }
+  return status.ok();
 }
 
 string protobuf_msg::to_string() {
