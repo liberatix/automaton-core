@@ -53,6 +53,14 @@ new_local_repository(
   build_file = "glog.BUILD",
 )
 
+# new_local_repository(
+#   name = "nlohmann_json",
+#   path = "third_party/json-3.1.2",
+#   build_file = "json.BUILD",
+# )
+
+# Local Bazel ready builds
+
 local_repository(
   name = "com_github_gflags_gflags",
   path = "third_party/gflags-2.2.1",
