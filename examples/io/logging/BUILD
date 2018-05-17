@@ -5,7 +5,7 @@ package(default_visibility = ["//visibility:public"])
 cc_binary(
   name = "demo_easyloggingpp",
   srcs = [
-    "main.cc",
+    "demo_easyloggingpp.cc",
   ],
   deps = [
     "@easyloggingpp//:easyloggingpp",
