@@ -7,5 +7,8 @@ cc_library(
   ],
   hdrs = [
     "src/easylogging++.h",
-  ]
+  ],
+  defines = [
+    "ELPP_NO_LOG_TO_FILE",
+  ],
 )
