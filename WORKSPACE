@@ -24,6 +24,12 @@ new_local_repository(
 )
 
 new_local_repository(
+  name = "easyloggingpp",
+  path = "third_party/easyloggingpp-9.96.4",
+  build_file = "easyloggingpp.BUILD",
+)
+
+new_local_repository(
   name = "bitcoin",
   path = "third_party/bitcoin-0.16.0",
   build_file = "bitcoin.BUILD",
