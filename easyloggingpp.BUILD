@@ -12,5 +12,7 @@ cc_library(
   includes = ["."],
   defines = [
     "ELPP_NO_LOG_TO_FILE",
+    "ELPP_FEATURE_PERFORMANCE_TRACKING",
+    "ELPP_FEATURE_CRASH_LOG",
   ],
 )
