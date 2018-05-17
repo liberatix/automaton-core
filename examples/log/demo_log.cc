@@ -1,8 +1,7 @@
-#include <easylogging++.h>
 #include <chrono>
 #include <thread>
 
-INITIALIZE_EASYLOGGINGPP
+#include "log/log.h"
 
 void sleep(uint x) {
   std::this_thread::sleep_for(std::chrono::milliseconds(x));
@@ -23,7 +22,7 @@ void performance_test(int iter) {
     TIMED_SCOPE(timerBlkObj, "heavy-iter");
     // Perform some heavy task in each iter
     sleep(20);
-    if (iter % 5) {
+    if (iter % 5 == 0) {
       PERFORMANCE_CHECKPOINT(timerBlkObj);
     }
   }

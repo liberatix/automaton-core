@@ -1,11 +1,15 @@
-# Automaton examples - easylogging++
+# Automaton logging library
 
 package(default_visibility = ["//visibility:public"])
 
-cc_binary(
-  name = "demo_easyloggingpp",
+cc_library(
+  name = "log",
   srcs = [
-    "demo_easyloggingpp.cc",
+    "log.cc",
+    "log.h",
+  ],
+  hdrs = [
+    "log.h",
   ],
   deps = [
     "@easyloggingpp//:easyloggingpp",
