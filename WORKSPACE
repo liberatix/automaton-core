@@ -25,7 +25,7 @@ new_local_repository(
 
 new_local_repository(
   name = "easyloggingpp",
-  path = "third_party/easyloggingpp-9.96.4",
+  path = "third_party/easyloggingpp-9.96.4/src",
   build_file = "easyloggingpp.BUILD",
 )
 
