@@ -6,6 +6,7 @@
 #include <string>
 #include <queue>
 #include <vector>
+#include <unordered_map>
 #include <utility>
 
 #include "network/acceptor.h"
@@ -82,7 +83,8 @@ class simulation {
     handlig means higher priority. If equal, lower event id (created earlier)
     means higher priority.
   */
-  std::priority_queue<event, std::vector<event>, q_comparator> event_q;
+  // std::priority_queue<event, std::vector<event>, q_comparator> event_q;
+  std::unordered_map<uint64_t, std::vector<event>> events;
   std::mutex q_mutex;
 
   /**
@@ -130,7 +132,7 @@ class simulation {
   /**
     Process all events from simulation_time to the given time.
   */
-  void process(uint64_t time);
+  int process(uint64_t time);
   void add_connection(simulated_connection* connection_);
   void remove_connection(unsigned int connection_id);
   void add_acceptor(uint32_t address, simulated_acceptor* acceptor_);
