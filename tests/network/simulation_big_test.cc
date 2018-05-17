@@ -1,23 +1,24 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
+#include <iostream>
 #include "network/simulated_connection.h"
 
 /// Constants
 
-static const unsigned int NUMBER_NODES = 1000;
+static const unsigned int NUMBER_NODES = 100000;
 // These include only the peers that a node connects to, not the accepted ones
-static const unsigned int NUMBER_PEERS_IN_NODE = 2;
-static const unsigned int MIN_LAG = 200;
+static const unsigned int NUMBER_PEERS_IN_NODE = 4;
+static const unsigned int MIN_LAG = 100;
 static const unsigned int MAX_LAG = 1000;
 static const unsigned int MIN_CONNECTIONS = 0;
 static const unsigned int MAX_CONNECTIONS = 1;
 static const unsigned int MIN_BANDWIDTH = 16;
 static const unsigned int MAX_BANDWIDTH = 16;
 static const unsigned int LOOP_STEP = 100;
-static const unsigned int PROCESS_STEP = 800;
-static const unsigned int BLOCK_CREATION_STEP = 1600;
-static const unsigned int MAX_SIMULATION_TIME = 300000;
+static const unsigned int PROCESS_STEP = 100;
+static const unsigned int BLOCK_CREATION_STEP = 1500;
+static const unsigned int MAX_SIMULATION_TIME = 10000;
 
 /// Global variables
 
@@ -156,6 +157,7 @@ void collect_stats() {
 int main() {
   try {
     simulation* sim = simulation::get_simulator();
+    std::cout << "Creating acceptors..." << std::endl;
     for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
       nodes[i] = new node();
       nodes[i]->height = 0;
@@ -165,6 +167,7 @@ int main() {
                           nodes[i]->handler_);
       nodes[i]->acceptor_->start_accepting();
     }
+    std::cout << "Creating connections..." << std::endl;
     for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
       for (unsigned int j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
         connection* new_connection = connection::create("sim",
@@ -175,13 +178,15 @@ int main() {
         new_connection->async_read(new char[16], 16, 0, 0);
       }
     }
+    std::cout << "Starting simulation..." << std::endl;
     // ==============================================
     for (unsigned int i = 0; i < MAX_SIMULATION_TIME; i += LOOP_STEP) {
       if (i % PROCESS_STEP == 0) {
         logging("PROCESSING: " + std::to_string(i));
         // sim->print_connections();
-        sim->process(i);
-        if (i % BLOCK_CREATION_STEP == 0) {
+        int events_processed = sim->process(i);
+        std::cout << "Events processed: " << events_processed << std::endl;
+        if ((i+LOOP_STEP) % BLOCK_CREATION_STEP == 0) {
           int n = std::rand() % NUMBER_NODES;
           ++nodes[n]->height;
           nodes[n]->send_height();

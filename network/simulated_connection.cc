@@ -83,7 +83,7 @@ simulation::~simulation() {}
 
 void simulation::push_event(const event& event_) {
   std::lock_guard<std::mutex> lock(q_mutex);
-  event_q.push(event_);
+  events[event_.time_of_handling].push_back(event_);
 }
 
 simulation* simulation::get_simulator() {
@@ -98,7 +98,7 @@ void simulation::handle_event(const event& e) {
   simulation* sim = simulation::get_simulator();
   simulated_connection* connection_ = sim->get_connection(e.recipient);
   if (!connection_) {
-    throw std::runtime_error("ERROR: No such connection");
+    throw std::runtime_error("ERROR: No such connection\n" + e.to_string());
     return;
   }
   switch (e.type_) {
@@ -268,33 +268,29 @@ void simulation::handle_event(const event& e) {
   }
 }
 
-void simulation::process(uint64_t time_) {
-  // TODO(kari): Exception -> deadlock
-  event e;
+int simulation::process(uint64_t time_) {
+  std::cout << "process time: " << time_ << std::endl;
+  int events_processed = 0;
   q_mutex.lock();
-  while (!event_q.empty() && event_q.top().time_of_handling < get_time()) {
-    logging("ERROR: Event with time of handling before current time -> " +
-        event_q.top().to_string());
-    event_q.pop();
-  }
-  if (!event_q.empty()) {
-    for (uint64_t current_time = event_q.top().time_of_handling;
-        current_time <= time_ && !event_q.empty(); ) {
-      set_time(current_time);
-      while (!event_q.empty() && event_q.top().time_of_handling == current_time) {
-        e = event_q.top();
-        event_q.pop();
+
+  auto current_time = get_time();
+  std::cout << "Cur time: " << current_time << " process time: " << time_ << std::endl;
+  while (current_time <= time_) {
+    set_time(current_time);
+    if (events.count(current_time)) {
+      for (auto& e : events.at(current_time)) {
+        events_processed++;
         q_mutex.unlock();
         handle_event(e);
         q_mutex.lock();
       }
-      if (!event_q.empty()) {
-        current_time = event_q.top().time_of_handling;
-      }
+      events.erase(current_time);
     }
+    current_time++;
   }
+
   q_mutex.unlock();
-  set_time(time_);
+  return events_processed;
 }
 
 uint64_t simulation::get_time() {
@@ -312,7 +308,8 @@ void simulation::set_time(uint64_t time_) {
 
 bool simulation::is_queue_empty() {
   std::lock_guard<std::mutex> lock(q_mutex);
-  return event_q.empty();
+  return events.empty();
+//  return event_q.empty();
 }
 
 void simulation::add_connection(simulated_connection* connection_) {
@@ -367,11 +364,13 @@ simulated_acceptor* simulation::get_acceptor_by_connection(unsigned int connecti
 }
 
 void simulation::print_q() {
+  /*
   std::lock_guard<std::mutex> lock(q_mutex);
   while (!event_q.empty()) {
     logging(event_q.top().to_string());
     event_q.pop();
   }
+  */
 }
 
 void simulation::print_connections() {
