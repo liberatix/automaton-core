@@ -1,4 +1,4 @@
-#include "crypto/Keccak_256_cryptopp.h"
+#include "crypto/cryptopp/Keccak_256_cryptopp.h"
 #include "crypto/hash_transformation.h"
 #include "cryptlib.h"  // NOLINT
 #include "keccak.h"  // NOLINT

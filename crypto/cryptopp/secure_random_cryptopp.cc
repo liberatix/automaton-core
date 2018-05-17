@@ -1,4 +1,4 @@
-#include "crypto/secure_random_cryptopp.h"
+#include "crypto/cryptopp/secure_random_cryptopp.h"
 #include <cryptlib.h>
 #include <osrng.h>
 

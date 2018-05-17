@@ -1,4 +1,4 @@
-#include "crypto/secp256k1_cryptopp.h"
+#include "crypto/cryptopp/secp256k1_cryptopp.h"
 #include <cryptlib.h>
 #include <eccrypto.h>
 #include <integer.h>
