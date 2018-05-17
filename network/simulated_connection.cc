@@ -83,11 +83,6 @@ simulation::~simulation() {}
 
 void simulation::push_event(const event& event_) {
   std::lock_guard<std::mutex> lock(q_mutex);
-/*
-  if (events.count(event_.time_of_handling) == 0) {
-    events.emplace(event_.time_of_handling, std::vector<event>());
-  }
-*/
   events[event_.time_of_handling].push_back(event_);
 }
 
