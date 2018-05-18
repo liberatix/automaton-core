@@ -108,6 +108,16 @@ class protobuf_schema: public schema {
   void add_enum_field(schema::field_info field, int message_id);
 
   void add_message_field(schema::field_info field, int message_id);
+
+  /**
+    Serializes schema to JSON string.
+  */
+  bool to_json(std::string* output);
+
+  /**
+    Deserializes schema from JSON string.
+  */
+  bool from_json(const std::string& input);
 };
 
 }  // namespace protobuf

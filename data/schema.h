@@ -57,6 +57,16 @@ class schema {
   static schema* create(const std::string name);
 
   /**
+    Serializes schema to JSON string.
+  */
+  virtual bool to_json(std::string* output) = 0;
+
+  /**
+    Deserializes schema from JSON string.
+  */
+  virtual bool from_json(const std::string& input) = 0;
+
+  /**
     If this schema (schema A) depends on another one (schema B), it must be
     added here. Schema_name is the name that has been/will be given to the
     schema (B) on import (when schema::import_schema_definition() is called).
