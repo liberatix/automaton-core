@@ -24,6 +24,7 @@ cc_library(
     "tcp_implementation.cc",
   ],
   deps = [
+    "//log",
     "//network:network",
   ],
 )
@@ -35,6 +36,7 @@ cc_library(
     "simulated_connection.cc",
   ],
   deps = [
+    "//log",
     "//network:network",
   ],
 )

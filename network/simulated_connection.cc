@@ -8,6 +8,8 @@
 #include <sstream>
 #include <utility>
 
+#include "log/log.h"
+
 event::event() {
   type_ = event::type::undefined;
   time_of_handling = 0;
@@ -112,7 +114,7 @@ void simulation::handle_event(const event& e) {
         so proper errors could be passed (operation cancelled, broken_pipe, etc.)
       */
       if (connection_->connection_state == connection::state::connected) {
-        logging("Other peer closed connection in: " + connection_->get_address());
+        LOG(INFO) << "Other peer closed connection in: " << connection_->get_address();
         connection_->connection_state = connection::state::disconnected;
         connection_->get_handler()->on_disconnected(connection_);
         // TODO(kari): Clear queues and call handlers with error, delete connection ids
@@ -130,7 +132,7 @@ void simulation::handle_event(const event& e) {
         refused, new event type refuse is created.
       **/
       if (connection_->connection_state == connection::state::disconnected) {
-        logging("ERROR: Peer requesting connection has disconnected!");
+        LOG(ERROR) << "Peer requesting connection has disconnected!";
         break;
       }
       event new_event;
@@ -138,7 +140,7 @@ void simulation::handle_event(const event& e) {
       new_event.time_of_handling = sim->get_time() + connection_->get_lag();
       simulated_acceptor* acceptor_ = sim->get_acceptor(connection_->remote_address);
       if (!acceptor_ || !(acceptor_->started_accepting)) {
-        logging("ERROR: Connection request but no such peer: " + connection_->get_address());
+        LOG(ERROR) << "Connection request but no such peer: " << connection_->get_address();
         // TODO(kari): error no such peer /
         // new_event.type_ = event::type::error;
         // logging("attempt 1.1");
@@ -186,7 +188,7 @@ void simulation::handle_event(const event& e) {
           sim->get_connection(connection_->remote_connection_id);
       // logging("send 1");
       if (!remote_connection || remote_connection->get_state() != connection::state::connected) {
-        logging("ERROR in handling send!");
+        LOG(ERROR) << "ERROR in handling send!";
         break;
       }
       if (e.message_id != connection_->sending.front().first) {
@@ -269,12 +271,12 @@ void simulation::handle_event(const event& e) {
 }
 
 int simulation::process(uint64_t time_) {
-  std::cout << "process time: " << time_ << std::endl;
+  LOG(INFO) << "process time: " << time_;
   int events_processed = 0;
   q_mutex.lock();
 
   auto current_time = get_time();
-  std::cout << "Cur time: " << current_time << " process time: " << time_ << std::endl;
+  LOG(INFO) << "Cur time: " << current_time << " process time: " << time_;
   while (current_time <= time_) {
     set_time(current_time);
     if (events.count(current_time)) {
@@ -300,7 +302,7 @@ uint64_t simulation::get_time() {
 void simulation::set_time(uint64_t time_) {
   std::lock_guard<std::mutex> lock(time_mutex);
   if (time_ < simulation_time) {
-    logging("ERROR: Trying to set time < current time");
+    LOG(ERROR) << "Trying to set time < current time";
   } else {
     simulation_time = time_;
   }
@@ -376,7 +378,7 @@ void simulation::print_q() {
 void simulation::print_connections() {
   std::lock_guard<std::mutex> lock(connections_mutex);
   for (unsigned int i = 0; i < connections.size(); ++i) {
-    logging(connections[i]->get_address());
+    LOG(INFO) << connections[i]->get_address();
   }
 }
 
@@ -396,7 +398,7 @@ simulated_connection::simulated_connection(const std::string& address_,
 
 void simulated_connection::async_send(const std::string& message, unsigned int id = 0) {
   if (message.size() < 1) {
-    logging("Send called but no message: id -> " + std::to_string(id));
+    LOG(INFO) << "Send called but no message: id -> " << std::to_string(id);
     return;
   }
   // logging("Send called with message <" + message + ">");
@@ -459,7 +461,7 @@ void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
     read event is created).
   */
   if (num_bytes > buffer_size) {
-    logging("ERROR: Buffer size is smaller than needed! Reading aborted!");
+    LOG(ERROR) << "ERROR: Buffer size is smaller than needed! Reading aborted!";
     return;
   }
   // logging("Setting buffers in connection: " + get_address());
@@ -603,17 +605,11 @@ bool simulated_acceptor::parse_address(const std::string& address_) {
 
 void simulated_acceptor::start_accepting() {
   if (!address) {
-    logging("This should never happen! Acceptor's address is not valid! Could not accept");
+    LOG(ERROR) << "This should never happen! Acceptor's address is not valid! Could not accept";
   }
   started_accepting = true;
 }
 
 acceptor::acceptor_handler* simulated_acceptor::get_handler() {
   return handler;
-}
-
-static std::mutex console_mutex;
-void logging(const std::string& s) {
-  std::lock_guard<std::mutex> lock(console_mutex);
-  std::cout << s << std::endl;
 }

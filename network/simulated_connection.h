@@ -222,7 +222,4 @@ class simulated_acceptor: public acceptor {
   acceptor_handler* get_handler();
 };
 
-// TODO(kari): use proper logging.
-void logging(const std::string& s);
-
 #endif  // NETWORK_SIMULATED_CONNECTION_H__

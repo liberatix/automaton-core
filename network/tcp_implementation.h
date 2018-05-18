@@ -146,6 +146,4 @@ void tcp_init();
 void parse_address(const std::string&, std::string* result_addr, std::string*
     result_port);
 
-void logging(const std::string& s);
-
 #endif  // TCP_IMPLEMENTATION_H__
