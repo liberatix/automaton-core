@@ -15,6 +15,6 @@ cc_library(
   deps = [
     "//data",
     "//log",
-	  "@com_google_protobuf//:protobuf",
+    "@com_google_protobuf//:protobuf",
   ],
 )
