@@ -4,6 +4,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
+namespace core {
 namespace log {
 
 bool init_logger() {
@@ -21,3 +22,4 @@ bool init_logger() {
 bool _init_logger = init_logger();
 
 }  // namespace log
+}  // namespace core
