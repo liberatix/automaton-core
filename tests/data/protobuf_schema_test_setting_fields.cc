@@ -13,18 +13,12 @@ using data::protobuf::protobuf_factory;
 const char * TEST_MSG = "TestMsg";
 
 TEST(protobuf_factory, setting_fields) {
-  std::cout << "0" << std::endl;
-
   protobuf_factory sc;
-
-  std::cout << "0a" << std::endl;
 
   sc.import_schema_from_string(
       get_file_contents("tests/data/test.proto"), "test", "");
 
   // *** String functions ***
-
-  std::cout << "1" << std::endl;
 
   // No such field
   try {
@@ -37,8 +31,6 @@ TEST(protobuf_factory, setting_fields) {
     EXPECT_EQ(message, "No field with tag: 100");
   }
 
-  std::cout << "2" << std::endl;
-
   // Data field is repeated
   try {
     auto msg = sc.new_message(TEST_MSG);
@@ -50,8 +42,6 @@ TEST(protobuf_factory, setting_fields) {
     EXPECT_EQ(message, "Field is repeated");
   }
 
-  std::cout << "3" << std::endl;
-
   // Field is not string
   try {
     auto msg = sc.new_message(TEST_MSG);
@@ -62,8 +52,6 @@ TEST(protobuf_factory, setting_fields) {
     std::cerr << message << std::endl;
     EXPECT_EQ(message, "Field is not string");
   }
-
-  std::cout << "4" << std::endl;
 
   /**
     String array functions
