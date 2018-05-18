@@ -4,7 +4,7 @@
 #include <stack>
 #include "gtest/gtest.h"
 #include "state/state_impl.h"
-#include "crypto/SHA256_cryptopp.h"
+#include "crypto/cryptopp/SHA256_cryptopp.h"
 
 
 TEST(state_impl, set_and_get) {

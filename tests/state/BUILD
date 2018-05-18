@@ -5,6 +5,8 @@ cc_test(
     size = "medium",
     timeout = "moderate",
     deps = [
+      "//crypto",
+      "//crypto/cryptopp",
       "//state",
       "@gtest//:gtest_main",
     ],
