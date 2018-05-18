@@ -39,7 +39,7 @@ TEST(secp256k1_cryptopp, sign_and_verify) {
     "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
     "HELLO, HELLO, HELLO",
     "We could have been friends",
-    "Final Space",
+    "Final Space",  
   };
   for (unsigned int i = 0; i < test_key.size(); i++) {
     std::string pr_key_decoded;

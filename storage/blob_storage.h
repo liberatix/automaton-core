@@ -8,20 +8,18 @@
   blob_storage interface.
   Can store and delete arbitrary length data in a memory mapped file.
   There are no protections. The pointer points to the internal memory.
-  The user of the storage should use the memory pointed by out_blob_pointer,
-  up to out_blob_pointer + size. 
 */
 class blob_storage {
  public:
   blob_storage(std::string file_path);
   ~blob_storage();
   /** 
-    Creates a blob with a given size and returns the ID used to access it.
+    Creates a blob with a given size and returns the pointer to it.
 
-    @param[in]  size              The size in bytes to be allocated
-    @param[out] out_blob_poiter   Pointer to the allocated memory
+    @param[in]  size    The size in bytes to be allocated
+    @param[out] id      id used to get access to the blob.
   */
-  uint64_t create_blob(uint32_t size, uint8_t * out_blob_pointer);
+  uint8_t* create_blob(uint32_t size, uint64_t* id);
 
   /** 
     Stores the data pointed by data, returns the ID used to access it.
@@ -29,17 +27,16 @@ class blob_storage {
     @param[in]  size      The size of the data pointed by data in bytes
     @param[out] data      Pointer to the data
   */
-  uint64_t store_data(uint32_t size, uint8_t * data);
-
+  uint64_t store_data(uint32_t size, uint8_t* data);
 
   /** 
-    Used to get access to previously allocated blob. 
-    Returns the size of the blob or 0 if id>=capacity
+    Used to get access to previously allocated blob.
+    Returns pointer to the blob or nullptr if id>=capacity
 
-    @param[in]  id                The ID returned by create_blob
-    @param[out] out_blob_poiter   Pointer to a previously created blob
+    @param[in]  id        The ID returned by create_blob
+    @param[out] size      The size of the data returned in bytes
   */
-  uint32_t get_data(uint64_t id, uint8_t * out_blob_pointer);
+  uint8_t* get_data(uint64_t id, uint32_t* size);
 
   /** 
     Frees allocated blob. If there is no allocated blob with the given ID 
@@ -48,10 +45,12 @@ class blob_storage {
     @param[in]  id                The ID returned by create_blob
   */
   bool delete_blob(uint32_t id);
+
  private:
-  uint32_t * storage;
+  uint32_t* storage;
   std::string file_path;
   uint64_t next_free;
+  // capacity of storage in 4byte chunks (size in bytes/4)
   uint64_t capacity;
 };
 

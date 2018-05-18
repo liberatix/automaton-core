@@ -6,54 +6,50 @@ blob_storage::blob_storage(std::string file_path)
     , capacity(0) {
   // TODO(Samir): Remove from constructor and do it when creating blob
   storage = new uint32_t[1ULL << 28];
-  capacity = 1ULL << 30;
+  capacity = 1ULL << 28;
 }
 
 blob_storage::~blob_storage() {
   delete[] storage;
 }
 
-uint64_t blob_storage::create_blob(uint32_t size, uint8_t * out_blob_pointer) {
-  // save next_free for later recording
-  uint64_t accesss_id = next_free;
-
-  // Convert from size in bytes to size in ints
-  size % 4 ? size /= 4, size++ : size /= 4;
+uint8_t* blob_storage::create_blob(uint32_t size, uint64_t* id) {
+  uint32_t size_in_int32 =  size % 4 ? size / 4 + 1 : size / 4;
+  *id = next_free;
 
   // When the capacity is not large enough to store the required blob,
   // allocate a new memory block with double the size and copy the data.
-  if (next_free + size >= capacity) {
+  if (next_free + size_in_int32 >= capacity) {
     capacity *= 2;
     uint32_t * new_storage = new uint32_t[capacity];
-    memcpy(new_storage, storage, capacity / 2);
+    memcpy(new_storage, storage, capacity*2);
     delete[] storage;
     storage = new_storage;
   }
   // Save the size of the blob
   storage[next_free] = size;
   // set the pointer to point to the blob
-  out_blob_pointer = reinterpret_cast<uint8_t*>(&storage[next_free+1]);
+  uint8_t* out_blob_pointer = reinterpret_cast<uint8_t*>(&storage[next_free+1]);
   // next free equal to byte after the end of the blob
-  next_free += size + 1;
+  next_free += size_in_int32 + 1;
 
-  return accesss_id;
+  return out_blob_pointer;
 }
 
-uint64_t blob_storage::store_data(uint32_t size, uint8_t * data) {
-  uint8_t * blob = nullptr;
-  create_blob(size, blob);
+uint64_t blob_storage::store_data(uint32_t size, uint8_t* data) {
+  uint64_t id = 0;
+  uint8_t* blob = create_blob(size, &id);
   memcpy(blob, data, size);
+  return id;
 }
 
-uint32_t blob_storage::get_data(uint64_t id, uint8_t * out_blob_pointer) {
+uint8_t* blob_storage::get_data(uint64_t id, uint32_t* size){
   // check if id is out of range
   if (id+1 >= capacity) {
     return 0;
   }
-  // set the pointer to point to the blob
-  out_blob_pointer = reinterpret_cast<uint8_t*>(storage[id + 1]);
-  // return the size of the blob
-  return storage[id];
+  *size = storage[id];
+  return reinterpret_cast<uint8_t*>(&storage[id + 1]);
 }
 
 bool blob_storage::delete_blob(uint32_t id) {
