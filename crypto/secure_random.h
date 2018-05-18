@@ -2,7 +2,6 @@
 #define AUTOMATON_CORE_CRYPTO_SECURE_RANDOM_H__
 
 #include <stdint.h>
-#include <osrng.h>
 #include <map>
 #include <string>
 

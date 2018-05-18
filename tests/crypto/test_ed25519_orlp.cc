@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include "crypto/digital_signature.h"
-#include "crypto/ed25519_orlp.h"
+#include "crypto/ed25519_orlp/ed25519_orlp.h"
 #include "gtest/gtest.h"
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT

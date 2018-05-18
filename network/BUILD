@@ -5,25 +5,38 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
   name = "network",
   srcs = [
-	  "acceptor.cc",
-	  "connection.cc",
+    "acceptor.cc",
+    "connection.cc",
   ],
   hdrs = [
-	  "acceptor.h",
-	  "connection.h",
+    "acceptor.h",
+    "connection.h",
   ],
   deps = [
-	  "@boost//:asio",
+    "@boost//:asio",
   ],
 )
 
 cc_library(
-	name = "network_tcp",
+  name = "network_tcp",
   srcs = [
-	  "tcp_implementation.h",
-	  "tcp_implementation.cc",
+    "tcp_implementation.h",
+    "tcp_implementation.cc",
   ],
   deps = [
-	  "//network:network",
+    "//log",
+    "//network:network",
+  ],
+)
+
+cc_library(
+  name = "simulated_connection",
+  srcs = [
+    "simulated_connection.h",
+    "simulated_connection.cc",
+  ],
+  deps = [
+    "//log",
+    "//network:network",
   ],
 )

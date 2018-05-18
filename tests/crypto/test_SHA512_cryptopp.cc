@@ -1,6 +1,6 @@
 #include <string>
 #include "crypto/hash_transformation.h"
-#include "crypto/SHA512_cryptopp.h"
+#include "crypto/cryptopp/SHA512_cryptopp.h"
 #include "cryptlib.h"  // NOLINT
 #include "sha.h"  // NOLINT
 #include "gtest/gtest.h"  // NOLINT

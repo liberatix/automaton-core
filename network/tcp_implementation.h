@@ -39,22 +39,24 @@ int max_connections = 8;
 
 /**
   Class that represents a connection with a remote peer.
-**/
+*/
 class tcp_connection: public connection {
  public:
   /**
     Constructor that will be used when this class is registered.
-  **/
+  */
   tcp_connection(const std::string& address_, connection_handler* handler_);
+
   /**
     Constructor that will be used from the acceptor.
-  **/
+  */
   tcp_connection(const std::string& address_,
       const boost::asio::ip::tcp::socket& socket_,
       connection_handler* handler_);
+
   /**
     Destructor.
-  **/
+  */
   ~tcp_connection();
 
   /**
@@ -62,20 +64,20 @@ class tcp_connection: public connection {
     the peer. It can be used outside the constructor if the connection didn't happen
     or was closed or if disconnect() was first used. If a successful connection was
     made, start_listening() and handler's on_connected() will be called.
-  **/
+  */
   void connect();
 
   /**
     This function is used for sending messages to the peer. It is asynchronous and
     the handler's function on_message_sent() will be called after the message was
     successfully sent or if an error occurred.
-  **/
+  */
   void async_send(const std::string& msg, unsigned int id);
 
   /**
     If you call this function more than once, events form a queue, no read is
     cancelled
-  **/
+  */
   void async_read(char* buffer, unsigned int buffer_size,
       unsigned int num_bytes, unsigned int id);
 
@@ -83,14 +85,14 @@ class tcp_connection: public connection {
     This function can be called to disconnect peer. To reconnect connect() shoul be
     called. Handler's on_disconnected() is called on successful disconnect,
     on_error(), otherwise.
-  **/
+  */
   void disconnect();
 
   /**
     This function is used to change the handler. It may be necessary when a
     connection is created from the acceptor and the default handler (the one
     passed to the acceptor) needs to be changed.
-  **/
+  */
   void add_handler(connection_handler* handler_);
 
   std::string get_address() const;
@@ -109,13 +111,13 @@ class tcp_acceptor:public acceptor {
     Constructor. Connections_handler will be passed to the connection
     constructor when new connection is accepted and created. It will also be
     used to call its on_connected() method.
-  **/
+  */
   tcp_acceptor(const std::string& address, acceptor_handler* handler_,
       connection::connection_handler* connections_handler);
 
   /**
     Destructor.
-  **/
+  */
   ~tcp_acceptor();
 
   /**
@@ -127,7 +129,7 @@ class tcp_acceptor:public acceptor {
     handler's on_connected will also be called and a pointer to the created
     connection passed. If an error occured while accepting, handler's on_error()
     will be called. TODO(kari): Decide what to do on error.
-  **/
+  */
   void start_accepting();
 
  private:
@@ -138,12 +140,10 @@ class tcp_acceptor:public acceptor {
 /**
   For now initializing asio io_service and work objects. New thread is created
   and io_service.run() called in it.
-**/
+*/
 void tcp_init();
 
 void parse_address(const std::string&, std::string* result_addr, std::string*
     result_port);
-
-void logging(const std::string& s);
 
 #endif  // TCP_IMPLEMENTATION_H__

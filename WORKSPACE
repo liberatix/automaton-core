@@ -24,6 +24,12 @@ new_local_repository(
 )
 
 new_local_repository(
+  name = "easyloggingpp",
+  path = "third_party/easyloggingpp-9.96.4/src",
+  build_file = "easyloggingpp.BUILD",
+)
+
+new_local_repository(
   name = "bitcoin",
   path = "third_party/bitcoin-0.16.0",
   build_file = "bitcoin.BUILD",
@@ -46,6 +52,14 @@ new_local_repository(
   path = "third_party/glog-0.3.5",
   build_file = "glog.BUILD",
 )
+
+# new_local_repository(
+#   name = "nlohmann_json",
+#   path = "third_party/json-3.1.2",
+#   build_file = "json.BUILD",
+# )
+
+# Local Bazel ready builds
 
 local_repository(
   name = "com_github_gflags_gflags",
