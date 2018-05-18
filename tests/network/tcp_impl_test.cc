@@ -1,5 +1,7 @@
 #include <string>
 #include <thread>
+
+#include "log/log.h"
 #include "network/tcp_implementation.h"
 
 const char* address_a = "127.0.0.1:12333";
@@ -15,7 +17,7 @@ class handler: public connection::connection_handler {
   void on_message_received(connection* c, char* buffer, unsigned int bytes_read,
       unsigned int id) {
     std::string message = std::string(buffer, bytes_read);
-    logging("Message \"" + message + "\" received from " + c->get_address());
+    LOG(INFO) << "Message \"" << message << "\" received from " << c->get_address();
     if (message.compare("Thank you!")) {
       c->async_send("Thank you!", counter++);
     }
@@ -23,25 +25,24 @@ class handler: public connection::connection_handler {
   }
   void on_message_sent(connection* c, unsigned int id, connection::error e) {
     if (e) {
-      logging("Message with id " + std::to_string(id) + " was NOT sent to " +
-          c->get_address() + "\nError " + std::to_string(e) +" occured");
+      LOG(INFO) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
+          c->get_address() << "\nError " << std::to_string(e) << " occured";
     } else {
-      logging("Message with id " + std::to_string(id) +
-          " was successfully sent to " + c->get_address());
+      LOG(INFO) << "Message with id " << std::to_string(id) <<
+          " was successfully sent to " << c->get_address();
     }
   }
   void on_connected(connection* c) {
-    logging("Connected with: " + c->get_address());
+    LOG(INFO) << "Connected with: " + c->get_address();
   }
   void on_disconnected(connection* c) {
-    logging("Disconnected with: " + c->get_address());
+    LOG(INFO) << "Disconnected with: " + c->get_address();
   }
   void on_error(connection* c, connection::error e) {
     if (e == connection::no_error) {
       return;
     }
-    logging("Error: " + std::to_string(e) + " (connection " + c->get_address() +
-        ")");
+    LOG(ERROR) << std::to_string(e) << " (connection " << c->get_address() << ")";
   }
 };
 
@@ -51,16 +52,16 @@ class lis_handler: public acceptor::acceptor_handler {
   // (vector connections, max ...)
   bool on_requested(const std::string& address) {
   //  EXPECT_EQ(address, address_a);
-    logging("Connection request from: " + address + ". Accepting...");
+    LOG(INFO) << "Connection request from: " << address << ". Accepting...";
     return true;
   }
   void on_connected(connection* c, const std::string& address) {
-    logging("Accepted connection from: " + address);
+    LOG(INFO) << "Accepted connection from: " << address;
     char* buffer = new char[256];
     c->async_read(buffer, 256, 0);
   }
   void on_error(connection::error e) {
-    logging("Error (acceptor): " + std::to_string(e));
+    LOG(ERROR) << std::to_string(e);
   }
 };
 

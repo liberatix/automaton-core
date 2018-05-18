@@ -1,7 +1,8 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
-#include <iostream>
+
+#include "log/log.h"
 #include "network/simulated_connection.h"
 
 /// Constants
@@ -99,8 +100,8 @@ class handler: public connection::connection_handler {
   }
   void on_message_sent(connection* c, unsigned int id, connection::error e) {
     if (e) {
-       logging("Message with id " + std::to_string(id) + " was NOT sent to " +
-          c->get_address() + "\nError " + std::to_string(e));
+       LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
+          c->get_address() << "\nError " << std::to_string(e);
     } else {
       // logging("Message with id " + std::to_string(id) + " was successfully sent to " +
       //    c->get_address());
@@ -116,7 +117,7 @@ class handler: public connection::connection_handler {
     if (e == connection::no_error) {
       return;
     }
-    logging("Error: " + std::to_string(e) + " (connection " + c->get_address() + ")");
+    LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
   }
 };
 
@@ -136,7 +137,7 @@ class lis_handler: public acceptor::acceptor_handler {
     node_->peers.push_back(c);
   }
   void on_error(connection::error e) {
-    logging("Error (acceptor): " + std::to_string(e));
+    LOG(ERROR) << std::to_string(e);
   }
 };
 
@@ -147,17 +148,17 @@ void collect_stats() {
   for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
     heights_count[nodes[i]->height]++;
   }
-  logging("==== Heights ====");
+  LOG(INFO) << "==== Heights ====";
   for (auto it = heights_count.begin(); it != heights_count.end(); ++it) {
-    logging(std::to_string(it->first) + " -> " + std::to_string(it->second));
+    LOG(INFO) << std::to_string(it->first) << " -> " << std::to_string(it->second);
   }
-  logging("=================");
+  LOG(INFO) << "=================";
 }
 
 int main() {
   try {
     simulation* sim = simulation::get_simulator();
-    std::cout << "Creating acceptors..." << std::endl;
+    LOG(INFO) << "Creating acceptors...";
     for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
       nodes[i] = new node();
       nodes[i]->height = 0;
@@ -167,7 +168,7 @@ int main() {
                           nodes[i]->handler_);
       nodes[i]->acceptor_->start_accepting();
     }
-    std::cout << "Creating connections..." << std::endl;
+    LOG(INFO) << "Creating connections...";
     for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
       for (unsigned int j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
         connection* new_connection = connection::create("sim",
@@ -178,14 +179,14 @@ int main() {
         new_connection->async_read(new char[16], 16, 0, 0);
       }
     }
-    std::cout << "Starting simulation..." << std::endl;
+    LOG(INFO) << "Starting simulation...";
     // ==============================================
     for (unsigned int i = 0; i < MAX_SIMULATION_TIME; i += LOOP_STEP) {
       if (i % PROCESS_STEP == 0) {
-        logging("PROCESSING: " + std::to_string(i));
+        LOG(INFO) << "PROCESSING: " + std::to_string(i);
         // sim->print_connections();
         int events_processed = sim->process(i);
-        std::cout << "Events processed: " << events_processed << std::endl;
+        LOG(INFO) << "Events processed: " << events_processed;
         if ((i+LOOP_STEP) % BLOCK_CREATION_STEP == 0) {
           int n = std::rand() % NUMBER_NODES;
           ++nodes[n]->height;
@@ -196,9 +197,9 @@ int main() {
     }
     // sim->print_q();
   } catch (std::exception& e) {
-    logging("EXCEPTION " + std::string(e.what()));
+    LOG(ERROR) << "EXCEPTION " + std::string(e.what());
   } catch(...) {
-    logging("EXCEPTION!");
+    LOG(ERROR) << "UNKOWN EXCEPTION!";
   }
   return 0;
 }

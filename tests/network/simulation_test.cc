@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
+#include "log/log.h"
 #include "network/simulated_connection.h"
 
 static int send_counter = 0;
@@ -21,7 +22,7 @@ std::string create_connection_address(unsigned int num_acceptors,
   }
   /// For test purposes if we have n acceptors, their addresses are in range 1-n
   s << (std::rand() % num_acceptors + 1);
-  logging("Created connection address: " + s.str());
+  LOG(INFO) << "Created connection address: " << s.str();
   return s.str();
 }
 std::string create_acceptor_address(uint32_t address,
@@ -35,7 +36,7 @@ std::string create_acceptor_address(uint32_t address,
   conns = conns > min_connections ? conns : min_connections;
   s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) <<
       ':' << address;
-  logging("Created acceptor address: " + s.str());
+  LOG(INFO) << "Created acceptor address: " << s.str();
   return s.str();
 }
 
@@ -43,7 +44,7 @@ class handler: public connection::connection_handler {
  public:
   void on_message_received(connection* c, char* buffer, unsigned int bytes_read, unsigned int id) {
     std::string message = std::string(buffer, bytes_read);
-    logging("Message \"" + message + "\" received in <" + c->get_address() + ">");
+    LOG(INFO) << "Message \"" << message << "\" received in <" << c->get_address() << ">";
     if (send_counter < 10) {
       c -> async_send("Thank you!", send_counter++);
     }
@@ -51,11 +52,11 @@ class handler: public connection::connection_handler {
   }
   void on_message_sent(connection* c, unsigned int id, connection::error e) {
     if (e) {
-      logging("Message with id " + std::to_string(id) + " was NOT sent to " +
-          c->get_address() + "\nError " + std::to_string(e) +" occured");
+      LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
+          c->get_address() << "\nError " << std::to_string(e) << " occured";
     } else {
-      logging("Message with id " + std::to_string(id) + " was successfully sent to " +
-          c->get_address());
+      LOG(INFO) << "Message with id " << std::to_string(id) << " was successfully sent to " <<
+          c->get_address();
     }
   }
   void on_connected(connection* c) {
@@ -68,7 +69,7 @@ class handler: public connection::connection_handler {
     if (e == connection::no_error) {
       return;
     }
-    logging("Error: " + std::to_string(e) + " (connection " + c->get_address() + ")");
+    LOG(ERROR) << std::to_string(e) << " (connection " + c->get_address() << ")";
   }
 };
 
@@ -87,7 +88,7 @@ class lis_handler: public acceptor::acceptor_handler {
     c->async_read(buffer, 128, 5, read_counter++);
   }
   void on_error(connection::error e) {
-    logging("Error (acceptor): " + std::to_string(e));
+    LOG(ERROR) << std::to_string(e);
   }
 };
 
@@ -153,15 +154,15 @@ int main() {
     // connection_ab->disconnect();
     // ==============================================
     for (int i = 0; i <= 35 || !sim->is_queue_empty(); i++) {
-      logging("PROCESSING: " + std::to_string(i));
+      LOG(INFO) << "PROCESSING: " + std::to_string(i);
       // sim->print_connections();
       sim->process(i);
     }
     // sim->print_q();
   } catch (std::exception& e) {
-    logging("EXCEPTION " + std::string(e.what()));
+    LOG(ERROR) << "EXCEPTION " + std::string(e.what());
   } catch(...) {
-    logging("EXCEPTION!");
+    LOG(ERROR) << "UNKNOWN EXCEPTION!";
   }
   return 0;
 }
