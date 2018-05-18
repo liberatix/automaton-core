@@ -2,6 +2,8 @@
 
 #include <google/protobuf/util/json_util.h>
 
+#include "log/log.h"
+
 using std::string;
 
 using google::protobuf::Descriptor;
@@ -17,18 +19,14 @@ namespace data {
 namespace protobuf {
 
 string protobuf_msg::get_message_type() const {
-  if (m == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK(m != nullptr);
   return m->GetTypeName();
 }
 
 int protobuf_msg::get_repeated_field_size(int field_tag) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
   }
@@ -39,29 +37,19 @@ int protobuf_msg::get_repeated_field_size(int field_tag) const {
 }
 
 bool protobuf_msg::serialize_message(string* output) {
-  if (output == nullptr) {
-    throw std::invalid_argument("No output provided");
-  }
-  if (m == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK_NOTNULL(output);
+  CHECK_NOTNULL(m);
   return m->SerializeToString(output);  // TODO(kari): Handle errors.
 }
 
 bool protobuf_msg::deserialize_message(const string& input) {
-  if (m == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK_NOTNULL(m);
   return m->ParseFromString(input);  // TODO(kari): Handle errors.
 }
 
 bool protobuf_msg::to_json(string* output) {
-  if (output == nullptr) {
-    throw std::invalid_argument("No output provided");
-  }
-  if (m == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK_NOTNULL(output);
+  CHECK_NOTNULL(m);
   auto status = MessageToJsonString(*m, output);
   if (!status.ok()) {
     // TODO(asen): Needs better error handling
@@ -71,9 +59,7 @@ bool protobuf_msg::to_json(string* output) {
 }
 
 bool protobuf_msg::from_json(const string& input) {
-  if (m == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK_NOTNULL(m);
   auto status = JsonStringToMessage(input, m.get());
   if (!status.ok()) {
     // TODO(asen): Needs better error handling
@@ -83,16 +69,13 @@ bool protobuf_msg::from_json(const string& input) {
 }
 
 string protobuf_msg::to_string() {
-  if (m == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK_NOTNULL(m);
   return m->DebugString();
 }
 
 void protobuf_msg::set_string(int field_tag, const string& value) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -108,9 +91,8 @@ void protobuf_msg::set_string(int field_tag, const string& value) {
 }
 
 string protobuf_msg::get_string(int field_tag) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
@@ -126,9 +108,8 @@ string protobuf_msg::get_string(int field_tag) const {
 
 void protobuf_msg::set_repeated_string(int field_tag,
       const string& value, int index = -1) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -149,9 +130,8 @@ void protobuf_msg::set_repeated_string(int field_tag,
 }
 
 string protobuf_msg::get_repeated_string(int field_tag, int index) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -172,9 +152,8 @@ string protobuf_msg::get_repeated_string(int field_tag, int index) const {
 }
 
 void protobuf_msg::set_int32(int field_tag, int32_t value) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
@@ -189,9 +168,8 @@ void protobuf_msg::set_int32(int field_tag, int32_t value) {
 }
 
 int32_t protobuf_msg::get_int32(int field_tag) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
@@ -207,9 +185,8 @@ int32_t protobuf_msg::get_int32(int field_tag) const {
 
 void protobuf_msg::set_repeated_int32(
     int field_tag, int32_t value, int index) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()
      ->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -231,9 +208,8 @@ void protobuf_msg::set_repeated_int32(
 }
 
 int32_t protobuf_msg::get_repeated_int32(int field_tag, int index) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -255,9 +231,8 @@ int32_t protobuf_msg::get_repeated_int32(int field_tag, int index) const {
 }
 
 void protobuf_msg::set_message(int field_tag, const msg& sub_message) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error: No message");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
@@ -286,9 +261,8 @@ void protobuf_msg::set_message(int field_tag, const msg& sub_message) {
 
 // makes a COPY of the message and returns its id
 std::unique_ptr<msg> protobuf_msg::get_message(int field_tag) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -311,9 +285,8 @@ std::unique_ptr<msg> protobuf_msg::get_message(int field_tag) const {
 }
 
 void protobuf_msg::set_repeated_message(int field_tag, const msg& sub_message, int index) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -349,9 +322,8 @@ void protobuf_msg::set_repeated_message(int field_tag, const msg& sub_message, i
 
 // Returns copy of the message
 std::unique_ptr<msg> protobuf_msg::get_repeated_message(int field_tag, int index) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " +
@@ -375,9 +347,8 @@ std::unique_ptr<msg> protobuf_msg::get_repeated_message(int field_tag, int index
 }
 
 void protobuf_msg::set_enum(int field_tag, int value) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -397,9 +368,8 @@ void protobuf_msg::set_enum(int field_tag, int value) {
 }
 
 int protobuf_msg::get_enum(int field_tag) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
@@ -414,9 +384,8 @@ int protobuf_msg::get_enum(int field_tag) const {
 }
 
 void protobuf_msg::set_repeated_enum(int field_tag, int value, int index = -1) {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
@@ -442,9 +411,8 @@ void protobuf_msg::set_repeated_enum(int field_tag, int value, int index = -1) {
 }
 
 int protobuf_msg::get_repeated_enum(int field_tag, int index) const {
-  if (m == nullptr || m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
-  }
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
