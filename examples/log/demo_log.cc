@@ -30,8 +30,6 @@ void performance_test(int iter) {
 }
 
 int main() {
-  el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format,
-      std::string("%datetime %levshort [%fbase:%line:%func] [%logger]: %msg"));
   el::Logger* log_core_data = el::Loggers::getLogger("core.data");
   el::Logger* log_core_script = el::Loggers::getLogger("core.script");
 
@@ -40,7 +38,7 @@ int main() {
   // el::Loggers::addFlag(el::LoggingFlag::HierarchicalLogging);
   // el::Loggers::setLoggingLevel(el::Level::Trace);
   // el::Loggers::setLoggingLevel(el::Level::Info);
-  // el::Loggers::setLoggingLevel(el::Level::Global);
+  el::Loggers::setLoggingLevel(el::Level::Global);
   el::Loggers::setVerboseLevel(9);
 
   LOG(TRACE) << "This is trace log!";
