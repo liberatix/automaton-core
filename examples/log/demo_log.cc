@@ -3,7 +3,7 @@
 
 #include "log/log.h"
 
-void sleep(uint x) {
+void sleep(unsigned int x) {
   std::this_thread::sleep_for(std::chrono::milliseconds(x));
 }
 
