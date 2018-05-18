@@ -1,4 +1,4 @@
-#include "crypto/RIPEMD160_cryptopp.h"
+#include "crypto/cryptopp/RIPEMD160_cryptopp.h"
 #include "crypto/hash_transformation.h"
 #include "cryptlib.h"  // NOLINT
 #include "ripemd.h"  // NOLINT

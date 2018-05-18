@@ -5,6 +5,8 @@ cc_test(
     size = "medium",
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
+      "//crypto/ed25519_orlp",
       "@gtest//:gtest_main",
       "@ed25519_orlp//:ed25519_orlp",
     ],
@@ -26,6 +28,7 @@ cc_test(
     size = "medium",
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
       "@gtest//:gtest_main",
     ],
 )
@@ -36,6 +39,7 @@ cc_test(
     size = "medium",
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
       "@gtest//:gtest_main",
     ],
 )
@@ -46,6 +50,7 @@ cc_test(
     size = "medium",
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
       "@gtest//:gtest_main",
     ],
 )
@@ -56,6 +61,7 @@ cc_test(
     size = "medium",
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
       "@gtest//:gtest_main",
     ],
 )
@@ -66,6 +72,7 @@ cc_test(
     size = "medium",
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
       "@gtest//:gtest_main",
     ],
 )
@@ -76,6 +83,7 @@ cc_test(
     size = "medium",
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
       "@gtest//:gtest_main",
     ],
 )

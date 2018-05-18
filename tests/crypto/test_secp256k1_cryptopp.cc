@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include "crypto/digital_signature.h"
-#include "crypto/secp256k1_cryptopp.h"
+#include "crypto/cryptopp/secp256k1_cryptopp.h"
 #include "gtest/gtest.h"
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT

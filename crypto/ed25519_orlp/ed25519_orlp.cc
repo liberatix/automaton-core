@@ -1,8 +1,7 @@
-#include "crypto/ed25519_orlp.h"
-#include <cryptlib.h>
+#include "crypto/ed25519_orlp/ed25519_orlp.h"
+#include <ed25519.h>
 #include <string>
 #include <iostream>
-#include <ed25519.h>
 
 // unsigned char seed[32];
 // unsigned char signature[64];

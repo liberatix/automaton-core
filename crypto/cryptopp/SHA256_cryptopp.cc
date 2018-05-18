@@ -1,4 +1,4 @@
-#include "crypto/SHA256_cryptopp.h"
+#include "crypto/cryptopp/SHA256_cryptopp.h"
 #include "crypto/hash_transformation.h"
 #include "cryptlib.h"  // NOLINT
 #include "sha.h"  // NOLINT
