@@ -48,9 +48,15 @@ new_local_repository(
 )
 
 new_local_repository(
-  name   = "com_github_glog_glog",
+  name = "com_github_glog_glog",
   path = "third_party/glog-0.3.5",
   build_file = "third_party/glog.BUILD",
+)
+
+new_local_repository(
+  name = "di",
+  path = "third_party/di-1.0.2/include",
+  build_file = "third_party/di.BUILD",
 )
 
 # new_local_repository(
