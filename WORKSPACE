@@ -3,13 +3,13 @@
 new_local_repository(
   name = "ed25519_orlp",
   path = "third_party/ed25519-7fa6712ef5d581a6981ec2b08ee623314cd1d1c4/src",
-  build_file = "ed25519_orlp.BUILD",
+  build_file = "third_party/ed25519_orlp.BUILD",
 )
 
 new_local_repository(
   name = "gtest",
   path = "third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
-  build_file = "gtest.BUILD",
+  build_file = "third_party/gtest.BUILD",
 )
 
 local_repository(
@@ -20,37 +20,37 @@ local_repository(
 new_local_repository(
   name = "cryptopp",
   path = "third_party/cryptopp-CRYPTOPP_7_0_0",
-  build_file = "cryptopp.BUILD",
+  build_file = "third_party/cryptopp.BUILD",
 )
 
 new_local_repository(
   name = "easyloggingpp",
   path = "third_party/easyloggingpp-9.96.4/src",
-  build_file = "easyloggingpp.BUILD",
+  build_file = "third_party/easyloggingpp.BUILD",
 )
 
 new_local_repository(
   name = "bitcoin",
   path = "third_party/bitcoin-0.16.0",
-  build_file = "bitcoin.BUILD",
+  build_file = "third_party/bitcoin.BUILD",
 )
 
 new_local_repository(
   name = "lua",
   path = "third_party/lua-5.3.4",
-  build_file = "lua.BUILD",
+  build_file = "third_party/lua.BUILD",
 )
 
 new_local_repository(
   name = "selene",
   path = "third_party/Selene-0.4",
-  build_file = "selene.BUILD",
+  build_file = "third_party/selene.BUILD",
 )
 
 new_local_repository(
   name   = "com_github_glog_glog",
   path = "third_party/glog-0.3.5",
-  build_file = "glog.BUILD",
+  build_file = "third_party/glog.BUILD",
 )
 
 # new_local_repository(
@@ -125,22 +125,6 @@ boost_deps()
 #   sha256 = "d63659f7ffd7c928bb1b67eca1c8b2f6ec743b14688f257890b1549013075d02",
 #   build_file = "cryptopp.BUILD",
 #   strip_prefix = "cryptopp-CRYPTOPP_" + CRYPTOPP_LABEL,
-# )
-
-# boost::asio
-# new_git_repository(
-#   name = "com_github_boost_asio",
-#   commit = "6814d260d02300a97521c1a93d02e30877fb8ff5",
-#   remote = "https://github.com/boostorg/asio.git",
-#   build_file = "boost_asio.BUILD",
-# )
-
-# new_http_archive(
-#   name = "com_github_boost_system",
-#   urls = ["https://github.com/boostorg/system/archive/boost-1.66.0.tar.gz"],
-#   sha256 = "4b3a4abd23a98aa100b3ec77c455d75c003a6f34c77e4d8b6e7fd2bd30322c45",
-#   build_file = "boost_system.BUILD",
-#   strip_prefix = "system-boost-1.66.0",
 # )
 
 # new_http_archive(
