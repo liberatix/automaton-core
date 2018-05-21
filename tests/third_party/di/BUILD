@@ -9,6 +9,7 @@ cc_test(
     "@gtest//:gtest_main",
   ],
   copts = [
-    "--std=c++14",
+    "--std=c++14,
+    "/std:c++14",
   ],
 )
