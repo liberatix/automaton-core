@@ -44,7 +44,7 @@ uint64_t blob_storage::store_data(const uint32_t size, uint8_t* data) {
   return id;
 }
 
-uint8_t* blob_storage::get_data(const uint64_t id, uint32_t* size){
+uint8_t* blob_storage::get_data(const uint64_t id, uint32_t* size) {
   // check if id is out of range
   if (id+1 >= capacity) {
     return 0;
@@ -55,4 +55,5 @@ uint8_t* blob_storage::get_data(const uint64_t id, uint32_t* size){
 
 bool blob_storage::delete_blob(const uint32_t id) {
   storage[id] = 0;
+  return 1;
 }
