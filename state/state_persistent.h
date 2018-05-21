@@ -65,7 +65,7 @@ class state_persistent : public state{
   };
   // This will replace our vector of nodes
   class storage{
-    void insert(node& node_) {
+    void insert(const node& node_) {
     }
     node at(uint32_t index) {
     }
