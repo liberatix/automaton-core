@@ -1,4 +1,4 @@
-#include <string>
+#include <cstring>
 #include <random>
 #include <vector>
 #include "storage/blob_storage.h"
