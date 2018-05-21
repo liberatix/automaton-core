@@ -95,21 +95,6 @@ struct annotations1 {
   int i3 = 0;
 };
 
-struct annotations2 {
-  /*<<Constructor with named parameters of the same `int` type>>*/
-  BOOST_DI_INJECT(
-      annotations2,
-      (named = int_1) int i1,
-      (named = int_2) int i2,
-      int i3) {}
-
- private:
-  int i1 = 0;
-  int i2 = 0;
-  int i3 = 0;
-};
-
-
 TEST(boost_di, annotations) {
   {
     /*<<make injector and bind named parameters>>*/
@@ -123,11 +108,6 @@ TEST(boost_di, annotations) {
     ASSERT_EQ(a1.i1, 42);
     ASSERT_EQ(a1.i2, 87);
     ASSERT_EQ(a1.i3, 123);
-
-    auto a2 = injector.create<annotations2>();
-    ASSERT_EQ(a2.i1, 42);
-    ASSERT_EQ(a2.i2, 87);
-    ASSERT_EQ(a2.i3, 123);
   }
 }
 
