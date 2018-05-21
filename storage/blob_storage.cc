@@ -1,4 +1,5 @@
 #include "storage/blob_storage.h"
+#include <cstring>
 
 blob_storage::blob_storage(std::string file_path)
     : file_path(file_path)
@@ -22,7 +23,7 @@ uint8_t* blob_storage::create_blob(const uint32_t size, uint64_t* id) {
   if (next_free + size_in_int32 >= capacity) {
     capacity *= 2;
     uint32_t * new_storage = new uint32_t[capacity];
-    memcpy(new_storage, storage, capacity*2);
+    std::memcpy(new_storage, storage, capacity*2);
     delete[] storage;
     storage = new_storage;
   }
@@ -39,7 +40,7 @@ uint8_t* blob_storage::create_blob(const uint32_t size, uint64_t* id) {
 uint64_t blob_storage::store_data(const uint32_t size, uint8_t* data) {
   uint64_t id = 0;
   uint8_t* blob = create_blob(size, &id);
-  memcpy(blob, data, size);
+  std::memcpy(blob, data, size);
   return id;
 }
 
@@ -53,7 +54,5 @@ uint8_t* blob_storage::get_data(const uint64_t id, uint32_t* size){
 }
 
 bool blob_storage::delete_blob(const uint32_t id) {
-  // TODO(Samir): implement delete, maybe use linked
-  // list to track free memory locations
-  throw;
+  storage[id] = 0;
 }
