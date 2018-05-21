@@ -19,7 +19,7 @@ class blob_storage {
     @param[in]  size    The size in bytes to be allocated
     @param[out] id      id used to get access to the blob.
   */
-  uint8_t* create_blob(uint32_t size, uint64_t* id);
+  uint8_t* create_blob(uint32_t const size, uint64_t* id);
 
   /** 
     Stores the data pointed by data, returns the ID used to access it.
@@ -27,16 +27,17 @@ class blob_storage {
     @param[in]  size      The size of the data pointed by data in bytes
     @param[out] data      Pointer to the data
   */
-  uint64_t store_data(uint32_t size, uint8_t* data);
+  uint64_t store_data(const uint32_t size, uint8_t* data);
 
   /** 
     Used to get access to previously allocated blob.
     Returns pointer to the blob or nullptr if id>=capacity
 
     @param[in]  id        The ID returned by create_blob
-    @param[out] size      The size of the data returned in bytes
+    @param[out] size      The size of the data pointed by the returned
+                          pointer in bytes
   */
-  uint8_t* get_data(uint64_t id, uint32_t* size);
+  uint8_t* get_data(const uint64_t id, uint32_t* size);
 
   /** 
     Frees allocated blob. If there is no allocated blob with the given ID 
@@ -44,7 +45,7 @@ class blob_storage {
 
     @param[in]  id                The ID returned by create_blob
   */
-  bool delete_blob(uint32_t id);
+  bool delete_blob(const uint32_t id);
 
  private:
   uint32_t* storage;

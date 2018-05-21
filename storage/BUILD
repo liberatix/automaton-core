@@ -5,10 +5,10 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "storage",
     srcs = [
-      "blobk_storage.cc",
-      "blobk_storage.h",
+      "blob_storage.cc",
+      "blob_storage.h",
     ],
     hdrs = [
-      "blobk_storage.h",
+      "blob_storage.h",
     ],
 )

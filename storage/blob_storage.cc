@@ -13,7 +13,7 @@ blob_storage::~blob_storage() {
   delete[] storage;
 }
 
-uint8_t* blob_storage::create_blob(uint32_t size, uint64_t* id) {
+uint8_t* blob_storage::create_blob(const uint32_t size, uint64_t* id) {
   uint32_t size_in_int32 =  size % 4 ? size / 4 + 1 : size / 4;
   *id = next_free;
 
@@ -36,14 +36,14 @@ uint8_t* blob_storage::create_blob(uint32_t size, uint64_t* id) {
   return out_blob_pointer;
 }
 
-uint64_t blob_storage::store_data(uint32_t size, uint8_t* data) {
+uint64_t blob_storage::store_data(const uint32_t size, uint8_t* data) {
   uint64_t id = 0;
   uint8_t* blob = create_blob(size, &id);
   memcpy(blob, data, size);
   return id;
 }
 
-uint8_t* blob_storage::get_data(uint64_t id, uint32_t* size){
+uint8_t* blob_storage::get_data(const uint64_t id, uint32_t* size){
   // check if id is out of range
   if (id+1 >= capacity) {
     return 0;
@@ -52,7 +52,7 @@ uint8_t* blob_storage::get_data(uint64_t id, uint32_t* size){
   return reinterpret_cast<uint8_t*>(&storage[id + 1]);
 }
 
-bool blob_storage::delete_blob(uint32_t id) {
+bool blob_storage::delete_blob(const uint32_t id) {
   // TODO(Samir): implement delete, maybe use linked
   // list to track free memory locations
   throw;
