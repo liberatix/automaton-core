@@ -47,15 +47,15 @@ class state_persistent : public state{
   void print_subtrie(std::string path, std::string formated_path);
 
   uint32_t size();
-  
+
  private:
-  //struct node {
-  //  uint32_t parent;
-  //  uint32_t offset_prefix;   //std::string prefix;
-  //  uint32_t offset_hash;     //std::string hash;
-  //  uint32_t offset_value;    //std::string value;
-  //  uint32_t children[256]; // change this to variable len
-  //};
+  //  struct node {
+  //    uint32_t parent;
+  //    uint32_t offset_prefix;   //std::string prefix;
+  //    uint32_t offset_hash;     //std::string hash;
+  //    uint32_t offset_value;    //std::string value;
+  //    uint32_t children[256]; // change this to variable len
+  //  };
   struct node {
     uint32_t parent;
     std::string prefix;
@@ -66,11 +66,10 @@ class state_persistent : public state{
   // This will replace our vector of nodes
   class storage{
     void insert(node& node_) {
-
     }
     node at(uint32_t index) {
     }
-    unsigned char * data(uint64_t offset, uint32_t len){
+    unsigned char * data(uint64_t offset, uint32_t len) {
     }
    private:
     state_persistent::node * fixed_len_data;

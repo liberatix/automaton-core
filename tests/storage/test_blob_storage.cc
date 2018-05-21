@@ -9,15 +9,15 @@ TEST(blob_storage, basic_test) {
   blob_storage storage("test");
   uint32_t blob_size = 16;
   uint64_t access_id;
-  char* data_to_save = "0123456789ABCDEF";
+  std::string data_to_save = "0123456789ABCDEF";
   uint8_t* p_blob = storage.create_blob(blob_size, &access_id);
-  std::memcpy(p_blob, data_to_save, blob_size);
-  EXPECT_FALSE(std::memcmp(p_blob, data_to_save, blob_size));
+  std::memcpy(p_blob, &data_to_save[0], blob_size);
+  EXPECT_FALSE(std::memcmp(p_blob, &data_to_save[0], blob_size));
 
   uint32_t retrived_size = 0;
   uint8_t* retrived_blob = storage.get_data(access_id, &retrived_size);
   EXPECT_EQ(retrived_size, blob_size);
-  EXPECT_FALSE(std::memcmp(retrived_blob, data_to_save, blob_size));
+  EXPECT_FALSE(std::memcmp(retrived_blob, &data_to_save[0], blob_size));
 }
 
 
@@ -45,8 +45,7 @@ TEST(blob_storage, create_blob_write_get_data) {
       "Come watch TV.");
   tests.push_back("The answer is: Don't think about it.");
 
-
-  for(const auto &test : tests) {
+  for (const auto &test : tests) {
     size_t blob_size = test.length();
     access_id.push_back(0ULL);
     uint8_t* p_blob = storage.create_blob(blob_size, &access_id.back());
@@ -57,6 +56,5 @@ TEST(blob_storage, create_blob_write_get_data) {
     uint8_t* retrived_blob = storage.get_data(access_id.back(), &retrived_size);
     EXPECT_EQ(retrived_size, blob_size);
     EXPECT_FALSE(std::memcmp(retrived_blob,  &test[0], blob_size));
-
   }
 }

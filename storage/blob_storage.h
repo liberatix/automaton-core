@@ -11,9 +11,9 @@
 */
 class blob_storage {
  public:
-  blob_storage(std::string file_path);
+  explicit blob_storage(std::string file_path);
   ~blob_storage();
-  /** 
+  /**
     Creates a blob with a given size and returns the pointer to it.
 
     @param[in]  size    The size in bytes to be allocated
@@ -21,7 +21,7 @@ class blob_storage {
   */
   uint8_t* create_blob(uint32_t const size, uint64_t* id);
 
-  /** 
+  /**
     Stores the data pointed by data, returns the ID used to access it.
 
     @param[in]  size      The size of the data pointed by data in bytes
@@ -29,7 +29,7 @@ class blob_storage {
   */
   uint64_t store_data(const uint32_t size, uint8_t* data);
 
-  /** 
+  /**
     Used to get access to previously allocated blob.
     Returns pointer to the blob or nullptr if id>=capacity
 
@@ -39,8 +39,8 @@ class blob_storage {
   */
   uint8_t* get_data(const uint64_t id, uint32_t* size);
 
-  /** 
-    Frees allocated blob. If there is no allocated blob with the given ID 
+  /**
+    Frees allocated blob. If there is no allocated blob with the given ID
     the function returns false.
 
     @param[in]  id                The ID returned by create_blob
