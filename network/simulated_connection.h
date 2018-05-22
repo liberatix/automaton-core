@@ -1,7 +1,6 @@
 #ifndef NETWORK_SIMULATED_CONNECTION_H__
 #define NETWORK_SIMULATED_CONNECTION_H__
 
-#include <map>
 #include <mutex>
 #include <string>
 #include <queue>
@@ -67,15 +66,15 @@ class simulation {
   };
 
   /**
-    Vector storing created connections.
+    Map storing created connections.
   */
-  std::vector<simulated_connection*> connections;
+  std::unordered_map<uint32_t, simulated_connection*> connections;
   std::mutex connections_mutex;
 
   /**
     Map storing created acceptors where the key is the address.
   */
-  std::map<uint32_t, simulated_acceptor*> acceptors;
+  std::unordered_map<uint32_t, simulated_acceptor*> acceptors;
   std::mutex acceptors_mutex;
 
   /**

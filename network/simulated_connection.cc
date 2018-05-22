@@ -70,7 +70,7 @@ simulation::simulation():simulation_time(0) {
         simulated_acceptor(address, handler_, connections_handler_));
   });
   /// Makes connection id = 0 invalid
-  connections.push_back(nullptr);
+  // connections.push_back(nullptr);
   std::srand(816405263);
 }
 
@@ -314,29 +314,31 @@ bool simulation::is_queue_empty() {
 }
 
 void simulation::add_connection(simulated_connection* connection_) {
-  static unsigned int id = 1;
+  static unsigned int id = 0;
   // TODO(kari): use unordered map
   if (connection_) {
     std::lock_guard<std::mutex> lock(connections_mutex);
     if (connection_->local_connection_id) {
-      connections[connection_->local_connection_id] = nullptr;
+      connections.erase(connection_->local_connection_id);
     }
-    connections.push_back(connection_);
-    connection_->local_connection_id = connections.size() - 1;
+    connections[++id] = connection_;
+    connection_->local_connection_id = id;
   }
 }
 void simulation::remove_connection(unsigned int connection_id) {
   std::lock_guard<std::mutex> lock(connections_mutex);
-  if (connection_id < connections.size()) {
-    connections[connection_id] = nullptr;
+  auto iterator_ = connections.find(connection_id);
+  if (iterator_ != connections.end()) {
+    connections.erase(iterator_);
   }
 }
-simulated_connection* simulation::get_connection(uint32_t index) {
+simulated_connection* simulation::get_connection(uint32_t id) {
   std::lock_guard<std::mutex> lock(connections_mutex);
-  if (index >= connections.size()) {
+  auto iterator_ = connections.find(id);
+  if (iterator_ == connections.end()) {
     return nullptr;
   }
-  return connections[index];
+  return iterator_->second;
 }
 void simulation::add_acceptor(uint32_t address, simulated_acceptor* acceptor_) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
@@ -352,8 +354,9 @@ simulated_acceptor* simulation::get_acceptor(uint32_t address) {
 }
 void simulation::remove_acceptor(uint32_t address) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
-  if (acceptors.find(address) != acceptors.end()) {
-    acceptors[address] = nullptr;
+  auto iterator_ = acceptors.find(address);
+  if (iterator_ != acceptors.end()) {
+    acceptors.erase(iterator_);
   }
 }
 
@@ -368,10 +371,10 @@ void simulation::print_q() {
 }
 
 void simulation::print_connections() {
-  std::lock_guard<std::mutex> lock(connections_mutex);
-  for (unsigned int i = 0; i < connections.size(); ++i) {
-    LOG(INFO) << connections[i]->get_address();
-  }
+  // std::lock_guard<std::mutex> lock(connections_mutex);
+  // for (unsigned int i = 0; i < connections.size(); ++i) {
+  //   LOG(INFO) << connections[i]->get_address();
+  // }
 }
 
 // CONNECTION
