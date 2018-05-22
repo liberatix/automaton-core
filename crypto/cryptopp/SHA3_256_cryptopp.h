@@ -4,6 +4,10 @@
 #include "crypto/hash_transformation.h"
 #include "sha3.h"  // NOLINT
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 class SHA3_256_cryptopp : public hash_transformation {
  private:
   CryptoPP::SHA3_256* hash;
@@ -27,5 +31,9 @@ class SHA3_256_cryptopp : public hash_transformation {
  private:
   static const int _digest_size = 32;
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_CRYPTO_SHA3_256_CRYPTOPP_H__

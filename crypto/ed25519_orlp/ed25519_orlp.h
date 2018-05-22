@@ -3,6 +3,10 @@
 
 #include "crypto/digital_signature.h"
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 // The seed is the private key!
 class ed25519_orlp : public digital_signature {
  public:
@@ -36,5 +40,9 @@ class ed25519_orlp : public digital_signature {
 
   static bool register_self();
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  //  AUTOMATON_CORE_CRYPTO_ED25519_ORLP_IMPL_H__

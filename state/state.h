@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+namespace automaton {
+namespace core {
+namespace state {
+
 class state {
  public:
   // Get the value at given path. Empty string if no value is set or
@@ -36,5 +40,9 @@ class state {
   // Get the size of the hash in bytes
   virtual uint32_t hash_size() = 0;
 };
+
+}  // namespace state
+}  // namespace core
+}  // namespace automaton
 
 #endif  //  AUTOMATON_CORE_STATE_H__

@@ -4,6 +4,10 @@
 #include "crypto/digital_signature.h"
 #include "eccrypto.h"  // NOLINT
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 class secp256k1_cryptopp : public digital_signature {
  public:
   size_t public_key_size();
@@ -36,5 +40,9 @@ class secp256k1_cryptopp : public digital_signature {
 
   static bool register_self();
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  //  AUTOMATON_CORE_CRYPTO_SECP256K1_CRYPTOPP_IMPL_H__

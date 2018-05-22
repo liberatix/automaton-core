@@ -1,5 +1,9 @@
 #include "crypto/digital_signature.h"
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 std::map<std::string, digital_signature::digital_signature_factory_function>
     digital_signature::digital_signature_factory;
 
@@ -17,4 +21,6 @@ void digital_signature::register_factory(std::string name,
   digital_signature_factory[name] = func;
 }
 
-
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

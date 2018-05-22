@@ -3,10 +3,9 @@
 #include <string>
 #include <iostream>
 
-// unsigned char seed[32];
-// unsigned char signature[64];
-// unsigned char public_key[32];
-// unsigned char private_key[64];
+namespace automaton {
+namespace core {
+namespace crypto {
 
 size_t ed25519_orlp::public_key_size() {
   return 32;
@@ -65,3 +64,7 @@ bool ed25519_orlp::register_self() {
       return reinterpret_cast<digital_signature*>(new ed25519_orlp()); });
   return true;
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

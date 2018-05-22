@@ -6,6 +6,7 @@
 
 #include "crypto/module.h"
 #include "data/module.h"
+#include "io/module.h"
 #include "network/module.h"
 #include "state/module.h"
 
@@ -26,6 +27,7 @@ TEST_F(test_script, module_registration) {
   auto& r = script::registry::get();
   ASSERT_TRUE(crypto::module::registered);
   ASSERT_TRUE(data::module::registered);
+  ASSERT_TRUE(io::module::registered);
   ASSERT_TRUE(network::module::registered);
   ASSERT_TRUE(state::module::registered);
   std::cout << r.to_string() << std::endl;

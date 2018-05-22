@@ -4,7 +4,12 @@
 #include <string>
 #include <map>
 
-/** Digital signature interface
+namespace automaton {
+namespace core {
+namespace crypto {
+
+/**
+  Digital signature interface
 */
 class digital_signature {
  public:
@@ -123,5 +128,9 @@ class digital_signature {
   static std::map<std::string,
       digital_signature_factory_function> digital_signature_factory;
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  //  AUTOMATON_CORE_CRYPTO_DIGITAL_SIGNATURE_H__
