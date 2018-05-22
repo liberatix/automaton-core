@@ -1,6 +1,8 @@
 #include "io/io.h"
 #include "gtest/gtest.h"
 
+using automaton::core::io::get_file_contents;
+
 const char * TEST_TXT_CONTENTS = "Hello, World!";
 
 TEST(io, get_file_contents) {

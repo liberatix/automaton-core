@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 
 using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::io::get_file_contents;
 
 int main(int argc, char* argv[]) {
   try {

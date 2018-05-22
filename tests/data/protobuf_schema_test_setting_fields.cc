@@ -9,6 +9,7 @@
 
 using automaton::core::data::msg;
 using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::io::get_file_contents;
 
 const char * TEST_MSG = "TestMsg";
 

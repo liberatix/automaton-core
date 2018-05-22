@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 
 using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::io::get_file_contents;
 
 TEST(protobuf_factory, find_enum) {
   protobuf_factory sc;
