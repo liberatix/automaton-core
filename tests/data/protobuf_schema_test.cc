@@ -10,6 +10,7 @@ using automaton::core::data::msg;
 using automaton::core::data::schema;
 using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
+using automaton::core::io::get_file_contents;
 
 int main(int argc, char* argv[]) {
   try {

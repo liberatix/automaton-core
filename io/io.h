@@ -3,11 +3,19 @@
 
 #include <string>
 
+namespace automaton {
+namespace core {
+namespace io {
+
 /**
   Gets the file contents and returns them as a string.
   
   Exception is thrown when error occurs.
 */
 std::string get_file_contents(const char* filename);
+
+}  // namespace io
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_IO_IO_H__
