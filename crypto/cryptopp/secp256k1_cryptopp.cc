@@ -8,8 +8,13 @@
 #include <string>
 #include <iostream>
 #include "crypto/digital_signature.h"
+
+namespace automaton {
+namespace core {
+namespace crypto {
+
 /*
-TODO(Samir): set domain params from the fallowing example
+TODO(Samir): set domain params from the following example
 https://stackoverflow.com/a/45796422
 OID curve = ASN1::secp256r1();
 ECDH<ECP>::Domain domain(curve);
@@ -106,3 +111,7 @@ bool secp256k1_cryptopp::register_self() {
   });
   return true;
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

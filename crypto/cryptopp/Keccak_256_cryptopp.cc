@@ -3,6 +3,10 @@
 #include "cryptlib.h"  // NOLINT
 #include "keccak.h"  // NOLINT
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 Keccak_256_cryptopp::Keccak_256_cryptopp() {
   hash = new CryptoPP::Keccak_256;
 }
@@ -36,3 +40,7 @@ bool Keccak_256_cryptopp::register_self() {
         (new Keccak_256_cryptopp()); });
   return true;
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

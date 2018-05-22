@@ -1,6 +1,10 @@
 #include "crypto/hash_transformation.h"
 #include <string>
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 void hash_transformation::calculate_digest(const unsigned char * input,
                                            const size_t length,
                                            unsigned char * digest) {
@@ -29,3 +33,7 @@ hash_transformation * hash_transformation::create(std::string name) {
     return it->second();
   }
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

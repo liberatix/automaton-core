@@ -7,6 +7,10 @@
 #include "crypto/hash_transformation.h"
 #include "state/state.h"
 
+namespace automaton {
+namespace core {
+namespace state {
+
 // Dummy state implementation, to be used for reference and tests.
 // Peculiar traits worth noting:
 // - get_node_hash is highly inefficient as it recalculates it from scratch.
@@ -29,5 +33,9 @@ class dummy_state : public state {
   std::map<std::string, std::string> data;
   std::map<std::string, std::string> pending_changes;
 };
+
+}  // namespace state
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_STATE_DUMMY_STATE_H__

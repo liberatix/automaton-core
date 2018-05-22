@@ -6,6 +6,9 @@
 #include "state/state_impl.h"
 #include "crypto/cryptopp/SHA256_cryptopp.h"
 
+using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::hash_transformation;
+using automaton::core::state::state_impl;
 
 TEST(state_impl, set_and_get) {
   std::vector<std::pair<std::string, std::string> > tests;

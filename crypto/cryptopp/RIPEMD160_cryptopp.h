@@ -2,10 +2,12 @@
 #define AUTOMATON_CORE_CRYPTO_RIPEMD160_CRYPTOPP_H__
 
 #include "crypto/hash_transformation.h"
+#include "cryptlib.h"  // NOLINT
+#include "ripemd.h"  // NOLINT
 
-namespace CryptoPP {
-class RIPEMD160;
-}
+namespace automaton {
+namespace core {
+namespace crypto {
 
 class RIPEMD160_cryptopp : public hash_transformation {
  private:
@@ -30,5 +32,9 @@ class RIPEMD160_cryptopp : public hash_transformation {
  private:
   static const int _digest_size = 20;
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_CRYPTO_RIPEMD160_CRYPTOPP_H__

@@ -5,6 +5,10 @@
 #include "cryptlib.h"  // NOLINT
 #include "keccak.h"  // NOLINT
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 class Keccak_256_cryptopp : public hash_transformation {
  private:
   CryptoPP::Keccak_256 * hash;
@@ -28,5 +32,9 @@ class Keccak_256_cryptopp : public hash_transformation {
  private:
   static const int _digest_size = 32;
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_CRYPTO_Keccak_256_CRYPTOPP_H__

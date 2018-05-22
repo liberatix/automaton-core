@@ -9,6 +9,7 @@ cc_test(
     "//script",
     "//crypto:module",
     "//data:module",
+    "//io:module",
     "//network:module",
     "//state:module",
     "@gtest//:gtest_main",

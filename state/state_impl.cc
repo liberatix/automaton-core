@@ -9,6 +9,10 @@
 #include <utility>
 #include "crypto/hash_transformation.h"
 
+namespace automaton {
+namespace core {
+namespace state {
+
 typedef std::basic_string<unsigned char> ustring;
 
 static std::string tohex(std::string s) {
@@ -20,7 +24,7 @@ static std::string tohex(std::string s) {
   return ss.str();
 }
 
-state_impl::state_impl(hash_transformation* hasher) {
+state_impl::state_impl(crypto::hash_transformation* hasher) {
   nodes.push_back(state_impl::node());
   this->hasher = hasher;
   nodes_current_state = 1;
@@ -477,3 +481,7 @@ void state_impl::subtrie_mark_free(uint32_t cur_node) {
   } while (++child != 0);
   return;
 }
+
+}  // namespace state
+}  // namespace core
+}  // namespace automaton

@@ -5,6 +5,10 @@
 #include <map>
 #include <string>
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 // Class used for getting cryptographically secure random
 class secure_random {
  public:
@@ -48,5 +52,9 @@ class secure_random {
   static std::map<std::string, secure_random_factory_function>
      secure_random_factory;
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_CRYPTO_SECURE_RANDOM_H__

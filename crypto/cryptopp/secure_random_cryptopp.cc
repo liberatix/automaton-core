@@ -2,6 +2,10 @@
 #include <cryptlib.h>
 #include <osrng.h>
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 bool secure_random_cryptopp::bit() {
   return prng.GenerateBit();
 }
@@ -19,3 +23,7 @@ bool secure_random_cryptopp::register_self() {
       reinterpret_cast<secure_random*>(new secure_random_cryptopp()); });
   return true;
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

@@ -2,10 +2,12 @@
 #define AUTOMATON_CORE_CRYPTO_SHA512_CRYPTOPP_H__
 
 #include "crypto/hash_transformation.h"
+#include "cryptlib.h"  // NOLINT
+#include "sha.h"  // NOLINT
 
-namespace CryptoPP {
-class SHA512;
-}
+namespace automaton {
+namespace core {
+namespace crypto {
 
 class SHA512_cryptopp : public hash_transformation {
  private:
@@ -30,5 +32,9 @@ class SHA512_cryptopp : public hash_transformation {
  private:
   static const int _digest_size = 64;
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_CRYPTO_SHA512_CRYPTOPP_H__
