@@ -43,12 +43,7 @@ struct interface {
 struct implementation1 : interface {};
 struct implementation2 : interface {};
 
-struct reg {};
-
 auto dynamic_bindings = [](const eid& id) {
-  auto injector = di::make_injector(di::bind<reg>().in(di::singleton).to<reg>());
-  assert(injector.create<std::shared_ptr<reg>>() == injector.create<std::shared_ptr<reg>>());
-
   return di::make_injector(
       /*<<bind `interface` to lazy lambda expression>>*/
       di::bind<interface>().to([&](const auto& injector) -> std::shared_ptr<interface> {
