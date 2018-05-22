@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+message Function {
+  string name = 1;
+  repeated string args = 2;
+  repeated string results = 3;
+}
+
+message Constructor {
+	string name = 1;
+  string version = 2;
+  repeated string args = 3;
+}
+
+message Concept {
+	string name = 1;
+  string version = 2;
+  repeated Constructor constructors = 3;
+  repeated Function methods = 4;
+}
+
+message Module {
+	string name = 1;
+  string version = 2;
+  repeated Function functions = 3;
+  repeated Class concepts = 4;
+  repeated Module modules = 5;
+}

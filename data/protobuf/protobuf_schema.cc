@@ -11,6 +11,8 @@ using google::protobuf::FieldDescriptorProto_Label;
 using google::protobuf::FieldDescriptorProto_Type;
 using google::protobuf::FileDescriptorProto;
 
+namespace automaton {
+namespace core {
 namespace data {
 namespace protobuf {
 
@@ -185,3 +187,5 @@ bool protobuf_schema::from_json(const std::string& input) {
 
 }  // namespace protobuf
 }  // namespace data
+}  // namespace core
+}  // namespace automaton

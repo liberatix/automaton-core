@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 
+namespace automaton {
+namespace core {
 namespace data {
 
 /** Schema message interface
@@ -119,5 +121,7 @@ class msg {
 };
 
 }  // namespace data
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_DATA_MSG_H__

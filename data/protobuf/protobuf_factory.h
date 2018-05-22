@@ -24,8 +24,8 @@
 #include "data/schema.h"
 #include "data/protobuf/protobuf_msg.h"
 
-using data::schema;
-
+namespace automaton {
+namespace core {
 namespace data {
 namespace protobuf {
 
@@ -301,5 +301,7 @@ class protobuf_factory: public factory {
 
 }  // namespace protobuf
 }  // namespace data
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_FACTORY_H_

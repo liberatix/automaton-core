@@ -16,6 +16,8 @@
 
 #include "data/schema.h"
 
+namespace automaton {
+namespace core {
 namespace data {
 namespace protobuf {
 
@@ -122,5 +124,7 @@ class protobuf_schema: public schema {
 
 }  // namespace protobuf
 }  // namespace data
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_DATA_PROTOBUF_PROTOBUF_SCHEMA_H__

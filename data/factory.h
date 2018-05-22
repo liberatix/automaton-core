@@ -10,6 +10,8 @@
 #include "data/schema.h"
 #include "data/msg.h"
 
+namespace automaton {
+namespace core {
 namespace data {
 
 /** Schema data structure interface.
@@ -174,5 +176,7 @@ class factory {
 };
 
 }  // namespace data
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_DATA_FACTORY_H__

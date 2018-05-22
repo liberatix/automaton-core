@@ -15,6 +15,8 @@ using google::protobuf::Reflection;
 using google::protobuf::util::MessageToJsonString;
 using google::protobuf::util::JsonStringToMessage;
 
+namespace automaton {
+namespace core {
 namespace data {
 namespace protobuf {
 
@@ -435,3 +437,5 @@ int protobuf_msg::get_repeated_enum(int field_tag, int index) const {
 
 }  // namespace protobuf
 }  // namespace data
+}  // namespace core
+}  // namespace automaton

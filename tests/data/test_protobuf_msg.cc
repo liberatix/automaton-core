@@ -6,10 +6,10 @@
 #include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
-using data::schema;
-using data::msg;
-using data::protobuf::protobuf_factory;
-using data::protobuf::protobuf_schema;
+using automaton::core::data::schema;
+using automaton::core::data::msg;
+using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::data::protobuf::protobuf_schema;
 
 const char* FIRST_MESSAGE = "first_message";
 const char* SECOND_MESSAGE = "second_message";
