@@ -4,6 +4,9 @@
 #include "log/log.h"
 #include "network/tcp_implementation.h"
 
+using automaton::core::network::acceptor;
+using automaton::core::network::connection;
+
 const char* address_a = "127.0.0.1:12333";
 const char* address_b = "127.0.0.1:12366";
 int counter = 0;
@@ -117,7 +120,7 @@ void thread3() {
 }
 
 int main() {
-  tcp_init();
+  automaton::core::network::tcp_init();
   lis_handler lis_handler;
   acceptor* acceptorB = acceptor::create("tcp", address_b, &lis_handler,
       &handlerD);
