@@ -1,16 +1,8 @@
 #ifndef AUTOMATON_CORE_SCRIPTABLE_SCRIPTABLE_H__
 #define AUTOMATON_CORE_SCRIPTABLE_SCRIPTABLE_H__
 
-#include <boost/core/demangle.hpp>
-#include <boost/type_traits/is_base_of.hpp>
-
 #include <string>
-#include <iostream>
 #include <unordered_map>
-
-#include "data/factory.h"
-#include "data/msg.h"
-#include "data/schema.h"
 
 namespace automaton {
 namespace core {

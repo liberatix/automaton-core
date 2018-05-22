@@ -11,9 +11,5 @@ cc_library(
     "registry.h",
   ],
   deps = [
-    "//data",
-    "//log",
-    "@boost//:type_traits",
-    "@boost//:config",
   ],
 )

@@ -3,8 +3,6 @@
 #include <string>
 #include <sstream>
 
-#include "log/log.h"
-
 namespace automaton {
 namespace core {
 namespace script {
