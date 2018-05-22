@@ -15,7 +15,4 @@ cc_library(
     "data_exception.h",
     "msg.h",
   ],
-  deps = [
-	  "@com_google_protobuf//:protobuf",
-  ],
 )

@@ -1,5 +1,6 @@
 #include "data/protobuf/protobuf_factory.h"
 #include "data/protobuf/protobuf_schema.h"
+#include "log/log.h"
 
 using google::protobuf::Arena;
 using google::protobuf::DescriptorProto;
@@ -63,14 +64,8 @@ void protobuf_schema::add_enum_value(int enum_id, const std::string& value_name,
 }
 
 void protobuf_schema::add_nested_message(int message_id, int sub_message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
-  if (sub_message_id < 0 || sub_message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
+  CHECK_BOUNDS(message_id, 0, messages.size() - 1) << "message_id out of bounds";
+  CHECK_BOUNDS(sub_message_id, 0, messages.size() - 1) << "sub_message_id out of bounds";
   if (messages[message_id] == nullptr || messages[sub_message_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -80,10 +75,7 @@ void protobuf_schema::add_nested_message(int message_id, int sub_message_id) {
 }
 
 void protobuf_schema::add_message(int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
+  CHECK_BOUNDS(message_id, 0, messages.size() - 1) << "message_id out of bounds";
   if (messages[message_id] == nullptr) {
     throw std::runtime_error("Unexpected error");
   }
@@ -116,9 +108,7 @@ void protobuf_schema::add_enum(int enum_id, int message_id = -1) {
 }
 
 void protobuf_schema::add_scalar_field(schema::field_info field, int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: " + std::to_string(message_id));
-  }
+  CHECK_BOUNDS(message_id, 0, messages.size() - 1) << "message_id out of bounds";
   if (field.type == schema::message_type ||
       field.type == schema::enum_type ||
       field.type == schema::unknown) {
@@ -138,10 +128,7 @@ void protobuf_schema::add_scalar_field(schema::field_info field, int message_id)
 }
 
 void protobuf_schema::add_enum_field(schema::field_info field, int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
+  CHECK_BOUNDS(message_id, 0, messages.size() - 1) << "message_id out of bounds";
   if (field.type != schema::enum_type) {
     throw std::invalid_argument("Wrong field type");
   }
@@ -160,10 +147,7 @@ void protobuf_schema::add_enum_field(schema::field_info field, int message_id) {
 }
 
 void protobuf_schema::add_message_field(schema::field_info field, int message_id) {
-  if (message_id < 0 || message_id >= messages.size()) {
-    throw std::out_of_range("No message with id: "
-        + std::to_string(message_id));
-  }
+  CHECK_BOUNDS(message_id, 0, messages.size() - 1) << "message_id out of bounds";
   if (field.type != schema::message_type) {
     throw std::invalid_argument("Wrong field type");
   }
@@ -181,6 +165,22 @@ void protobuf_schema::add_message_field(schema::field_info field, int message_id
     field_proto->set_label(
         FieldDescriptorProto_Label::FieldDescriptorProto_Label_LABEL_REPEATED);
   }
+}
+
+/**
+  Serializes schema to JSON string.
+*/
+bool protobuf_schema::to_json(std::string* output) {
+  // TODO(asen): To be implemented.
+  return false;
+}
+
+/**
+  Deserializes schema from JSON string.
+*/
+bool protobuf_schema::from_json(const std::string& input) {
+  // TODO(asen): To be implemented.
+  return false;
 }
 
 }  // namespace protobuf
