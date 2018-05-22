@@ -6,6 +6,10 @@
 
 #include "network/connection.h"
 
+namespace automaton {
+namespace core {
+namespace network {
+
 // Class that is used to listen for and accept incoming connections. (Server)
 class acceptor {
  public:
@@ -79,5 +83,9 @@ class acceptor {
   */
   static std::map<std::string, factory_function> acceptor_factory;
 };
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton
 
 #endif  // NETWORK_ACCEPTOR_H__

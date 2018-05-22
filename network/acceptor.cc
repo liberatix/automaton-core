@@ -1,5 +1,9 @@
 #include "network/acceptor.h"
 
+namespace automaton {
+namespace core {
+namespace network {
+
 acceptor::acceptor(acceptor::acceptor_handler* handler_):handler(handler_) {}
 
 acceptor* acceptor::create(const std::string& type,
@@ -19,3 +23,7 @@ void acceptor::register_acceptor_type(
 
 std::map<std::string, acceptor::factory_function>
     acceptor::acceptor_factory;
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton

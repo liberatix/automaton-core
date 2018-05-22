@@ -11,6 +11,10 @@
 #include "network/acceptor.h"
 #include "network/connection.h"
 
+namespace automaton {
+namespace core {
+namespace network {
+
 class simulated_connection;
 class simulated_acceptor;
 
@@ -220,5 +224,9 @@ class simulated_acceptor: public acceptor {
   bool parse_address(const std::string& address);  // not implemented yet
   acceptor_handler* get_handler();
 };
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton
 
 #endif  // NETWORK_SIMULATED_CONNECTION_H__

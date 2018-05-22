@@ -10,6 +10,10 @@
 
 #include "log/log.h"
 
+namespace automaton {
+namespace core {
+namespace network {
+
 event::event() {
   type_ = event::type::undefined;
   time_of_handling = 0;
@@ -637,3 +641,7 @@ void simulated_acceptor::start_accepting() {
 acceptor::acceptor_handler* simulated_acceptor::get_handler() {
   return handler;
 }
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton

@@ -4,6 +4,10 @@
 #include "log/log.h"
 #include "network/simulated_connection.h"
 
+using automaton::core::network::acceptor;
+using automaton::core::network::connection;
+using automaton::core::network::simulation;
+
 static int send_counter = 10;
 static int read_counter = 0;
 

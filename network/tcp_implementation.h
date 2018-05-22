@@ -1,12 +1,6 @@
 #ifndef TCP_IMPLEMENTATION_H__
 #define TCP_IMPLEMENTATION_H__
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <utility>
-#include <memory>
-
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/write.hpp>
@@ -14,8 +8,18 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <utility>
+#include <memory>
+
 #include "network/connection.h"
 #include "network/acceptor.h"
+
+namespace automaton {
+namespace core {
+namespace network {
 
 // TODO(kari): proper exit, clear resources..
 // TODO(kari): add worker and init function
@@ -145,5 +149,9 @@ void tcp_init();
 
 void parse_address(const std::string&, std::string* result_addr, std::string*
     result_port);
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton
 
 #endif  // TCP_IMPLEMENTATION_H__

@@ -8,6 +8,10 @@
 
 #include "log/log.h"
 
+namespace automaton {
+namespace core {
+namespace network {
+
 // TODO(kari): proper exit, clear resources..
 // TODO(kari): improve init function and handle the new thread
 // TODO(kari): Add "if ! tcp_initialized" where necessary
@@ -321,3 +325,7 @@ void parse_address(const std::string& address, std::string* result_addr,
     *result_port = "";
   }
 }
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton

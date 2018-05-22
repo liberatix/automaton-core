@@ -5,6 +5,10 @@
 #include <string>
 #include <thread>
 
+namespace automaton {
+namespace core {
+namespace network {
+
 // TODO(kari): add state as a member and get_state
 // TODO(kari): think about `send and disconnect`
 
@@ -123,5 +127,9 @@ class connection {
   */
   static std::map<std::string, factory_function> connection_factory;
 };
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton
 
 #endif  // NETWORK_CONNECTION_H__
