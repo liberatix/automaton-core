@@ -7,8 +7,8 @@
 #include "data/protobuf/protobuf_factory.h"
 #include "gtest/gtest.h"
 
-using data::msg;
-using data::protobuf::protobuf_factory;
+using automaton::core::data::msg;
+using automaton::core::data::protobuf::protobuf_factory;
 
 const char * TEST_MSG = "TestMsg";
 

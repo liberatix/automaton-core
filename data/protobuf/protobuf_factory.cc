@@ -21,6 +21,8 @@ using google::protobuf::compiler::Parser;
 using google::protobuf::io::IstreamInputStream;
 using google::protobuf::io::Tokenizer;
 
+namespace automaton {
+namespace core {
 namespace data {
 namespace protobuf {
 
@@ -489,3 +491,5 @@ string proto_error_collector::get_all_errors() {
 
 }  // namespace protobuf
 }  // namespace data
+}  // namespace core
+}  // namespace automaton
