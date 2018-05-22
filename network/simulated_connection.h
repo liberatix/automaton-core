@@ -1,7 +1,6 @@
 #ifndef NETWORK_SIMULATED_CONNECTION_H__
 #define NETWORK_SIMULATED_CONNECTION_H__
 
-#include <map>
 #include <mutex>
 #include <string>
 #include <queue>
@@ -21,8 +20,8 @@ struct event {
   enum type {
     undefined = 0,
     disconnect = 1,
-    connection_attempt = 2,
-    send = 3,
+    connection_request = 2,
+    message = 3,
     accept = 4,
     refuse = 5,
     ack_received = 6,
@@ -31,10 +30,9 @@ struct event {
   type type_;
   /// uint64_t time_created;
   uint64_t time_of_handling;
-  /// acceptor's address OR connection's ID in the vector
-  unsigned int recipient;
+  unsigned int source;
+  unsigned int destination;
   std::string data;
-  unsigned int message_id;
   event();
   std::string to_string() const;
 };
@@ -43,6 +41,7 @@ struct event {
 struct connection_params {
   unsigned int min_lag;
   unsigned int max_lag;
+  unsigned int bandwidth;
   connection_params();
 };
 
@@ -67,15 +66,15 @@ class simulation {
   };
 
   /**
-    Vector storing created connections.
+    Map storing created connections.
   */
-  std::vector<simulated_connection*> connections;
+  std::unordered_map<uint32_t, simulated_connection*> connections;
   std::mutex connections_mutex;
 
   /**
     Map storing created acceptors where the key is the address.
   */
-  std::map<uint32_t, simulated_acceptor*> acceptors;
+  std::unordered_map<uint32_t, simulated_acceptor*> acceptors;
   std::mutex acceptors_mutex;
 
   /**
@@ -134,11 +133,11 @@ class simulation {
   */
   int process(uint64_t time);
   void add_connection(simulated_connection* connection_);
+  simulated_connection* get_connection(unsigned int connection_index);
   void remove_connection(unsigned int connection_id);
   void add_acceptor(uint32_t address, simulated_acceptor* acceptor_);
-  simulated_connection* get_connection(unsigned int connection_index);
   simulated_acceptor* get_acceptor(uint32_t address);
-  simulated_acceptor* get_acceptor_by_connection(unsigned int connection_id);
+  void remove_acceptor(uint32_t address);
 
   // DEBUG
   void print_q();
@@ -151,7 +150,21 @@ class simulated_connection: public connection {
   unsigned int local_connection_id;
   unsigned int remote_connection_id;
   state connection_state;
-
+  // TODO(kari): better names for these structs
+  struct incoming_packet {
+    char* buffer;
+    unsigned int buffer_size;
+    unsigned int expect_to_read;
+    unsigned int id;
+    unsigned int bytes_read;
+    incoming_packet();
+  };
+  struct outgoing_packet {
+    std::string message;
+    unsigned int bytes_send;
+    unsigned int id;
+    outgoing_packet();
+  };
   /**
     This is used when setting event time to prevent events that are called before others to be
     handled first because they had smaller lag. It shows the last time when THIS endpoint send
@@ -163,27 +176,11 @@ class simulated_connection: public connection {
   connection_params parameters;
 
   /**
-    Next 4 are used for read event. When read() is called, passed parameters
-    go into these queues.
-  */
-  std::queue<char*> buffers;
-  std::queue<unsigned int> buffers_sizes;
-  std::queue<unsigned int> expect_to_read;
-  std::queue<unsigned int> read_ids;
-
-  /**
-    Bytes that are already read, but not yet passed to the handler. When
-    bytes_read is equal to expect_to_read, on_message_received is called and
-    bytes_read becomes 0.
-  */
-  unsigned int bytes_read;
-
-  /**
     Queue storing message_id and how many bytes from this message have left and should be
     sent
   */
-  std::queue<std::pair<unsigned int, unsigned int> > sending;
-
+  std::queue<outgoing_packet> sending;
+  std::queue<incoming_packet> reading;
   std::queue<std::string> receive_buffer;
 
   simulated_connection(const std::string& address_, connection_handler* handler_);
@@ -194,6 +191,7 @@ class simulated_connection: public connection {
 
   void async_read(char* buffer, unsigned int buffer_size, unsigned int num_bytes, unsigned int id);
   void handle_read();
+  void handle_send();
 
   state get_state() const;
   std::string get_address() const;
@@ -207,6 +205,7 @@ class simulated_connection: public connection {
     Could be removed if connections are unique and won't be reused.
   */
   void clear_queues();
+  void cancel_operations();
 };
 
 class simulated_acceptor: public acceptor {
