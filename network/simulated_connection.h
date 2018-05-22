@@ -151,19 +151,19 @@ class simulated_connection: public connection {
   unsigned int remote_connection_id;
   state connection_state;
   // TODO(kari): better names for these structs
-  struct read_element {
+  struct incoming_packet {
     char* buffer;
     unsigned int buffer_size;
     unsigned int expect_to_read;
     unsigned int id;
     unsigned int bytes_read;
-    read_element();
+    incoming_packet();
   };
-  struct send_element {
+  struct outgoing_packet {
     std::string message;
     unsigned int bytes_send;
     unsigned int id;
-    send_element();
+    outgoing_packet();
   };
   /**
     This is used when setting event time to prevent events that are called before others to be
@@ -179,8 +179,8 @@ class simulated_connection: public connection {
     Queue storing message_id and how many bytes from this message have left and should be
     sent
   */
-  std::queue<send_element> sending;
-  std::queue<read_element> reading;
+  std::queue<outgoing_packet> sending;
+  std::queue<incoming_packet> reading;
   std::queue<std::string> receive_buffer;
 
   simulated_connection(const std::string& address_, connection_handler* handler_);

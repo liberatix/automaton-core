@@ -147,7 +147,7 @@ void simulation::handle_event(const event& e) {
       event new_event;
       new_event.destination = e.source;
       new_event.time_of_handling = sim->get_time() + source->get_lag();
-      connection_params* params = &(source->parameters);
+      const connection_params& params = source->parameters;
       if (acceptor_->get_handler()->on_requested(source_address)) {
         // LOG(DEBUG) << "accepted";
         new_event.type_ = event::type::accept;
@@ -156,7 +156,7 @@ void simulation::handle_event(const event& e) {
           possible.
         */
         std::string new_addr =
-            std::to_string(params->min_lag) + ":" + std::to_string(params->max_lag) + ":" +
+            std::to_string(params.min_lag) + ":" + std::to_string(params.max_lag) + ":" +
             std::to_string(acceptor_->parameters.bandwidth) + ":0";
         simulated_connection* new_connection =
             new simulated_connection(new_addr, acceptor_->accepted_connections_handler);
@@ -379,9 +379,9 @@ void simulation::print_connections() {
 
 // CONNECTION
 
-simulated_connection::read_element::read_element(): buffer(nullptr), buffer_size(0),
+simulated_connection::incoming_packet::incoming_packet(): buffer(nullptr), buffer_size(0),
     expect_to_read(0), id(0), bytes_read(0) {}
-simulated_connection::send_element::send_element(): bytes_send(0), id(0) {}
+simulated_connection::outgoing_packet::outgoing_packet(): bytes_send(0), id(0) {}
 
 simulated_connection::simulated_connection(const std::string& address_,
     connection_handler* handler_): connection(handler_), remote_address(0), local_connection_id(0),
@@ -404,12 +404,12 @@ void simulated_connection::async_send(const std::string& message, unsigned int i
   }
   // LOG(DEBUG) << "<async_send>";
   // LOG << "Send called with message <" + message + ">");
-  send_element el;
-  el.message = message;
-  el.bytes_send = 0;
-  el.id = id;
+  outgoing_packet packet;
+  packet.message = message;
+  packet.bytes_send = 0;
+  packet.id = id;
   // LOG(DEBUG) << "pushing message <" << message << "> with id: " << id;
-  sending.push(std::move(el));
+  sending.push(std::move(packet));
   if (connection_state == connection::state::connected) {
     handle_send();
   }
@@ -423,21 +423,21 @@ void simulated_connection::handle_send() {
   }
   // LOG(DEBUG) << "<handle_send>";
   simulation* sim = simulation::get_simulator();
-  send_element& el = sending.front();
+  outgoing_packet& packet = sending.front();
   event new_event;
   new_event.type_ = event::type::message;
   new_event.source = local_connection_id;
   new_event.destination = remote_connection_id;
-  if (parameters.bandwidth >= (el.message.size() - el.bytes_send)) {
-    if (!el.bytes_send) {
-      new_event.data = el.message;
+  if (parameters.bandwidth >= (packet.message.size() - packet.bytes_send)) {
+    if (!packet.bytes_send) {
+      new_event.data = packet.message;
     } else {
-      new_event.data = el.message.substr(el.bytes_send);
+      new_event.data = packet.message.substr(packet.bytes_send);
     }
   } else {
-      new_event.data = el.message.substr(el.bytes_send, parameters.bandwidth);
+      new_event.data = packet.message.substr(packet.bytes_send, parameters.bandwidth);
   }
-  el.bytes_send += new_event.data.size();
+  packet.bytes_send += new_event.data.size();
   new_event.time_of_handling = (sim->get_time() > time_stamp + 1 ?
                                 sim->get_time() : time_stamp + 1) + get_lag();
   time_stamp = new_event.time_of_handling;
@@ -448,27 +448,27 @@ void simulated_connection::handle_send() {
 void simulated_connection::handle_read() {
   // LOG(DEBUG) << "<handle_read>";
   while (receive_buffer.size() && reading.size()) {
-    read_element& el = reading.front();
-    bool read_some = el.expect_to_read == 0;
-    unsigned int max_to_read = read_some ? el.buffer_size : el.expect_to_read;
-    while (receive_buffer.size() && el.bytes_read < max_to_read) {
-      unsigned int left_to_read = max_to_read - el.bytes_read;
+    incoming_packet& packet = reading.front();
+    bool read_some = packet.expect_to_read == 0;
+    unsigned int max_to_read = read_some ? packet.buffer_size : packet.expect_to_read;
+    while (receive_buffer.size() && packet.bytes_read < max_to_read) {
+      unsigned int left_to_read = max_to_read - packet.bytes_read;
       std::string message = receive_buffer.front();
       if (left_to_read >= message.size()) {
-        std::memcpy(el.buffer + el.bytes_read, message.data(), message.size());
-        el.bytes_read += message.size();
+        std::memcpy(packet.buffer + packet.bytes_read, message.data(), message.size());
+        packet.bytes_read += message.size();
         receive_buffer.pop();
       } else {
-        std::memcpy(el.buffer + el.bytes_read, message.data(), left_to_read);
-        el.bytes_read += left_to_read;
+        std::memcpy(packet.buffer + packet.bytes_read, message.data(), left_to_read);
+        packet.bytes_read += left_to_read;
         receive_buffer.front() = message.substr(left_to_read);
       }
     }
-    if (read_some || el.bytes_read == el.expect_to_read) {
+    if (read_some || packet.bytes_read == packet.expect_to_read) {
       // TODO(kari): use T top = std::move(q.front()); q.pop();
-      read_element el = std::move(reading.front());
+      incoming_packet packet = std::move(reading.front());
       reading.pop();
-      handler->on_message_received(this, el.buffer, el.bytes_read, el.id);
+      handler->on_message_received(this, packet.buffer, packet.bytes_read, packet.id);
     }
   }
   // LOG(DEBUG) << "</handle_read>";
@@ -487,12 +487,12 @@ void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
     return;
   }
   // logging("Setting buffers in connection: " + get_address());
-  read_element el;
-  el.buffer = buffer;
-  el.buffer_size = buffer_size;
-  el.expect_to_read = num_bytes;
-  el.id = id;
-  reading.push(std::move(el));
+  incoming_packet packet;
+  packet.buffer = buffer;
+  packet.buffer_size = buffer_size;
+  packet.expect_to_read = num_bytes;
+  packet.id = id;
+  reading.push(std::move(packet));
   if (receive_buffer.size()) {
     handle_read();
   }
@@ -578,9 +578,9 @@ connection::connection_handler* simulated_connection::get_handler() {
 }
 
 void simulated_connection::clear_queues() {
-  std::queue<read_element> empty_reading;
+  std::queue<incoming_packet> empty_reading;
   std::swap(reading, empty_reading);
-  std::queue<send_element> empty_sending;
+  std::queue<outgoing_packet> empty_sending;
   std::swap(sending, empty_sending);
   std::queue<std::string> empty_receive_buffer;
   std::swap(receive_buffer, empty_receive_buffer);
