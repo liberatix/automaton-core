@@ -4,11 +4,12 @@
 #include <stdint.h>
 #include <string>
 
+namespace automaton {
 namespace core {
 namespace storage {
 
 /**
-  blobstore interface.
+  Blobstore interface.
   Can store and delete arbitrary length data in a memory mapped file.
   There are no protections. The pointer points to the internal memory.
 */
@@ -60,5 +61,6 @@ class blobstore {
 
 }  // namespace storage
 }  // namespace core
+} //  namespace automaton
 
 #endif  // AUTOMATON_CORE_STORAGE_BLOBSTORE_H__

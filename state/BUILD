@@ -20,6 +20,23 @@ cc_library(
 )
 
 cc_library(
+    name = "state_persistent",
+    srcs = [
+      "state_persistent.cc",
+      "state_persistent.h",
+      "state.cc",
+      "state.h",
+    ],
+    hdrs = [
+      "state_persistent.h",
+      "state.h",
+    ],
+    deps = [
+      "//crypto",
+    ],
+)
+
+cc_library(
   name = "module",
   srcs = ["module.cc"],
   hdrs = ["module.h"],

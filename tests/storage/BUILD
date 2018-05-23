@@ -1,7 +1,7 @@
 
 cc_test(
-    name = "blob_storage",
-    srcs = ["test_blob_storage.cc"],
+    name = "blobstore",
+    srcs = ["blobstore_test.cc"],
     size = "small",
     deps = [
       "//storage",

@@ -1,12 +1,14 @@
 #include <cstring>
 #include <random>
 #include <vector>
-#include "storage/blob_storage.h"
+#include "storage/blobstore.h"
 #include "gtest/gtest.h"
 #include <iostream>
 
-TEST(blob_storage, basic_test) {
-  blob_storage storage("test");
+using automaton::core::storage::blobstore;
+
+TEST(blobstore, basic_test) {
+  blobstore storage("test");
   uint32_t blob_size = 16;
   uint64_t access_id;
   std::string data_to_save = "0123456789ABCDEF";
@@ -21,8 +23,8 @@ TEST(blob_storage, basic_test) {
 }
 
 
-TEST(blob_storage, create_blob_write_get_data) {
-  blob_storage storage("test");
+TEST(blobstore, create_blob_write_get_data) {
+  blobstore storage("test");
   std::vector<std::string> tests;
   std::vector<uint64_t> access_id;
   std::random_device rnd;

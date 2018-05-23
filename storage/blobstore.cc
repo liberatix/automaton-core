@@ -1,7 +1,11 @@
-#include "storage/blob_storage.h"
+#include "storage/blobstore.h"
 #include <cstring>
 
-blob_storage::blob_storage(std::string file_path)
+namespace automaton{
+namespace core {
+namespace storage {
+
+blobstore::blobstore(std::string file_path)
     : file_path(file_path)
     , next_free(0)
     , capacity(0) {
@@ -10,11 +14,11 @@ blob_storage::blob_storage(std::string file_path)
   capacity = 1ULL << 28;
 }
 
-blob_storage::~blob_storage() {
+blobstore::~blobstore() {
   delete[] storage;
 }
 
-uint8_t* blob_storage::create_blob(const uint32_t size, uint64_t* id) {
+uint8_t* blobstore::create_blob(const uint32_t size, uint64_t* id) {
   uint32_t size_in_int32 =  size % 4 ? size / 4 + 1 : size / 4;
   *id = next_free;
 
@@ -37,14 +41,14 @@ uint8_t* blob_storage::create_blob(const uint32_t size, uint64_t* id) {
   return out_blob_pointer;
 }
 
-uint64_t blob_storage::store_data(const uint32_t size, uint8_t* data) {
+uint64_t blobstore::store_data(const uint32_t size, uint8_t* data) {
   uint64_t id = 0;
   uint8_t* blob = create_blob(size, &id);
   std::memcpy(blob, data, size);
   return id;
 }
 
-uint8_t* blob_storage::get_data(const uint64_t id, uint32_t* size) {
+uint8_t* blobstore::get_data(const uint64_t id, uint32_t* size) {
   // check if id is out of range
   if (id+1 >= capacity) {
     return 0;
@@ -53,7 +57,11 @@ uint8_t* blob_storage::get_data(const uint64_t id, uint32_t* size) {
   return reinterpret_cast<uint8_t*>(&storage[id + 1]);
 }
 
-bool blob_storage::delete_blob(const uint32_t id) {
+bool blobstore::delete_blob(const uint32_t id) {
   storage[id] = 0;
   return 1;
 }
+
+}  // namespace storage
+}  // namespace core
+} //  namespace automaton

@@ -9,9 +9,13 @@
 #include "state/state.h"
 #include "crypto/hash_transformation.h"
 
+namespace automaton {
+namespace core {
+namespace state {
+
 class state_persistent : public state{
  public:
-  explicit state_persistent(hash_transformation* hasher);
+  explicit state_persistent(crypto::hash_transformation* hasher);
 
   // Get the value at given path. Empty string if no value is set or
   // there is no node at the given path
@@ -78,7 +82,7 @@ class state_persistent : public state{
   std::vector<node> nodes;
   std::map<uint32_t, node> backup;
   std::set<uint32_t> free_locations;
-  hash_transformation* hasher;
+  crypto::hash_transformation* hasher;
   uint32_t nodes_current_state;
   uint32_t permanent_nodes_count;
 
@@ -94,5 +98,9 @@ class state_persistent : public state{
   // add all nodes in the subtrie to free_locations to be reused.
   void subtrie_mark_free(uint32_t cur_node);
 };
+
+}  // namespace state
+}  // namespace core
+}  // namespace automaton
 
 #endif  //  AUTOMATON_CORE_STATE_PERSISTENT_H__
