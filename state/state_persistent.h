@@ -63,18 +63,18 @@ class state_persistent : public state{
     std::string value;
     uint32_t children[256];
   };
-  // This will replace our vector of nodes
-  class storage{
-    void insert(const node& node_) {
-    }
-    node at(uint32_t index) {
-    }
-    unsigned char * data(uint64_t offset, uint32_t len) {
-    }
-   private:
-    state_persistent::node * fixed_len_data;
-    unsigned char * variable_len_data;
-  };
+  //  This will replace our vector of nodes
+  // class storage{
+  //   void insert(const node& node_) {
+  //   }
+  //   node at(uint32_t index) {
+  //   }
+  //   unsigned char * data(uint64_t offset, uint32_t len) {
+  //   }
+  //  private:
+  //   state_persistent::node * fixed_len_data;
+  //   unsigned char * variable_len_data;
+  // };
   std::vector<node> nodes;
   std::map<uint32_t, node> backup;
   std::set<uint32_t> free_locations;

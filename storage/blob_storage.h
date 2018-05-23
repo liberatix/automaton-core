@@ -1,18 +1,21 @@
-#ifndef AUTOMATON_CORE_STORAGE_BLOB_STORAGE_H__
-#define AUTOMATON_CORE_STORAGE_BLOB_STORAGE_H__
+#ifndef AUTOMATON_CORE_STORAGE_BLOBSTORE_H__
+#define AUTOMATON_CORE_STORAGE_BLOBSTORE_H__
 
 #include <stdint.h>
 #include <string>
 
+namespace core {
+namespace storage {
+
 /**
-  blob_storage interface.
+  blobstore interface.
   Can store and delete arbitrary length data in a memory mapped file.
   There are no protections. The pointer points to the internal memory.
 */
-class blob_storage {
+class blobstore {
  public:
-  explicit blob_storage(std::string file_path);
-  ~blob_storage();
+  explicit blobstore(std::string file_path);
+  ~blobstore();
   /**
     Creates a blob with a given size and returns the pointer to it.
 
@@ -55,4 +58,7 @@ class blob_storage {
   uint64_t capacity;
 };
 
-#endif  // AUTOMATON_CORE_STORAGE_BLOB_STORAGE_H__
+}  // namespace storage
+}  // namespace core
+
+#endif  // AUTOMATON_CORE_STORAGE_BLOBSTORE_H__
