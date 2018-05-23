@@ -61,6 +61,6 @@ class blobstore {
 
 }  // namespace storage
 }  // namespace core
-} //  namespace automaton
+}  //  namespace automaton
 
 #endif  // AUTOMATON_CORE_STORAGE_BLOBSTORE_H__

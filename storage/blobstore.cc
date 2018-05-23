@@ -1,7 +1,7 @@
 #include "storage/blobstore.h"
 #include <cstring>
 
-namespace automaton{
+namespace automaton {
 namespace core {
 namespace storage {
 
@@ -64,4 +64,4 @@ bool blobstore::delete_blob(const uint32_t id) {
 
 }  // namespace storage
 }  // namespace core
-} //  namespace automaton
+}  //  namespace automaton
