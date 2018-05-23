@@ -5,6 +5,10 @@
 #include "log/log.h"
 #include "network/simulated_connection.h"
 
+using automaton::core::network::acceptor;
+using automaton::core::network::connection;
+using automaton::core::network::simulation;
+
 /// Constants
 
 static const unsigned int NUMBER_NODES = 1000;
