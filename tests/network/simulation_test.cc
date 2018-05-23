@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <mutex>
 #include <string>
 #include <sstream>
 #include "log/log.h"
@@ -10,6 +11,20 @@ using automaton::core::network::simulation;
 
 static int send_counter = 10;
 static int read_counter = 0;
+std::mutex buffer_mutex;
+std::vector<char*> buffers;
+
+char* add_buffer(unsigned int size) {
+  std::lock_guard<std::mutex> lock(buffer_mutex);
+  buffers.push_back(new char[size]);
+  return buffers[buffers.size() - 1];
+}
+void clear_buffers() {
+  std::lock_guard<std::mutex> lock(buffer_mutex);
+  for (unsigned int i = 0; i < buffers.size(); ++i) {
+    delete [] buffers[i];
+  }
+}
 
 std::string create_connection_address(unsigned int num_acceptors,
                                       unsigned int min_lag = 1,
@@ -55,7 +70,7 @@ class handler: public connection::connection_handler {
     // if (send_counter < 10) {
     //   c -> async_send("Thank you!", send_counter++);
     // }
-    c -> async_read(buffer, 128, 0, read_counter++);
+    c -> async_read(buffer, 16, 0, read_counter++);
   }
   void on_message_sent(connection* c, unsigned int id, connection::error e) {
     if (e) {
@@ -91,7 +106,7 @@ class lis_handler: public acceptor::acceptor_handler {
   }
   void on_connected(connection* c, const std::string& address) {
     // logging("Accepted connection from: " + address);
-    c->async_read(new char[128], 128, 5, read_counter++);
+    c->async_read(add_buffer(16), 16, 5, read_counter++);
   }
   void on_error(connection::error e) {
     LOG(ERROR) << std::to_string(e);
@@ -122,12 +137,12 @@ int main() {
                                               create_connection_address(3),
                                               &handler_);
     connection_ab -> connect();
-    connection_ab -> async_read(new char[128], 128, 4, read_counter++);
+    connection_ab -> async_read(add_buffer(16), 16, 4, read_counter++);
     connection* connection_ac = connection::create("sim",
                                               create_connection_address(3),
                                               &handler_);
     connection_ac -> connect();
-    connection_ac -> async_read(new char[128], 128, 0, read_counter++);
+    connection_ac -> async_read(add_buffer(16), 16, 0, read_counter++);
     connection_ac -> async_send("B0", 0);
     connection_ac -> async_send("B1", 1);
     connection_ab -> async_send("A0", 2);
@@ -156,5 +171,6 @@ int main() {
   } catch(...) {
     LOG(ERROR) << "UNKNOWN EXCEPTION!";
   }
+  clear_buffers();
   return 0;
 }
