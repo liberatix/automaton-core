@@ -3,6 +3,10 @@
 #include "cryptlib.h"  // NOLINT
 #include "sha.h"  // NOLINT
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 SHA256_cryptopp::SHA256_cryptopp() {
   hash = new CryptoPP::SHA256;
 }
@@ -35,3 +39,7 @@ bool SHA256_cryptopp::register_self() {
   [] {return reinterpret_cast<hash_transformation*>(new SHA256_cryptopp()); });
   return true;
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

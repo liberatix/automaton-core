@@ -6,8 +6,8 @@
 #include "data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
-using data::protobuf::protobuf_factory;
-using data::protobuf::protobuf_schema;
+using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::data::protobuf::protobuf_schema;
 
 int main(int argc, char* argv[]) {
   try {

@@ -1,5 +1,9 @@
 #include "crypto/secure_random.h"
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 std::map<std::string, secure_random::secure_random_factory_function>
     secure_random::secure_random_factory;
 
@@ -16,3 +20,7 @@ void secure_random::register_factory(std::string name,
     secure_random_factory_function func) {
   secure_random_factory[name] = func;
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

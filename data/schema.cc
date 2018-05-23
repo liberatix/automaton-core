@@ -1,5 +1,7 @@
 #include "data/schema.h"
 
+namespace automaton {
+namespace core {
 namespace data {
 
 schema::field_info::field_info(int tag,
@@ -30,3 +32,5 @@ schema* schema::create(std::string name) {
 }
 
 }  // namespace data
+}  // namespace core
+}  // namespace automaton

@@ -5,6 +5,10 @@
 #include <map>
 #include <string>
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 // Base class for hash functions
 class hash_transformation {
  public:
@@ -61,5 +65,9 @@ class hash_transformation {
   //                     instantiate an implementation of this interface.
   static hash_transformation * create(const std::string name);
 };
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_CRYPTO_HASH_TRANSFORMATION_H__

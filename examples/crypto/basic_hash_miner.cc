@@ -6,6 +6,12 @@
 #include "crypto/hash_transformation.h"
 #include "examples/crypto/basic_hash_miner.h"
 
+using automaton::core::crypto::hash_transformation;
+
+namespace automaton {
+namespace core {
+namespace examples {
+
 void basic_hash_miner::next_nonce() {
   int current = nonce_lenght_ - 1;
 
@@ -68,5 +74,9 @@ unsigned char* basic_hash_miner::mine(unsigned char* block_hash,
 
   return nonce_;
 }
+
+}  // namespace examples
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_EXAMPLES_SIMPLE_MINER_H__

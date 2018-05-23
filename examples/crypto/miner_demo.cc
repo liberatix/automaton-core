@@ -3,8 +3,12 @@
 
 #include <string>
 #include "crypto/hash_transformation.h"
-#include "crypto/SHA256_cryptopp.h"
+#include "crypto/cryptopp/SHA256_cryptopp.h"
 #include "examples/crypto/basic_hash_miner.h"
+
+using automaton::core::crypto::hash_transformation;
+using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::examples::basic_hash_miner;
 
 const char DEMO_HASH[] = "some block hash";
 const int MINER_PRECISION_BITS = 14;
@@ -28,8 +32,7 @@ int main() {
     unsigned char* block_hash = (unsigned char*)DEMO_HASH;
 
     SHA256_cryptopp::register_self();
-    hash_transformation* hash_transformation
-        = hash_transformation::create("SHA256");
+    auto hash_transformation = hash_transformation::create("SHA256");
     basic_hash_miner miner(hash_transformation);
 
     unsigned char* nonce = miner.mine(

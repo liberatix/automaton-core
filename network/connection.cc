@@ -1,5 +1,9 @@
 #include "network/connection.h"
 
+namespace automaton {
+namespace core {
+namespace network {
+
 connection::connection(connection::connection_handler* handler_):
     handler(handler_) {}
 
@@ -20,3 +24,7 @@ void connection::register_connection_type(const std::string& type,
 
 std::map<std::string, connection::factory_function>
   connection::connection_factory;
+
+}  // namespace network
+}  // namespace core
+}  // namespace automaton

@@ -3,6 +3,10 @@
 #include "cryptlib.h"  // NOLINT
 #include "ripemd.h"  // NOLINT
 
+namespace automaton {
+namespace core {
+namespace crypto {
+
 RIPEMD160_cryptopp::RIPEMD160_cryptopp() {
   hash = new CryptoPP::RIPEMD160;
 }
@@ -36,3 +40,7 @@ bool RIPEMD160_cryptopp::register_self() {
       (new RIPEMD160_cryptopp()); });
   return true;
 }
+
+}  // namespace crypto
+}  // namespace core
+}  // namespace automaton

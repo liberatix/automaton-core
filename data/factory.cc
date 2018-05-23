@@ -1,5 +1,7 @@
 #include "data/factory.h"
 
+namespace automaton {
+namespace core {
 namespace data {
 
 factory::~factory() {}
@@ -20,3 +22,5 @@ factory* factory::create(std::string name) {
 }
 
 }  // namespace data
+}  // namespace core
+}  // namespace automaton

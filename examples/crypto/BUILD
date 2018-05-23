@@ -3,7 +3,7 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
-    name = "demo_crypto",
+    name = "miner_demo",
     srcs = [
       "miner_demo.cc",
       "basic_hash_miner.cc",
@@ -11,5 +11,6 @@ cc_binary(
     ],
     deps = [
       "//crypto",
+      "//crypto/cryptopp",
     ],
 )

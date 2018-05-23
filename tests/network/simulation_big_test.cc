@@ -5,9 +5,13 @@
 #include "log/log.h"
 #include "network/simulated_connection.h"
 
+using automaton::core::network::acceptor;
+using automaton::core::network::connection;
+using automaton::core::network::simulation;
+
 /// Constants
 
-static const unsigned int NUMBER_NODES = 100000;
+static const unsigned int NUMBER_NODES = 1000;
 // These include only the peers that a node connects to, not the accepted ones
 static const unsigned int NUMBER_PEERS_IN_NODE = 4;
 static const unsigned int MIN_LAG = 100;
@@ -31,7 +35,8 @@ static std::vector<node*> nodes(NUMBER_NODES);
 /// Helper functions for creating addresses
 
 std::string create_connection_address(unsigned int num_acceptors, unsigned int this_acceptor,
-                                      unsigned int min_lag, unsigned int max_lag) {
+                                      unsigned int min_lag, unsigned int max_lag,
+                                      unsigned int min_bandwidth, unsigned int max_bandwidth) {
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
   unsigned int mn, mx, acc;
@@ -46,12 +51,13 @@ std::string create_connection_address(unsigned int num_acceptors, unsigned int t
   do {
     acc = (std::rand() % num_acceptors + 1);
   } while (acc == this_acceptor);
-  s << acc;
+  s << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) << ':' << acc;
   // logging("Created connection address: " + s.str());
   return s.str();
 }
 std::string create_connection_address(unsigned int num_acceptors, unsigned int this_acceptor) {
-  return create_connection_address(num_acceptors, this_acceptor, MIN_LAG, MAX_LAG);
+  return create_connection_address(num_acceptors, this_acceptor, MIN_LAG, MAX_LAG,
+                                  MIN_BANDWIDTH, MAX_BANDWIDTH);
 }
 std::string create_acceptor_address(uint32_t address,
                                     unsigned int min_connections, unsigned int max_connections,

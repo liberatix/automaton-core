@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+namespace automaton {
+namespace core {
 namespace data {
 
 /*
@@ -138,5 +140,7 @@ class schema {
 };
 
 }  // namespace data
+}  // namespace core
+}  // namespace automaton
 
 #endif  // AUTOMATON_CORE_DATA_SCHEMA_H__

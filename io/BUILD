@@ -6,9 +6,17 @@ cc_library(
   name = "io",
   srcs = [
     "io.cc",
-    "io.h",
   ],
   hdrs = [
     "io.h",
+  ],
+)
+
+cc_library(
+  name = "module",
+  srcs = ["module.cc"],
+  hdrs = ["module.h"],
+  deps = [
+    "//script",
   ],
 )

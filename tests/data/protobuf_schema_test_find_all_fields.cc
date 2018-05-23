@@ -6,7 +6,8 @@
 #include "data/protobuf/protobuf_factory.h"
 #include "gtest/gtest.h"
 
-using data::protobuf::protobuf_factory;
+using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::io::get_file_contents;
 
 TEST(protobuf_factory, find_all_fields) {
   protobuf_factory sc;

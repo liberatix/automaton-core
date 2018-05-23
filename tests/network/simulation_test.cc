@@ -4,12 +4,18 @@
 #include "log/log.h"
 #include "network/simulated_connection.h"
 
-static int send_counter = 0;
+using automaton::core::network::acceptor;
+using automaton::core::network::connection;
+using automaton::core::network::simulation;
+
+static int send_counter = 10;
 static int read_counter = 0;
 
 std::string create_connection_address(unsigned int num_acceptors,
                                       unsigned int min_lag = 1,
-                                      unsigned int max_lag = 5) {
+                                      unsigned int max_lag = 5,
+                                      unsigned int min_bandwidth = 1,
+                                      unsigned int max_bandwidth = 4) {
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
   unsigned int mn, mx;
@@ -21,8 +27,9 @@ std::string create_connection_address(unsigned int num_acceptors,
     s << (mn < mx ? mn : mx) << ':' << (mn < mx ? mx : mn) << ':';
   }
   /// For test purposes if we have n acceptors, their addresses are in range 1-n
-  s << (std::rand() % num_acceptors + 1);
-  LOG(INFO) << "Created connection address: " << s.str();
+  s << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) << ':' <<
+      (std::rand() % num_acceptors + 1);
+  // LOG(INFO) << "Created connection address: " << s.str();
   return s.str();
 }
 std::string create_acceptor_address(uint32_t address,
@@ -36,7 +43,7 @@ std::string create_acceptor_address(uint32_t address,
   conns = conns > min_connections ? conns : min_connections;
   s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) <<
       ':' << address;
-  LOG(INFO) << "Created acceptor address: " << s.str();
+  // LOG(INFO) << "Created acceptor address: " << s.str();
   return s.str();
 }
 
@@ -45,9 +52,9 @@ class handler: public connection::connection_handler {
   void on_message_received(connection* c, char* buffer, unsigned int bytes_read, unsigned int id) {
     std::string message = std::string(buffer, bytes_read);
     LOG(INFO) << "Message \"" << message << "\" received in <" << c->get_address() << ">";
-    if (send_counter < 10) {
-      c -> async_send("Thank you!", send_counter++);
-    }
+    // if (send_counter < 10) {
+    //   c -> async_send("Thank you!", send_counter++);
+    // }
     c -> async_read(buffer, 128, 0, read_counter++);
   }
   void on_message_sent(connection* c, unsigned int id, connection::error e) {
@@ -79,13 +86,12 @@ class lis_handler: public acceptor::acceptor_handler {
   // (vector connections, max ...)
   bool on_requested(const std::string& address) {
   //  EXPECT_EQ(address, address_a);
-  // logging("Connection request from: " + address + ". Accepting...");
+    LOG(INFO) << "Connection request from: " << address << ". Accepting...";
     return true;
   }
   void on_connected(connection* c, const std::string& address) {
     // logging("Accepted connection from: " + address);
-    char* buffer = new char[128];
-    c->async_read(buffer, 128, 5, read_counter++);
+    c->async_read(new char[128], 128, 5, read_counter++);
   }
   void on_error(connection::error e) {
     LOG(ERROR) << std::to_string(e);
@@ -122,43 +128,29 @@ int main() {
                                               &handler_);
     connection_ac -> connect();
     connection_ac -> async_read(new char[128], 128, 0, read_counter++);
-    connection_ac -> async_send("B0", send_counter++);
-    // connection_bc -> async_send("B1", send_counter++);
-    // connection_bc -> async_send("B2", send_counter++);
-    // connection_ac -> disconnect();
-    // connection_bc -> async_send("B2", send_counter++);  // Error
-    connection_ab -> async_send("A0", send_counter++);
-
-    connection_ab -> async_send("A1", send_counter++);
-    connection_ab -> async_send("A2", send_counter++);
-    // connection* connection_bc = connection::create("sim", address_c, &handlerB);
-    // connection_bc -> connect();
-    // connection_bc -> async_read(buffer_bc, 128, 0);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // connection_bc -> async_send("C0", send_counter++);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // connection_bc -> async_send("C1", send_counter++);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // connection_bc -> async_send("C2", send_counter++);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    // connection_bc -> disconnect();
-    // connection_bc -> connect();
-    // connection_bc -> async_read(buffer_bc, 128, 0);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // connection_bc -> async_send("C0", send_counter++);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // connection_bc -> async_send("C1", send_counter++);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // connection_bc -> async_send("C2", send_counter++);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-    // connection_ab->disconnect();
-    // ==============================================
-    for (int i = 0; i <= 35 || !sim->is_queue_empty(); i++) {
-      LOG(INFO) << "PROCESSING: " + std::to_string(i);
-      // sim->print_connections();
+    connection_ac -> async_send("B0", 0);
+    connection_ac -> async_send("B1", 1);
+    connection_ab -> async_send("A0", 2);
+    // LOG(INFO) << "FIRST PROCESS LOOP";
+    for (int i = sim->get_time(); !sim->is_queue_empty(); i++) {
+      // LOG(INFO) << "PROCESSING " << i;
       sim->process(i);
     }
-    // sim->print_q();
+    connection_ab -> disconnect();
+    connection_ac -> async_send("B2", 3);
+    // LOG(INFO) << "SECOND PROCESSING LOOP";
+    for (int i = sim->get_time(); !sim->is_queue_empty(); i++) {
+      // LOG(INFO) << "PROCESSING " << i;
+      sim->process(i);
+    }
+    connection_ab -> connect();
+    connection_ab -> async_send("A1", 4);
+    connection_ab -> async_send("A2", 5);
+    // LOG(INFO) << "THIRD PROCESSING LOOP";
+    for (int i = sim->get_time(); !sim->is_queue_empty(); i++) {
+      // LOG(INFO) << "PROCESSING " << i;
+      sim->process(i);
+    }
   } catch (std::exception& e) {
     LOG(ERROR) << "EXCEPTION " + std::string(e.what());
   } catch(...) {
