@@ -8,11 +8,11 @@ cc_test(
   deps = [
     "//automaton/core/script",
     "//automaton/core/crypto:module",
-    "//automaton/core/data:module",
-    "//automaton/core/io:module",
-    "//automaton/core/log:module",
-    "//automaton/core/network:module",
-    "//automaton/core/state:module",
+    #"//automaton/core/data:module",
+    #"//automaton/core/io:module",
+    #"//automaton/core/log:module",
+    #"//automaton/core/network:module",
+    #"//automaton/core/state:module",
     "@gtest//:gtest_main",
   ],
 )

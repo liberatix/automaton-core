@@ -11,18 +11,18 @@ SHA3_256_cryptopp::SHA3_256_cryptopp() {
   hash = new CryptoPP::SHA3_256;
 }
 
-void SHA3_256_cryptopp::calculate_digest(const unsigned char * input,
+void SHA3_256_cryptopp::calculate_digest(const uint8_t * input,
                                       const size_t length,
-                                      unsigned char * digest) {
+                                      uint8_t * digest) {
   hash->CalculateDigest(digest, length == 0 ? nullptr : input, length);
 }
 
-void SHA3_256_cryptopp::update(const unsigned char * input,
+void SHA3_256_cryptopp::update(const uint8_t * input,
                              const size_t length) {
   hash->Update(length == 0 ? nullptr : input, length);
 }
 
-void SHA3_256_cryptopp::final(unsigned char * digest) {
+void SHA3_256_cryptopp::final(uint8_t * digest) {
   hash->Final(digest);
 }
 

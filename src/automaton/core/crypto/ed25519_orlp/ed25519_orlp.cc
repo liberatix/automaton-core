@@ -26,36 +26,36 @@ bool ed25519_orlp::has_deterministic_signatures() {
   return true;
 }
 
-void ed25519_orlp::gen_public_key(const unsigned char * private_key,
-                                      unsigned char * public_key) {
-  unsigned char private_from_seed[64];
+void ed25519_orlp::gen_public_key(const uint8_t * private_key,
+                                      uint8_t * public_key) {
+  uint8_t private_from_seed[64];
   ed25519_create_keypair(public_key, private_from_seed, private_key);
 }
 
 // We can have faster implementation if we pass the public key aswell
-void ed25519_orlp::sign(const unsigned char * private_key,
-                        const unsigned char * message,
+void ed25519_orlp::sign(const uint8_t * private_key,
+                        const uint8_t * message,
                         const size_t msg_len,
-                        unsigned char * signature) {
-  unsigned char public_key[32];
-  unsigned char private_from_seed[64];
+                        uint8_t * signature) {
+  uint8_t public_key[32];
+  uint8_t private_from_seed[64];
   ed25519_create_keypair(public_key, private_from_seed, private_key);
 
   ed25519_sign(signature, message, msg_len, public_key, private_from_seed);
 }
 
-void ed25519_orlp::sign_deterministic(const unsigned char * private_key,
-                                      const unsigned char * message,
+void ed25519_orlp::sign_deterministic(const uint8_t * private_key,
+                                      const uint8_t * message,
                                       const size_t msg_len,
-                                      const unsigned char * k,
-                                      unsigned char * signature) {
+                                      const uint8_t * k,
+                                      uint8_t * signature) {
   sign(private_key, message, msg_len, signature);
 }
 
-bool ed25519_orlp::verify(const unsigned char * public_key,
-                          const unsigned char * message,
+bool ed25519_orlp::verify(const uint8_t * public_key,
+                          const uint8_t * message,
                           const size_t msg_len,
-                          unsigned char * signature) {
+                          uint8_t * signature) {
   return ed25519_verify(signature, message, msg_len, public_key);
 }
 

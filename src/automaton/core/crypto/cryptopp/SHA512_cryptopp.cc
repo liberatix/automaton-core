@@ -11,18 +11,18 @@ SHA512_cryptopp::SHA512_cryptopp() {
   hash = new CryptoPP::SHA512;
 }
 
-void SHA512_cryptopp::calculate_digest(const unsigned char * input,
+void SHA512_cryptopp::calculate_digest(const uint8_t * input,
                                       const size_t length,
-                                      unsigned char * digest) {
+                                      uint8_t * digest) {
   hash->CalculateDigest(digest, length == 0 ? nullptr : input, length);
 }
 
-void SHA512_cryptopp::update(const unsigned char * input,
+void SHA512_cryptopp::update(const uint8_t * input,
                              const size_t length) {
   hash->Update(length == 0 ? nullptr : input, length);
 }
 
-void SHA512_cryptopp::final(unsigned char * digest) {
+void SHA512_cryptopp::final(uint8_t * digest) {
   hash->Final(digest);
 }
 

@@ -14,13 +14,13 @@ class SHA3_256_cryptopp : public hash_transformation {
  public:
   SHA3_256_cryptopp();
 
-  void calculate_digest(const unsigned char* input,
+  void calculate_digest(const uint8_t* input,
                         const size_t length,
-                        unsigned char* digest);
+                        uint8_t* digest);
 
-  void update(const unsigned char* input, const size_t length);
+  void update(const uint8_t* input, const size_t length);
 
-  void final(unsigned char* digest);
+  void final(uint8_t* digest);
 
   void restart();
 

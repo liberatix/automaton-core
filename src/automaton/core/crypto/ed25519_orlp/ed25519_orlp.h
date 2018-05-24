@@ -19,24 +19,24 @@ class ed25519_orlp : public digital_signature {
   // Input should be byte array encoding the integer,
   // each byte representing 2 4-byte values
   // !! Private key is the seed used to create keypair in ed25591
-  void gen_public_key(const unsigned char * private_key,
-                      unsigned char * public_key);
+  void gen_public_key(const uint8_t * private_key,
+                      uint8_t * public_key);
 
-  void sign(const unsigned char * private_key,
-            const unsigned char * message,
+  void sign(const uint8_t * private_key,
+            const uint8_t * message,
             const size_t msg_len,
-            unsigned char * signature);
+            uint8_t * signature);
 
-  void sign_deterministic(const unsigned char * private_key,
-                          const unsigned char * message,
+  void sign_deterministic(const uint8_t * private_key,
+                          const uint8_t * message,
                           const size_t msg_len,
-                          const unsigned char * k,
-                          unsigned char * signature);
+                          const uint8_t * k,
+                          uint8_t * signature);
 
-  bool verify(const unsigned char * public_key,
-              const unsigned char * message,
+  bool verify(const uint8_t * public_key,
+              const uint8_t * message,
               const size_t msg_len,
-              unsigned char * signature);
+              uint8_t * signature);
 
   static bool register_self();
 };

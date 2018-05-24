@@ -5,9 +5,9 @@ namespace automaton {
 namespace core {
 namespace crypto {
 
-void hash_transformation::calculate_digest(const unsigned char * input,
+void hash_transformation::calculate_digest(const uint8_t * input,
                                            const size_t length,
-                                           unsigned char * digest) {
+                                           uint8_t * digest) {
   update(input, length);
   final(digest);
 }

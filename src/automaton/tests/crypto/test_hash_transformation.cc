@@ -3,12 +3,12 @@
 
 using automaton::core::crypto::hash_transformation;
 
-template<unsigned char C>
+template<uint8_t C>
 class dummy_hash : public hash_transformation {
  public:
-  void update(const unsigned char * input, const size_t length) {}
+  void update(const uint8_t * input, const size_t length) {}
 
-  void final(unsigned char * digest) {
+  void final(uint8_t * digest) {
     digest[0] = C;
   }
 
@@ -23,8 +23,8 @@ const char* DUMMY1 = "dummy1";
 const char* DUMMY2 = "dummy2";
 const char* DUMMY3 = "dummy3";
 
-const unsigned char * TEST1 = (const unsigned char*)"abc";
-const unsigned char * TEST2 = (const unsigned char*)"test";
+const uint8_t * TEST1 = (const uint8_t*)"abc";
+const uint8_t * TEST2 = (const uint8_t*)"test";
 
 // Tests hash transformation registration.
 TEST(HashTranformation, Registration) {
@@ -37,7 +37,7 @@ TEST(HashTranformation, Registration) {
         return reinterpret_cast<hash_transformation*>(new dummy_hash<2>());
       });
 
-  unsigned char digest[1];
+  uint8_t digest[1];
 
   hash_transformation * d1 = hash_transformation::create(DUMMY1);
   EXPECT_NE(d1, nullptr);

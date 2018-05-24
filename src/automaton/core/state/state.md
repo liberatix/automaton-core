@@ -202,7 +202,7 @@ class radix_tree_state : public state {
   int ensure_path(string path) {
     unsigned long cur = 0;
 
-    for (const unsigned char& c : path) {
+    for (const uint8_t& c : path) {
       node& n = nodes[cur];
       if (n.children[c] == 0) {
         n.children[c] = nodes.size();

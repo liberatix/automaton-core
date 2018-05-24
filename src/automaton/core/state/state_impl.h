@@ -69,7 +69,7 @@ class state_impl : public state{
 
   int32_t get_node_index(const std::string& path);
   bool has_children(uint32_t node_index);
-  uint32_t add_node(uint32_t from, unsigned char to);
+  uint32_t add_node(uint32_t from, uint8_t to);
   // This needs to be called at the end of set() and erase() to recalculate the
   // hashes of all nodes from lowest child that was changed to the root
   void calculate_hash(uint32_t cur_node);
