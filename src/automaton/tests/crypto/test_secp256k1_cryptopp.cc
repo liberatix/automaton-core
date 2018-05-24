@@ -12,7 +12,7 @@ using automaton::core::crypto::secp256k1_cryptopp;
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and
 // right 4 bits of each byte.
-static std::string toHex(unsigned char * decoded, size_t size) {
+static std::string toHex(uint8_t * decoded, size_t size) {
   std::string output;
   CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(output), false);
   encoder.Put(decoded, size);
@@ -27,7 +27,7 @@ TEST(secp256k1_cryptopp, gen_public_key) {
   secp256k1_cryptopp::register_self();
   digital_signature* tester = digital_signature::create("secp256k1");
   EXPECT_NE(tester, nullptr);
-  unsigned char* public_key = new unsigned char[tester->public_key_size()];
+  uint8_t* public_key = new uint8_t[tester->public_key_size()];
   constexpr unsigned int test_cases = 4;
   std::string test[test_cases][2] = {
     {"5f3aa3bb3129db966915a6d341fde4c95121b5f4cedc3ba4ecc3dd44ba9a50bc",
@@ -42,7 +42,7 @@ TEST(secp256k1_cryptopp, gen_public_key) {
   for (unsigned int i = 0; i < test_cases; i++) {
     std::string pr_key_decoded;
     decode_from_hex(test[i][0], pr_key_decoded);
-    tester->gen_public_key((unsigned char*)pr_key_decoded.c_str(), public_key);
+    tester->gen_public_key((uint8_t*)pr_key_decoded.c_str(), public_key);
     EXPECT_EQ(test[i][1], toHex(public_key, tester->public_key_size()));
   }
 }
@@ -50,8 +50,8 @@ TEST(secp256k1_cryptopp, sign_and_verify) {
   secp256k1_cryptopp::register_self();
   digital_signature* tester = digital_signature::create("secp256k1");
   EXPECT_NE(tester, nullptr);
-  unsigned char* public_key = new unsigned char[tester->public_key_size()];
-  unsigned char* signature = new unsigned char[tester->signature_size()];
+  uint8_t* public_key = new uint8_t[tester->public_key_size()];
+  uint8_t* signature = new uint8_t[tester->signature_size()];
   std::vector<std::string> test_key = {
     "5f3aa3bb3129db966915a6d341fde4c95121b5f4cedc3ba4ecc3dd44ba9a50bc",
     "77f8406c4620450c9bb233e6cc404bb23a6bf86af3c943df8f0710f612d7ff23",
@@ -67,14 +67,14 @@ TEST(secp256k1_cryptopp, sign_and_verify) {
   for (unsigned int i = 0; i < test_key.size(); i++) {
     std::string pr_key_decoded;
     decode_from_hex(test_key[i], pr_key_decoded);
-    tester->gen_public_key((unsigned char*)pr_key_decoded.c_str(), public_key);
+    tester->gen_public_key((uint8_t*)pr_key_decoded.c_str(), public_key);
     for (unsigned int j = 0; j < test_hash.size(); j++) {
-      tester->sign((unsigned char*)pr_key_decoded.c_str(),
-                  (unsigned char*) test_hash[j].c_str(),
+      tester->sign((uint8_t*)pr_key_decoded.c_str(),
+                  (uint8_t*) test_hash[j].c_str(),
                   test_hash[j].length(),
                   signature);
       EXPECT_EQ(tester->verify(public_key,
-                              (unsigned char*) test_hash[j].c_str(),
+                              (uint8_t*) test_hash[j].c_str(),
                               test_hash[j].length(),
                               signature), true);
     }

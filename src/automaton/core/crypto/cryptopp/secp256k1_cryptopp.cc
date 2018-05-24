@@ -44,23 +44,24 @@ bool secp256k1_cryptopp::has_deterministic_signatures() {
   return false;
 }
 
-void secp256k1_cryptopp::gen_public_key(const unsigned char * private_key,
-                                  unsigned char * public_key) {
+void secp256k1_cryptopp::gen_public_key(const uint8_t * private_key, uint8_t * public_key) {
   // Create private key object from exponent
   const CryptoPP::Integer privateExponent(private_key, private_key_size());
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey privateKey;
   privateKey.Initialize(CryptoPP::ASN1::secp256k1(), privateExponent);
+
   // Create the public key object
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
   privateKey.MakePublicKey(publicKey);
+
   // Save the public key in public_key
   publicKey.GetGroupParameters().GetCurve().EncodePoint(public_key,
       publicKey.GetPublicElement(), true);
 }
-void secp256k1_cryptopp::sign(const unsigned char * private_key,
-                        const unsigned char * message,
+void secp256k1_cryptopp::sign(const uint8_t * private_key,
+                        const uint8_t * message,
                         const size_t msg_len,
-                        unsigned char * signature) {
+                        uint8_t * signature) {
   CryptoPP::AutoSeededRandomPool prng;
 
   std::string str_signature;
@@ -79,17 +80,18 @@ void secp256k1_cryptopp::sign(const unsigned char * private_key,
   // std::cout << "signature: " << str_signature << std::endl;
 }
 void secp256k1_cryptopp::sign_deterministic(
-                          const unsigned char * private_key,
-                          const unsigned char * message,
-                          const size_t msg_len,
-                          const unsigned char * k,
-                          unsigned char * signature) {
+    const uint8_t * private_key,
+    const uint8_t * message,
+    const size_t msg_len,
+    const uint8_t * k,
+    uint8_t * signature) {
   throw;
 }
-bool secp256k1_cryptopp::verify(const unsigned char * public_key,
-                          const unsigned char * message,
-                          const size_t msg_len,
-                          unsigned char * signature) {
+bool secp256k1_cryptopp::verify(
+    const uint8_t * public_key,
+    const uint8_t * message,
+    const size_t msg_len,
+    uint8_t * signature) {
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
 
   std::string input(reinterpret_cast<const char*>(public_key),

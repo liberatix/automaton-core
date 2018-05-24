@@ -12,17 +12,17 @@ class basic_hash_miner {
   explicit basic_hash_miner(crypto::hash_transformation* hash_transformation);
 
   int get_nonce_lenght();
-  unsigned char* mine(unsigned char* block_hash,
+  uint8_t* mine(uint8_t* block_hash,
                       int block_hash_lenght,
                       int required_leading_zeros);
 
  private:
   int nonce_lenght_;
   crypto::hash_transformation* hash_transformation_;
-  unsigned char* nonce_;
+  uint8_t* nonce_;
 
   void next_nonce();
-  bool is_valid_next_block_hash(unsigned char* hash,
+  bool is_valid_next_block_hash(uint8_t* hash,
                                 int required_leading_zeros);
 };
 

@@ -49,8 +49,8 @@ class digital_signature {
     @pre public_key_size() == public_key in bytes.
     @pre private_key_size() == private_key in bytes.
   */
-  virtual void gen_public_key(const unsigned char * private_key,
-                              unsigned char * public_key) = 0;
+  virtual void gen_public_key(const uint8_t * private_key,
+                              uint8_t * public_key) = 0;
 
   /**
     Signs a message using a private key and a message.
@@ -62,10 +62,10 @@ class digital_signature {
 
     @pre Precondition signature_size() == signature in bytes.
   */
-  virtual void sign(const unsigned char * private_key,
-                    const unsigned char * message,
+  virtual void sign(const uint8_t * private_key,
+                    const uint8_t * message,
                     const size_t msg_len,
-                    unsigned char * signature) = 0;
+                    uint8_t * signature) = 0;
 
   /**
     Signs a deterministic message using a private key, random k and message.
@@ -78,11 +78,11 @@ class digital_signature {
 
     @pre Precondition signature_size() == signature in bytes.
   */
-  virtual void sign_deterministic(const unsigned char * private_key,
-                                  const unsigned char * message,
+  virtual void sign_deterministic(const uint8_t * private_key,
+                                  const uint8_t * message,
                                   const size_t msg_len,
-                                  const unsigned char * k,
-                                  unsigned char * signature) = 0;
+                                  const uint8_t * k,
+                                  uint8_t * signature) = 0;
 
   /**
     Verifies that a message was signed by the privated key coresponding to
@@ -93,10 +93,10 @@ class digital_signature {
     @param[in]  msg_len     the lenght of the message
     @param[in]  signature   a pointer to the buffer to recive the signature
   */
-  virtual bool verify(const unsigned char * public_key,
-                      const unsigned char * message,
+  virtual bool verify(const uint8_t * public_key,
+                      const uint8_t * message,
                       const size_t msg_len,
-                      unsigned char * signature) = 0;
+                      uint8_t * signature) = 0;
 
   /**
     Instantiates a class using the registered function in the factory.

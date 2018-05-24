@@ -11,18 +11,18 @@ Keccak_256_cryptopp::Keccak_256_cryptopp() {
   hash = new CryptoPP::Keccak_256;
 }
 
-void Keccak_256_cryptopp::calculate_digest(const unsigned char * input,
+void Keccak_256_cryptopp::calculate_digest(const uint8_t * input,
                                            const size_t length,
-                                           unsigned char * digest) {
+                                           uint8_t * digest) {
   hash->CalculateDigest(digest, length == 0 ? nullptr : input, length);
 }
 
-void Keccak_256_cryptopp::update(const unsigned char * input,
+void Keccak_256_cryptopp::update(const uint8_t * input,
                                  const size_t length) {
   hash->Update(length == 0 ? nullptr : input, length);
 }
 
-void Keccak_256_cryptopp::final(unsigned char * digest) {
+void Keccak_256_cryptopp::final(uint8_t * digest) {
   hash->Final(digest);
 }
 

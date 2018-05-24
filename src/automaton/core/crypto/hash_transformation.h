@@ -30,19 +30,19 @@ class hash_transformation {
   // IN:  input:    the input as a buffer.
   //      lenght:   the size of the buffer, in bytes.
   // OUT: digest:   a pointer to the buffer to recive the hash.
-  virtual void calculate_digest(const unsigned char * input,
+  virtual void calculate_digest(const uint8_t * input,
                                 const size_t length,
-                                unsigned char * digest);
+                                uint8_t * digest);
 
   // Update a hash with additional input.
   // IN:  input:    the additional input as a buffer.
   //      lenght:   the size of the buffer, in bytes .
-  virtual void update(const unsigned char * input, const size_t length) = 0;
+  virtual void update(const uint8_t * input, const size_t length) = 0;
 
   // Computes the hash of the current message.
   // Precondition digest_size == digest in bytes.
   // OUT:  digest:  a pointer to the buffer to receive the hash.
-  virtual void final(unsigned char * digest) = 0;
+  virtual void final(uint8_t * digest) = 0;
 
   // Restarts the hash, by discarding and re-initializing the state.
   virtual void restart() = 0;

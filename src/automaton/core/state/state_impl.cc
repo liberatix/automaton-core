@@ -13,7 +13,7 @@ namespace automaton {
 namespace core {
 namespace state {
 
-typedef std::basic_string<unsigned char> ustring;
+typedef std::basic_string<uint8_t> ustring;
 
 static std::string tohex(std::string s) {
   std::stringstream ss;
@@ -46,7 +46,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
   uint32_t cur_prefix_index = 0;
   unsigned int i = 0;
   for (; i < key.length(); ++i) {
-    unsigned char path_element = key[i];
+    uint8_t path_element = key[i];
     if (cur_prefix_index == nodes[cur_node].prefix.length()) {
       // If there is no prefix or there is prefix but we have reached the end
       if (nodes[cur_node].children[path_element] != 0) {
@@ -70,7 +70,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
       // If next path element does not match the next prefix element,
       // create a split node at the difference
       if (path_element !=
-          (unsigned char)nodes[cur_node].prefix[cur_prefix_index]) {
+          (uint8_t)nodes[cur_node].prefix[cur_prefix_index]) {
         const std::string cur_node_prefix = nodes[cur_node].prefix;
 
         // Backup necesery nodes before changes
@@ -81,8 +81,8 @@ void state_impl::set(const std::string& key, const std::string& value) {
         // Set split node as parent of cur_node
         nodes[cur_node].parent = split_node;
         // Set the current node as child of the new split node
-        unsigned char path_to_child =
-            (unsigned char)cur_node_prefix[cur_prefix_index];
+        uint8_t path_to_child =
+            (uint8_t)cur_node_prefix[cur_prefix_index];
         nodes[split_node].children[path_to_child] = cur_node;
 
         // set prefix of split_node and cur_node
@@ -113,7 +113,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
     nodes[cur_node].parent = split_node;
 
     // Set the current node as child of the new split node
-    const unsigned char path_to_child = cur_node_prefix[cur_prefix_index];
+    const uint8_t path_to_child = cur_node_prefix[cur_prefix_index];
     nodes[split_node].children[path_to_child] = cur_node;
 
     // set prefix of split_node and cur_node
@@ -144,7 +144,7 @@ std::string state_impl::get_node_hash(const std::string& path) {
   if (node_index == -1) {
     throw std::out_of_range("No node at this path");
   }
-  unsigned char i = 0;
+  uint8_t i = 0;
   do {
     if (nodes[node_index].children[i]) {
       uint32_t child = nodes[node_index].children[i];
@@ -164,10 +164,10 @@ void state_impl::delete_node_tree(const std::string& path) {
   backup_nodes(nodes[cur_node].parent);
   subtrie_mark_free(cur_node);
 
-  std::vector<unsigned char> children;
-  unsigned char i = 0;
+  std::vector<uint8_t> children;
+  uint8_t i = 0;
   uint32_t parent = nodes[cur_node].parent;
-  unsigned char path_from_parent = nodes[cur_node].prefix[0];
+  uint8_t path_from_parent = nodes[cur_node].prefix[0];
   nodes[parent].children[path_from_parent] = 0;
   free_locations.insert(cur_node);
   // move_last_element_to(cur_node);
@@ -213,8 +213,8 @@ void state_impl::erase(const std::string& path) {
 
   backup_nodes(cur_node);
   // Get the children of this node
-  std::vector<unsigned char> children;
-  unsigned char i = 0;
+  std::vector<uint8_t> children;
+  uint8_t i = 0;
   do {
     if (nodes[cur_node].children[i]) {
       children.push_back(i);
@@ -233,7 +233,7 @@ void state_impl::erase(const std::string& path) {
     // add the prefix of current node to the child
     nodes[child].prefix.insert(0, nodes[cur_node].prefix);
     // link parent and child
-    unsigned char path_from_parent = nodes[cur_node].prefix[0];
+    uint8_t path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = child;
     nodes[child].parent = parent;
     // Remember empty elements for later use
@@ -244,14 +244,14 @@ void state_impl::erase(const std::string& path) {
   } else {
     // erase the link from parent
     uint32_t parent = nodes[cur_node].parent;
-    unsigned char path_from_parent = nodes[cur_node].prefix[0];
+    uint8_t path_from_parent = nodes[cur_node].prefix[0];
     nodes[parent].children[path_from_parent] = 0;
     free_locations.insert(cur_node);
     // move_last_element_to(cur_node);
     // Find out how many children does the parent have
     children.clear();
     cur_node = parent;
-    unsigned char i = 0;
+    uint8_t i = 0;
     do {
       if (nodes[cur_node].children[i]) {
         children.push_back(i);
@@ -399,7 +399,7 @@ bool state_impl::has_children(uint32_t node_index) {
   return false;
 }
 
-uint32_t state_impl::add_node(uint32_t from, unsigned char to) {
+uint32_t state_impl::add_node(uint32_t from, uint8_t to) {
   uint32_t new_node;
   // Add node to the end of the vector if the are no fragmented location
   if (free_locations.empty()) {

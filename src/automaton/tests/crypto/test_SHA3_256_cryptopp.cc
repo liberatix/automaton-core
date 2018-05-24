@@ -13,7 +13,7 @@ using automaton::core::crypto::hash_transformation;
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and
 // right 4 bits of each byte.
-static std::string toHex(unsigned char * digest, size_t size) {
+static std::string toHex(uint8_t * digest, size_t size) {
   CryptoPP::HexEncoder encoder;
   std::string output;
   encoder.Attach(new CryptoPP::StringSink(output));
@@ -31,7 +31,7 @@ TEST(SHA3_256_cryptopp, register_self) {
 TEST(SHA3_256_cryptopp, calculate_digest) {
   SHA3_256_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
-  unsigned char* digest = new unsigned char[digest_size];
+  uint8_t* digest = new uint8_t[digest_size];
   constexpr unsigned int test_cases = 6;
   std::string long_a_string(1000000, 'a');
 
@@ -52,7 +52,7 @@ TEST(SHA3_256_cryptopp, calculate_digest) {
   };
 
   for (unsigned int i = 0; i < test_cases; i++) {
-    hasher.calculate_digest((unsigned char*)test[i][0].c_str(),
+    hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -63,12 +63,12 @@ TEST(SHA3_256_cryptopp, calculate_digest) {
 TEST(SHA3_256_cryptopp, update_and_finish) {
   SHA3_256_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
-  unsigned char* digest = new unsigned char[digest_size];
+  uint8_t* digest = new uint8_t[digest_size];
   std::string test_input(
       "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
   const std::string EXP1 =
       "ECBBC42CBF296603ACB2C6BC0410EF4378BAFB24B710357F12DF607758B33E2B";
-  unsigned char* p_test_input = (unsigned char*) test_input.c_str();
+  uint8_t* p_test_input = (uint8_t*) test_input.c_str();
   size_t len = test_input.length();
 
   for (unsigned int i = 0; i <  16777216; i++) {
@@ -79,9 +79,9 @@ TEST(SHA3_256_cryptopp, update_and_finish) {
   EXPECT_EQ(toHex(digest, digest_size), EXP1);
 
   // Try to hash a new string to see if everything restarted as intended
-  unsigned char* a = (unsigned char*) "a";
-  unsigned char* b = (unsigned char*) "b";
-  unsigned char* c = (unsigned char*) "c";
+  uint8_t* a = (uint8_t*) "a";
+  uint8_t* b = (uint8_t*) "b";
+  uint8_t* c = (uint8_t*) "c";
   const std::string EXP2 =
       "3A985DA74FE225B2045C172D6BD390BD855F086E3E9D525B46BFE24511431532";
   hasher.update(a, 1);

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "automaton/core/data/factory.h"
+#include "automaton/core/data/schema.h"
 
 namespace automaton {
 namespace core {
@@ -28,9 +29,13 @@ class registry {
   */
   template <typename M>
   void bind() {
-    modules_[std::string(M::name) + ":" + std::string(M::version)] = {M::name, M::version};
     // TODO(asen): Get schema import to work.
-    // factory_->import_schema(M::get_schema(), M::name, M::name);
+    auto module_schema = M::get_schema();
+    if (module_schema != nullptr) {
+      factory_->import_schema(module_schema, M::name, M::name);
+    }
+    modules_[std::string(M::name) + ":" + std::string(M::version)] =
+      {M::name, M::version, module_schema};
   }
 
   /**
@@ -52,6 +57,7 @@ class registry {
   struct module_info {
     std::string name;
     std::string version;
+    data::schema* schema;
     std::vector<std::string> functions;
     std::vector<std::string> classes;
   };

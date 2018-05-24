@@ -31,11 +31,11 @@ std::string dummy_state::get_node_hash(std::string path) {
 
   hash->restart();
   for (auto kv : data) {
-    hash->update((const unsigned char *)kv.first.c_str(), kv.first.size());
-    hash->update((const unsigned char *)kv.second.c_str(), kv.second.size());
+    hash->update((const uint8_t *)kv.first.c_str(), kv.first.size());
+    hash->update((const uint8_t *)kv.second.c_str(), kv.second.size());
   }
 
-  unsigned char * digest = new unsigned char[hash->digest_size()];
+  uint8_t * digest = new uint8_t[hash->digest_size()];
   hash->final(digest);
   std::string result((const char *)digest, hash->digest_size());
   delete[] digest;

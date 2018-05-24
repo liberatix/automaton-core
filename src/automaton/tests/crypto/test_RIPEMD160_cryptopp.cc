@@ -13,7 +13,7 @@ using automaton::core::crypto::hash_transformation;
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and
 // right 4 bits of each byte.
-static std::string toHex(unsigned char * digest, size_t size) {
+static std::string toHex(uint8_t * digest, size_t size) {
   CryptoPP::HexEncoder encoder;
   std::string output;
   encoder.Attach(new CryptoPP::StringSink(output));
@@ -31,7 +31,7 @@ TEST(RIPEMD160_cryptopp, register_self) {
 TEST(RIPEMD160_cryptopp, calculate_digest) {
   RIPEMD160_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
-  unsigned char* digest = new unsigned char[digest_size];
+  uint8_t* digest = new uint8_t[digest_size];
   constexpr unsigned int test_cases = 9;
   std::string long_a_string(1000000, 'a');
 
@@ -52,7 +52,7 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
   };
 
   for (unsigned int i = 0; i < test_cases; i++) {
-    hasher.calculate_digest((unsigned char*)test[i][0].c_str(),
+    hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -63,9 +63,9 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
 TEST(SHA256_cryptopp, update_and_finish) {
   RIPEMD160_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
-  unsigned char* digest = new unsigned char[digest_size];
+  uint8_t* digest = new uint8_t[digest_size];
   std::string test_input("a");
-  unsigned char* p_test_input = (unsigned char*) test_input.c_str();
+  uint8_t* p_test_input = (uint8_t*) test_input.c_str();
   size_t len = test_input.length();
 
   for (unsigned int i = 0; i <  1000000; i++) {
@@ -76,9 +76,9 @@ TEST(SHA256_cryptopp, update_and_finish) {
       "52783243C1697BDBE16D37F97F68F08325DC1528");
 
   // Try to hash a new string to see if everything restarted as intended
-  unsigned char* a = (unsigned char*) "a";
-  unsigned char* b = (unsigned char*) "b";
-  unsigned char* c = (unsigned char*) "c";
+  uint8_t* a = (uint8_t*) "a";
+  uint8_t* b = (uint8_t*) "b";
+  uint8_t* c = (uint8_t*) "c";
   hasher.update(a, 1);
   hasher.update(b, 1);
   hasher.update(c, 1);

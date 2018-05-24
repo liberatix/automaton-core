@@ -20,7 +20,7 @@ void basic_hash_miner::next_nonce() {
   nonce_[current]++;
 }
 
-bool basic_hash_miner::is_valid_next_block_hash(unsigned char* hash,
+bool basic_hash_miner::is_valid_next_block_hash(uint8_t* hash,
                                                 int required_leading_zeros) {
   int current = 0;
   while (required_leading_zeros - 8 >= 0) {
@@ -48,7 +48,7 @@ int basic_hash_miner::get_nonce_lenght() {
   return nonce_lenght_;
 }
 
-unsigned char* basic_hash_miner::mine(unsigned char* block_hash,
+uint8_t* basic_hash_miner::mine(uint8_t* block_hash,
     int block_hash_lenght,
     int required_leading_zeros) {
   if (required_leading_zeros > nonce_lenght_ * 8) {
@@ -57,8 +57,8 @@ unsigned char* basic_hash_miner::mine(unsigned char* block_hash,
   }
 
   int digest_size = hash_transformation_ -> digest_size();
-  unsigned char* next_block_hash = new unsigned char[digest_size];
-  nonce_ = new unsigned char[nonce_lenght_]();
+  uint8_t* next_block_hash = new uint8_t[digest_size];
+  nonce_ = new uint8_t[nonce_lenght_]();
 
   do {
     next_nonce();
