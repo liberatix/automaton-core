@@ -246,7 +246,7 @@ void protobuf_msg::set_message(int field_tag, const msg& sub_message) {
     throw std::invalid_argument("Field is not message");
   }
   string message_type = fdesc->message_type()->full_name();  // Error
-  auto& sub_m = reinterpret_cast<const protobuf_msg&>(sub_message);
+  auto& sub_m = dynamic_cast<const protobuf_msg&>(sub_message);
   string sub_message_type = sub_m.m->GetDescriptor()->full_name();
   if (message_type.compare(sub_message_type)) {
     throw std::invalid_argument("Type of the given sub message (which is <" +

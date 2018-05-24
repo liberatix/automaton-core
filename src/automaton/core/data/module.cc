@@ -12,6 +12,10 @@ static bool register_self() {
 
 bool module::registered = register_self();
 
+data::schema* module::get_schema() {
+  return nullptr;
+}
+
 }  // namespace data
 }  // namespace core
 }  // namespace automaton

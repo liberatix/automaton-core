@@ -15,3 +15,12 @@ cc_library(
     "@easyloggingpp//:easyloggingpp",
   ],
 )
+
+cc_library(
+  name = "module",
+  srcs = ["module.cc"],
+  hdrs = ["module.h"],
+  deps = [
+    "//automaton/core/script",
+  ],
+)

@@ -26,11 +26,11 @@ TEST(protobuf_factory, message_serialization) {
       schema::int32, "int32_field", "", true), m1);
   custom_schema.add_message(m1);
 
-  protobuf_factory sc;
-  sc.import_schema_definition(&custom_schema, "test", "");
+  protobuf_factory pb_factory;
+  pb_factory.import_schema(&custom_schema, "test", "");
 
-  auto msg1 = sc.new_message(0);
-  auto msg2 = sc.new_message(0);
+  auto msg1 = pb_factory.new_message(0);
+  auto msg2 = pb_factory.new_message(0);
 
   msg1->set_string(1, "value");
   msg1->set_repeated_int32(2, 7, -1);

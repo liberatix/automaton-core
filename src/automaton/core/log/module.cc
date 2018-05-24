@@ -1,9 +1,9 @@
-#include "automaton/core/io/module.h"
+#include "automaton/core/log/module.h"
 #include "automaton/core/script/registry.h"
 
 namespace automaton {
 namespace core {
-namespace io {
+namespace log {
 
 static bool register_self() {
   script::registry::get().bind<module>();
@@ -12,10 +12,6 @@ static bool register_self() {
 
 bool module::registered = register_self();
 
-data::schema* module::get_schema() {
-  return nullptr;
-}
-
-}  // namespace io
+}  // namespace log
 }  // namespace core
 }  // namespace automaton

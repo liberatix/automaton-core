@@ -4,17 +4,19 @@
 
 #include "automaton/core/io/io.h"
 #include "automaton/core/data/protobuf/protobuf_factory.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "gtest/gtest.h"
 
 using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::data::protobuf::protobuf_schema;
 using automaton::core::io::get_file_contents;
 
 int main(int argc, char* argv[]) {
   try {
-    protobuf_factory sc;
-    sc.import_schema_from_string(
-        get_file_contents("automaton/tests/data/test.proto"), "test", "");
-    int k = sc.get_schema_id("TestMsg");
+    protobuf_factory pb_factory;
+    protobuf_schema loaded_schema(get_file_contents("automaton/tests/data/test.proto"));
+    pb_factory.import_schema(&loaded_schema, "test", "");
+    int k = pb_factory.get_schema_id("TestMsg");
     std::cout << "GOT: " << k << std::endl;
     google::protobuf::ShutdownProtobufLibrary();
     if (k != 0) {

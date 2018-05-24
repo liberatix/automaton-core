@@ -5,9 +5,7 @@
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/map.h>
-#include <google/protobuf/compiler/parser.h>
 #include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/arena.h>
 #include <google/protobuf/io/tokenizer.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
@@ -29,54 +27,8 @@ namespace core {
 namespace data {
 namespace protobuf {
 
-/**
-This is helper class which is used while parsing proto file.
-**/
-class io_error_collector : public google::protobuf::io::ErrorCollector {
-  int errors_number;
-  std::string errors_list;
- public:
-  io_error_collector();
-  void AddError(int line, int column, const std::string& message);
-  void AddWarning(int line, int column, const std::string& message);
-  void clear_errors();
-  int get_number_errors();
-  std::string get_all_errors();
-};
-/**
-This is helper class which is used while parsing proto file.
-**/
-class proto_error_collector : public
-    google::protobuf::DescriptorPool::ErrorCollector {
-  int errors_number;
-  std::string errors_list;
- public:
-  proto_error_collector();
-  void AddError(
-      const std::string& filename,  // File name in which the error occurred.
-      const std::string& element_name,  // Full name of the erroneous element.
-      const google::protobuf::Message* descriptor,  // Descriptor of the
-          // erroneous element.
-      google::protobuf::DescriptorPool::ErrorCollector::ErrorLocation location,
-            // One of the location constants, above.
-      const std::string& message);  // Human-readable error message.
-  void AddWarning(
-      const std::string& filename,  // File name in which the error occurred.
-      const std::string& element_name,  // Full name of the erroneous element.
-      const google::protobuf::Message* descriptor,  // Descriptor of the
-          // erroneous element.
-      google::protobuf::DescriptorPool::ErrorCollector::ErrorLocation location,
-      // One of the location constants, above.
-      const std::string& message);  // Human-readable error message.
-  void clear_errors();
-  int get_number_errors();
-  std::string get_all_errors();
-};
-
 class protobuf_factory: public factory {
  private:
-  io_error_collector io_error_collector_;
-  proto_error_collector proto_error_collector_;
   google::protobuf::DescriptorPool* pool;
   google::protobuf::DynamicMessageFactory* dynamic_message_factory = nullptr;
 
@@ -133,20 +85,12 @@ class protobuf_factory: public factory {
   ~protobuf_factory();
 
   /*
-    This is needed for testing or if std::string serialize_protocol()
-    exists.
-  */
-  void import_schema_from_string(const std::string& protocol,
-      const std::string& name, const std::string& package);
-
-  /*
     This function is used for include schema definitions that were created with
     schema. If the given schema has dependencies, they
     must be imported first or exception will be thrown. Name will be used for
     reference in schema::add_dependency().
   */
-  void import_schema_definition(schema* schema,
-      const std::string& name, const std::string& package);
+  void import_schema(schema* schema, const std::string& name, const std::string& package);
 
   /**
     following functions are too complicated for mvp.

@@ -68,18 +68,18 @@ TEST(protobuf_factory, enums) {
   custom_schema.add_message(m1);
   custom_schema.add_message(m2);
 
-  protobuf_factory sc;
-  sc.import_schema_definition(&custom_schema, "test", "");
+  protobuf_factory pb_factory;
+  pb_factory.import_schema(&custom_schema, "test", "");
 
-  auto msg1 = sc.new_message("A");
-  auto msg2 = sc.new_message("A");
+  auto msg1 = pb_factory.new_message("A");
+  auto msg2 = pb_factory.new_message("A");
 
   msg1->set_string(1, "value_string");
-  int inner_enum_value = sc.get_enum_value(sc.get_enum_id("A.inner_enum"),
-      "inner_value2");
+  int inner_enum_value =
+      pb_factory.get_enum_value(pb_factory.get_enum_id("A.inner_enum"), "inner_value2");
   msg1->set_enum(2, inner_enum_value);
-  int outer_enum_value = sc.get_enum_value(sc.get_enum_id("outer_enum"),
-      "outer_value1");
+  int outer_enum_value =
+      pb_factory.get_enum_value(pb_factory.get_enum_id("outer_enum"), "outer_value1");
   msg1->set_enum(3, outer_enum_value);
 
   std::cout << "Message {\n" << msg1->to_string() << "\n}" << std::endl;
@@ -92,8 +92,8 @@ TEST(protobuf_factory, enums) {
   EXPECT_EQ(msg2->get_enum(2), 1);
   EXPECT_EQ(msg2->get_enum(3), 0);
 
-  auto msg3 = sc.new_message(sc.get_schema_id("B"));
-  auto msg4 = sc.new_message(sc.get_schema_id("B"));
+  auto msg3 = pb_factory.new_message(pb_factory.get_schema_id("B"));
+  auto msg4 = pb_factory.new_message(pb_factory.get_schema_id("B"));
 
   msg3->set_enum(1, 1);
   msg3->set_repeated_enum(2, 1, -1);

@@ -22,6 +22,7 @@ cc_library(
   hdrs = ["module.h"],
   deps = [
     ":crypto",
+    "//automaton/core/data/protobuf",
     "//automaton/core/script",
   ],
 )
