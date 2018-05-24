@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <mutex>
 #include <string>
 #include <sstream>
 
@@ -8,6 +9,25 @@
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::core::network::simulation;
+
+using automaton::core::network::acceptor;
+using automaton::core::network::connection;
+using automaton::core::network::simulation;
+
+std::mutex buffer_mutex;
+std::vector<char*> buffers;
+
+char* add_buffer(unsigned int size) {
+  std::lock_guard<std::mutex> lock(buffer_mutex);
+  buffers.push_back(new char[size]);
+  return buffers[buffers.size() - 1];
+}
+void clear_buffers() {
+  std::lock_guard<std::mutex> lock(buffer_mutex);
+  for (unsigned int i = 0; i < buffers.size(); ++i) {
+    delete [] buffers[i];
+  }
+}
 
 /// Constants
 
@@ -139,7 +159,7 @@ class lis_handler: public acceptor::acceptor_handler {
   }
   void on_connected(connection* c, const std::string& address) {
     // logging("Accepted connection from: " + address);
-    c->async_read(new char[16], 16, 0, 0);
+    c->async_read(add_buffer(16), 16, 0, 0);
     node_->peers.push_back(c);
   }
   void on_error(connection::error e) {
@@ -182,7 +202,7 @@ int main() {
                                                         nodes[i]->handler_);
         nodes[i]->peers.push_back(new_connection);
         new_connection->connect();
-        new_connection->async_read(new char[16], 16, 0, 0);
+        new_connection->async_read(add_buffer(16), 16, 0, 0);
       }
     }
     LOG(INFO) << "Starting simulation...";
@@ -207,5 +227,6 @@ int main() {
   } catch(...) {
     LOG(ERROR) << "UNKOWN EXCEPTION!";
   }
+  clear_buffers();
   return 0;
 }
