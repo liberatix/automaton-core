@@ -101,7 +101,7 @@ std::unique_ptr<protobuf_schema> test_msg_json::pb_schema;
 std::unique_ptr<protobuf_factory> test_msg_json::pb_factory;
 
 TEST_F(test_msg_json, serialize_json) {
-  pb_factory->import_schema_definition(pb_schema.get(), "test", "");
+  pb_factory->import_schema(pb_schema.get(), "test", "");
 
   auto msg1 = pb_factory->new_message(FIRST_MESSAGE);
   auto msg2 = pb_factory->new_message(SECOND_MESSAGE);

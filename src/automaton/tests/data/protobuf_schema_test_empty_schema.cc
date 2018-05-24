@@ -12,8 +12,8 @@ using automaton::core::data::protobuf::protobuf_schema;
 int main(int argc, char* argv[]) {
   try {
     protobuf_schema custom_schema;
-    protobuf_factory sc;
-    sc.import_schema_definition(&custom_schema, "test", "");
+    protobuf_factory pb_factory;
+    pb_factory.import_schema(&custom_schema, "test", "");
   }
   catch (std::exception& e) {
     std::cout << e.what() << std::endl;

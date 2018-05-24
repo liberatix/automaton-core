@@ -16,15 +16,51 @@ using google::protobuf::FileDescriptor;
 using google::protobuf::FileDescriptorProto;
 using google::protobuf::Message;
 
-using google::protobuf::compiler::Parser;
-
-using google::protobuf::io::IstreamInputStream;
-using google::protobuf::io::Tokenizer;
-
 namespace automaton {
 namespace core {
 namespace data {
 namespace protobuf {
+
+/**
+This is helper class which is used while parsing proto file.
+**/
+class proto_error_collector : public
+    google::protobuf::DescriptorPool::ErrorCollector {
+  int errors_number;
+  std::string errors_list;
+ public:
+  proto_error_collector();
+
+  /**
+    TODO(kari): document here
+  */
+  void AddError(
+      const std::string& filename,  // File name in which the error occurred.
+      const std::string& element_name,  // Full name of the erroneous element.
+      const google::protobuf::Message* descriptor,  // Descriptor of the
+          // erroneous element.
+      google::protobuf::DescriptorPool::ErrorCollector::ErrorLocation location,
+            // One of the location constants, above.
+      const std::string& message);  // Human-readable error message.
+
+  /**
+    TODO(kari): document here
+  */
+  void AddWarning(
+      const std::string& filename,  // File name in which the error occurred.
+      const std::string& element_name,  // Full name of the erroneous element.
+      const google::protobuf::Message* descriptor,  // Descriptor of the
+          // erroneous element.
+      google::protobuf::DescriptorPool::ErrorCollector::ErrorLocation location,
+      // One of the location constants, above.
+      const std::string& message);  // Human-readable error message.
+
+  void clear_errors();
+
+  int get_number_errors();
+
+  std::string get_all_errors();
+};
 
 // Protobuf schema
 
@@ -136,8 +172,8 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
     }
   }
 
-  const FileDescriptor* fd =
-      pool->BuildFileCollectingErrors(*fdp, &proto_error_collector_);
+  proto_error_collector proto_error_collector_;
+  const FileDescriptor* fd = pool->BuildFileCollectingErrors(*fdp, &proto_error_collector_);
   if (proto_error_collector_.get_number_errors() > 0) {
     throw std::runtime_error("Errors while parsing:\n" + proto_error_collector_.get_all_errors());
   }
@@ -167,35 +203,10 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
   }
 }
 
-void protobuf_factory::import_schema_definition(
-    schema* schema, const string& name, const string& package) {
+void protobuf_factory::import_schema(schema* schema, const string& name, const string& package) {
   CHECK_NOTNULL(schema) << "schema is nullptr";
-  // TODO(kari): schema need to be protobuf_factory
-  import_from_file_proto(reinterpret_cast<protobuf_schema*>(schema)->get_descriptor(),
-      name, package);
-}
-
-void protobuf_factory::import_schema_from_string(const string& proto_def,
-                                                 const string& package,
-                                                 const string& name) {
-  FileDescriptorProto* fileproto = new FileDescriptorProto();
-  std::istringstream stream(proto_def);
-  IstreamInputStream is(&stream);
-  Tokenizer tok(&is, &io_error_collector_);
-  if (io_error_collector_.get_number_errors() > 0) {
-    throw std::runtime_error(io_error_collector_.get_all_errors());
-  }
-  Parser parser;
-  parser.RecordErrorsTo(&io_error_collector_);
-  if (io_error_collector_.get_number_errors() > 0) {
-    throw std::runtime_error(io_error_collector_.get_all_errors());
-  }
-  parser.Parse(&tok, fileproto);  // TODO(kari): Handle errors.
-  if (io_error_collector_.get_number_errors() > 0) {
-    throw std::runtime_error("Errors while parsing:\n" +
-        io_error_collector_.get_all_errors());
-  }
-  import_from_file_proto(fileproto, package, name);
+  auto pb_schema = dynamic_cast<protobuf_schema*>(schema);
+  import_from_file_proto(pb_schema->get_file_descriptor_proto(), name, package);
 }
 
 void protobuf_factory::dump_message_schema(int schema_id, std::ostream& ostream_) {
@@ -407,41 +418,6 @@ int protobuf_factory::get_field_tag(int schema_id, const string& name) const {
 }
 
 // Error collectors helper classes
-
-io_error_collector::io_error_collector() {
-  errors_number = 0;
-  errors_list = "";
-}
-
-void io_error_collector::AddError(int line, int column,
-      const string& message) {
-  std::cerr << "*Error: line: " << line << " col: " << column << "->"
-      << message.c_str() << std::endl;
-  errors_number++;
-  errors_list += "Error: line: " + std::to_string(line) + " col: " +
-      std::to_string(column) + "->" + message.c_str() + "\n";
-}
-
-void io_error_collector::AddWarning(int line, int column,
-      const string& message) {
-  std::cerr << "*Warning: line: " << line << " col: " << column << "->"
-      << message.c_str() << std::endl;
-  errors_list += "Warning: line: " + std::to_string(line) + " col: " +
-      std::to_string(column) + "->" + message.c_str() + "\n";
-}
-
-void io_error_collector::clear_errors() {
-  errors_number = 0;
-  errors_list = "";
-}
-
-int io_error_collector::get_number_errors() {
-  return errors_number;
-}
-
-string io_error_collector::get_all_errors() {
-  return errors_list;
-}
 
 proto_error_collector::proto_error_collector() {
   errors_number = 0;

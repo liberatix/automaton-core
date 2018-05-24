@@ -25,23 +25,15 @@ class factory {
   static factory* create(const std::string name);
 
   /**
-    This is needed for testing or if virtual std::string serialize_protocol()
-    exists.
-  */
-  virtual void import_schema_from_string(const std::string& protocol,
-                                         const std::string& name,
-                                         const std::string& package) = 0;
-
-  /**
     This function is used for include schema definitions that were created with
     schema. If the given schema has dependencies, they
     must be imported first or exception will be thrown. Name will be used for
     reference in schema::add_dependency(). Package is used in
     fully_qualified_type.
   */
-  virtual void import_schema_definition(schema* schema,
-                                        const std::string& name,
-                                        const std::string& package) = 0;
+  virtual void import_schema(schema* schema,
+                             const std::string& name,
+                             const std::string& package) = 0;
 
   /**
     Prints information about an enum and its values. If the given enum id is not

@@ -7,10 +7,10 @@
 #include <google/protobuf/map.h>
 #include <google/protobuf/compiler/parser.h>
 #include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/arena.h>
 #include <google/protobuf/io/tokenizer.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -23,22 +23,27 @@ namespace protobuf {
 
 class protobuf_schema: public schema {
  private:
-  google::protobuf::Arena arena;
-  google::protobuf::FileDescriptorProto* file_descriptor_proto;
+  std::unique_ptr<google::protobuf::FileDescriptorProto> file_descriptor_proto;
   std::vector <google::protobuf::DescriptorProto*> messages;
   std::vector <google::protobuf::EnumDescriptorProto*> enums;
 
  public:
   protobuf_schema();
+
+  explicit protobuf_schema(const std::string& proto_def);
+
   ~protobuf_schema();
 
   void register_self();
+
+  void import_from_file_proto(google::protobuf::FileDescriptorProto* fileproto,
+      const std::string& name, const std::string& package);
 
   /**
     This function is used from protobuf_factory on import. (Instead of
     friend class)
   **/
-  google::protobuf::FileDescriptorProto* get_descriptor();
+  google::protobuf::FileDescriptorProto* get_file_descriptor_proto();
 
   /**
     If this schema (schema A) depends on another one (schema B), it must be

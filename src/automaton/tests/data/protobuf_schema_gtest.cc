@@ -39,9 +39,9 @@ TEST(data_protobuf, messages) {
       schema::field_info(1, schema::string, "string_field", "", false), m1);
   cs3.add_message(m3);
 
-  protobuf_factory sc;
-  sc.import_schema_definition(&cs3, "name1", "pack1");
-  sc.import_schema_definition(&cs2, "name2", "pack2");
-  sc.import_schema_definition(&cs, "name3", "pack2");
+  protobuf_factory pb_factory;
+  pb_factory.import_schema(&cs3, "name1", "pack1");
+  pb_factory.import_schema(&cs2, "name2", "pack2");
+  pb_factory.import_schema(&cs, "name3", "pack2");
   google::protobuf::ShutdownProtobufLibrary();
 }

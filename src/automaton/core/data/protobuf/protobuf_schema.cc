@@ -1,8 +1,10 @@
 #include "automaton/core/data/protobuf/protobuf_factory.h"
+
+#include <google/protobuf/compiler/parser.h>
+
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/log/log.h"
 
-using google::protobuf::Arena;
 using google::protobuf::DescriptorProto;
 using google::protobuf::EnumDescriptorProto;
 using google::protobuf::EnumValueDescriptorProto;
@@ -11,22 +13,93 @@ using google::protobuf::FieldDescriptorProto_Label;
 using google::protobuf::FieldDescriptorProto_Type;
 using google::protobuf::FileDescriptorProto;
 
+using google::protobuf::compiler::Parser;
+
+using google::protobuf::io::IstreamInputStream;
+using google::protobuf::io::Tokenizer;
+
 namespace automaton {
 namespace core {
 namespace data {
 namespace protobuf {
 
+/**
+This is helper class which is used while parsing proto file.
+**/
+class io_error_collector : public google::protobuf::io::ErrorCollector {
+ public:
+  io_error_collector() {
+  errors_number = 0;
+  errors_list = "";
+  }
+
+  void AddError(int line, int column, const std::string& message) {
+    std::cerr << "*Error: line: " << line << " col: " << column << "->"
+        << message.c_str() << std::endl;
+    errors_number++;
+    errors_list += "Error: line: " + std::to_string(line) + " col: " +
+        std::to_string(column) + "->" + message.c_str() + "\n";
+  }
+
+  void AddWarning(int line, int column, const std::string& message) {
+    std::cerr << "*Warning: line: " << line << " col: " << column << "->"
+        << message.c_str() << std::endl;
+    errors_list += "Warning: line: " + std::to_string(line) + " col: " +
+        std::to_string(column) + "->" + message.c_str() + "\n";
+  }
+
+  void clear_errors() {
+    errors_number = 0;
+    errors_list = "";
+  }
+
+  int get_number_errors() {
+    return errors_number;
+  }
+
+  std::string get_all_errors() {
+    return errors_list;
+  }
+
+ private:
+  int errors_number;
+  std::string errors_list;
+};
+
+
 // Protobuf schema definition
 
 protobuf_schema::protobuf_schema() {
-  file_descriptor_proto = Arena::Create<FileDescriptorProto>(&arena);
+  file_descriptor_proto.reset(new FileDescriptorProto());
   file_descriptor_proto->set_syntax("proto3");
+}
+
+protobuf_schema::protobuf_schema(const std::string& proto_def) {
+  io_error_collector io_error_collector_;
+
+  file_descriptor_proto.reset(new FileDescriptorProto());
+  std::istringstream stream(proto_def);
+  IstreamInputStream is(&stream);
+  Tokenizer tok(&is, &io_error_collector_);
+  if (io_error_collector_.get_number_errors() > 0) {
+    throw std::runtime_error(io_error_collector_.get_all_errors());
+  }
+  Parser parser;
+  parser.RecordErrorsTo(&io_error_collector_);
+  if (io_error_collector_.get_number_errors() > 0) {
+    throw std::runtime_error(io_error_collector_.get_all_errors());
+  }
+  parser.Parse(&tok, file_descriptor_proto.get());  // TODO(kari): Handle errors.
+  if (io_error_collector_.get_number_errors() > 0) {
+    throw std::runtime_error("Errors while parsing:\n" +
+        io_error_collector_.get_all_errors());
+  }
 }
 
 protobuf_schema::~protobuf_schema() {}
 
-FileDescriptorProto* protobuf_schema::get_descriptor() {
-  return file_descriptor_proto;
+FileDescriptorProto* protobuf_schema::get_file_descriptor_proto() {
+  return file_descriptor_proto.get();
 }
 
 void protobuf_schema::register_self() {
@@ -41,13 +114,13 @@ void protobuf_schema::add_dependency(const std::string& schema_name) {
 }
 
 int protobuf_schema::create_message(const std::string& message_name) {
-  messages.push_back(Arena::Create<DescriptorProto>(&arena));
+  messages.push_back(new DescriptorProto());
   messages[messages.size() - 1]->set_name(message_name);
   return messages.size() - 1;
 }
 
 int protobuf_schema::create_enum(const std::string& enum_name) {
-  enums.push_back(Arena::Create<EnumDescriptorProto>(&arena));
+  enums.push_back(new EnumDescriptorProto());
   enums[enums.size() - 1]->set_name(enum_name);
   return enums.size() - 1;
 }

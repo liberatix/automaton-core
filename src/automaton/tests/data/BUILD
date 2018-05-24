@@ -9,6 +9,7 @@ cc_binary(
     "//automaton/core/io",
     "//automaton/core/data/protobuf",
   ],
+  data = ["//automaton/tests/data:test.proto"],
 )
 
 cc_test(
