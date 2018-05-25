@@ -1,7 +1,6 @@
 #ifndef AUTOMATON_CORE_STORAGE_BLOBSTORE_H__
 #define AUTOMATON_CORE_STORAGE_BLOBSTORE_H__
 
-#include <stdint.h>
 #include <string>
 
 namespace automaton {

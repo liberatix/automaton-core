@@ -15,7 +15,7 @@ namespace state {
 
 class state_impl : public state{
  public:
-  explicit state_impl(crypto::hash_transformation* hasher);
+  explicit state_impl(automaton::core::crypto::hash_transformation* hasher);
 
   // Get the value at given path. Empty string if no value is set or
   // there is no node at the given path
