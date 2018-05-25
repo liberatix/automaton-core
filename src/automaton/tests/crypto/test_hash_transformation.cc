@@ -14,7 +14,7 @@ class dummy_hash : public hash_transformation {
 
   void restart() {}
 
-  unsigned int digest_size() const {
+  uint32_t digest_size() const {
     return 1;
   }
 };

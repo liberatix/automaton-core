@@ -28,7 +28,7 @@ TEST(secp256k1_cryptopp, gen_public_key) {
   digital_signature* tester = digital_signature::create("secp256k1");
   EXPECT_NE(tester, nullptr);
   uint8_t* public_key = new uint8_t[tester->public_key_size()];
-  constexpr unsigned int test_cases = 4;
+  constexpr uint32_t test_cases = 4;
   std::string test[test_cases][2] = {
     {"5f3aa3bb3129db966915a6d341fde4c95121b5f4cedc3ba4ecc3dd44ba9a50bc",
      "02b4a66219f8e6e594979d8c1961be1aa98e8384b534d54519217e0fbbe4ea608d"},
@@ -39,7 +39,7 @@ TEST(secp256k1_cryptopp, gen_public_key) {
     {"e3b0f44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
      "0308e9692dd9f3cd5061167d7bff031c76c63f5bd492909f26826fe399bda2e1eb"}
   };
-  for (unsigned int i = 0; i < test_cases; i++) {
+  for (uint32_t i = 0; i < test_cases; i++) {
     std::string pr_key_decoded;
     decode_from_hex(test[i][0], pr_key_decoded);
     tester->gen_public_key((uint8_t*)pr_key_decoded.c_str(), public_key);
@@ -64,11 +64,11 @@ TEST(secp256k1_cryptopp, sign_and_verify) {
     "We could have been friends",
     "Final Space",
   };
-  for (unsigned int i = 0; i < test_key.size(); i++) {
+  for (uint32_t i = 0; i < test_key.size(); i++) {
     std::string pr_key_decoded;
     decode_from_hex(test_key[i], pr_key_decoded);
     tester->gen_public_key((uint8_t*)pr_key_decoded.c_str(), public_key);
-    for (unsigned int j = 0; j < test_hash.size(); j++) {
+    for (uint32_t j = 0; j < test_hash.size(); j++) {
       tester->sign((uint8_t*)pr_key_decoded.c_str(),
                   (uint8_t*) test_hash[j].c_str(),
                   test_hash[j].length(),

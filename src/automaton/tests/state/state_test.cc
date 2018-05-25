@@ -29,9 +29,9 @@ TEST(state_impl, set_and_get) {
   state_impl state(hasher);
 
   // For each node added, check if the previous nodes are still correct
-  for (unsigned int i = 0; i < tests.size(); i++) {
+  for (uint32_t i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
-      for (unsigned int j = 0; j <= i; j++) {
+      for (uint32_t j = 0; j <= i; j++) {
         EXPECT_EQ(state.get(tests[j].first), tests[j].second);
       }
   }
@@ -55,13 +55,13 @@ TEST(state_impl, set_delete_and_get) {
   hasher = hash_transformation::create("SHA256");
   state_impl state(hasher);
   // add all nodes
-  for (unsigned int i = 0; i < tests.size(); i++) {
+  for (uint32_t i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
   }
   // delete one and check if remaining nodes are currect
-  for (unsigned int i = 0; i < tests.size(); i++) {
+  for (uint32_t i = 0; i < tests.size(); i++) {
     state.erase(tests[i].first);
-    for (unsigned int j = i+1; j < tests.size(); j++) {
+    for (uint32_t j = i+1; j < tests.size(); j++) {
       EXPECT_EQ(state.get(tests[j].first), tests[j].second);
     }
   }
@@ -69,7 +69,7 @@ TEST(state_impl, set_delete_and_get) {
 
 static std::string tohex(std::string s) {
   std::stringstream ss;
-  for (unsigned int i = 0; i < s.size(); i++) {
+  for (uint32_t i = 0; i < s.size(); i++) {
     ss << std::hex << std::uppercase << std::setw(2) <<
         std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
   }

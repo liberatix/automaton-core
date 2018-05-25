@@ -257,7 +257,7 @@ void simulation::handle_event(const event& e) {
       // }
       simulated_connection* destination = sim->get_connection(e.destination);
       if (destination && destination->sending.size()) {
-        unsigned int id = destination->sending.front().id;
+        uint32_t id = destination->sending.front().id;
         destination->sending.pop();
         destination->handle_send();
         destination->get_handler()->on_message_sent(destination, id,
@@ -318,7 +318,7 @@ bool simulation::is_queue_empty() {
 }
 
 void simulation::add_connection(simulated_connection* connection_) {
-  static unsigned int id = 0;
+  static uint32_t id = 0;
   // TODO(kari): use unordered map
   if (connection_) {
     std::lock_guard<std::mutex> lock(connections_mutex);
@@ -329,7 +329,7 @@ void simulation::add_connection(simulated_connection* connection_) {
     connection_->local_connection_id = id;
   }
 }
-void simulation::remove_connection(unsigned int connection_id) {
+void simulation::remove_connection(uint32_t connection_id) {
   std::lock_guard<std::mutex> lock(connections_mutex);
   auto iterator_ = connections.find(connection_id);
   if (iterator_ != connections.end()) {
@@ -376,7 +376,7 @@ void simulation::print_q() {
 
 void simulation::print_connections() {
   // std::lock_guard<std::mutex> lock(connections_mutex);
-  // for (unsigned int i = 0; i < connections.size(); ++i) {
+  // for (uint32_t i = 0; i < connections.size(); ++i) {
   //   LOG(INFO) << connections[i]->get_address();
   // }
 }
@@ -397,7 +397,7 @@ simulated_connection::simulated_connection(const std::string& address_,
   }
 }
 
-void simulated_connection::async_send(const std::string& message, unsigned int id = 0) {
+void simulated_connection::async_send(const std::string& message, uint32_t id = 0) {
   if (message.size() < 1) {
     LOG(ERROR) << "Send called but no message: id -> " << std::to_string(id);
     return;
@@ -454,9 +454,9 @@ void simulated_connection::handle_read() {
   while (receive_buffer.size() && reading.size()) {
     incoming_packet& packet = reading.front();
     bool read_some = packet.expect_to_read == 0;
-    unsigned int max_to_read = read_some ? packet.buffer_size : packet.expect_to_read;
+    uint32_t max_to_read = read_some ? packet.buffer_size : packet.expect_to_read;
     while (receive_buffer.size() && packet.bytes_read < max_to_read) {
-      unsigned int left_to_read = max_to_read - packet.bytes_read;
+      uint32_t left_to_read = max_to_read - packet.bytes_read;
       std::string message = receive_buffer.front();
       if (left_to_read >= message.size()) {
         std::memcpy(packet.buffer + packet.bytes_read, message.data(), message.size());
@@ -478,8 +478,8 @@ void simulated_connection::handle_read() {
   // LOG(DEBUG) << "</handle_read>";
 }
 
-void simulated_connection::async_read(char* buffer, unsigned int buffer_size,
-    unsigned int num_bytes = 0, unsigned int id = 0) {
+void simulated_connection::async_read(char* buffer, uint32_t buffer_size,
+    uint32_t num_bytes = 0, uint32_t id = 0) {
   // LOG(DEBUG) << "<async_read>";
   /**
     This function does not create event. Actual reading will happen when the
@@ -528,7 +528,7 @@ std::string simulated_connection::get_address() const {
       "/accptr:" + std::to_string(remote_address);
 }
 
-unsigned int simulated_connection::get_lag() const {
+uint32_t simulated_connection::get_lag() const {
   if (parameters.min_lag == parameters.max_lag) {
     return parameters.min_lag;
   }

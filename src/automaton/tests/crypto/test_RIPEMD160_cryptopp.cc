@@ -32,7 +32,7 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
   RIPEMD160_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   uint8_t* digest = new uint8_t[digest_size];
-  constexpr unsigned int test_cases = 9;
+  constexpr uint32_t test_cases = 9;
   std::string long_a_string(1000000, 'a');
 
   std::string test[test_cases][2] = {
@@ -51,7 +51,7 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
       "9B752E45573D4B39F4DBD3323CAB82BF63326BFB"}
   };
 
-  for (unsigned int i = 0; i < test_cases; i++) {
+  for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
@@ -68,7 +68,7 @@ TEST(SHA256_cryptopp, update_and_finish) {
   uint8_t* p_test_input = (uint8_t*) test_input.c_str();
   size_t len = test_input.length();
 
-  for (unsigned int i = 0; i <  1000000; i++) {
+  for (uint32_t i = 0; i <  1000000; i++) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);

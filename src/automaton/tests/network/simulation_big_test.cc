@@ -17,49 +17,49 @@ using automaton::core::network::simulation;
 std::mutex buffer_mutex;
 std::vector<char*> buffers;
 
-char* add_buffer(unsigned int size) {
+char* add_buffer(uint32_t size) {
   std::lock_guard<std::mutex> lock(buffer_mutex);
   buffers.push_back(new char[size]);
   return buffers[buffers.size() - 1];
 }
 void clear_buffers() {
   std::lock_guard<std::mutex> lock(buffer_mutex);
-  for (unsigned int i = 0; i < buffers.size(); ++i) {
+  for (uint32_t i = 0; i < buffers.size(); ++i) {
     delete [] buffers[i];
   }
 }
 
 /// Constants
 
-static const unsigned int NUMBER_NODES = 10000;
+static const uint32_t NUMBER_NODES = 10000;
 // These include only the peers that a node connects to, not the accepted ones
-static const unsigned int NUMBER_PEERS_IN_NODE = 4;
-static const unsigned int MIN_LAG = 100;
-static const unsigned int MAX_LAG = 1000;
-static const unsigned int MIN_CONNECTIONS = 0;
-static const unsigned int MAX_CONNECTIONS = 1;
-static const unsigned int MIN_BANDWIDTH = 16;
-static const unsigned int MAX_BANDWIDTH = 16;
-static const unsigned int LOOP_STEP = 100;
-static const unsigned int PROCESS_STEP = 100;
-static const unsigned int BLOCK_CREATION_STEP = 1500;
-static const unsigned int MAX_SIMULATION_TIME = 10000;
+static const uint32_t NUMBER_PEERS_IN_NODE = 4;
+static const uint32_t MIN_LAG = 100;
+static const uint32_t MAX_LAG = 1000;
+static const uint32_t MIN_CONNECTIONS = 0;
+static const uint32_t MAX_CONNECTIONS = 1;
+static const uint32_t MIN_BANDWIDTH = 16;
+static const uint32_t MAX_BANDWIDTH = 16;
+static const uint32_t LOOP_STEP = 100;
+static const uint32_t PROCESS_STEP = 100;
+static const uint32_t BLOCK_CREATION_STEP = 1500;
+static const uint32_t MAX_SIMULATION_TIME = 10000;
 
 /// Global variables
 
 class node;
 /// height -> how many connections have that height
-static std::map<unsigned int, unsigned int> heights_count;
+static std::map<uint32_t, uint32_t> heights_count;
 static std::vector<node*> nodes(NUMBER_NODES);
 
 /// Helper functions for creating addresses
 
-std::string create_connection_address(unsigned int num_acceptors, unsigned int this_acceptor,
-                                      unsigned int min_lag, unsigned int max_lag,
-                                      unsigned int min_bandwidth, unsigned int max_bandwidth) {
+std::string create_connection_address(uint32_t num_acceptors, uint32_t this_acceptor,
+                                      uint32_t min_lag, uint32_t max_lag,
+                                      uint32_t min_bandwidth, uint32_t max_bandwidth) {
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
-  unsigned int mn, mx, acc;
+  uint32_t mn, mx, acc;
   if (min_lag == max_lag) {
     s << min_lag << ':' << max_lag << ':';
   } else {
@@ -75,15 +75,15 @@ std::string create_connection_address(unsigned int num_acceptors, unsigned int t
   // logging("Created connection address: " + s.str());
   return s.str();
 }
-std::string create_connection_address(unsigned int num_acceptors, unsigned int this_acceptor) {
+std::string create_connection_address(uint32_t num_acceptors, uint32_t this_acceptor) {
   return create_connection_address(num_acceptors, this_acceptor, MIN_LAG, MAX_LAG,
                                   MIN_BANDWIDTH, MAX_BANDWIDTH);
 }
 std::string create_acceptor_address(uint32_t address,
-                                    unsigned int min_connections, unsigned int max_connections,
-                                    unsigned int min_bandwidth, unsigned int max_bandwidth) {
+                                    uint32_t min_connections, uint32_t max_connections,
+                                    uint32_t min_bandwidth, uint32_t max_bandwidth) {
   std::stringstream s;
-  unsigned int conns;
+  uint32_t conns;
   conns = std::rand() % max_connections;
   conns = conns > min_connections ? conns : min_connections;
   s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) << ':'
@@ -99,12 +99,12 @@ std::string create_acceptor_address(uint32_t address) {
 /// Class node
 class node {
  public:
-  unsigned int height;
+  uint32_t height;
   acceptor* acceptor_;
   connection::connection_handler* handler_;
   std::vector<connection*> peers;
   void send_height() {
-    for (unsigned int i = 0; i < peers.size(); ++i) {
+    for (uint32_t i = 0; i < peers.size(); ++i) {
       peers[i]->async_send(std::to_string(height), 0);
     }
   }
@@ -115,7 +115,7 @@ class handler: public connection::connection_handler {
  public:
   node* node_;
   explicit handler(node* n): node_(n) {}
-  void on_message_received(connection* c, char* buffer, unsigned int bytes_read, unsigned int id) {
+  void on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id) {
     std::string message = std::string(buffer, bytes_read);
     // logging("Message \"" + message + "\" received in <" + c->get_address() + ">");
     if (std::stoul(message) > node_->height) {
@@ -124,7 +124,7 @@ class handler: public connection::connection_handler {
     }
     c -> async_read(buffer, 16, 0, 0);
   }
-  void on_message_sent(connection* c, unsigned int id, connection::error e) {
+  void on_message_sent(connection* c, uint32_t id, connection::error e) {
     if (e) {
        LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
           c->get_address() << "\nError " << std::to_string(e);
@@ -171,7 +171,7 @@ class lis_handler: public acceptor::acceptor_handler {
 void collect_stats() {
   heights_count.clear();
   // logging("Nodes size: " + std::to_string(nodes.size()));
-  for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
+  for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     heights_count[nodes[i]->height]++;
   }
   LOG(INFO) << "==== Heights ====";
@@ -185,7 +185,7 @@ int main() {
   try {
     simulation* sim = simulation::get_simulator();
     LOG(INFO) << "Creating acceptors...";
-    for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
+    for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
       nodes[i] = new node();
       nodes[i]->height = 0;
       nodes[i]->handler_ = new handler(nodes[i]);
@@ -195,8 +195,8 @@ int main() {
       nodes[i]->acceptor_->start_accepting();
     }
     LOG(INFO) << "Creating connections...";
-    for (unsigned int i = 0; i < NUMBER_NODES; ++i) {
-      for (unsigned int j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
+    for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+      for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
         connection* new_connection = connection::create("sim",
                                                         create_connection_address(NUMBER_NODES, i),
                                                         nodes[i]->handler_);
@@ -207,7 +207,7 @@ int main() {
     }
     LOG(INFO) << "Starting simulation...";
     // ==============================================
-    for (unsigned int i = 0; i < MAX_SIMULATION_TIME; i += LOOP_STEP) {
+    for (uint32_t i = 0; i < MAX_SIMULATION_TIME; i += LOOP_STEP) {
       if (i % PROCESS_STEP == 0) {
         LOG(INFO) << "PROCESSING: " + std::to_string(i);
         // sim->print_connections();
