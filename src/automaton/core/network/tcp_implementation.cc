@@ -97,7 +97,7 @@ void tcp_connection::connect() {
   }
 }
 
-void tcp_connection::async_send(const std::string& msg, unsigned int id) {
+void tcp_connection::async_send(const std::string& msg, uint32_t id) {
   if (tcp_initialized && asio_socket.is_open() && msg.size() > 0) {
     std::string* message = new std::string(msg);
     asio_socket.async_write_some(boost::asio::buffer(*message),
@@ -129,8 +129,8 @@ void tcp_connection::async_send(const std::string& msg, unsigned int id) {
   }
 }
 
-void tcp_connection::async_read(char* buffer, unsigned int buffer_size,
-    unsigned int num_bytes, unsigned int id) {
+void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
+    uint32_t num_bytes, uint32_t id) {
   if (tcp_initialized && asio_socket.is_open()) {
     if (num_bytes <= 0) {
       asio_socket.async_read_some(boost::asio::buffer(buffer, buffer_size),

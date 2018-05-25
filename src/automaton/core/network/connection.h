@@ -61,8 +61,8 @@ class connection {
   class connection_handler {
    public:
     virtual void on_message_received(connection* c, char* buffer,
-        unsigned int bytes_read, unsigned int id) = 0;
-    virtual void on_message_sent(connection* c, unsigned int id,
+        uint32_t bytes_read, uint32_t id) = 0;
+    virtual void on_message_sent(connection* c, uint32_t id,
         connection::error e) = 0;
     virtual void on_connected(connection* c) = 0;
     virtual void on_disconnected(connection* c) = 0;
@@ -74,9 +74,9 @@ class connection {
     sequence_id at the time of sending the message. On_message_sent should be
     invoked once the message was sent successfully.
   */
-  virtual void async_send(const std::string& message, unsigned int id = 0) = 0;
-  virtual void async_read(char* buffer, unsigned int buffer_size,
-      unsigned int num_bytes = 0, unsigned int id = 0) = 0;
+  virtual void async_send(const std::string& message, uint32_t id = 0) = 0;
+  virtual void async_read(char* buffer, uint32_t buffer_size,
+      uint32_t num_bytes = 0, uint32_t id = 0) = 0;
 
   virtual state get_state() const = 0;
   virtual std::string get_address() const = 0;

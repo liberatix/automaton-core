@@ -34,8 +34,8 @@ struct event {
   type type_;
   /// uint64_t time_created;
   uint64_t time_of_handling;
-  unsigned int source;
-  unsigned int destination;
+  uint32_t source;
+  uint32_t destination;
   std::string data;
   event();
   std::string to_string() const;
@@ -43,15 +43,15 @@ struct event {
 
 // this could be protobuf message
 struct connection_params {
-  unsigned int min_lag;
-  unsigned int max_lag;
-  unsigned int bandwidth;
+  uint32_t min_lag;
+  uint32_t max_lag;
+  uint32_t bandwidth;
   connection_params();
 };
 
 struct acceptor_params {
-  unsigned int max_connections;
-  unsigned int bandwidth;
+  uint32_t max_connections;
+  uint32_t bandwidth;
   acceptor_params();
 };
 
@@ -137,8 +137,8 @@ class simulation {
   */
   int process(uint64_t time);
   void add_connection(simulated_connection* connection_);
-  simulated_connection* get_connection(unsigned int connection_index);
-  void remove_connection(unsigned int connection_id);
+  simulated_connection* get_connection(uint32_t connection_index);
+  void remove_connection(uint32_t connection_id);
   void add_acceptor(uint32_t address, simulated_acceptor* acceptor_);
   simulated_acceptor* get_acceptor(uint32_t address);
   void remove_acceptor(uint32_t address);
@@ -151,22 +151,22 @@ class simulation {
 class simulated_connection: public connection {
  public:
   uint32_t remote_address;
-  unsigned int local_connection_id;
-  unsigned int remote_connection_id;
+  uint32_t local_connection_id;
+  uint32_t remote_connection_id;
   state connection_state;
   // TODO(kari): better names for these structs
   struct incoming_packet {
     char* buffer;
-    unsigned int buffer_size;
-    unsigned int expect_to_read;
-    unsigned int id;
-    unsigned int bytes_read;
+    uint32_t buffer_size;
+    uint32_t expect_to_read;
+    uint32_t id;
+    uint32_t bytes_read;
     incoming_packet();
   };
   struct outgoing_packet {
     std::string message;
-    unsigned int bytes_send;
-    unsigned int id;
+    uint32_t bytes_send;
+    uint32_t id;
     outgoing_packet();
   };
   /**
@@ -176,7 +176,7 @@ class simulated_connection: public connection {
     this time_stamp is NOT taken into account and it is possible 2 events for this connection to be
     in the event queue at the same time.
   */
-  unsigned int time_stamp;  // time_stamp
+  uint32_t time_stamp;  // time_stamp
   connection_params parameters;
 
   /**
@@ -191,15 +191,15 @@ class simulated_connection: public connection {
 
   bool parse_address(const std::string& address);
 
-  void async_send(const std::string& message, unsigned int message_id);
+  void async_send(const std::string& message, uint32_t message_id);
 
-  void async_read(char* buffer, unsigned int buffer_size, unsigned int num_bytes, unsigned int id);
+  void async_read(char* buffer, uint32_t buffer_size, uint32_t num_bytes, uint32_t id);
   void handle_read();
   void handle_send();
 
   state get_state() const;
   std::string get_address() const;
-  unsigned int get_lag() const;
+  uint32_t get_lag() const;
   void connect();
   void disconnect();
   connection_handler* get_handler();

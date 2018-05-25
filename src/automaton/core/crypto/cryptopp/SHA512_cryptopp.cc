@@ -30,7 +30,7 @@ void SHA512_cryptopp::restart() {
   hash->Restart();
 }
 
-unsigned int SHA512_cryptopp::digest_size() const {
+uint32_t SHA512_cryptopp::digest_size() const {
   return _digest_size;
 }
 

@@ -14,26 +14,26 @@ static int read_counter = 0;
 std::mutex buffer_mutex;
 std::vector<char*> buffers;
 
-char* add_buffer(unsigned int size) {
+char* add_buffer(uint32_t size) {
   std::lock_guard<std::mutex> lock(buffer_mutex);
   buffers.push_back(new char[size]);
   return buffers[buffers.size() - 1];
 }
 void clear_buffers() {
   std::lock_guard<std::mutex> lock(buffer_mutex);
-  for (unsigned int i = 0; i < buffers.size(); ++i) {
+  for (uint32_t i = 0; i < buffers.size(); ++i) {
     delete [] buffers[i];
   }
 }
 
-std::string create_connection_address(unsigned int num_acceptors,
-                                      unsigned int min_lag = 1,
-                                      unsigned int max_lag = 5,
-                                      unsigned int min_bandwidth = 1,
-                                      unsigned int max_bandwidth = 4) {
+std::string create_connection_address(uint32_t num_acceptors,
+                                      uint32_t min_lag = 1,
+                                      uint32_t max_lag = 5,
+                                      uint32_t min_bandwidth = 1,
+                                      uint32_t max_bandwidth = 4) {
   /// Choosing random min (mn) and max lag (mx): min_lag <= mn < mx <= max_lag
   std::stringstream s;
-  unsigned int mn, mx;
+  uint32_t mn, mx;
   if (min_lag == max_lag) {
     s << min_lag << ':' << max_lag << ':';
   } else {
@@ -48,12 +48,12 @@ std::string create_connection_address(unsigned int num_acceptors,
   return s.str();
 }
 std::string create_acceptor_address(uint32_t address,
-                                      unsigned int min_connections = 4,
-                                      unsigned int max_connections = 16,
-                                      unsigned int min_bandwidth = 1,
-                                      unsigned int max_bandwidth = 4) {
+                                      uint32_t min_connections = 4,
+                                      uint32_t max_connections = 16,
+                                      uint32_t min_bandwidth = 1,
+                                      uint32_t max_bandwidth = 4) {
   std::stringstream s;
-  unsigned int conns;
+  uint32_t conns;
   conns = std::rand() % max_connections;
   conns = conns > min_connections ? conns : min_connections;
   s << conns << ':' << (std::rand() % (max_bandwidth - min_bandwidth + 1) + min_bandwidth) <<
@@ -64,7 +64,7 @@ std::string create_acceptor_address(uint32_t address,
 
 class handler: public connection::connection_handler {
  public:
-  void on_message_received(connection* c, char* buffer, unsigned int bytes_read, unsigned int id) {
+  void on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id) {
     std::string message = std::string(buffer, bytes_read);
     LOG(INFO) << "Message \"" << message << "\" received in <" << c->get_address() << ">";
     // if (send_counter < 10) {
@@ -72,7 +72,7 @@ class handler: public connection::connection_handler {
     // }
     c -> async_read(buffer, 16, 0, read_counter++);
   }
-  void on_message_sent(connection* c, unsigned int id, connection::error e) {
+  void on_message_sent(connection* c, uint32_t id, connection::error e) {
     if (e) {
       LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
           c->get_address() << "\nError " << std::to_string(e) << " occured";
