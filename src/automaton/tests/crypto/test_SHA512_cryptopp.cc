@@ -58,7 +58,7 @@ TEST(SHA512_cryptopp, calculate_digest) {
   };
 
   for (uint32_t i = 0; i < test_cases; i++) {
-    hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
+    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].c_str()),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -75,7 +75,7 @@ TEST(SHA512_cryptopp, update_and_finish) {
   const std::string EXP1 =
       "B47C933421EA2DB149AD6E10FCE6C7F93D0752380180FFD7F4629A712134831D"
       "77BE6091B819ED352C2967A2E2D4FA5050723C9630691F1A05A7281DBE6C1086";
-  uint8_t* p_test_input = (uint8_t*) test_input.c_str();
+  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.c_str());
   size_t len = test_input.length();
 
   for (uint32_t i = 0; i <  16777216; i++) {
@@ -86,9 +86,9 @@ TEST(SHA512_cryptopp, update_and_finish) {
   EXPECT_EQ(toHex(digest, digest_size), EXP1);
 
   // Try to hash a new string to see if everything restarted as intended
-  uint8_t* a = (uint8_t*) "a";
-  uint8_t* b = (uint8_t*) "b";
-  uint8_t* c = (uint8_t*) "c";
+  const uint8_t* a = reinterpret_cast<const uint8_t*>("a");
+  const uint8_t* b = reinterpret_cast<const uint8_t*>("b");
+  const uint8_t* c = reinterpret_cast<const uint8_t*>("c");
   const std::string EXP2 =
       "DDAF35A193617ABACC417349AE20413112E6FA4E89A97EA20A9EEEE64B55D39A"
       "2192992A274FC1A836BA3C23A3FEEBBD454D4423643CE80E2A9AC94FA54CA49F";
