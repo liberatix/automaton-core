@@ -1,5 +1,6 @@
 #include <boost/di.hpp>
 #include "gtest/gtest.h"
+#include <memory>
 
 namespace di = boost::di;
 
