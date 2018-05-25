@@ -47,16 +47,16 @@ TEST(secp256k1_cryptopp, sign_and_verify) {
   for (uint32_t i = 0; i < test_key.size(); i++) {
     std::string pr_key_decoded;
     decode_from_hex(test_key[i], pr_key_decoded);
-    tester->gen_public_key((uint8_t*)pr_key_decoded.c_str(), public_key);
+    tester->gen_public_key(reinterpret_cast<const uint8_t*>(pr_key_decoded.c_str()), public_key);
     for (uint32_t j = 0; j < test_hash.size(); j++) {
-      tester->sign((uint8_t*)pr_key_decoded.c_str(),
-                  (uint8_t*) test_hash[j].c_str(),
-                  test_hash[j].length(),
-                  signature);
+      tester->sign(reinterpret_cast<const uint8_t*>(pr_key_decoded.c_str()),
+                   reinterpret_cast<const uint8_t*>(test_hash[j].c_str()),
+                   test_hash[j].length(),
+                   signature);
       EXPECT_EQ(tester->verify(public_key,
-                              (uint8_t*) test_hash[j].c_str(),
-                              test_hash[j].length(),
-                              signature), true);
+                               reinterpret_cast<const uint8_t*>(test_hash[j].c_str()),
+                               test_hash[j].length(),
+                               signature), true);
     }
   }
 }
