@@ -3,17 +3,18 @@ import sys
 import os
 import fnmatch
 
-def replace_file_contents(search_text, replace_text, filename):
+def replace_file_contents(search_text, replace_text, filename, overwrite=False):
   with open(filename, 'r') as f:
     contents = f.read()
   f.close()
 
   new_contents = contents.replace(search_text, replace_text)
 
-  if new_contents != contents:  
-    f = open(filename, "w+")
-    f.write(new_contents)
-    f.close()
+  if new_contents != contents:
+    if overwrite:
+      f = open(filename, "w+")
+      f.write(new_contents)
+      f.close()
     return True
 
   return False
@@ -40,8 +41,15 @@ filenames = [os.path.join(root, filename)
   for root, dirnames, filenames in os.walk(filepath)
   for filename in fnmatch.filter(filenames, pattern)]
 
-print "\n".join(filenames)
-print "{0} files about to be processed.".format(len(filenames))
+to_be_modified = 0
+
+for fname in filenames:
+  modified = replace_file_contents(search_text, replace_text, fname)
+  if modified:
+    to_be_modified += 1
+    print "{0} would be modified.".format(fname)
+
+print "{0}/{1} files about to be modified!".format(to_be_modified, len(filenames))
 
 print "\nReplace parameters:\nFIND: {0}\nREPL: {1}\nPATTERN: {2}" \
   .format(search_text, replace_text, pattern)
@@ -50,7 +58,7 @@ confirmation = raw_input("Type 'yes' to continue: ")
 
 if confirmation == "yes":
   for fname in filenames:
-    modified = replace_file_contents(search_text, replace_text, fname)
+    modified = replace_file_contents(search_text, replace_text, fname, True)
     if modified:
       print "{0} has been modified.".format(fname)
 else:
