@@ -27,7 +27,7 @@ TEST(SHA256_cryptopp, calculate_digest) {
   SHA256_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   uint8_t* digest = new uint8_t[digest_size];
-  constexpr unsigned int test_cases = 6;
+  constexpr uint32_t test_cases = 6;
   std::string long_a_string(1000000, 'a');
 
   std::string test[test_cases][2] = {
@@ -44,7 +44,7 @@ TEST(SHA256_cryptopp, calculate_digest) {
       "CDC76E5C9914FB9281A1C7E284D73E67F1809A48A497200E046D39CCC7112CD0"}
   };
 
-  for (unsigned int i = 0; i < test_cases; i++) {
+  for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
@@ -62,7 +62,7 @@ TEST(SHA256_cryptopp, update_and_finish) {
   uint8_t* p_test_input = (uint8_t*) test_input.c_str();
   size_t len = test_input.length();
 
-  for (unsigned int i = 0; i <  16777216; i++) {
+  for (uint32_t i = 0; i <  16777216; i++) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);

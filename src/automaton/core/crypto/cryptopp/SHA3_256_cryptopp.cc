@@ -30,7 +30,7 @@ void SHA3_256_cryptopp::restart() {
   hash->Restart();
 }
 
-unsigned int SHA3_256_cryptopp::digest_size() const {
+uint32_t SHA3_256_cryptopp::digest_size() const {
   return _digest_size;
 }
 

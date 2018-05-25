@@ -44,7 +44,7 @@ void state_impl::set(const std::string& key, const std::string& value) {
   }
   uint32_t cur_node = 0;
   uint32_t cur_prefix_index = 0;
-  unsigned int i = 0;
+  uint32_t i = 0;
   for (; i < key.length(); ++i) {
     uint8_t path_element = key[i];
     if (cur_prefix_index == nodes[cur_node].prefix.length()) {
@@ -391,7 +391,7 @@ int32_t state_impl::get_node_index(const std::string& path) {
 
 
 bool state_impl::has_children(uint32_t node_index) {
-  for (unsigned int i = 0; i < 256; ++i) {
+  for (uint32_t i = 0; i < 256; ++i) {
     if (nodes[node_index].children[i]) {
       return true;
     }

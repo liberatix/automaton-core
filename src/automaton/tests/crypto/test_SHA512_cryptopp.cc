@@ -32,7 +32,7 @@ TEST(SHA512_cryptopp, calculate_digest) {
   SHA512_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   uint8_t* digest = new uint8_t[digest_size];
-  constexpr unsigned int test_cases = 6;
+  constexpr uint32_t test_cases = 6;
   std::string long_a_string(1000000, 'a');
 
   std::string test[test_cases][2] = {
@@ -57,7 +57,7 @@ TEST(SHA512_cryptopp, calculate_digest) {
       "DE0FF244877EA60A4CB0432CE577C31BEB009C5C2C49AA2E4EADB217AD8CC09B"}
   };
 
-  for (unsigned int i = 0; i < test_cases; i++) {
+  for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
@@ -78,7 +78,7 @@ TEST(SHA512_cryptopp, update_and_finish) {
   uint8_t* p_test_input = (uint8_t*) test_input.c_str();
   size_t len = test_input.length();
 
-  for (unsigned int i = 0; i <  16777216; i++) {
+  for (uint32_t i = 0; i <  16777216; i++) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);

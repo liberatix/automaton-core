@@ -48,7 +48,7 @@ class hash_transformation {
   virtual void restart() = 0;
 
   // Provides the digest size of the hash.
-  virtual unsigned int digest_size() const = 0;
+  virtual uint32_t digest_size() const = 0;
 
   // Register the create function for a given implementation, will overwrite
   // already registered functions.

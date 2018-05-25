@@ -17,8 +17,8 @@ char* bufferC = new char[256];
 
 class handler: public connection::connection_handler {
  public:
-  void on_message_received(connection* c, char* buffer, unsigned int bytes_read,
-      unsigned int id) {
+  void on_message_received(connection* c, char* buffer, uint32_t bytes_read,
+      uint32_t id) {
     std::string message = std::string(buffer, bytes_read);
     LOG(INFO) << "Message \"" << message << "\" received from " << c->get_address();
     if (message.compare("Thank you!")) {
@@ -26,7 +26,7 @@ class handler: public connection::connection_handler {
     }
     // connection_a -> async_read(buffer, 256, 0);
   }
-  void on_message_sent(connection* c, unsigned int id, connection::error e) {
+  void on_message_sent(connection* c, uint32_t id, connection::error e) {
     if (e) {
       LOG(INFO) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
           c->get_address() << "\nError " << std::to_string(e) << " occured";

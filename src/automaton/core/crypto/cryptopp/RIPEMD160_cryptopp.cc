@@ -30,7 +30,7 @@ void RIPEMD160_cryptopp::restart() {
   hash->Restart();
 }
 
-unsigned int RIPEMD160_cryptopp::digest_size() const {
+uint32_t RIPEMD160_cryptopp::digest_size() const {
   return _digest_size;
 }
 

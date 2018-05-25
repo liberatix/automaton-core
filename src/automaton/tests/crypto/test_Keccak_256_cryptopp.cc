@@ -32,7 +32,7 @@ TEST(keccak_256_cryptopp, calculate_digest) {
   Keccak_256_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
   uint8_t* digest = new uint8_t[digest_size];
-  constexpr unsigned int test_cases = 6;
+  constexpr uint32_t test_cases = 6;
 
   std::string test[test_cases][2] = {
     {"a",
@@ -50,7 +50,7 @@ TEST(keccak_256_cryptopp, calculate_digest) {
       "5F16F4C7F149AC4F9510D9CF8CF384038AD348B3BCDC01915F95DE12DF9D1B02"}
   };
 
-  for (unsigned int i = 0; i < test_cases; i++) {
+  for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
@@ -70,7 +70,7 @@ TEST(keccak_256_cryptopp, update_and_finish) {
   uint8_t* p_test_input = (uint8_t*) test_input.c_str();
   size_t len = test_input.length();
 
-  for (unsigned int i = 0; i < 10; i++) {
+  for (uint32_t i = 0; i < 10; i++) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);

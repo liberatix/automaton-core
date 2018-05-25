@@ -30,7 +30,7 @@ void Keccak_256_cryptopp::restart() {
   hash->Restart();
 }
 
-unsigned int Keccak_256_cryptopp::digest_size() const {
+uint32_t Keccak_256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
