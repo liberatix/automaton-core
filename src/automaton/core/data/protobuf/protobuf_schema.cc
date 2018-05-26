@@ -1,6 +1,7 @@
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 
 #include <google/protobuf/compiler/parser.h>
+#include <google/protobuf/util/json_util.h>
 
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/log/log.h"
@@ -17,6 +18,9 @@ using google::protobuf::compiler::Parser;
 
 using google::protobuf::io::IstreamInputStream;
 using google::protobuf::io::Tokenizer;
+
+using google::protobuf::util::MessageToJsonString;
+using google::protobuf::util::JsonStringToMessage;
 
 namespace automaton {
 namespace core {
@@ -250,16 +254,27 @@ void protobuf_schema::add_message_field(schema::field_info field, int message_id
   Serializes schema to JSON string.
 */
 bool protobuf_schema::to_json(std::string* output) {
-  // TODO(asen): To be implemented.
-  return false;
+  CHECK_NOTNULL(output);
+  CHECK_NOTNULL(file_descriptor_proto);
+  auto status = MessageToJsonString(*file_descriptor_proto, output);
+  if (!status.ok()) {
+    // TODO(asen): Needs better error handling
+    std::cout << status.error_message() << std::endl;
+  }
+  return status.ok();
 }
 
 /**
   Deserializes schema from JSON string.
 */
 bool protobuf_schema::from_json(const std::string& input) {
-  // TODO(asen): To be implemented.
-  return false;
+  CHECK_NOTNULL(file_descriptor_proto);
+  auto status = JsonStringToMessage(input, file_descriptor_proto.get());
+  if (!status.ok()) {
+    // TODO(asen): Needs better error handling
+    std::cout << status.error_message() << std::endl;
+  }
+  return status.ok();
 }
 
 }  // namespace protobuf

@@ -1,4 +1,7 @@
 #include "automaton/core/data/protobuf/protobuf_factory.h"
+
+#include <sstream>
+
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/data/protobuf/protobuf_msg.h"
 #include "automaton/core/log/log.h"
@@ -176,23 +179,32 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
 
   // Checks if file with the same name already exists in the pool.
   if (pool->FindFileByName(name) != nullptr) {
-    throw std::runtime_error("File with name <" + name + "> already exists.");
+    std::stringstream msg;
+    msg << "File with name <" + name + "> already exists.";
+    LOG(ERROR) << msg.str();
+    std::runtime_error(msg.str());
   }
 
   // Check if all dependencies are imported.
   int dependencies_number = fdp->dependency_size();
   LOG(INFO) << "Checking dependencies " << dependencies_number;
   for (int i = 0; i < dependencies_number; ++i) {
+    LOG(INFO) << " dependency " << std::to_string(i) << " <" << fdp->dependency(i) << ">";
     if (pool->FindFileByName(fdp->dependency(i)) == nullptr) {
-      throw std::runtime_error("Dependency <" + fdp->dependency(i) +
-          "> was not found. Import it first.");
+      std::stringstream msg;
+      msg << "Dependency <" << fdp->dependency(i) << "> was not found. Import it first.";
+      LOG(ERROR) << msg.str();
+      throw std::runtime_error(msg.str());
     }
   }
 
   proto_error_collector proto_error_collector_;
   const FileDescriptor* fd = pool->BuildFileCollectingErrors(*fdp, &proto_error_collector_);
   if (proto_error_collector_.get_number_errors() > 0) {
-    throw std::runtime_error("Errors while parsing:\n" + proto_error_collector_.get_all_errors());
+    std::stringstream msg;
+    msg << "Errors while parsing:\n" + proto_error_collector_.get_all_errors();
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::runtime_error(msg.str());
   }
 
   LOG(INFO) << "Check for invalid data types";
@@ -225,6 +237,9 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
 void protobuf_factory::import_schema(schema* schema, const string& name, const string& package) {
   CHECK_NOTNULL(schema) << "schema is nullptr";
   LOG(INFO) << "Importing schema " << name << " with package " << package;
+  std::string json;
+  schema->to_json(&json);
+  LOG(INFO) << json;
   auto pb_schema = dynamic_cast<protobuf_schema*>(schema);
   import_from_file_proto(pb_schema->get_file_descriptor_proto(), name, package);
 }
@@ -282,7 +297,10 @@ int protobuf_factory::get_enums_number() const {
 
 int protobuf_factory::get_enum_id(const string& enum_name) const {
   if (enums_names.find(enum_name) == enums_names.end()) {
-    throw std::invalid_argument("No enum '" + enum_name + '\'');
+    std::stringstream msg;
+    msg << "No enum '" + enum_name + '\'';
+    LOG(ERROR) << msg.str();
+    throw std::invalid_argument(msg.str());
   }
   return enums_names.at(enum_name);
 }
@@ -451,7 +469,7 @@ void proto_error_collector::AddError(
         // erroneous element.
     ErrorLocation location,  // One of the location constants, above.
     const string& message) {  // Human-readable error message.
-  std::cerr << "*Error: schema: " << schema << " <" << element_name
+  LOG(ERROR) << "*Error: schema: " << schema << " <" << element_name
       << "> error message:" << message << std::endl;
   errors_number++;
   errors_list += "Error: schema: " + schema + " <" + element_name +
@@ -465,7 +483,7 @@ void proto_error_collector::AddWarning(const string& schema,  // File
         // element.
     ErrorLocation location,  // One of the location constants, above.
     const string& message) {  // Human-readable error message.
-  std::cerr << "*Warning: schema: " << schema << " <" <<
+  LOG(ERROR) << "*Warning: schema: " << schema << " <" <<
       element_name << "> error message:" << message << std::endl;
   errors_number++;
   errors_list += "Warning: schema: " + schema + " <" + element_name
