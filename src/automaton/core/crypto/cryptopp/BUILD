@@ -34,7 +34,7 @@ cc_library(
   hdrs = ["module.h"],
   data = ["module.proto"],
   deps = [
-    "//automaton/core/crypto",
+    "//automaton/core/crypto/cryptopp",
     "//automaton/core/data/protobuf",
     "//automaton/core/io",
     "//automaton/core/script",

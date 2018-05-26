@@ -1,5 +1,15 @@
 syntax = "proto3";
 
-message A {
+message factory {
+  message protobuf_msg {
+    data_v0.concepts.msg c1 = 1;
+  }
   
+  message protobuf_schema {
+    data_v0.concepts.schema c1 = 1;
+  }
+  
+  message protobuf_factory {
+    data_v0.concepts.factory c1 = 1;
+  }
 }

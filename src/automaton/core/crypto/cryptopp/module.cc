@@ -19,7 +19,8 @@ namespace cryptopp {
 data::schema* module::schema() const {
   static protobuf_schema* schema_ = nullptr;
   if (schema_ == nullptr) {
-    schema_ = new protobuf_schema(get_file_contents("automaton/core/crypto/module.proto"));
+    schema_ = new protobuf_schema(
+        get_file_contents("automaton/core/crypto/cryptopp/module.proto"));
   }
   return schema_;
 }
