@@ -6,6 +6,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace ed25519_orlp {
 
 // The seed is the private key!
 class ed25519_orlp : public digital_signature {
@@ -41,6 +42,7 @@ class ed25519_orlp : public digital_signature {
   static bool register_self();
 };
 
+}  // namespace ed25519_orlp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

@@ -80,6 +80,7 @@ protobuf_schema::protobuf_schema(const std::string& proto_def) {
   file_descriptor_proto.reset(new FileDescriptorProto());
   std::istringstream stream(proto_def);
   IstreamInputStream is(&stream);
+  VLOG(9) << "Tokenizing .proto file";
   Tokenizer tok(&is, &io_error_collector_);
   if (io_error_collector_.get_number_errors() > 0) {
     throw std::runtime_error(io_error_collector_.get_all_errors());
@@ -89,11 +90,13 @@ protobuf_schema::protobuf_schema(const std::string& proto_def) {
   if (io_error_collector_.get_number_errors() > 0) {
     throw std::runtime_error(io_error_collector_.get_all_errors());
   }
+  VLOG(9) << "Parsing tokenized proto";
   parser.Parse(&tok, file_descriptor_proto.get());  // TODO(kari): Handle errors.
   if (io_error_collector_.get_number_errors() > 0) {
     throw std::runtime_error("Errors while parsing:\n" +
         io_error_collector_.get_all_errors());
   }
+  VLOG(9) << "Parsing complete";
 }
 
 protobuf_schema::~protobuf_schema() {}
@@ -110,6 +113,7 @@ void protobuf_schema::register_self() {
 }
 
 void protobuf_schema::add_dependency(const std::string& schema_name) {
+  LOG(INFO) << "Adding dependency on " << schema_name << " to " << file_descriptor_proto->name();
   file_descriptor_proto->add_dependency(schema_name);
 }
 

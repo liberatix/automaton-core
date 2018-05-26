@@ -1,14 +1,14 @@
-#include "automaton/core/data/msg.h"
-#include "automaton/core/data/factory.h"
-#include "automaton/core/data/schema.h"
-#include "automaton/core/script/registry.h"
-#include "gtest/gtest.h"
-
 #include "automaton/core/crypto/module.h"
-// #include "automaton/core/data/module.h"
-// #include "automaton/core/io/module.h"
-// #include "automaton/core/network/module.h"
-// #include "automaton/core/state/module.h"
+#include "automaton/core/crypto/cryptopp/module.h"
+#include "automaton/core/crypto/ed25519_orlp/module.h"
+#include "automaton/core/data/module.h"
+#include "automaton/core/data/protobuf/module.h"
+#include "automaton/core/io/module.h"
+#include "automaton/core/log/module.h"
+#include "automaton/core/network/module.h"
+#include "automaton/core/script/registry.h"
+#include "automaton/core/state/module.h"
+#include "gtest/gtest.h"
 
 namespace automaton {
 namespace core {
@@ -24,12 +24,21 @@ class test_script : public ::testing::Test {
 };
 
 TEST_F(test_script, module_registration) {
-  auto& r = script::registry::get();
-  ASSERT_TRUE(crypto::module::registered);
-  // ASSERT_TRUE(data::module::registered);
-  // ASSERT_TRUE(io::module::registered);
-  // ASSERT_TRUE(network::module::registered);
-  // ASSERT_TRUE(state::module::registered);
+  auto& r = script::registry::instance();
+
+  // import core module interfaces.
+  r.import<crypto::module>();
+  r.import<data::module>();
+  r.import<io::module>();
+  r.import<log::module>();
+  r.import<network::module>();
+  r.import<state::module>();
+
+  // import core module implementations.
+  r.import<crypto::cryptopp::module>();
+  r.import<crypto::ed25519_orlp::module>();
+  r.import<data::protobuf::module>();
+
   std::cout << r.to_string() << std::endl;
 }
 
