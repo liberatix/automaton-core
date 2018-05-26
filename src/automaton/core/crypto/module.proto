@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 message concepts {
-  message hash_tranformation {
+  message hash_transformation {
     message calculate_digest {
       message request {
         string input = 1;

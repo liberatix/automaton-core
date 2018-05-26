@@ -20,7 +20,7 @@ class module: public script::module {
   data::schema* schema() const;
 
  private:
-  module() : script::module("crypto.cryptopp", "0.0.1.a") {
+  module() : script::module("crypto_cryptopp", "0.0.1.a") {
     add_dependency("crypto", 0);
   }
 };

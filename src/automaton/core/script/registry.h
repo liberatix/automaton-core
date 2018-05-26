@@ -81,12 +81,15 @@ class registry {
   template<typename M>
   void import() {
     M& m = M::instance();
-    LOG(INFO) << "Importing module " << m.name();
+    LOG(INFO) << "Importing module " << m.name() << " " << &(M::instance());
     if (modules_.count(m.name_with_api_version()) > 0) {
       LOG(ERROR) << "Module [" << m.name_with_api_version() << "] has already been imported!";
       throw "Already registered!";
     }
     modules_[m.name_with_api_version()] = &m;
+    std::string json;
+    m.schema()->to_json(&json);
+    VLOG(9) << json;
 
     // Ensure dependencies are already imported.
     for (const auto& dep : m.dependencies()) {
@@ -98,9 +101,11 @@ class registry {
       const auto& dep_module = modules_[dep];
       m.schema()->add_dependency(dep_module->name_with_api_version());
     }
+    m.schema()->to_json(&json);
 
     // Import schema.
-    factory_->import_schema(m.schema(), m.name_with_api_version(), m.name_with_api_version());  // m.name());
+    LOG(INFO) << "Importing schema " << m.name_with_api_version();
+    factory_->import_schema(m.schema(), m.name_with_api_version(), m.name_with_api_version());
   }
 
   void configure();

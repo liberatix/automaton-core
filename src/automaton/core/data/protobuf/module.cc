@@ -14,7 +14,7 @@ namespace protobuf {
 data::schema* module::schema() const {
   static protobuf_schema* schema_ = nullptr;
   if (schema_ == nullptr) {
-    schema_ = new protobuf_schema(get_file_contents("automaton/core/data/module.proto"));
+    schema_ = new protobuf_schema(get_file_contents("automaton/core/data/protobuf/module.proto"));
   }
   return schema_;
 }
