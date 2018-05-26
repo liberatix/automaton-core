@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_CRYPTO_MODULE_H__
-#define AUTOMATON_CORE_CRYPTO_MODULE_H__
+#ifndef AUTOMATON_CORE_CRYPTO_ED25519_ORLP_MODULE_H_
+#define AUTOMATON_CORE_CRYPTO_ED25519_ORLP_MODULE_H_
 
 #include "automaton/core/data/schema.h"
 #include "automaton/core/script/registry.h"
@@ -8,6 +8,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace ed25519_orlp {
 
 class module: public script::module {
  public:
@@ -19,11 +20,14 @@ class module: public script::module {
   data::schema* schema() const;
 
  private:
-  module() : script::module("crypto", "0.0.1.a") {}
+  module() : script::module("crypto.ed25519_orlp", "0.0.1.a") {
+    add_dependency("crypto", 0);
+  }
 };
 
+}  // namespace ed25519_orlp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton
 
-#endif  // AUTOMATON_CORE_CRYPTO_MODULE_H__
+#endif  // AUTOMATON_CORE_CRYPTO_ED25519_ORLP_MODULE_H_

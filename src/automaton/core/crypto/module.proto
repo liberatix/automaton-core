@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+message concepts {
+  message hash_tranformation {
+    message calculate_digest {
+      message request {
+        string input = 1;
+      }
+      message response {
+        string digest = 1;
+      }
+    }
+
+    message update {
+      message request {
+        string input = 1;
+      }
+      message response {
+      }
+    }
+
+    message final {    
+      message request {
+      }
+      message response {
+        string digest = 1;
+      }
+    }
+
+    message restart {
+      message request {
+      }
+      message response {
+      }
+    }
+
+    message digest_size {
+      message request {
+      }
+      message response {
+        uint32 result = 1;
+      }
+    }
+  }
+
+  message digital_signature {
+    message getters {
+      uint32 public_key_size = 1;
+      uint32 private_key_size = 2;
+      uint32 signature_size = 3;
+      uint32 k_size = 4;
+      bool has_deterministic_signatures = 5;
+    }
+    
+    message gen_public_key {
+      message request {
+        string private_key = 1;
+      }
+      message response {
+        string public_key = 1;
+      }
+    }
+    
+    message sign {
+      message request {
+        string private_key = 1;
+        string message = 2;
+      }
+      message response {
+        string signature = 1;
+      }
+    }
+
+    message sign_deterministic {
+      message request {
+        string private_key = 1;
+        string message = 2;
+        string k = 3;
+      }
+      message response {
+        string signature = 1;
+      }
+    }
+    
+    message verify {
+      message request {
+        string public_key = 1;
+        string message = 2;
+        string signature = 3;
+      }
+      message response {
+        bool result = 1;
+      }
+    }
+  }
+
+  message secure_random {
+    message getters {
+      bool bit = 1;
+      uint32 byte = 2;
+    }
+    message block {
+      message request {
+        int32 size = 1;
+      }
+      message response {
+        string result = 1;
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+message factory {
+  message SHA3 {
+    message create {
+    }
+    message concepts {
+      // crypto.concepts.hash_transformation c1 = 1;
+    }
+  }
+}

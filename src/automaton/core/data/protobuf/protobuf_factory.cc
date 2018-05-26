@@ -67,7 +67,9 @@ class proto_error_collector : public
 const std::map<schema::field_type, FieldDescriptorProto_Type>
 protobuf_factory::type_to_protobuf_type {
   {schema::string, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_STRING},
+  {schema::boolean, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_BOOL},
   {schema::int32, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_INT32},
+  {schema::uint32, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_UINT32},
   {schema::enum_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_ENUM},
   {schema::message_type, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_MESSAGE},
 };
@@ -75,7 +77,11 @@ protobuf_factory::type_to_protobuf_type {
 const std::map<FieldDescriptor::Type, schema::field_type>
 protobuf_factory::protobuf_type_to_type {
   {FieldDescriptor::TYPE_STRING, schema::string},
+  {FieldDescriptor::TYPE_BOOL, schema::boolean},
   {FieldDescriptor::TYPE_INT32, schema::int32},
+  {FieldDescriptor::TYPE_UINT32, schema::uint32},
+  {FieldDescriptor::TYPE_INT64, schema::int64},
+  {FieldDescriptor::TYPE_UINT64, schema::uint64},
   {FieldDescriptor::TYPE_ENUM, schema::enum_type},
   {FieldDescriptor::TYPE_MESSAGE, schema::message_type},
 };
@@ -83,7 +89,11 @@ protobuf_factory::protobuf_type_to_type {
 const std::map<FieldDescriptor::CppType, schema::field_type>
 protobuf_factory::protobuf_ccptype_to_type {
   {FieldDescriptor::CPPTYPE_STRING, schema::string},
+  {FieldDescriptor::CPPTYPE_BOOL, schema::boolean},
   {FieldDescriptor::CPPTYPE_INT32, schema::int32},
+  {FieldDescriptor::CPPTYPE_UINT32, schema::uint32},
+  {FieldDescriptor::CPPTYPE_INT64, schema::int64},
+  {FieldDescriptor::CPPTYPE_UINT64, schema::uint64},
   {FieldDescriptor::CPPTYPE_ENUM, schema::enum_type},
   {FieldDescriptor::CPPTYPE_MESSAGE, schema::message_type},
 };
@@ -133,12 +143,17 @@ void protobuf_factory::extract_nested_enums(const Descriptor* d) {
 bool protobuf_factory::contain_invalid_data(const Descriptor* d) {
   CHECK_NOTNULL(d) << "Message descriptor is nullptr";
   if (d->oneof_decl_count() > 0) {
+    LOG(ERROR) << d->name() << " contains OneOf which is not supported";
     return true;
   }
   int number_fields = d->field_count();
   for (int i = 0; i < number_fields; i++) {
     const FieldDescriptor* fd = d->field(i);
-    if (fd->is_map() || protobuf_type_to_type.find(fd->type()) == protobuf_type_to_type.end()) {
+    if (fd->is_map()) {
+      LOG(ERROR) << d->name() << " contains Map which is not supported";
+    }
+    if (protobuf_type_to_type.find(fd->type()) == protobuf_type_to_type.end()) {
+      LOG(ERROR) << d->full_name() << "." << fd->name() << " is of unsupported type";
       return true;
     }
   }
@@ -154,6 +169,7 @@ bool protobuf_factory::contain_invalid_data(const Descriptor* d) {
 void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
                                               const string& name,
                                               const string& package) {
+  LOG(INFO) << "Importing schema from file proto name:[" << name << "] package:[" << package << "]";
   CHECK_NOTNULL(fdp) << "File descriptor proto is nullptr";
   fdp->set_package(package);
   fdp->set_name(name);
@@ -165,6 +181,7 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
 
   // Check if all dependencies are imported.
   int dependencies_number = fdp->dependency_size();
+  LOG(INFO) << "Checking dependencies " << dependencies_number;
   for (int i = 0; i < dependencies_number; ++i) {
     if (pool->FindFileByName(fdp->dependency(i)) == nullptr) {
       throw std::runtime_error("Dependency <" + fdp->dependency(i) +
@@ -178,11 +195,13 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
     throw std::runtime_error("Errors while parsing:\n" + proto_error_collector_.get_all_errors());
   }
 
+  LOG(INFO) << "Check for invalid data types";
   // Check for invalid data types
   int number_messages = fd->message_type_count();
   for (int i = 0; i < number_messages; i++) {
     const Descriptor* desc = fd->message_type(i);
     if (contain_invalid_data(desc)) {
+      LOG(ERROR) << "Invalid data in descriptor: " << desc->name();
       throw std::runtime_error("Message contains invalid field type!");
     }
   }
@@ -205,6 +224,7 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
 
 void protobuf_factory::import_schema(schema* schema, const string& name, const string& package) {
   CHECK_NOTNULL(schema) << "schema is nullptr";
+  LOG(INFO) << "Importing schema " << name << " with package " << package;
   auto pb_schema = dynamic_cast<protobuf_schema*>(schema);
   import_from_file_proto(pb_schema->get_file_descriptor_proto(), name, package);
 }

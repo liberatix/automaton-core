@@ -16,8 +16,8 @@ int main(int argc, char* argv[]) {
   try {
     protobuf_schema custom_schema;
     int m1 = custom_schema.create_message("MyMessage");
-    custom_schema.add_scalar_field(schema::field_info(1,
-        schema::string, "string_field", "", false), m1);
+    custom_schema.add_scalar_field(
+        schema::field_info(1, schema::string, "string_field", "", false), m1);
     custom_schema.add_message_field(
         schema::field_info(
             2, schema::message_type,

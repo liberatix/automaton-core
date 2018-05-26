@@ -2,16 +2,23 @@
 #define AUTOMATON_CORE_LOG_MODULE_H_
 
 #include "automaton/core/data/schema.h"
+#include "automaton/core/script/registry.h"
 
 namespace automaton {
 namespace core {
 namespace log {
 
-struct module {
-  static constexpr auto name = "log";
-  static constexpr auto version = "0.0.1";
-  static bool registered;
-  static data::schema* get_schema();
+class module: public script::module {
+ public:
+  static module& instance() {
+    static module inst;
+    return inst;
+  }
+
+  data::schema* schema() const;
+
+ private:
+  module() : script::module("log", "0.0.1.a") {}
 };
 
 }  // namespace log
