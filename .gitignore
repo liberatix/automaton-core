@@ -22,6 +22,7 @@
 # Ignore archives
 *.zip
 *.tar.gz
+*.tar.xz
 
 # Visual Studio
 .vs
