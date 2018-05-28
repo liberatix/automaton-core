@@ -5,7 +5,7 @@
 
 #include "automaton/core/log/log.h"
 #include "automaton/core/network/simulated_connection.h"
-#include "automaton/examples/network/first_sp.h"
+#include "automaton/examples/network/node_prototype.h"
 
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;

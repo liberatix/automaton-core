@@ -3,12 +3,12 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "first_sp",
+    name = "node_prototype",
     srcs = [
-      "first_sp.cc",
+      "node_prototype.cc",
     ],
     hdrs = [
-      "first_sp.h",
+      "node_prototype.h",
     ],
     deps = [
       "//automaton/core/log",
@@ -24,11 +24,11 @@ cc_binary (
   ],
 )
 cc_binary (
-	name = "simulation_test_first_sp",
-	srcs = ["simulation_test_first_sp.cc",],
+	name = "simulation_test_node_prototype",
+	srcs = ["simulation_test_node_prototype.cc",],
 	deps = [
     "//automaton/core/log",
     "//automaton/core/network:simulated_connection",
-    "//automaton/examples/network:first_sp",
+    "//automaton/examples/network:node_prototype",
   ],
 )

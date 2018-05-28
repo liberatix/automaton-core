@@ -1,4 +1,6 @@
-#include "automaton/examples/network/first_sp.h"
+#ifndef AUTOMATON_EXAMPLES_NETWORK_NODE_PROTOTYPE
+#define AUTOMATON_EXAMPLES_NETWORK_NODE_PROTOTYPE
+#include "automaton/examples/network/node_prototype.h"
 
 #include "automaton/core/log/log.h"
 
@@ -141,3 +143,4 @@ void node::send_height(uint32_t connection_id) {
     peers[connection_id]->async_send(std::to_string(height), 0);
   }
 }
+#endif  // AUTOMATON_EXAMPLES_NETWORK_NODE_PROTOTYPE
