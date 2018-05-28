@@ -1,3 +1,6 @@
+#ifndef AUTOMATON_EXAMPLES_NETWORK_NODE_PROTOTYPE
+#define AUTOMATON_EXAMPLES_NETWORK_NODE_PROTOTYPE
+
 #include <map>
 #include <mutex>
 #include <string>
@@ -49,3 +52,5 @@ class node {
   void remove_acceptor(uint32_t id);
   void send_height(uint32_t connection_id = 0);
 };
+
+#endif  // AUTOMATON_EXAMPLES_NETWORK_NODE_PROTOTYPE
