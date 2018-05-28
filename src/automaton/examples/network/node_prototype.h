@@ -35,7 +35,7 @@ class node {
   node();
   ~node();
   uint32_t height;
-  uint32_t peer_ids;
+  uint32_t peer_ids;  // count
   handler* handler_;
   lis_handler* lis_handler_;
   std::vector<char*> buffers;
@@ -51,6 +51,7 @@ class node {
   bool add_acceptor(uint32_t id, const std::string& connection_type, const std::string& address);
   void remove_acceptor(uint32_t id);
   void send_height(uint32_t connection_id = 0);
+  // process
 };
 
 #endif  // AUTOMATON_EXAMPLES_NETWORK_NODE_PROTOTYPE_H_

@@ -2,10 +2,12 @@
 
 #include "automaton/core/log/log.h"
 
+namespace acn = automaton::core::network;
+
 /// Node's connection handler
 
 node::handler::handler(node* n): node_(n) {}
-void node::handler::on_message_received(automaton::core::network::connection* c, char* buffer,
+void node::handler::on_message_received(acn::connection* c, char* buffer,
     uint32_t bytes_read, uint32_t id) {
   std::string message = std::string(buffer, bytes_read);
   // logging("Message \"" + message + "\" received in <" + c->get_address() + ">");
@@ -15,8 +17,8 @@ void node::handler::on_message_received(automaton::core::network::connection* c,
   }
   c -> async_read(buffer, 16, 0, 0);
 }
-void node::handler::on_message_sent(automaton::core::network::connection* c, uint32_t id,
-    automaton::core::network::connection::error e) {
+void node::handler::on_message_sent(acn::connection* c, uint32_t id,
+    acn::connection::error e) {
   if (e) {
      LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
         c->get_address() << "\nError " << std::to_string(e);
@@ -25,15 +27,15 @@ void node::handler::on_message_sent(automaton::core::network::connection* c, uin
     //    c->get_address());
   }
 }
-void node::handler::on_connected(automaton::core::network::connection* c) {
+void node::handler::on_connected(acn::connection* c) {
   c->async_read(node_->add_buffer(16), 16, 0, 0);
 }
-void node::handler::on_disconnected(automaton::core::network::connection* c) {
+void node::handler::on_disconnected(acn::connection* c) {
   // logging("Disconnected with: " + c->get_address());
 }
-void node::handler::on_error(automaton::core::network::connection* c,
-    automaton::core::network::connection::error e) {
-  if (e == automaton::core::network::connection::no_error) {
+void node::handler::on_error(acn::connection* c,
+    acn::connection::error e) {
+  if (e == acn::connection::no_error) {
     return;
   }
   LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
@@ -47,13 +49,13 @@ bool node::lis_handler::on_requested(const std::string& address) {
   // logging("Connection request from: " + address + ". Accepting...");
   return node_->accept_connection(/*address*/);
 }
-void node::lis_handler::on_connected(automaton::core::network::connection* c,
+void node::lis_handler::on_connected(acn::connection* c,
     const std::string& address) {
   // logging("Accepted connection from: " + address);
   node_->peers[node_->get_next_peer_id()] = c;
   c->async_read(node_->add_buffer(16), 16, 0, 0);
 }
-void node::lis_handler::on_error(automaton::core::network::connection::error e) {
+void node::lis_handler::on_error(acn::connection::error e) {
   LOG(ERROR) << std::to_string(e);
 }
 
@@ -87,13 +89,17 @@ bool node::add_peer(uint32_t id, const std::string& connection_type, const std::
   if (it != peers.end()) {
   //  delete it->second;  /// Delete existing acceptor
   }
-  automaton::core::network::connection* new_connection;
+  acn::connection* new_connection;
   try {
-    new_connection = automaton::core::network::connection::create(connection_type, address,
+    new_connection = acn::connection::create(connection_type, address,
         handler_);
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
     peers[id] = nullptr;
+    return false;
+  }
+  if (!new_connection) {
+    LOG(ERROR) << "Connection was not created!";  // Possible reason: tcp_init was never called
     return false;
   }
   peers[id] = new_connection;
@@ -112,13 +118,17 @@ bool node::add_acceptor(uint32_t id, const std::string& connection_type,
   if (it != acceptors.end()) {
     // delete it->second;  /// Delete existing acceptor
   }
-  automaton::core::network::acceptor* new_acceptor;
+  acn::acceptor* new_acceptor;
   try {
-    new_acceptor = automaton::core::network::acceptor::create(connection_type, address,
+    new_acceptor = acn::acceptor::create(connection_type, address,
         lis_handler_, handler_);
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
     acceptors[id] = nullptr;
+    return false;
+  }
+  if (!new_acceptor) {
+    LOG(ERROR) << "Acceptor was not created!";
     return false;
   }
   acceptors[id] = new_acceptor;
