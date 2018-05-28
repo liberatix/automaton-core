@@ -51,7 +51,7 @@ TEST(keccak_256_cryptopp, calculate_digest) {
   };
 
   for (uint32_t i = 0; i < test_cases; i++) {
-    hasher.calculate_digest((uint8_t*)test[i][0].c_str(),
+    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].c_str()),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -67,7 +67,7 @@ TEST(keccak_256_cryptopp, update_and_finish) {
       "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
   const std::string EXP1 =
       "C8A625720D2C6221C09DB8A33A63FB936E628A0C10195768A206E7AD8D1E54DE";
-  uint8_t* p_test_input = (uint8_t*) test_input.c_str();
+  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.c_str());
   size_t len = test_input.length();
 
   for (uint32_t i = 0; i < 10; i++) {
@@ -78,9 +78,9 @@ TEST(keccak_256_cryptopp, update_and_finish) {
   EXPECT_EQ(toHex(digest, digest_size), EXP1);
 
   // Try to hash a new string to see if everything restarted as intended
-  uint8_t* a = (uint8_t*) "a";
-  uint8_t* b = (uint8_t*) "b";
-  uint8_t* c = (uint8_t*) "c";
+  const uint8_t* a = reinterpret_cast<const uint8_t*>("a");
+  const uint8_t* b = reinterpret_cast<const uint8_t*>("b");
+  const uint8_t* c = reinterpret_cast<const uint8_t*>("c");
   const std::string EXP2 =
       "4E03657AEA45A94FC7D47BA826C8D667C0D1E6E33A64A036EC44F58FA12D6C45";
   hasher.update(a, 1);

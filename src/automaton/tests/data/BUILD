@@ -23,6 +23,22 @@ cc_test(
 )
 
 cc_test(
+  name = "test_import_dependencies",
+  srcs = ["test_import_dependencies.cc",],
+  data = [
+    "schema1.proto",
+    "schema2.proto",
+    "schema3.proto",
+  ],
+  deps = [
+    "//automaton/core/io",
+    "//automaton/core/data/protobuf",
+    "@gtest//:gtest_main",
+  ],
+  size = "small",
+)
+
+cc_test(
   name = "test_protobuf_msg",
   srcs = ["test_protobuf_msg.cc",],
   deps = [

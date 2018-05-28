@@ -6,7 +6,6 @@ cc_library(
   name = "ed25519_orlp",
   srcs = [
     "ed25519_orlp.cc",
-    "ed25519_orlp.h",
   ],
   hdrs = [
     "ed25519_orlp.h",
@@ -14,5 +13,18 @@ cc_library(
   deps = [
     "//automaton/core/crypto",
     "@ed25519_orlp//:ed25519_orlp",
+  ],
+)
+
+cc_library(
+  name = "module",
+  srcs = ["module.cc"],
+  hdrs = ["module.h"],
+  data = ["module.proto"],
+  deps = [
+    "//automaton/core/crypto/ed25519_orlp",
+    "//automaton/core/data/protobuf",
+    "//automaton/core/io",
+    "//automaton/core/script",
   ],
 )

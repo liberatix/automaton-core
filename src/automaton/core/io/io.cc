@@ -4,6 +4,8 @@
 #include <string>
 #include <cerrno>
 
+#include "automaton/core/log/log.h"
+
 namespace automaton {
 namespace core {
 namespace io {
@@ -19,6 +21,7 @@ std::string get_file_contents(const char* filename) {
     in.close();
     return(contents);
   }
+  LOG(ERROR) << "Could not read file contents for " << filename;
   throw(errno);
 }
 

@@ -7,4 +7,3 @@ message TestMsg {
 message TestMsg2 {
 	TestMsg msg = 1;
 }
-

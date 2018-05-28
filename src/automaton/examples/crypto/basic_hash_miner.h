@@ -12,9 +12,9 @@ class basic_hash_miner {
   explicit basic_hash_miner(crypto::hash_transformation* hash_transformation);
 
   int get_nonce_lenght();
-  uint8_t* mine(uint8_t* block_hash,
-                      int block_hash_lenght,
-                      int required_leading_zeros);
+  uint8_t* mine(const uint8_t* block_hash,
+                const int block_hash_lenght,
+                const int required_leading_zeros);
 
  private:
   int nonce_lenght_;

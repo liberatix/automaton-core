@@ -13,5 +13,7 @@ cc_library(
   deps = [
     "//automaton/core/data",
     "//automaton/core/data/protobuf",
+    "//automaton/core/log",
+    "@boost//:regex",
   ],
 )

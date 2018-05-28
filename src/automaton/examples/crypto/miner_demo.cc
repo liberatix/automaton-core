@@ -31,7 +31,7 @@ std::string to_hex_string(uint8_t *data, int len) {
 }
 
 int main() {
-    uint8_t* block_hash = (uint8_t*)DEMO_HASH;
+    const uint8_t* block_hash = reinterpret_cast<const uint8_t*>(DEMO_HASH);
 
     SHA256_cryptopp::register_self();
     auto hash_transformation = hash_transformation::create("SHA256");

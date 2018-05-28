@@ -14,7 +14,7 @@ bool init_logger() {
   el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
   el::Loggers::setLoggingLevel(el::Level::Global);
-  el::Loggers::setVerboseLevel(9);
+  // el::Loggers::setVerboseLevel(9);
 
   return true;
 }
