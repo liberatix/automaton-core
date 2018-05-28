@@ -21,8 +21,10 @@ cc_library(
   name = "module",
   srcs = ["module.cc"],
   hdrs = ["module.h"],
+  data = ["module.proto"],
   deps = [
-    ":data",
+    "//automaton/core/data",
+    "//automaton/core/io",
     "//automaton/core/script",
   ],
 )

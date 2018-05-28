@@ -62,14 +62,6 @@ struct acceptor_params {
 class simulation {
  private:
   /**
-   Comparator for the event queue -> events with lower time come first, if
-   time is equal, event id is used and events created first are handled first.
-  */
-  struct q_comparator {
-    bool operator() (const event& lhs, const event& rhs) const;
-  };
-
-  /**
     Map storing created connections.
   */
   std::unordered_map<uint32_t, simulated_connection*> connections;
@@ -86,7 +78,6 @@ class simulation {
     handlig means higher priority. If equal, lower event id (created earlier)
     means higher priority.
   */
-  // std::priority_queue<event, std::vector<event>, q_comparator> event_q;
   std::unordered_map<uint64_t, std::vector<event>> events;
   std::mutex q_mutex;
 

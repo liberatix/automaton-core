@@ -32,6 +32,9 @@ class schema {
     string = 4,
     int32 = 5,
     int64 = 6,
+    uint32 = 7,
+    uint64 = 8,
+    boolean = 9,
   };
 
   /**

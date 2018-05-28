@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+message factory {
+  message RIPEMD160 {
+    crypto_v0.concepts.hash_transformation c1 = 1;
+  }
+
+  message Keccak256 {
+    crypto_v0.concepts.hash_transformation c1 = 1;
+  }
+
+  message SHA3 {
+    crypto_v0.concepts.hash_transformation c1 = 1;
+  }
+
+  message SHA256 {
+    crypto_v0.concepts.hash_transformation c1 = 1;
+  }
+
+  message SHA512 {
+    crypto_v0.concepts.hash_transformation c1 = 1;
+  }
+
+  message secure_random_cryptopp {
+    crypto_v0.concepts.secure_random c1 = 1;
+  }
+
+  message secp256k1 {
+    crypto_v0.concepts.digital_signature c1 = 1;
+  }
+}

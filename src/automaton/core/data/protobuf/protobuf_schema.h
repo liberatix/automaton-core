@@ -22,11 +22,6 @@ namespace data {
 namespace protobuf {
 
 class protobuf_schema: public schema {
- private:
-  std::unique_ptr<google::protobuf::FileDescriptorProto> file_descriptor_proto;
-  std::vector <google::protobuf::DescriptorProto*> messages;
-  std::vector <google::protobuf::EnumDescriptorProto*> enums;
-
  public:
   protobuf_schema();
 
@@ -125,6 +120,11 @@ class protobuf_schema: public schema {
     Deserializes schema from JSON string.
   */
   bool from_json(const std::string& input);
+
+ private:
+  std::unique_ptr<google::protobuf::FileDescriptorProto> file_descriptor_proto;
+  std::vector <google::protobuf::DescriptorProto*> messages;
+  std::vector <google::protobuf::EnumDescriptorProto*> enums;
 };
 
 }  // namespace protobuf

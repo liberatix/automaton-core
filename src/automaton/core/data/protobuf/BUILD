@@ -18,3 +18,15 @@ cc_library(
     "@com_google_protobuf//:protobuf",
   ],
 )
+
+cc_library(
+  name = "module",
+  srcs = ["module.cc"],
+  hdrs = ["module.h"],
+  data = ["module.proto"],
+  deps = [
+    "//automaton/core/data",
+    "//automaton/core/io",
+    "//automaton/core/script",
+  ],
+)

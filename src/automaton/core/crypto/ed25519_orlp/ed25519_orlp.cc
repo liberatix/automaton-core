@@ -6,6 +6,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace ed25519_orlp {
 
 size_t ed25519_orlp::public_key_size() {
   return 32;
@@ -65,6 +66,7 @@ bool ed25519_orlp::register_self() {
   return true;
 }
 
+}  // namespace ed25519_orlp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

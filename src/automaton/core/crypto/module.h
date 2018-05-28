@@ -2,16 +2,24 @@
 #define AUTOMATON_CORE_CRYPTO_MODULE_H__
 
 #include "automaton/core/data/schema.h"
+#include "automaton/core/script/registry.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 
 namespace automaton {
 namespace core {
 namespace crypto {
 
-struct module {
-  static constexpr auto name = "crypto";
-  static constexpr auto version = "0.0.1";
-  static bool registered;
-  static data::schema* get_schema();
+class module: public script::module {
+ public:
+  static module& instance() {
+    static module inst;
+    return inst;
+  }
+
+  data::schema* schema() const;
+
+ private:
+  module() : script::module("crypto", "0.0.1.a") {}
 };
 
 }  // namespace crypto

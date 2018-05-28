@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+message concepts {
+  message state {
+    // Get the value at given path. Empty string if no value is set or
+    // there is no node at the given path
+    message get {
+      message request {
+        string key = 1;
+      }
+      message response {
+        string value = 1;
+      }
+    }
+
+    // Set the value at a given path
+    message set {
+      message request {
+        string key = 1;
+        string value = 2;
+      }
+    }
+
+    // Get the hash of a node at the given path. Empty std::string if no value is
+    // set or there is no node at the given path
+    message get_node_hash {
+      message request {
+        string path = 1;
+      }
+      message response {
+        string hash = 1;
+      }
+    }
+
+    // Get the children as strings.
+    message get_node_children {
+      message request {
+        string path = 1;
+      }
+      message response {
+        repeated string children = 1;
+      }
+    }
+
+    // Erase previously set element in the trie
+    message erase {
+      message request {
+        string path = 1;
+      }
+    }
+
+    // Delete subtree with root the node at the given path
+    message delete_node_tree {
+      message request {
+        string path = 1;
+      }
+    }
+
+    // Finalizes the changes made by set
+    message commit_changes {
+      
+    }
+
+    // Discards the changes made by set
+    message discard_changes {
+    }
+
+    // Get the size of the hash in bytes
+    message hash_size {
+      message response {
+        uint32 hash_size = 1;
+      }
+    }
+  }
+}
+

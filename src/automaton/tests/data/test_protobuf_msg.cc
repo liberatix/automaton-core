@@ -33,8 +33,8 @@ class test_protobuf_msg : public ::testing::Test {
  protected:
   // You can define per-test set-up and tear-down logic as usual.
   virtual void SetUp() {
-    pb_schema.reset(new protobuf_schema());
     pb_factory.reset(new protobuf_factory());
+    pb_schema.reset(new protobuf_schema());
     setup_schema();
   }
 

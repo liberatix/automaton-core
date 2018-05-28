@@ -3,6 +3,9 @@
 
 #include <easylogging++.h>
 
+#include <algorithm>
+#include <string>
+
 namespace automaton {
 namespace core {
 namespace log {

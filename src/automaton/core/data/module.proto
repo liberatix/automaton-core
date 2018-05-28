@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+message concepts {
+  message schema {
+  }
+
+  message msg {
+  }
+
+  message factory {
+  }
+}

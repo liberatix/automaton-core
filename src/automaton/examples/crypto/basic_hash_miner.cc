@@ -48,9 +48,9 @@ int basic_hash_miner::get_nonce_lenght() {
   return nonce_lenght_;
 }
 
-uint8_t* basic_hash_miner::mine(uint8_t* block_hash,
-    int block_hash_lenght,
-    int required_leading_zeros) {
+uint8_t* basic_hash_miner::mine(const uint8_t* block_hash,
+    const int block_hash_lenght,
+    const int required_leading_zeros) {
   if (required_leading_zeros > nonce_lenght_ * 8) {
     // TODO(martin) log the invalid input
     return NULL;
