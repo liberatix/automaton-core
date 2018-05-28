@@ -32,3 +32,12 @@ cc_binary (
     "//automaton/examples/network:node_prototype",
   ],
 )
+cc_binary (
+	name = "simulation_test_localhost",
+	srcs = ["simulation_test_localhost.cc",],
+	deps = [
+    "//automaton/core/log",
+    "//automaton/core/network:network_tcp",
+    "//automaton/examples/network:node_prototype",
+  ],
+)
