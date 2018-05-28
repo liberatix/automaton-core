@@ -1,9 +1,9 @@
 #include "automaton/core/storage/blobstore.h"
-#include "gtest/gtest.h"
 #include <cstring>
 #include <random>
 #include <vector>
 #include <iostream>
+#include "gtest/gtest.h"
 
 using automaton::core::storage::blobstore;
 
