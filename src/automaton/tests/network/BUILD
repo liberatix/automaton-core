@@ -15,12 +15,3 @@ cc_binary (
     "//automaton/core/network:simulated_connection",
   ],
 )
-
-cc_binary (
-	name = "simulation_big_test",
-	srcs = ["simulation_big_test.cc",],
-	deps = [
-    "//automaton/core/log",
-    "//automaton/core/network:simulated_connection",
-  ],
-)

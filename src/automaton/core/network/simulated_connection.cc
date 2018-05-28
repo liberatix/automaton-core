@@ -141,13 +141,13 @@ void simulation::handle_event(const event& e) {
         LOG(ERROR) << "Connection request from unexisting peer: " << e.source;
         break;
       }
-      std::string source_address = source->get_address();
       if (!acceptor_ || !(acceptor_->started_accepting)) {
-        LOG(ERROR) << "No such peer: " << source_address;
+        LOG(ERROR) << "No such peer: " << e.destination;
         // TODO(kari): error no such peer /
         // new_event.type_ = event::type::error;
         break;
       }
+      std::string source_address = source->get_address();
       event new_event;
       new_event.destination = e.source;
       new_event.time_of_handling = sim->get_time() + source->get_lag();
