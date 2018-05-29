@@ -180,9 +180,9 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
   // Checks if file with the same name already exists in the pool.
   if (pool->FindFileByName(name) != nullptr) {
     std::stringstream msg;
-    msg << "File with name <" + name + "> already exists.";
+    msg << "File with name <" << name << "> already exists.";
     LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
-    std::runtime_error(msg.str());
+    throw std::runtime_error(msg.str());
   }
 
   // Check if all dependencies are imported.
