@@ -30,10 +30,16 @@ int protobuf_msg::get_repeated_field_size(int field_tag) const {
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   return m->GetReflection()->FieldSize(*m, fdesc);
 }
@@ -80,14 +86,22 @@ void protobuf_msg::set_string(int field_tag, const string& value) {
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
+    std::stringstream msg;
+    msg << "Field is not string!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   m->GetReflection()->SetString(m.get(), fdesc, value);
 }
@@ -97,13 +111,22 @@ string protobuf_msg::get_string(int field_tag) const {
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
+    std::stringstream msg;
+    msg << "Field is not string!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   return m->GetReflection()->GetString(*m, fdesc);
 }
@@ -115,13 +138,22 @@ void protobuf_msg::set_repeated_string(int field_tag,
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
+    std::stringstream msg;
+    msg << "Field is not string!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
@@ -137,19 +169,31 @@ string protobuf_msg::get_repeated_string(int field_tag, int index) const {
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_STRING) {
-    throw std::invalid_argument("Field is not string");
+    std::stringstream msg;
+    msg << "Field is not string!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     return reflect->GetRepeatedString(*m, fdesc, index);
   } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
+    std::stringstream msg;
+    msg << "Index out of range: " << std::to_string(index);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
 }
 
@@ -158,13 +202,22 @@ void protobuf_msg::set_int32(int field_tag, int32_t value) {
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
+    std::stringstream msg;
+    msg << "Field is not int32!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   m->GetReflection()->SetInt32(m.get(), fdesc, value);
 }
@@ -174,13 +227,22 @@ int32_t protobuf_msg::get_int32(int field_tag) const {
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
+    std::stringstream msg;
+    msg << "Field is not int32!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   return m->GetReflection()->GetInt32(*m, fdesc);
 }
@@ -192,14 +254,22 @@ void protobuf_msg::set_repeated_int32(
   const FieldDescriptor* fdesc = m->GetDescriptor()
      ->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
+    std::stringstream msg;
+    msg << "Field is not int32!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
@@ -215,20 +285,31 @@ int32_t protobuf_msg::get_repeated_int32(int field_tag, int index) const {
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_INT32) {
-    throw std::invalid_argument("Field is not int32");
+    std::stringstream msg;
+    msg << "Field is not int32!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     return reflect->GetRepeatedInt32(*m, fdesc, index);
   } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
+    std::stringstream msg;
+    msg << "Index out of range: " << std::to_string(index);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
 }
 
@@ -237,21 +318,32 @@ void protobuf_msg::set_message(int field_tag, const msg& sub_message) {
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
+    std::stringstream msg;
+    msg << "Field is not message!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   string message_type = fdesc->message_type()->full_name();  // Error
   auto& sub_m = dynamic_cast<const protobuf_msg&>(sub_message);
   string sub_message_type = sub_m.m->GetDescriptor()->full_name();
   if (message_type.compare(sub_message_type)) {
-    throw std::invalid_argument("Type of the given sub message (which is <" +
-        sub_message_type + ">) doesn't match the field type (which is <" +
-        message_type + ">)");
+    std::stringstream msg;
+    msg << "Type of the given sub message (which is <" << sub_message_type <<
+        ">) doesn't match the field type (which is <" << message_type << ">)";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   // creates copy of the sub message so that the field doesnt change if you
@@ -268,15 +360,23 @@ std::unique_ptr<msg> protobuf_msg::get_message(int field_tag) const {
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
+    std::stringstream msg;
+    msg << "Field is not message!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   // name resolution need to be done
   // to get Dynamic Message Factory of the class containing the sub message
@@ -292,25 +392,38 @@ void protobuf_msg::set_repeated_message(int field_tag, const msg& sub_message, i
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
+    std::stringstream msg;
+    msg << "Field is not message!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   auto& sub_m = reinterpret_cast<const protobuf_msg&>(sub_message);
   if (sub_m.m.get() == nullptr || sub_m.m->GetDescriptor() == nullptr) {
-    throw std::runtime_error("Unexpected error");
+    std::stringstream msg;
+    msg << "No sub message!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::runtime_error(msg.str());
   }
   string message_type = fdesc->message_type()->full_name();  // Error
   string sub_message_type = sub_m.m->GetDescriptor()->full_name();
   if (message_type.compare(sub_message_type)) {
-    throw std::invalid_argument("Type of the given sub message (which is <" +
-        sub_message_type + ">) doesn't match the field type (which is <" +
-        message_type + ">)");
+    std::stringstream msg;
+    msg << "Type of the given sub message (which is <" << sub_message_type <<
+        ">) doesn't match the field type (which is <" << message_type << ">)";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
@@ -328,14 +441,22 @@ std::unique_ptr<msg> protobuf_msg::get_repeated_message(int field_tag, int index
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
-    throw std::invalid_argument("Field is not message");
+    std::stringstream msg;
+    msg << "Field is not message!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
@@ -344,7 +465,10 @@ std::unique_ptr<msg> protobuf_msg::get_repeated_message(int field_tag, int index
     copy->CopyFrom(*original);
     return std::unique_ptr<msg>(new protobuf_msg(copy));
   } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
+    std::stringstream msg;
+    msg << "Index out of range: " << std::to_string(index);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
 }
 
@@ -354,17 +478,29 @@ void protobuf_msg::set_enum(int field_tag, int value) {
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
+    std::stringstream msg;
+    msg << "Field is not enum!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const EnumDescriptor* edesc = fdesc->enum_type();
   if (edesc->FindValueByNumber(value) == nullptr) {
-    throw std::invalid_argument("Enum doesn't have value: " + std::to_string(value));
+    std::stringstream msg;
+    msg << "Enum doesn't have value: " << std::to_string(value);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   m->GetReflection()->SetEnumValue(m.get(), fdesc, value);
 }
@@ -374,13 +510,22 @@ int protobuf_msg::get_enum(int field_tag) const {
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: " << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->is_repeated()) {
-    throw std::invalid_argument("Field is repeated");
+    std::stringstream msg;
+    msg << "Field is repeated!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
+    std::stringstream msg;
+    msg << "Field is not enum!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   return m->GetReflection()->GetEnumValue(*m, fdesc);
 }
@@ -391,18 +536,29 @@ void protobuf_msg::set_repeated_enum(int field_tag, int value, int index = -1) {
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
+    std::stringstream msg;
+    msg << "Field is not enum!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const EnumDescriptor* edesc = fdesc->enum_type();
   if (edesc->FindValueByNumber(value) == nullptr) {
-    throw std::invalid_argument("Enum doesn't have value: " + std::to_string(value));
+    std::stringstream msg;
+    msg << "Enum doesn't have value: " << std::to_string(value);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
@@ -418,20 +574,31 @@ int protobuf_msg::get_repeated_enum(int field_tag, int index) const {
   const FieldDescriptor* fdesc =
       m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
-    throw std::invalid_argument("No field with tag: " +
-        std::to_string(field_tag));
+    std::stringstream msg;
+    msg << "No field with tag: "  << std::to_string(field_tag);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
-    throw std::invalid_argument("Field is not enum");
+    std::stringstream msg;
+    msg << "Field is not enum!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   if (!(fdesc->is_repeated())) {
-    throw std::invalid_argument("Field is not repeated");
+    std::stringstream msg;
+    msg << "Field is not repeated";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   const Reflection* reflect = m->GetReflection();
   if (index >= 0 && index < reflect->FieldSize(*m, fdesc)) {
     return m->GetReflection()->GetRepeatedEnumValue(*m, fdesc, index);
   } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(index));
+    std::stringstream msg;
+    msg << "Index out of range: " << std::to_string(index);
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
 }
 
