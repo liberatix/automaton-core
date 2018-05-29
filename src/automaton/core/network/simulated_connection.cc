@@ -402,7 +402,7 @@ simulated_connection::simulated_connection(const std::string& address_,
 
 void simulated_connection::async_send(const std::string& message, uint32_t id = 0) {
   if (message.size() < 1) {
-    LOG(ERROR) << "Send called but no message: id -> " << std::to_string(id);
+    LOG(ERROR) << "Send called but no message: id -> " << id;
     return;
   }
   if (connection_state == disconnected) {

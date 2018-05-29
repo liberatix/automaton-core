@@ -144,7 +144,7 @@ int protobuf_schema::create_enum(const std::string& enum_name) {
 void protobuf_schema::add_enum_value(int enum_id, const std::string& value_name, int value) {
   if (enum_id < 0 || enum_id >= enums.size()) {
     std::stringstream msg;
-    msg << "No enum with id: " << std::to_string(enum_id);
+    msg << "No enum with id: " << enum_id;
     LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
@@ -189,7 +189,7 @@ void protobuf_schema::add_message(int message_id) {
 void protobuf_schema::add_enum(int enum_id, int message_id = -1) {
   if (enum_id < 0 || enum_id >= enums.size()) {
     std::stringstream msg;
-    msg << "No enum with id: " << std::to_string(enum_id);
+    msg << "No enum with id: " << enum_id;
     LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
@@ -205,7 +205,7 @@ void protobuf_schema::add_enum(int enum_id, int message_id = -1) {
   } else {
     if (message_id < 0 || message_id >= messages.size()) {
       std::stringstream msg;
-      msg << "No message with id: " << std::to_string(message_id);
+      msg << "No message with id: " << message_id;
       LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
       throw std::out_of_range(msg.str());
     }
