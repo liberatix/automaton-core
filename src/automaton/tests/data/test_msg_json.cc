@@ -69,11 +69,11 @@ class test_msg_json : public ::testing::Test {
     int m4 = pb_schema->create_message(THIRD_MESSAGE);
 
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_1, "", false), m1);
+        schema::field_info(1, schema::blob, STRING_FIELD_1, "", false), m1);
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_2, "", false), m2);
+        schema::field_info(1, schema::blob, STRING_FIELD_2, "", false), m2);
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_NESTED, "", false),
+        schema::field_info(1, schema::blob, STRING_FIELD_NESTED, "", false),
         m3);
 
     pb_schema->add_message_field(schema::field_info(2,
@@ -81,7 +81,7 @@ class test_msg_json : public ::testing::Test {
         SECOND_MESSAGE, false), m1);
 
     pb_schema->add_scalar_field(
-        schema::field_info(3, schema::string, REPEATED_STRING_FIELD, "", true), m1);
+        schema::field_info(3, schema::blob, REPEATED_STRING_FIELD, "", true), m1);
 
     pb_schema->add_message_field(schema::field_info(1,
         schema::message_type, REPEATED_MSG_FIELD,

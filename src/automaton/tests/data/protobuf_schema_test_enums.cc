@@ -44,7 +44,7 @@ TEST(protobuf_factory, enums) {
   int e2 = custom_schema.create_enum("outer_enum");
 
   custom_schema.add_scalar_field(schema::field_info(1,
-      schema::string, "string_field", "", false), m1);
+      schema::blob, "string_field", "", false), m1);
   custom_schema.add_enum_field(schema::field_info(2,
       schema::enum_type, "inner_enum_field",
           "A.inner_enum", false), m1);

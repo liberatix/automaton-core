@@ -21,7 +21,7 @@ TEST(protobuf_factory, message_serialization) {
   protobuf_schema custom_schema;
   int m1 = custom_schema.create_message("first_message");
   custom_schema.add_scalar_field(schema::field_info(1,
-      schema::string, "string_field", "", false), m1);
+      schema::blob, "string_field", "", false), m1);
   custom_schema.add_scalar_field(schema::field_info(2,
       schema::int32, "int32_field", "", true), m1);
   custom_schema.add_message(m1);

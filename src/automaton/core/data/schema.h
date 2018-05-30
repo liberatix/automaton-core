@@ -29,7 +29,7 @@ class schema {
     unknown = 0,
     message_type =  1,
     enum_type = 2,
-    string = 4,
+    blob = 4,
     int32 = 5,
     int64 = 6,
     uint32 = 7,

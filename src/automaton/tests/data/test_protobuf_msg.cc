@@ -50,11 +50,11 @@ class test_protobuf_msg : public ::testing::Test {
     int m4 = pb_schema->create_message(THIRD_MESSAGE);
 
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_1, "", false), m1);
+        schema::field_info(1, schema::blob, STRING_FIELD_1, "", false), m1);
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_2, "", false), m2);
+        schema::field_info(1, schema::blob, STRING_FIELD_2, "", false), m2);
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_NESTED, "", false),
+        schema::field_info(1, schema::blob, STRING_FIELD_NESTED, "", false),
         m3);
 
     pb_schema->add_message_field(schema::field_info(2,
@@ -168,7 +168,7 @@ TEST_F(test_protobuf_msg, messages) {
   schema::field_info field =
       pb_factory->get_field_info(pb_factory->get_schema_id(FIRST_MESSAGE), 0);
   EXPECT_EQ(field.tag, 1);
-  EXPECT_EQ(field.type, schema::field_type::string);
+  EXPECT_EQ(field.type, schema::field_type::blob);
   EXPECT_EQ(field.name, STRING_FIELD_1);
   EXPECT_EQ(field.fully_qualified_type, "");
   EXPECT_EQ(field.is_repeated, false);

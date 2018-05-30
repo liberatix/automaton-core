@@ -41,7 +41,7 @@ int m1 = custom_schema.create_message("MyMessage");
     * is repeated (array) - false
 */
 custom_schema.add_scalar_field(schema::field_info(1,
-    schema::field_type::string, "string_field", "", false), m1);
+    schema::field_type::blob, "string_field", "", false), m1);
 
 /*
   Adds message field (string, int, ...) to the m1.
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     protobuf_schema_definition custom_schema;
     int m1 = custom_schema.create_message("MyMessage");
     custom_schema.add_scalar_field(schema::field_info(1,
-        schema::field_type::string, "string_field", "", false), m1);
+        schema::field_type::blob, "string_field", "", false), m1);
     custom_schema.add_message_field(schema::field_info(2,
         schema::field_type::message_type, "message_field", "pack1.TestMsg",
         false), m1);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     protobuf_schema_definition custom_schema2;
     int m2 = custom_schema2.create_message("TestMsg2");
     custom_schema2.add_scalar_field(schema::field_info(1,
-        schema::field_type::string, "string_field", "", false), m1);
+        schema::field_type::blob, "string_field", "", false), m1);
     custom_schema2.add_message(m2);
 
     protobuf_schema sc;

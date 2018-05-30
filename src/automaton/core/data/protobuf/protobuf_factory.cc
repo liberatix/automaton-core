@@ -69,7 +69,7 @@ class proto_error_collector : public
 
 const std::map<schema::field_type, FieldDescriptorProto_Type>
 protobuf_factory::type_to_protobuf_type {
-  {schema::string, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_STRING},
+  {schema::blob, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_STRING},
   {schema::boolean, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_BOOL},
   {schema::int32, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_INT32},
   {schema::uint32, FieldDescriptorProto_Type::FieldDescriptorProto_Type_TYPE_UINT32},
@@ -79,19 +79,26 @@ protobuf_factory::type_to_protobuf_type {
 
 const std::map<FieldDescriptor::Type, schema::field_type>
 protobuf_factory::protobuf_type_to_type {
-  {FieldDescriptor::TYPE_STRING, schema::string},
+  {FieldDescriptor::TYPE_STRING, schema::blob},
+  {FieldDescriptor::TYPE_BYTES, schema::blob},
   {FieldDescriptor::TYPE_BOOL, schema::boolean},
   {FieldDescriptor::TYPE_INT32, schema::int32},
-  {FieldDescriptor::TYPE_UINT32, schema::uint32},
+  {FieldDescriptor::TYPE_SINT32, schema::int32},
+  {FieldDescriptor::TYPE_SFIXED32, schema::int32},
   {FieldDescriptor::TYPE_INT64, schema::int64},
+  {FieldDescriptor::TYPE_SINT64, schema::int64},
+  {FieldDescriptor::TYPE_SFIXED64, schema::int64},
+  {FieldDescriptor::TYPE_UINT32, schema::uint32},
+  {FieldDescriptor::TYPE_FIXED32, schema::uint32},
   {FieldDescriptor::TYPE_UINT64, schema::uint64},
+  {FieldDescriptor::TYPE_FIXED64, schema::uint64},
   {FieldDescriptor::TYPE_ENUM, schema::enum_type},
   {FieldDescriptor::TYPE_MESSAGE, schema::message_type},
 };
 
 const std::map<FieldDescriptor::CppType, schema::field_type>
 protobuf_factory::protobuf_ccptype_to_type {
-  {FieldDescriptor::CPPTYPE_STRING, schema::string},
+  {FieldDescriptor::CPPTYPE_STRING, schema::blob},
   {FieldDescriptor::CPPTYPE_BOOL, schema::boolean},
   {FieldDescriptor::CPPTYPE_INT32, schema::int32},
   {FieldDescriptor::CPPTYPE_UINT32, schema::uint32},
@@ -154,6 +161,7 @@ bool protobuf_factory::contain_invalid_data(const Descriptor* d) {
     const FieldDescriptor* fd = d->field(i);
     if (fd->is_map()) {
       LOG(ERROR) << d->name() << " contains Map which is not supported";
+      return true;
     }
     if (protobuf_type_to_type.find(fd->type()) == protobuf_type_to_type.end()) {
       LOG(ERROR) << d->full_name() << "." << fd->name() << " is of unsupported type";
