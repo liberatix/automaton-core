@@ -75,9 +75,9 @@ class msg {
 
   virtual std::string get_blob(int field_tag) const = 0;
 
-  virtual void set_repeated_blob(int field_tag, const std::string& value, int index) = 0;
+  virtual void set_repeated_blob(int field_tag, const std::string& value, int index = 0) = 0;
 
-  virtual std::string get_repeated_blob(int field_tag, int index) const = 0;
+  virtual std::string get_repeated_blob(int field_tag, int index = 0) const = 0;
 
   /// Int 32
 
@@ -85,9 +85,9 @@ class msg {
 
   virtual int32_t get_int32(int field_tag) const = 0;
 
-  virtual void set_repeated_int32(int field_tag, int32_t value, int index) = 0;
+  virtual void set_repeated_int32(int field_tag, int32_t value, int index = 0) = 0;
 
-  virtual int32_t get_repeated_int32(int field_tag, int index) const = 0;
+  virtual int32_t get_repeated_int32(int field_tag, int index = 0) const = 0;
 
   /// Unsigned int 32
 
@@ -95,9 +95,9 @@ class msg {
 
   virtual uint32_t get_uint32(int field_tag) const = 0;
 
-  virtual void set_repeated_uint32(int field_tag, uint32_t value, int index) = 0;
+  virtual void set_repeated_uint32(int field_tag, uint32_t value, int index = 0) = 0;
 
-  virtual uint32_t get_repeated_uint32(int field_tag, int index) const = 0;
+  virtual uint32_t get_repeated_uint32(int field_tag, int index = 0) const = 0;
 
   /// Int 64
 
@@ -105,9 +105,9 @@ class msg {
 
   virtual int64_t get_int64(int field_tag) const = 0;
 
-  virtual void set_repeated_int64(int field_tag, int64_t value, int index) = 0;
+  virtual void set_repeated_int64(int field_tag, int64_t value, int index = 0) = 0;
 
-  virtual int64_t get_repeated_int64(int field_tag, int index) const = 0;
+  virtual int64_t get_repeated_int64(int field_tag, int index = 0) const = 0;
 
   /// Unsigned int 64
 
@@ -115,9 +115,9 @@ class msg {
 
   virtual uint64_t get_uint64(int field_tag) const = 0;
 
-  virtual void set_repeated_uint64(int field_tag, uint64_t value, int index) = 0;
+  virtual void set_repeated_uint64(int field_tag, uint64_t value, int index = 0) = 0;
 
-  virtual uint64_t get_repeated_uint64(int field_tag, int index) const = 0;
+  virtual uint64_t get_repeated_uint64(int field_tag, int index = 0) const = 0;
 
   /// Boolean
 
@@ -125,9 +125,9 @@ class msg {
 
   virtual bool get_boolean(int field_tag) const = 0;
 
-  virtual void set_repeated_boolean(int field_tag, bool value, int index) = 0;
+  virtual void set_repeated_boolean(int field_tag, bool value, int index = 0) = 0;
 
-  virtual bool get_repeated_boolean(int field_tag, int index) const = 0;
+  virtual bool get_repeated_boolean(int field_tag, int index = 0) const = 0;
 
   /*
     Setters and getters for message type fields. When you use setters, you
@@ -145,9 +145,9 @@ class msg {
 
   virtual std::unique_ptr<msg> get_message(int field_tag) const = 0;
 
-  virtual void set_repeated_message(int field_tag, const msg& sub_message, int index) = 0;
+  virtual void set_repeated_message(int field_tag, const msg& sub_message, int index = 0) = 0;
 
-  virtual std::unique_ptr<msg> get_repeated_message(int field_tag, int index) const = 0;
+  virtual std::unique_ptr<msg> get_repeated_message(int field_tag, int index = 0) const = 0;
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if
@@ -160,9 +160,9 @@ class msg {
 
   virtual int get_enum(int field_tag) const = 0;
 
-  virtual void set_repeated_enum(int field_tag, int value, int index) = 0;
+  virtual void set_repeated_enum(int field_tag, int value, int index = 0) = 0;
 
-  virtual int get_repeated_enum(int field_tag, int index) const = 0;
+  virtual int get_repeated_enum(int field_tag, int index = 0) const = 0;
 };
 
 }  // namespace data

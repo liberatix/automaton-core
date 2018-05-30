@@ -171,3 +171,15 @@ cc_test(
   ],
   size = "small",
 )
+
+cc_test(
+  name = "test_protobuf_schema_all_data_types",
+  srcs = ["protobuf_schema_all_data_types.cc",],
+  data = ["//automaton/tests/data:many_fields.proto"],
+  deps = [
+    "//automaton/core/io",
+    "//automaton/core/data/protobuf",
+    "@gtest//:gtest_main",
+  ],
+  size = "small",
+)

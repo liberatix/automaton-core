@@ -44,7 +44,7 @@ TEST(protobuf_factory, setting_fields) {
     EXPECT_EQ(message, "Field is repeated!");
   }
 
-  // Field is not string
+  // Field is not blob
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
     msg->set_blob(3, "value");
@@ -52,7 +52,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not string!");
+    EXPECT_EQ(message, "Field is not blob!");
   }
 
   /**
@@ -81,7 +81,7 @@ TEST(protobuf_factory, setting_fields) {
     EXPECT_EQ(message, "Field is not repeated!");
   }
 
-  // Field is not string
+  // Field is not blob
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
     msg->set_repeated_blob(3, "value", -1);
@@ -89,7 +89,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not string!");
+    EXPECT_EQ(message, "Field is not blob!");
   }
 
   // *** Int32 functions ***

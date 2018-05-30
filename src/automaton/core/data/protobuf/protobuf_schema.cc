@@ -89,7 +89,7 @@ protobuf_schema::protobuf_schema(const std::string& proto_def) {
   if (io_error_collector_.get_number_errors() > 0) {
     std::stringstream msg;
     msg << io_error_collector_.get_all_errors();
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   Parser parser;
@@ -97,7 +97,7 @@ protobuf_schema::protobuf_schema(const std::string& proto_def) {
   if (io_error_collector_.get_number_errors() > 0) {
     std::stringstream msg;
     msg << io_error_collector_.get_all_errors();
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   VLOG(9) << "Parsing tokenized proto";
@@ -105,7 +105,7 @@ protobuf_schema::protobuf_schema(const std::string& proto_def) {
   if (io_error_collector_.get_number_errors() > 0) {
     std::stringstream msg;
     msg << "Errors while parsing:\n" << io_error_collector_.get_all_errors();
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   VLOG(9) << "Parsing complete";
@@ -145,14 +145,14 @@ void protobuf_schema::add_enum_value(int enum_id, const std::string& value_name,
   if (enum_id < 0 || enum_id >= enums.size()) {
     std::stringstream msg;
     msg << "No enum with id: " << enum_id;
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
   EnumDescriptorProto* edp = enums[enum_id];
   if (edp == nullptr) {
     std::stringstream msg;
     msg << "Enum descriptor proto is NULL";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   EnumValueDescriptorProto* field = edp->add_value();
@@ -166,7 +166,7 @@ void protobuf_schema::add_nested_message(int message_id, int sub_message_id) {
   if (messages[message_id] == nullptr || messages[sub_message_id] == nullptr) {
     std::stringstream msg;
     msg << "Message is NULL";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   DescriptorProto* dpr = messages[message_id];
@@ -179,7 +179,7 @@ void protobuf_schema::add_message(int message_id) {
   if (messages[message_id] == nullptr) {
     std::stringstream msg;
     msg << "Message is NULL";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   DescriptorProto* m = file_descriptor_proto->add_message_type();
@@ -190,13 +190,13 @@ void protobuf_schema::add_enum(int enum_id, int message_id = -1) {
   if (enum_id < 0 || enum_id >= enums.size()) {
     std::stringstream msg;
     msg << "No enum with id: " << enum_id;
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
   if (enums[enum_id] == nullptr) {
     std::stringstream msg;
     msg << "Enum descriptor proto is NULL";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   if (message_id == -1) {
@@ -206,13 +206,13 @@ void protobuf_schema::add_enum(int enum_id, int message_id = -1) {
     if (message_id < 0 || message_id >= messages.size()) {
       std::stringstream msg;
       msg << "No message with id: " << message_id;
-      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
       throw std::out_of_range(msg.str());
     }
     if (messages[message_id] == nullptr) {
       std::stringstream msg;
       msg << "Message is NULL";
-      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
       throw std::runtime_error(msg.str());
     }
     DescriptorProto* dpr = messages[message_id];
@@ -228,14 +228,14 @@ void protobuf_schema::add_scalar_field(schema::field_info field, int message_id)
       field.type == schema::unknown) {
       std::stringstream msg;
       msg << "Field type is not scalar!";
-      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
       throw std::invalid_argument(msg.str());
   }
   DescriptorProto* dpr = messages[message_id];
   if (dpr == nullptr) {
     std::stringstream msg;
     msg << "Descriptor proto is NULL";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   FieldDescriptorProto* field_proto = dpr->add_field();
@@ -252,14 +252,14 @@ void protobuf_schema::add_enum_field(schema::field_info field, int message_id) {
   if (field.type != schema::enum_type) {
     std::stringstream msg;
     msg << "Field is not enum!";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());
   }
   DescriptorProto* dpr = messages[message_id];
   if (dpr == nullptr) {
     std::stringstream msg;
     msg << "Descriptor proto is NULL";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   FieldDescriptorProto* field_proto = dpr->add_field();
@@ -277,14 +277,14 @@ void protobuf_schema::add_message_field(schema::field_info field, int message_id
   if (field.type != schema::message_type) {
     std::stringstream msg;
     msg << "Field type is not message";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());;
   }
   DescriptorProto* dpr = messages[message_id];
   if (dpr == nullptr) {
     std::stringstream msg;
     msg << "Descriptor proto is NULL";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   FieldDescriptorProto* field_proto = dpr->add_field();
