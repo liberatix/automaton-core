@@ -58,11 +58,11 @@ class blobstore {
   uint64_t next_free;
   // capacity of storage in 4byte chunks (size in bytes/4)
   uint64_t capacity;
-  // TODO(Samir): Handle free locations. 
+  // TODO(Samir): Handle free locations.
   // One option is to use heap with the free locations stored by size
   // Second option is to use linked list linking to the next free location
   //  if next.location.ID == this.location.ID + length:
-  //    this.location.length += next.location.length 
+  //    this.location.length += next.location.length
   //  while
 };
 

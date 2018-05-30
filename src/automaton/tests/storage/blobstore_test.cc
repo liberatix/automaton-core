@@ -12,9 +12,8 @@ TEST(blobstore, basic_test) {
   uint32_t blob_size = 16;
   uint64_t access_id;
   std::string data_to_save = "0123456789ABCDEF";
-  //uint8_t* p_blob = storage.create_blob(blob_size, &access_id);
-  //std::memcpy(p_blob, &data_to_save[0], blob_size);
-  access_id = storage.store(blob_size, (uint8_t*) "0123456789ABCDEF");
+  
+  access_id = storage.store(blob_size, reinterpret_cast<uint8_t*> "0123456789ABCDEF");
 
   uint32_t retrived_size = 0;
   uint8_t* retrived_blob = storage.get(access_id, &retrived_size);
@@ -50,7 +49,7 @@ TEST(blobstore, store_get) {
   for (const auto &test : tests) {
     size_t blob_size = test.length();
     uint8_t* p_blob = nullptr;
-    access_id.push_back(storage.store(blob_size, (uint8_t*) &test[0]));
+    access_id.push_back(storage.store(blob_size, reinterpret_cast<uint8_t*>(&test[0])));
 
     uint32_t retrived_size = 0;
     uint8_t* retrived_blob = storage.get(access_id.back(), &retrived_size);
