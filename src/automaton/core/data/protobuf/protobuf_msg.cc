@@ -29,7 +29,7 @@ string protobuf_msg::get_message_type() const {
   return m->GetTypeName();
 }
 
-unsigned int protobuf_msg::get_repeated_field_size(unsigned int field_tag) const {
+uint32_t protobuf_msg::get_repeated_field_size(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -85,7 +85,7 @@ string protobuf_msg::to_string() const {
   return m->DebugString();
 }
 
-void protobuf_msg::set_blob(unsigned int field_tag, const string& value) {
+void protobuf_msg::set_blob(uint32_t field_tag, const string& value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -110,7 +110,7 @@ void protobuf_msg::set_blob(unsigned int field_tag, const string& value) {
   m->GetReflection()->SetString(m.get(), fdesc, value);
 }
 
-string protobuf_msg::get_blob(unsigned int field_tag) const {
+string protobuf_msg::get_blob(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -135,7 +135,7 @@ string protobuf_msg::get_blob(unsigned int field_tag) const {
   return m->GetReflection()->GetString(*m, fdesc);
 }
 
-void protobuf_msg::set_repeated_blob(unsigned int field_tag, const string& value, int index) {
+void protobuf_msg::set_repeated_blob(uint32_t field_tag, const string& value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -166,7 +166,7 @@ void protobuf_msg::set_repeated_blob(unsigned int field_tag, const string& value
   }
 }
 
-string protobuf_msg::get_repeated_blob(unsigned int field_tag, int index) const {
+string protobuf_msg::get_repeated_blob(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -202,7 +202,7 @@ string protobuf_msg::get_repeated_blob(unsigned int field_tag, int index) const 
 
 /// Int 32
 
-void protobuf_msg::set_int32(unsigned int field_tag, int32_t value) {
+void protobuf_msg::set_int32(uint32_t field_tag, int32_t value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -227,7 +227,7 @@ void protobuf_msg::set_int32(unsigned int field_tag, int32_t value) {
   m->GetReflection()->SetInt32(m.get(), fdesc, value);
 }
 
-int32_t protobuf_msg::get_int32(unsigned int field_tag) const {
+int32_t protobuf_msg::get_int32(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -252,7 +252,7 @@ int32_t protobuf_msg::get_int32(unsigned int field_tag) const {
   return m->GetReflection()->GetInt32(*m, fdesc);
 }
 
-void protobuf_msg::set_repeated_int32(unsigned int field_tag, int32_t value, int index) {
+void protobuf_msg::set_repeated_int32(uint32_t field_tag, int32_t value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()
@@ -283,7 +283,7 @@ void protobuf_msg::set_repeated_int32(unsigned int field_tag, int32_t value, int
   }
 }
 
-int32_t protobuf_msg::get_repeated_int32(unsigned int field_tag, int index) const {
+int32_t protobuf_msg::get_repeated_int32(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -317,9 +317,9 @@ int32_t protobuf_msg::get_repeated_int32(unsigned int field_tag, int index) cons
   }
 }
 
-/// Unsigned int 32
+/// uint32_t 32
 
-void protobuf_msg::set_uint32(unsigned int field_tag, uint32_t value) {
+void protobuf_msg::set_uint32(uint32_t field_tag, uint32_t value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -344,7 +344,7 @@ void protobuf_msg::set_uint32(unsigned int field_tag, uint32_t value) {
   m->GetReflection()->SetUInt32(m.get(), fdesc, value);
 }
 
-uint32_t protobuf_msg::get_uint32(unsigned int field_tag) const {
+uint32_t protobuf_msg::get_uint32(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -369,7 +369,7 @@ uint32_t protobuf_msg::get_uint32(unsigned int field_tag) const {
   return m->GetReflection()->GetUInt32(*m, fdesc);
 }
 
-void protobuf_msg::set_repeated_uint32(unsigned int field_tag, uint32_t value, int index) {
+void protobuf_msg::set_repeated_uint32(uint32_t field_tag, uint32_t value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()
@@ -400,7 +400,7 @@ void protobuf_msg::set_repeated_uint32(unsigned int field_tag, uint32_t value, i
   }
 }
 
-uint32_t protobuf_msg::get_repeated_uint32(unsigned int field_tag, int index) const {
+uint32_t protobuf_msg::get_repeated_uint32(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -436,7 +436,7 @@ uint32_t protobuf_msg::get_repeated_uint32(unsigned int field_tag, int index) co
 
 /// Int 64
 
-void protobuf_msg::set_int64(unsigned int field_tag, int64_t value) {
+void protobuf_msg::set_int64(uint32_t field_tag, int64_t value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -461,7 +461,7 @@ void protobuf_msg::set_int64(unsigned int field_tag, int64_t value) {
   m->GetReflection()->SetInt64(m.get(), fdesc, value);
 }
 
-int64_t protobuf_msg::get_int64(unsigned int field_tag) const {
+int64_t protobuf_msg::get_int64(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -486,7 +486,7 @@ int64_t protobuf_msg::get_int64(unsigned int field_tag) const {
   return m->GetReflection()->GetInt64(*m, fdesc);
 }
 
-void protobuf_msg::set_repeated_int64(unsigned int field_tag, int64_t value, int index) {
+void protobuf_msg::set_repeated_int64(uint32_t field_tag, int64_t value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()
@@ -517,7 +517,7 @@ void protobuf_msg::set_repeated_int64(unsigned int field_tag, int64_t value, int
   }
 }
 
-int64_t protobuf_msg::get_repeated_int64(unsigned int field_tag, int index) const {
+int64_t protobuf_msg::get_repeated_int64(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -551,9 +551,9 @@ int64_t protobuf_msg::get_repeated_int64(unsigned int field_tag, int index) cons
   }
 }
 
-/// Unsigned int 64
+/// uint32_t 64
 
-void protobuf_msg::set_uint64(unsigned int field_tag, uint64_t value) {
+void protobuf_msg::set_uint64(uint32_t field_tag, uint64_t value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -578,7 +578,7 @@ void protobuf_msg::set_uint64(unsigned int field_tag, uint64_t value) {
   m->GetReflection()->SetUInt64(m.get(), fdesc, value);
 }
 
-uint64_t protobuf_msg::get_uint64(unsigned int field_tag) const {
+uint64_t protobuf_msg::get_uint64(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -603,7 +603,7 @@ uint64_t protobuf_msg::get_uint64(unsigned int field_tag) const {
   return m->GetReflection()->GetUInt64(*m, fdesc);
 }
 
-void protobuf_msg::set_repeated_uint64(unsigned int field_tag, uint64_t value, int index) {
+void protobuf_msg::set_repeated_uint64(uint32_t field_tag, uint64_t value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()
@@ -634,7 +634,7 @@ void protobuf_msg::set_repeated_uint64(unsigned int field_tag, uint64_t value, i
   }
 }
 
-uint64_t protobuf_msg::get_repeated_uint64(unsigned int field_tag, int index) const {
+uint64_t protobuf_msg::get_repeated_uint64(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -670,7 +670,7 @@ uint64_t protobuf_msg::get_repeated_uint64(unsigned int field_tag, int index) co
 
 /// Boolean
 
-void protobuf_msg::set_boolean(unsigned int field_tag, bool value) {
+void protobuf_msg::set_boolean(uint32_t field_tag, bool value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -695,7 +695,7 @@ void protobuf_msg::set_boolean(unsigned int field_tag, bool value) {
   m->GetReflection()->SetBool(m.get(), fdesc, value);
 }
 
-bool protobuf_msg::get_boolean(unsigned int field_tag) const {
+bool protobuf_msg::get_boolean(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -720,7 +720,7 @@ bool protobuf_msg::get_boolean(unsigned int field_tag) const {
   return m->GetReflection()->GetBool(*m, fdesc);
 }
 
-void protobuf_msg::set_repeated_boolean(unsigned int field_tag, bool value, int index) {
+void protobuf_msg::set_repeated_boolean(uint32_t field_tag, bool value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()
@@ -751,7 +751,7 @@ void protobuf_msg::set_repeated_boolean(unsigned int field_tag, bool value, int 
   }
 }
 
-bool protobuf_msg::get_repeated_boolean(unsigned int field_tag, int index) const {
+bool protobuf_msg::get_repeated_boolean(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -788,7 +788,7 @@ bool protobuf_msg::get_repeated_boolean(unsigned int field_tag, int index) const
 
 /// Message
 
-void protobuf_msg::set_message(unsigned int field_tag, const msg& sub_message) {
+void protobuf_msg::set_message(uint32_t field_tag, const msg& sub_message) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -829,7 +829,7 @@ void protobuf_msg::set_message(unsigned int field_tag, const msg& sub_message) {
 }
 
 // makes a COPY of the message and returns its id
-std::unique_ptr<msg> protobuf_msg::get_message(unsigned int field_tag) const {
+std::unique_ptr<msg> protobuf_msg::get_message(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -861,7 +861,7 @@ std::unique_ptr<msg> protobuf_msg::get_message(unsigned int field_tag) const {
   return std::unique_ptr<msg>(new protobuf_msg(copy));
 }
 
-void protobuf_msg::set_repeated_message(unsigned int field_tag, const msg& sub_message, int index) {
+void protobuf_msg::set_repeated_message(uint32_t field_tag, const msg& sub_message, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -911,7 +911,7 @@ void protobuf_msg::set_repeated_message(unsigned int field_tag, const msg& sub_m
 }
 
 // Returns copy of the message
-std::unique_ptr<msg> protobuf_msg::get_repeated_message(unsigned int field_tag, int index) const {
+std::unique_ptr<msg> protobuf_msg::get_repeated_message(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -947,7 +947,7 @@ std::unique_ptr<msg> protobuf_msg::get_repeated_message(unsigned int field_tag, 
   }
 }
 
-void protobuf_msg::set_enum(unsigned int field_tag, int value) {
+void protobuf_msg::set_enum(uint32_t field_tag, int32_t value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -980,7 +980,7 @@ void protobuf_msg::set_enum(unsigned int field_tag, int value) {
   m->GetReflection()->SetEnumValue(m.get(), fdesc, value);
 }
 
-int protobuf_msg::get_enum(unsigned int field_tag) const {
+int32_t protobuf_msg::get_enum(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
@@ -1005,7 +1005,7 @@ int protobuf_msg::get_enum(unsigned int field_tag) const {
   return m->GetReflection()->GetEnumValue(*m, fdesc);
 }
 
-void protobuf_msg::set_repeated_enum(unsigned int field_tag, int value, int index) {
+void protobuf_msg::set_repeated_enum(uint32_t field_tag, int32_t value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
@@ -1043,7 +1043,7 @@ void protobuf_msg::set_repeated_enum(unsigned int field_tag, int value, int inde
   }
 }
 
-int protobuf_msg::get_repeated_enum(unsigned int field_tag, int index) const {
+int32_t protobuf_msg::get_repeated_enum(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
   const FieldDescriptor* fdesc =
