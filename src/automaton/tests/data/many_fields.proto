@@ -7,7 +7,7 @@ message TestMsg2 {
 	int32 a = 10;
 	int32 l = 2;
 	string o = 4;
-	
+
 	int32 b = 1;
 	int32 c = 3;
 	string d = 5;
@@ -28,4 +28,14 @@ message TestMsg4 {
 		}
 	}
 	repeated int32 k = 3;
+}
+
+message TestMsg5 {
+	int32 a = 1;
+	uint32 b = 2;
+	string c = 3;
+  bytes d = 4;
+  fixed32 e = 5;
+  sint64 f = 6;
+	repeated bool g = 7;
 }

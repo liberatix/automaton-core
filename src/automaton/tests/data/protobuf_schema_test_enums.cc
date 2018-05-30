@@ -44,7 +44,7 @@ TEST(protobuf_factory, enums) {
   int e2 = custom_schema.create_enum("outer_enum");
 
   custom_schema.add_scalar_field(schema::field_info(1,
-      schema::string, "string_field", "", false), m1);
+      schema::blob, "string_field", "", false), m1);
   custom_schema.add_enum_field(schema::field_info(2,
       schema::enum_type, "inner_enum_field",
           "A.inner_enum", false), m1);
@@ -71,10 +71,10 @@ TEST(protobuf_factory, enums) {
   protobuf_factory pb_factory;
   pb_factory.import_schema(&custom_schema, "test", "");
 
-  auto msg1 = pb_factory.new_message("A");
-  auto msg2 = pb_factory.new_message("A");
+  auto msg1 = pb_factory.new_message_by_name("A");
+  auto msg2 = pb_factory.new_message_by_name("A");
 
-  msg1->set_string(1, "value_string");
+  msg1->set_blob(1, "value_string");
   int inner_enum_value =
       pb_factory.get_enum_value(pb_factory.get_enum_id("A.inner_enum"), "inner_value2");
   msg1->set_enum(2, inner_enum_value);
@@ -88,12 +88,12 @@ TEST(protobuf_factory, enums) {
   msg1->serialize_message(&data1);
   msg2->deserialize_message(data1);
 
-  EXPECT_EQ(msg2->get_string(1), "value_string");
+  EXPECT_EQ(msg2->get_blob(1), "value_string");
   EXPECT_EQ(msg2->get_enum(2), 1);
   EXPECT_EQ(msg2->get_enum(3), 0);
 
-  auto msg3 = pb_factory.new_message(pb_factory.get_schema_id("B"));
-  auto msg4 = pb_factory.new_message(pb_factory.get_schema_id("B"));
+  auto msg3 = pb_factory.new_message_by_id(pb_factory.get_schema_id("B"));
+  auto msg4 = pb_factory.new_message_by_id(pb_factory.get_schema_id("B"));
 
   msg3->set_enum(1, 1);
   msg3->set_repeated_enum(2, 1, -1);

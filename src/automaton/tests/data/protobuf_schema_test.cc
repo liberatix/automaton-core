@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     protobuf_schema custom_schema;
     int m1 = custom_schema.create_message("MyMessage");
     custom_schema.add_scalar_field(
-        schema::field_info(1, schema::string, "string_field", "", false), m1);
+        schema::field_info(1, schema::blob, "string_field", "", false), m1);
     custom_schema.add_message_field(
         schema::field_info(
             2, schema::message_type,
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     protobuf_schema custom_schema2;
     int m2 = custom_schema2.create_message("TestMsg2");
     custom_schema2.add_scalar_field(schema::field_info(1,
-        schema::field_type::string, "string_field", "", false), m1);
+        schema::field_type::blob, "string_field", "", false), m1);
     custom_schema2.add_message(m2);
 
     protobuf_schema loaded_schema(get_file_contents("automaton/tests/data/test.proto"));
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     pb_factory.import_schema(&loaded_schema, "name1", "pack1");
     pb_factory.import_schema(&custom_schema2, "name2", "pack2");
     pb_factory.import_schema(&custom_schema, "name3", "pack3");
-    for (int i = 0; i < pb_factory.get_schemas_number(); i++) {
+    for (unsigned int i = 0; i < pb_factory.get_schemas_number(); i++) {
         pb_factory.dump_message_schema(i, std::cout);
     }
     /*
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
       std::string msg = pb_factory.get_message_field_type(schema_id,
           pb_factory.get_field_tag(schema_id, "message_field2"));
       int a = pb_factory.new_message(pb_factory.get_schema_id(msg));
-      pb_factory.set_string(a,1,"alabala");
+      pb_factory.set_blob(a,1,"alabala");
       std::cout << pb_factory.to_string(a) << std::endl;
       int b = pb_factory.new_message(schema_id);
       pb_factory.set_message(b,3,a);

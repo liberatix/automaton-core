@@ -29,7 +29,7 @@ class schema {
     unknown = 0,
     message_type =  1,
     enum_type = 2,
-    string = 4,
+    blob = 4,
     int32 = 5,
     int64 = 6,
     uint32 = 7,
@@ -48,12 +48,12 @@ class schema {
      ignored for scalar types.
   */
   struct field_info {
-    int tag;
+    unsigned int tag;
     field_type type;
     std::string name;
     std::string fully_qualified_type;
     bool is_repeated;
-    field_info(int tag, field_type type, const std::string& name,
+    field_info(unsigned int tag, field_type type, const std::string& name,
         const std::string& fully_qualified_type, bool is_repeated);
   };
 
@@ -64,7 +64,7 @@ class schema {
   /**
     Serializes schema to JSON string.
   */
-  virtual bool to_json(std::string* output) = 0;
+  virtual bool to_json(std::string* output) const = 0;
 
   /**
     Deserializes schema from JSON string.
@@ -87,7 +87,7 @@ class schema {
     add_*_field) and then add_message() so the created message schema is added
     to the schema.
   **/
-  virtual int create_message(const std::string& message_name) = 0;
+  virtual unsigned int create_message(const std::string& message_name) = 0;
 
   /**
     Returns the id of the created enum_schema.
@@ -96,14 +96,15 @@ class schema {
     enum (using add_enum_value) and then add_enum() so the created enum schema
     is added to the schema.
   **/
-  virtual int create_enum(const std::string& enum_name) = 0;
+  virtual unsigned int create_enum(const std::string& enum_name) = 0;
 
   /**
     Used to add values to an already created enum with enum_id. If such enum
     doesn't exist, exception will be thrown.
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  virtual void add_enum_value(int enum_id, const std::string& value_name, int value) = 0;
+  virtual void add_enum_value(unsigned int enum_id, const std::string& value_name, int value)
+      = 0;
 
   /**
     Used to add nested message. Both messages must already exist. If any of
@@ -114,7 +115,7 @@ class schema {
     TODO(kari): Check for name collisions
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  virtual void add_nested_message(int message_id, int sub_message_id) = 0;
+  virtual void add_nested_message(int message_id, unsigned int sub_message_id) = 0;
 
   /**
     Used to add an already created message/enum schema to this schema. The
@@ -125,7 +126,7 @@ class schema {
     with the given id doesn't exist, exception will be thrown.
   **/
   virtual void add_message(int message_id) = 0;
-  virtual void add_enum(int enum_id, int message_id) = 0;
+  virtual void add_enum(unsigned int enum_id, int message_id = -1) = 0;
 
   /**
     These functions are called to add fields to a message. Any of them can be
