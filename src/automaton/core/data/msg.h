@@ -68,13 +68,18 @@ class msg {
     just be added at the end (not on the specified index). If you use out of
     range index on set_repeated_*(), exception will be thrown.
   */
-  virtual void set_string(int field_tag, const std::string& value) = 0;
 
-  virtual std::string get_string(int field_tag) const = 0;
+  /// Blob (string, bytes, ...)
 
-  virtual void set_repeated_string(int field_tag, const std::string& value, int index) = 0;
+  virtual void set_blob(int field_tag, const std::string& value) = 0;
 
-  virtual std::string get_repeated_string(int field_tag, int index) const = 0;
+  virtual std::string get_blob(int field_tag) const = 0;
+
+  virtual void set_repeated_blob(int field_tag, const std::string& value, int index) = 0;
+
+  virtual std::string get_repeated_blob(int field_tag, int index) const = 0;
+
+  /// Int 32
 
   virtual void set_int32(int field_tag, int32_t value) = 0;
 
@@ -83,6 +88,46 @@ class msg {
   virtual void set_repeated_int32(int field_tag, int32_t value, int index) = 0;
 
   virtual int32_t get_repeated_int32(int field_tag, int index) const = 0;
+
+  /// Unsigned int 32
+
+  virtual void set_uint32(int field_tag, uint32_t value) = 0;
+
+  virtual uint32_t get_uint32(int field_tag) const = 0;
+
+  virtual void set_repeated_uint32(int field_tag, uint32_t value, int index) = 0;
+
+  virtual uint32_t get_repeated_uint32(int field_tag, int index) const = 0;
+
+  /// Int 64
+
+  virtual void set_int64(int field_tag, int64_t value) = 0;
+
+  virtual int64_t get_int64(int field_tag) const = 0;
+
+  virtual void set_repeated_int64(int field_tag, int64_t value, int index) = 0;
+
+  virtual int64_t get_repeated_int64(int field_tag, int index) const = 0;
+
+  /// Unsigned int 64
+
+  virtual void set_uint64(int field_tag, uint64_t value) = 0;
+
+  virtual uint64_t get_uint64(int field_tag) const = 0;
+
+  virtual void set_repeated_uint64(int field_tag, uint64_t value, int index) = 0;
+
+  virtual uint64_t get_repeated_uint64(int field_tag, int index) const = 0;
+
+  /// Boolean
+
+  virtual void set_boolean(int field_tag, bool value) = 0;
+
+  virtual bool get_boolean(int field_tag) const = 0;
+
+  virtual void set_repeated_boolean(int field_tag, bool value, int index) = 0;
+
+  virtual bool get_repeated_boolean(int field_tag, int index) const = 0;
 
   /*
     Setters and getters for message type fields. When you use setters, you

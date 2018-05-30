@@ -74,7 +74,7 @@ TEST(protobuf_factory, enums) {
   auto msg1 = pb_factory.new_message("A");
   auto msg2 = pb_factory.new_message("A");
 
-  msg1->set_string(1, "value_string");
+  msg1->set_blob(1, "value_string");
   int inner_enum_value =
       pb_factory.get_enum_value(pb_factory.get_enum_id("A.inner_enum"), "inner_value2");
   msg1->set_enum(2, inner_enum_value);
@@ -88,7 +88,7 @@ TEST(protobuf_factory, enums) {
   msg1->serialize_message(&data1);
   msg2->deserialize_message(data1);
 
-  EXPECT_EQ(msg2->get_string(1), "value_string");
+  EXPECT_EQ(msg2->get_blob(1), "value_string");
   EXPECT_EQ(msg2->get_enum(2), 1);
   EXPECT_EQ(msg2->get_enum(3), 0);
 

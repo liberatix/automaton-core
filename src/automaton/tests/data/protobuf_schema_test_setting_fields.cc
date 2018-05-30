@@ -25,7 +25,7 @@ TEST(protobuf_factory, setting_fields) {
   // No such field
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_string(100, "value");
+    msg->set_blob(100, "value");
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
@@ -36,7 +36,7 @@ TEST(protobuf_factory, setting_fields) {
   // Data field is repeated
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_string(4, "value");
+    msg->set_blob(4, "value");
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
@@ -47,7 +47,7 @@ TEST(protobuf_factory, setting_fields) {
   // Field is not string
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_string(3, "value");
+    msg->set_blob(3, "value");
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
@@ -62,7 +62,7 @@ TEST(protobuf_factory, setting_fields) {
   // No such field
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_repeated_string(100, "value", -1);
+    msg->set_repeated_blob(100, "value", -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
@@ -73,7 +73,7 @@ TEST(protobuf_factory, setting_fields) {
   // Data field is not repeated
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_repeated_string(1, "value", -1);
+    msg->set_repeated_blob(1, "value", -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
@@ -84,7 +84,7 @@ TEST(protobuf_factory, setting_fields) {
   // Field is not string
   try {
     auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_repeated_string(3, "value", -1);
+    msg->set_repeated_blob(3, "value", -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();

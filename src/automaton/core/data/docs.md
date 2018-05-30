@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     std::string msg = sc.get_message_field_type(schema_id,
         sc.get_field_tag(schema_id, "message_field2"));
     int a = sc.new_message(sc.get_schema_id(msg));
-    sc.set_string(a,1,"alabala");
+    sc.set_blob(a,1,"alabala");
     std::cout << sc.to_string(a) << std::endl;
     int b = sc.new_message(schema_id);
     sc.set_message(b,3,a);

@@ -106,19 +106,19 @@ TEST_F(test_protobuf_msg, messages) {
   auto msg5 = pb_factory->new_message(SECOND_MESSAGE);
   auto msg6 = pb_factory->new_message(FIRST_MESSAGE_NESTED_MESSAGE);
 
-  msg1->set_string(1, VALUE_1);
-  msg2->set_string(1, VALUE_2);
-  msg3->set_string(1, VALUE_NESTED);
+  msg1->set_blob(1, VALUE_1);
+  msg2->set_blob(1, VALUE_2);
+  msg3->set_blob(1, VALUE_NESTED);
   msg1->set_message(2, *msg2);
 
   std::cout << "MSG1: " << msg1->to_string() << std::endl <<
                "MSG2: " << msg2->to_string() << std::endl <<
                "MSG3: " << msg3->to_string() << std::endl;
 
-  EXPECT_EQ(msg3->get_string(1), VALUE_NESTED);
-  EXPECT_EQ(msg1->get_string(1), VALUE_1);
-  EXPECT_EQ(msg2->get_string(1), VALUE_2);
-  EXPECT_EQ(msg1->get_message(2)->get_string(1), VALUE_2);
+  EXPECT_EQ(msg3->get_blob(1), VALUE_NESTED);
+  EXPECT_EQ(msg1->get_blob(1), VALUE_1);
+  EXPECT_EQ(msg2->get_blob(1), VALUE_2);
+  EXPECT_EQ(msg1->get_message(2)->get_blob(1), VALUE_2);
 
   std::string data;
 
@@ -129,25 +129,25 @@ TEST_F(test_protobuf_msg, messages) {
   msg3->serialize_message(&data);
   msg6->deserialize_message(data);
 
-  EXPECT_EQ(msg4->get_string(1), VALUE_1);
-  EXPECT_EQ(msg4->get_message(2)->get_string(1), VALUE_2);
-  EXPECT_EQ(msg5->get_string(1), VALUE_2);
-  EXPECT_EQ(msg6->get_string(1), VALUE_NESTED);
+  EXPECT_EQ(msg4->get_blob(1), VALUE_1);
+  EXPECT_EQ(msg4->get_message(2)->get_blob(1), VALUE_2);
+  EXPECT_EQ(msg5->get_blob(1), VALUE_2);
+  EXPECT_EQ(msg6->get_blob(1), VALUE_NESTED);
 
   auto msg7 = pb_factory->new_message(SECOND_MESSAGE);
   auto msg8 = pb_factory->new_message(SECOND_MESSAGE);
   auto msg9 = pb_factory->new_message(THIRD_MESSAGE);
 
-  msg7->set_string(1, VALUE_A);
-  msg8->set_string(1, VALUE_B);
+  msg7->set_blob(1, VALUE_A);
+  msg8->set_blob(1, VALUE_B);
   msg9->set_repeated_message(1, *msg7, -1);
   msg9->set_repeated_message(1, *msg8, -1);
 
   EXPECT_EQ(msg9->get_repeated_field_size(1), 2);
   auto msg10 = msg9->get_repeated_message(1, 0);
   auto msg11 = msg9->get_repeated_message(1, 1);
-  EXPECT_EQ(msg10->get_string(1), VALUE_A);
-  EXPECT_EQ(msg11->get_string(1), VALUE_B);
+  EXPECT_EQ(msg10->get_blob(1), VALUE_A);
+  EXPECT_EQ(msg11->get_blob(1), VALUE_B);
 
   auto msg13 = pb_factory->new_message(THIRD_MESSAGE);
   msg9->serialize_message(&data);
@@ -156,8 +156,8 @@ TEST_F(test_protobuf_msg, messages) {
   EXPECT_EQ(msg13->get_repeated_field_size(1), 2);
   auto msg14 = msg13->get_repeated_message(1, 0);
   auto msg15 = msg13->get_repeated_message(1, 1);
-  EXPECT_EQ(msg14->get_string(1), VALUE_A);
-  EXPECT_EQ(msg15->get_string(1), VALUE_B);
+  EXPECT_EQ(msg14->get_blob(1), VALUE_A);
+  EXPECT_EQ(msg15->get_blob(1), VALUE_B);
 
   EXPECT_EQ(
       pb_factory->get_field_type(

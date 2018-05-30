@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
       std::string msg = pb_factory.get_message_field_type(schema_id,
           pb_factory.get_field_tag(schema_id, "message_field2"));
       int a = pb_factory.new_message(pb_factory.get_schema_id(msg));
-      pb_factory.set_string(a,1,"alabala");
+      pb_factory.set_blob(a,1,"alabala");
       std::cout << pb_factory.to_string(a) << std::endl;
       int b = pb_factory.new_message(schema_id);
       pb_factory.set_message(b,3,a);
