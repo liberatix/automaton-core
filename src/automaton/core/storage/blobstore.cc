@@ -41,7 +41,7 @@ uint8_t* blobstore::create_blob(const uint32_t size, uint64_t* id) {
   return out_blob_pointer;
 }
 
-uint64_t blobstore::store(const uint32_t size, uint8_t* data) {
+uint64_t blobstore::store(const uint32_t size, const uint8_t* data) {
   uint64_t id = 0;
   uint8_t* blob = create_blob(size, &id);
   std::memcpy(blob, data, size);

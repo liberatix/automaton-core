@@ -16,14 +16,6 @@ class blobstore {
  public:
   explicit blobstore(std::string file_path);
   ~blobstore();
-  /**
-    Creates a blob with a given size
-
-    @returns    uint8_t*  the pointer to the created blob
-    @param[in]  size      The size in bytes to be allocated
-    @param[out] id        id used to get access to the blob.
-  */
-  uint8_t* create_blob(uint32_t const size, uint64_t* id);
 
   /**
     Stores the byte array pointed by data with
@@ -32,7 +24,7 @@ class blobstore {
     @param[in]  size      The size of the data pointed by data in bytes
     @param[out] data      Pointer to the data
   */
-  uint64_t store(const uint32_t size, uint8_t* data);
+  uint64_t store(const uint32_t size, const uint8_t* data);
 
   /**
     Used to get access to previously allocated blob.
@@ -64,6 +56,15 @@ class blobstore {
   //  if next.location.ID == this.location.ID + length:
   //    this.location.length += next.location.length
   //  while
+
+  /**
+  Creates a blob with a given size
+
+  @returns    uint8_t*  the pointer to the created blob
+  @param[in]  size      The size in bytes to be allocated
+  @param[out] id        id used to get access to the blob.
+  */
+  uint8_t* create_blob(uint32_t const size, uint64_t* id);
 };
 
 }  // namespace storage
