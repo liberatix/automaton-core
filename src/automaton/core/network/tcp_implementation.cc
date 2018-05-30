@@ -53,7 +53,7 @@ tcp_connection::tcp_connection(const std::string& address_, connection_handler*
     LOG(ERROR) << boost_error_code.message();
     handler_->on_error(this, connection::error::invalid_address);
   } else {
-    LOG(INFO) << "Successfully resolved address, no connection was made yet";
+    // LOG(INFO) << "Successfully resolved address, no connection was made yet";
   }
 }
 
@@ -223,6 +223,12 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
     handler_, connection::connection_handler* connections_handler_):
     acceptor(handler_), asio_acceptor{asio_io_service},
     accepted_connections_handler(connections_handler_) {
+  if (!tcp_initialized) {
+    std::stringstream msg;
+    msg << "TCP is not initialized! Call tcp_init() first!";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::runtime_error(msg.str());
+  }
   boost::asio::ip::tcp::resolver resolver{asio_io_service};
   boost::system::error_code boost_error_code;
   std::string ip, port;

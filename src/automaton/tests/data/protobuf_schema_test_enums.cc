@@ -123,7 +123,7 @@ TEST(protobuf_factory, enums) {
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
-    EXPECT_EQ(message, "Field is repeated");
+    EXPECT_EQ(message, "Field is repeated!");
   }
   google::protobuf::ShutdownProtobufLibrary();
 }

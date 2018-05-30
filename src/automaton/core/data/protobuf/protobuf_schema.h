@@ -31,9 +31,6 @@ class protobuf_schema: public schema {
 
   void register_self();
 
-  void import_from_file_proto(google::protobuf::FileDescriptorProto* fileproto,
-      const std::string& name, const std::string& package);
-
   /**
     This function is used from protobuf_factory on import. (Instead of
     friend class)

@@ -41,7 +41,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is repeated");
+    EXPECT_EQ(message, "Field is repeated!");
   }
 
   // Field is not string
@@ -52,7 +52,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not string");
+    EXPECT_EQ(message, "Field is not string!");
   }
 
   /**
@@ -78,7 +78,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not repeated");
+    EXPECT_EQ(message, "Field is not repeated!");
   }
 
   // Field is not string
@@ -89,7 +89,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not string");
+    EXPECT_EQ(message, "Field is not string!");
   }
 
   // *** Int32 functions ***
@@ -113,7 +113,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is repeated");
+    EXPECT_EQ(message, "Field is repeated!");
   }
 
   // Field is not int32
@@ -124,7 +124,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not int32");
+    EXPECT_EQ(message, "Field is not int32!");
   }
 
   // *** Int32 array functions ***
@@ -148,7 +148,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not repeated");
+    EXPECT_EQ(message, "Field is not repeated!");
   }
 
   // Field is not int32
@@ -159,7 +159,7 @@ TEST(protobuf_factory, setting_fields) {
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not int32");
+    EXPECT_EQ(message, "Field is not int32!");
   }
   google::protobuf::ShutdownProtobufLibrary();
 }
