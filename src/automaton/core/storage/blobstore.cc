@@ -41,14 +41,14 @@ uint8_t* blobstore::create_blob(const uint32_t size, uint64_t* id) {
   return out_blob_pointer;
 }
 
-uint64_t blobstore::store_data(const uint32_t size, uint8_t* data) {
+uint64_t blobstore::store(const uint32_t size, uint8_t* data) {
   uint64_t id = 0;
   uint8_t* blob = create_blob(size, &id);
   std::memcpy(blob, data, size);
   return id;
 }
 
-uint8_t* blobstore::get_data(const uint64_t id, uint32_t* size) {
+uint8_t* blobstore::get(const uint64_t id, uint32_t* size) {
   // check if id is out of range
   if (id+1 >= capacity) {
     return 0;
@@ -57,11 +57,12 @@ uint8_t* blobstore::get_data(const uint64_t id, uint32_t* size) {
   return reinterpret_cast<uint8_t*>(&storage[id + 1]);
 }
 
-bool blobstore::delete_blob(const uint32_t id) {
+bool blobstore::free(const uint32_t id) {
+  // TODO(Samir): Change storage to unt8_t. Mark deleted nodes with *= -1
   storage[id] = 0;
   return 1;
 }
 
-}  // namespace storage
-}  // namespace core
+}  //  namespace storage
+}  //  namespace core
 }  //  namespace automaton
