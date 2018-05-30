@@ -226,7 +226,7 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
   if (!tcp_initialized) {
     std::stringstream msg;
     msg << "TCP is not initialized! Call tcp_init() first!";
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
   boost::asio::ip::tcp::resolver resolver{asio_io_service};

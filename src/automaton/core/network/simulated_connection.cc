@@ -395,7 +395,7 @@ simulated_connection::simulated_connection(const std::string& address_,
     std::stringstream msg;
     msg << "ERROR: Connection creation failed! Could not resolve address and parameters in: " <<
       address_;
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());
   }
 }
@@ -614,7 +614,7 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
     if (!address) {
       std::stringstream msg;
       msg << "ERROR: Acceptor creation failed! Acceptor address should be > 0";
-      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
       throw std::invalid_argument(msg.str());
     } else {
       simulation::get_simulator()->add_acceptor(address, this);
@@ -623,7 +623,7 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
     std::stringstream msg;
     msg << "ERROR: Acceptor creation failed! Could not resolve address and parameters in: " <<
       address_;
-    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());
     address = 0;
   }

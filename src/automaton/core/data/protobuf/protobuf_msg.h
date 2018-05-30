@@ -22,7 +22,7 @@ namespace protobuf {
 
 /**
   Google Protobuf msg implementation.
-  
+
   This is a wrapper around google::protobuf::Message.
 */
 class protobuf_msg : public msg {
@@ -43,12 +43,12 @@ class protobuf_msg : public msg {
       message or field exists or if the field is not repeated, exception will be
       thrown.
   */
-  int get_repeated_field_size(int field_tag) const;
+  unsigned int get_repeated_field_size(unsigned int field_tag) const;
 
   /** Serializes the given message into the given string. If no such message
       exists or some error while serializing happens, exception will be thrown.
   */
-  bool serialize_message(std::string* output);
+  bool serialize_message(std::string* output) const;
 
   /** Deserializes message from the given string into a message with the given
       message id. If no such message exists or some error while deserializing
@@ -60,7 +60,7 @@ class protobuf_msg : public msg {
   /**
     Serializes message to JSON string.
   */
-  bool to_json(std::string* output);
+  bool to_json(std::string* output) const;
 
   /**
     Deserializes message from JSON string.
@@ -70,7 +70,7 @@ class protobuf_msg : public msg {
   /** Returns human readable representation of the message with the given id. If
       message id is not valid, exception will be thrown.
   */
-  std::string to_string();
+  std::string to_string() const;
 
   /**
     Setters and getters for the scalar types. If any tag or id is invalid, or if
@@ -80,21 +80,66 @@ class protobuf_msg : public msg {
     just be added at the end (not on the specified index). If you use out of
     range index on set_repeated_*(), exception will be thrown.
   */
-  void set_string(int field_tag, const std::string& value);
 
-  std::string get_string(int field_tag) const;
+    /// Blob (string, bytes, ...)
 
-  void set_repeated_string(int field_tag, const std::string& value, int index);
+    void set_blob(unsigned int field_tag, const std::string& value);
 
-  std::string get_repeated_string(int field_tag, int index) const;
+    std::string get_blob(unsigned int field_tag) const;
 
-  void set_int32(int field_tag, int32_t value);
+    void set_repeated_blob(unsigned int field_tag, const std::string& value, int index);
 
-  int32_t get_int32(int field_tag) const;
+    std::string get_repeated_blob(unsigned int field_tag, int index) const;
 
-  void set_repeated_int32(int field_tag, int32_t value, int index);
+    /// Int 32
 
-  int32_t get_repeated_int32(int field_tag, int index) const;
+    void set_int32(unsigned int field_tag, int32_t value);
+
+    int32_t get_int32(unsigned int field_tag) const;
+
+    void set_repeated_int32(unsigned int field_tag, int32_t value, int index);
+
+    int32_t get_repeated_int32(unsigned int field_tag, int index) const;
+
+    /// Unsigned int 32
+
+    void set_uint32(unsigned int field_tag, uint32_t value);
+
+    uint32_t get_uint32(unsigned int field_tag) const;
+
+    void set_repeated_uint32(unsigned int field_tag, uint32_t value, int index);
+
+    uint32_t get_repeated_uint32(unsigned int field_tag, int index) const;
+
+    /// Int 64
+
+    void set_int64(unsigned int field_tag, int64_t value);
+
+    int64_t get_int64(unsigned int field_tag) const;
+
+    void set_repeated_int64(unsigned int field_tag, int64_t value, int index);
+
+    int64_t get_repeated_int64(unsigned int field_tag, int index) const;
+
+    /// Unsigned int 64
+
+    void set_uint64(unsigned int field_tag, uint64_t value);
+
+    uint64_t get_uint64(unsigned int field_tag) const;
+
+    void set_repeated_uint64(unsigned int field_tag, uint64_t value, int index);
+
+    uint64_t get_repeated_uint64(unsigned int field_tag, int index) const;
+
+    /// Boolean
+
+    void set_boolean(unsigned int field_tag, bool value);
+
+    bool get_boolean(unsigned int field_tag) const;
+
+    void set_repeated_boolean(unsigned int field_tag, bool value, int index);
+
+    bool get_repeated_boolean(unsigned int field_tag, int index) const;
 
   /*
     Setters and getters for message type fields. When you use setters, you
@@ -108,13 +153,13 @@ class protobuf_msg : public msg {
     will just be added at the end (not on the specified index). If you use out
     of range index on get_repeated_message(), exception will be thrown.
   */
-  void set_message(int field_tag, const msg& sub_message);
+  void set_message(unsigned int field_tag, const msg& sub_message);
 
-  std::unique_ptr<msg> get_message(int field_tag) const;
+  std::unique_ptr<msg> get_message(unsigned int field_tag) const;
 
-  void set_repeated_message(int field_tag, const msg& sub_message, int index);
+  void set_repeated_message(unsigned int field_tag, const msg& sub_message, int index);
 
-  std::unique_ptr<msg> get_repeated_message(int field_tag, int index) const;
+  std::unique_ptr<msg> get_repeated_message(unsigned int field_tag, int index) const;
 
   /*
     Setters and getters for enum type fields. If any tag or id is invalid, or if
@@ -123,13 +168,13 @@ class protobuf_msg : public msg {
     added at the end (not on the specified index). If you use out of range index
     on get_repeated_enum(), exception will be thrown.
   */
-  void set_enum(int field_tag, int value);
+  void set_enum(unsigned int field_tag, int value);
 
-  int get_enum(int field_tag) const;
+  int get_enum(unsigned int field_tag) const;
 
-  void set_repeated_enum(int field_tag, int value, int index);
+  void set_repeated_enum(unsigned int field_tag, int value, int index);
 
-  int get_repeated_enum(int field_tag, int index) const;
+  int get_repeated_enum(unsigned int field_tag, int index) const;
 
  private:
   std::unique_ptr<google::protobuf::Message> m;

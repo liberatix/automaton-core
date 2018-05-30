@@ -51,7 +51,7 @@ class module {
       // TODO(asen): Trhow an actual exception.
       std::stringstream msg;
       msg << "Invalid version";
-      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
       throw std::invalid_argument(msg.str());
     }
   }
@@ -88,7 +88,7 @@ class registry {
     if (modules_.count(m.name_with_api_version()) > 0) {
       std::stringstream msg;
       msg << "Module [" << m.name_with_api_version() << "] has already been imported!";
-      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
       throw std::runtime_error(msg.str());
       // throw "Already registered!";
     }
@@ -103,7 +103,7 @@ class registry {
         std::stringstream msg;
         msg << m.name_with_api_version() << " depends on " << dep <<
             " which hasn't been imported yet!";
-        LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+        LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
         throw std::runtime_error(msg.str());
         // throw "dependency issue!";
       }

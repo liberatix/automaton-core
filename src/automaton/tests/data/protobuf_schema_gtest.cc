@@ -14,7 +14,7 @@ TEST(data_protobuf, messages) {
   protobuf_schema cs;
   int m1 = cs.create_message("MyMessage");
   cs.add_scalar_field(
-      schema::field_info(1, schema::string, "string_field", "", false), m1);
+      schema::field_info(1, schema::blob, "string_field", "", false), m1);
   cs.add_message_field(
       schema::field_info(
           2, schema::message_type, "message_field", "pack1.TestMsg", false),
@@ -30,13 +30,13 @@ TEST(data_protobuf, messages) {
   protobuf_schema cs2;
   int m2 = cs2.create_message("TestMsg2");
   cs2.add_scalar_field(
-      schema::field_info(1, schema::string, "string_field", "", false), m1);
+      schema::field_info(1, schema::blob, "string_field", "", false), m1);
   cs2.add_message(m2);
 
   protobuf_schema cs3;
   int m3 = cs3.create_message("TestMsg");
   cs3.add_scalar_field(
-      schema::field_info(1, schema::string, "string_field", "", false), m1);
+      schema::field_info(1, schema::blob, "string_field", "", false), m1);
   cs3.add_message(m3);
 
   protobuf_factory pb_factory;
