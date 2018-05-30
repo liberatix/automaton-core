@@ -8,22 +8,21 @@
 using automaton::core::storage::blobstore;
 
 TEST(blobstore, basic_test) {
-  blobstore storage("test");
+  blobstore storage("filepath.txt");
   uint32_t blob_size = 16;
   uint64_t access_id;
   std::string data_to_save = "0123456789ABCDEF";
-  uint8_t* p_blob = storage.create_blob(blob_size, &access_id);
-  std::memcpy(p_blob, &data_to_save[0], blob_size);
-  EXPECT_FALSE(std::memcmp(p_blob, &data_to_save[0], blob_size));
+
+  access_id = storage.store(blob_size, reinterpret_cast<const uint8_t*> ("0123456789ABCDEF"));
 
   uint32_t retrived_size = 0;
-  uint8_t* retrived_blob = storage.get_data(access_id, &retrived_size);
+  uint8_t* retrived_blob = storage.get(access_id, &retrived_size);
   EXPECT_EQ(retrived_size, blob_size);
   EXPECT_FALSE(std::memcmp(retrived_blob, &data_to_save[0], blob_size));
 }
 
 
-TEST(blobstore, create_blob_write_get_data) {
+TEST(blobstore, store_get) {
   blobstore storage("test");
   std::vector<std::string> tests;
   std::vector<uint64_t> access_id;
@@ -49,14 +48,11 @@ TEST(blobstore, create_blob_write_get_data) {
 
   for (const auto &test : tests) {
     size_t blob_size = test.length();
-    access_id.push_back(0ULL);
-    uint8_t* p_blob = storage.create_blob(blob_size, &access_id.back());
-    std::memcpy(p_blob, &test[0] , blob_size);
-    EXPECT_FALSE(std::memcmp(p_blob, &test[0], blob_size));
+    access_id.push_back(storage.store(blob_size, reinterpret_cast<const uint8_t*>(&test[0])));
 
     uint32_t retrived_size = 0;
-    uint8_t* retrived_blob = storage.get_data(access_id.back(), &retrived_size);
+    uint8_t* retrived_blob = storage.get(access_id.back(), &retrived_size);
     EXPECT_EQ(retrived_size, blob_size);
-    EXPECT_FALSE(std::memcmp(retrived_blob,  &test[0], blob_size));
+    EXPECT_FALSE(std::memcmp(retrived_blob,  &test[0], retrived_size));
   }
 }
