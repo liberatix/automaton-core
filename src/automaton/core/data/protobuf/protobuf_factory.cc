@@ -377,7 +377,7 @@ schema::field_info protobuf_factory::get_field_info(int schema_id, int index) co
   const Descriptor* desc = schemas[schema_id]->GetDescriptor();
   if (index < 0 || index >= desc->field_count()) {
     std::stringstream msg;
-    msg << "No field with such index: " + index;
+    msg << "No field with such index: " << index;
     LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
@@ -404,7 +404,7 @@ schema::field_info protobuf_factory::get_field_info(int schema_id, int index) co
 int protobuf_factory::get_schema_id(const string& message_name) const {
   if (schemas_names.find(message_name) == schemas_names.end()) {
     std::stringstream msg;
-    msg << "No schema '" + message_name + '\'';
+    msg << "No schema '" << message_name << '\'';
     LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());
   }
@@ -426,7 +426,7 @@ string protobuf_factory::get_field_type(int schema_id, int tag) const {
     return fdesc->cpp_type_name();
   }
   std::stringstream msg;
-  msg << "No field with tag: " + tag;
+  msg << "No field with tag: " << tag;
   LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
   throw std::invalid_argument(msg.str());
 }
