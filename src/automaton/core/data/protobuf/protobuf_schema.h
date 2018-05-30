@@ -53,7 +53,7 @@ class protobuf_schema: public schema {
     add_*_field) and then add_message() so the created message schema is added
     to the schema.
   **/
-  int create_message(const std::string& message_name);
+  unsigned int create_message(const std::string& message_name);
 
   /**
     Returns the id of the created enum_schema.
@@ -62,14 +62,14 @@ class protobuf_schema: public schema {
     enum (using add_enum_value) and then add_enum() so the created enum schema
     is added to the schema.
   **/
-  int create_enum(const std::string& enum_name);
+  unsigned int create_enum(const std::string& enum_name);
 
   /**
     Used to add values to an already created enum with enum_id. If such enum
     doesn't exist, exception will be thrown.
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  void add_enum_value(int enum_id, const std::string& value_name,
+  void add_enum_value(unsigned int enum_id, const std::string& value_name,
       int value);
 
   /**
@@ -81,7 +81,7 @@ class protobuf_schema: public schema {
     TODO(kari): Check for name collisions
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  void add_nested_message(int message_id, int sub_message_id);
+  void add_nested_message(int message_id, unsigned int sub_message_id);
 
   /**
     Used to add an already created message/enum schema to this schema. The
@@ -93,7 +93,7 @@ class protobuf_schema: public schema {
   **/
   void add_message(int message_id);
 
-  void add_enum(int enum_id, int message_id);
+  void add_enum(unsigned int enum_id, int message_id);
 
   /**
     These functions are called to add fields to a message. Any of them can be
@@ -111,7 +111,7 @@ class protobuf_schema: public schema {
   /**
     Serializes schema to JSON string.
   */
-  bool to_json(std::string* output);
+  bool to_json(std::string* output) const;
 
   /**
     Deserializes schema from JSON string.

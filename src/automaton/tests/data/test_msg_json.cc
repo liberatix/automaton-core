@@ -103,9 +103,9 @@ std::unique_ptr<protobuf_factory> test_msg_json::pb_factory;
 TEST_F(test_msg_json, serialize_json) {
   pb_factory->import_schema(pb_schema.get(), "test", "");
 
-  auto msg1 = pb_factory->new_message(FIRST_MESSAGE);
-  auto msg2 = pb_factory->new_message(SECOND_MESSAGE);
-  auto msg3 = pb_factory->new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  auto msg1 = pb_factory->new_message_by_name(FIRST_MESSAGE);
+  auto msg2 = pb_factory->new_message_by_name(SECOND_MESSAGE);
+  auto msg3 = pb_factory->new_message_by_name(FIRST_MESSAGE_NESTED_MESSAGE);
 
   msg1->set_blob(1, VALUE_1);
 
@@ -121,7 +121,7 @@ TEST_F(test_msg_json, serialize_json) {
   std::cout << json << std::endl;
 
   // Serialize from JSON.
-  auto msg4 = pb_factory->new_message(FIRST_MESSAGE);
+  auto msg4 = pb_factory->new_message_by_name(FIRST_MESSAGE);
   msg4->from_json(json);
   std::cout << "DESERIALIZED MSG: " << msg4->to_string() << std::endl;
 

@@ -29,8 +29,8 @@ TEST(protobuf_factory, message_serialization) {
   protobuf_factory pb_factory;
   pb_factory.import_schema(&custom_schema, "test", "");
 
-  auto msg1 = pb_factory.new_message(0);
-  auto msg2 = pb_factory.new_message(0);
+  auto msg1 = pb_factory.new_message_by_id(0);
+  auto msg2 = pb_factory.new_message_by_id(0);
 
   msg1->set_blob(1, "value");
   msg1->set_repeated_int32(2, 7, -1);

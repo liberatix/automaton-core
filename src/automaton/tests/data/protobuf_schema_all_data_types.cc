@@ -49,7 +49,7 @@ TEST(protobuf_factory, all_data_types) {
 
   ///
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_int64(6, 569);
     msg->set_uint32(2, 96);
     msg->set_blob(4, "value");
@@ -63,7 +63,7 @@ TEST(protobuf_factory, all_data_types) {
 
   // Data field is repeated
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_boolean(7, true);
   }
   catch (std::invalid_argument& e) {
@@ -72,7 +72,7 @@ TEST(protobuf_factory, all_data_types) {
     EXPECT_EQ(message, "Field is repeated!");
   }
 
-  auto msg = pb_factory.new_message(TEST_MSG);
+  auto msg = pb_factory.new_message_by_name(TEST_MSG);
   msg->set_int32(1, 569);
   msg->set_uint32(2, 123);
   msg->set_blob(3, "alabala");
@@ -98,7 +98,7 @@ TEST(protobuf_factory, all_data_types) {
     EXPECT_EQ(message, "Field is not uint64!");
   }
   try {
-    msg->get_repeated_blob(3);
+    msg->get_repeated_blob(3, 0);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();

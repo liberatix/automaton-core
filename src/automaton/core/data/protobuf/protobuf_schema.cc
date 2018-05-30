@@ -35,7 +35,7 @@ class io_error_collector : public google::protobuf::io::ErrorCollector {
   io_error_collector() {
   errors_number = 0;
   errors_list = "";
-  }
+}
 
   void AddError(int line, int column, const std::string& message) {
     std::cerr << "*Error: line: " << line << " col: " << column << "->"
@@ -57,7 +57,7 @@ class io_error_collector : public google::protobuf::io::ErrorCollector {
     errors_list = "";
   }
 
-  int get_number_errors() {
+  unsigned int get_number_errors() {
     return errors_number;
   }
 
@@ -66,7 +66,7 @@ class io_error_collector : public google::protobuf::io::ErrorCollector {
   }
 
  private:
-  int errors_number;
+  unsigned int errors_number;
   std::string errors_list;
 };
 
@@ -129,19 +129,20 @@ void protobuf_schema::add_dependency(const std::string& schema_name) {
   file_descriptor_proto->add_dependency(schema_name);
 }
 
-int protobuf_schema::create_message(const std::string& message_name) {
+unsigned int protobuf_schema::create_message(const std::string& message_name) {
   messages.push_back(new DescriptorProto());
   messages[messages.size() - 1]->set_name(message_name);
   return messages.size() - 1;
 }
 
-int protobuf_schema::create_enum(const std::string& enum_name) {
+unsigned int protobuf_schema::create_enum(const std::string& enum_name) {
   enums.push_back(new EnumDescriptorProto());
   enums[enums.size() - 1]->set_name(enum_name);
   return enums.size() - 1;
 }
 
-void protobuf_schema::add_enum_value(int enum_id, const std::string& value_name, int value) {
+void protobuf_schema::add_enum_value(unsigned int enum_id, const std::string& value_name,
+    int value) {
   if (enum_id < 0 || enum_id >= enums.size()) {
     std::stringstream msg;
     msg << "No enum with id: " << enum_id;
@@ -160,7 +161,7 @@ void protobuf_schema::add_enum_value(int enum_id, const std::string& value_name,
   field->set_number(value);
 }
 
-void protobuf_schema::add_nested_message(int message_id, int sub_message_id) {
+void protobuf_schema::add_nested_message(int message_id, unsigned int sub_message_id) {
   CHECK_BOUNDS(message_id, 0, messages.size() - 1) << "message_id out of bounds";
   CHECK_BOUNDS(sub_message_id, 0, messages.size() - 1) << "sub_message_id out of bounds";
   if (messages[message_id] == nullptr || messages[sub_message_id] == nullptr) {
@@ -186,7 +187,7 @@ void protobuf_schema::add_message(int message_id) {
   m->CopyFrom(*messages[message_id]);
 }
 
-void protobuf_schema::add_enum(int enum_id, int message_id = -1) {
+void protobuf_schema::add_enum(unsigned int enum_id, int message_id) {
   if (enum_id < 0 || enum_id >= enums.size()) {
     std::stringstream msg;
     msg << "No enum with id: " << enum_id;
@@ -203,7 +204,7 @@ void protobuf_schema::add_enum(int enum_id, int message_id = -1) {
     EnumDescriptorProto* edp = file_descriptor_proto->add_enum_type();
     edp->CopyFrom(*enums[enum_id]);
   } else {
-    if (message_id < 0 || message_id >= messages.size()) {
+    if (message_id < 0 || static_cast<unsigned int>(message_id) >= messages.size()) {
       std::stringstream msg;
       msg << "No message with id: " << message_id;
       LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
@@ -302,7 +303,7 @@ void protobuf_schema::add_message_field(schema::field_info field, int message_id
 /**
   Serializes schema to JSON string.
 */
-bool protobuf_schema::to_json(std::string* output) {
+bool protobuf_schema::to_json(std::string* output) const {
   CHECK_NOTNULL(output);
   CHECK_NOTNULL(file_descriptor_proto);
   auto status = MessageToJsonString(*file_descriptor_proto, output);

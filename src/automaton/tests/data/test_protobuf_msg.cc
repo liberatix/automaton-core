@@ -98,13 +98,13 @@ std::unique_ptr<protobuf_factory> test_protobuf_msg::pb_factory;
 TEST_F(test_protobuf_msg, messages) {
   pb_factory->import_schema(pb_schema.get(), "test", "");
 
-  auto msg1 = pb_factory->new_message(FIRST_MESSAGE);
-  auto msg2 = pb_factory->new_message(SECOND_MESSAGE);
-  auto msg3 = pb_factory->new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  auto msg1 = pb_factory->new_message_by_name(FIRST_MESSAGE);
+  auto msg2 = pb_factory->new_message_by_name(SECOND_MESSAGE);
+  auto msg3 = pb_factory->new_message_by_name(FIRST_MESSAGE_NESTED_MESSAGE);
 
-  auto msg4 = pb_factory->new_message(FIRST_MESSAGE);
-  auto msg5 = pb_factory->new_message(SECOND_MESSAGE);
-  auto msg6 = pb_factory->new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  auto msg4 = pb_factory->new_message_by_name(FIRST_MESSAGE);
+  auto msg5 = pb_factory->new_message_by_name(SECOND_MESSAGE);
+  auto msg6 = pb_factory->new_message_by_name(FIRST_MESSAGE_NESTED_MESSAGE);
 
   msg1->set_blob(1, VALUE_1);
   msg2->set_blob(1, VALUE_2);
@@ -134,9 +134,9 @@ TEST_F(test_protobuf_msg, messages) {
   EXPECT_EQ(msg5->get_blob(1), VALUE_2);
   EXPECT_EQ(msg6->get_blob(1), VALUE_NESTED);
 
-  auto msg7 = pb_factory->new_message(SECOND_MESSAGE);
-  auto msg8 = pb_factory->new_message(SECOND_MESSAGE);
-  auto msg9 = pb_factory->new_message(THIRD_MESSAGE);
+  auto msg7 = pb_factory->new_message_by_name(SECOND_MESSAGE);
+  auto msg8 = pb_factory->new_message_by_name(SECOND_MESSAGE);
+  auto msg9 = pb_factory->new_message_by_name(THIRD_MESSAGE);
 
   msg7->set_blob(1, VALUE_A);
   msg8->set_blob(1, VALUE_B);
@@ -149,7 +149,7 @@ TEST_F(test_protobuf_msg, messages) {
   EXPECT_EQ(msg10->get_blob(1), VALUE_A);
   EXPECT_EQ(msg11->get_blob(1), VALUE_B);
 
-  auto msg13 = pb_factory->new_message(THIRD_MESSAGE);
+  auto msg13 = pb_factory->new_message_by_name(THIRD_MESSAGE);
   msg9->serialize_message(&data);
   msg13->deserialize_message(data);
 

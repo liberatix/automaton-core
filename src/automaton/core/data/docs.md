@@ -132,10 +132,10 @@ int main(int argc, char* argv[]) {
     int schema_id = sc.get_schema_id("pack3.MyMessage");
     std::string msg = sc.get_message_field_type(schema_id,
         sc.get_field_tag(schema_id, "message_field2"));
-    int a = sc.new_message(sc.get_schema_id(msg));
+    int a = sc.new_message_by_name(msg);
     sc.set_blob(a,1,"alabala");
     std::cout << sc.to_string(a) << std::endl;
-    int b = sc.new_message(schema_id);
+    int b = sc.new_message_by_id(schema_id);
     sc.set_message(b,3,a);
     std::cout << sc.to_string(b) << std::endl;
 

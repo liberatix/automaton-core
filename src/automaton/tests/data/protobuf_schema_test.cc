@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     pb_factory.import_schema(&loaded_schema, "name1", "pack1");
     pb_factory.import_schema(&custom_schema2, "name2", "pack2");
     pb_factory.import_schema(&custom_schema, "name3", "pack3");
-    for (int i = 0; i < pb_factory.get_schemas_number(); i++) {
+    for (unsigned int i = 0; i < pb_factory.get_schemas_number(); i++) {
         pb_factory.dump_message_schema(i, std::cout);
     }
     /*
