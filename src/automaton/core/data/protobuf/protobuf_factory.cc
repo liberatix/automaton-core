@@ -180,8 +180,8 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
   // Checks if file with the same name already exists in the pool.
   if (pool->FindFileByName(name) != nullptr) {
     std::stringstream msg;
-    msg << "File with name <" + name + "> already exists.";
-    LOG(ERROR) << msg.str();
+    msg << "File with name <" << name << "> already exists.";
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
 
@@ -189,11 +189,11 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
   int dependencies_number = fdp->dependency_size();
   LOG(INFO) << "Checking dependencies " << dependencies_number;
   for (int i = 0; i < dependencies_number; ++i) {
-    LOG(INFO) << " dependency " << std::to_string(i) << " <" << fdp->dependency(i) << ">";
+    LOG(INFO) << " dependency " << i << " <" << fdp->dependency(i) << ">";
     if (pool->FindFileByName(fdp->dependency(i)) == nullptr) {
       std::stringstream msg;
       msg << "Dependency <" << fdp->dependency(i) << "> was not found. Import it first.";
-      LOG(ERROR) << msg.str();
+      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
       throw std::runtime_error(msg.str());
     }
   }
@@ -202,7 +202,7 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
   const FileDescriptor* fd = pool->BuildFileCollectingErrors(*fdp, &proto_error_collector_);
   if (proto_error_collector_.get_number_errors() > 0) {
     std::stringstream msg;
-    msg << "Errors while parsing:\n" + proto_error_collector_.get_all_errors();
+    msg << "Errors while parsing:\n" << proto_error_collector_.get_all_errors();
     LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
   }
@@ -213,8 +213,10 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
   for (int i = 0; i < number_messages; i++) {
     const Descriptor* desc = fd->message_type(i);
     if (contain_invalid_data(desc)) {
-      LOG(ERROR) << "Invalid data in descriptor: " << desc->name();
-      throw std::runtime_error("Message contains invalid field type!");
+      std::stringstream msg;
+      msg << "Message contains invalid field type! Invalid data in descriptor: " << desc->name();
+      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      throw std::runtime_error(msg.str());
     }
   }
 
@@ -298,8 +300,8 @@ int protobuf_factory::get_enums_number() const {
 int protobuf_factory::get_enum_id(const string& enum_name) const {
   if (enums_names.find(enum_name) == enums_names.end()) {
     std::stringstream msg;
-    msg << "No enum '" + enum_name + '\'';
-    LOG(ERROR) << msg.str();
+    msg << "No enum '" << enum_name << '\'';
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());
   }
   return enums_names.at(enum_name);
@@ -324,7 +326,10 @@ int protobuf_factory::get_enum_value(int enum_id, const string& value_name) cons
   CHECK_NOTNULL(enums[enum_id]);
   const EnumValueDescriptor* evd = enums[enum_id]->FindValueByName(value_name);
   if (evd == nullptr) {
-    throw std::invalid_argument("No enum value " + value_name);
+    std::stringstream msg;
+    msg << "No enum value " << value_name;
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   return evd->number();
 }
@@ -359,7 +364,10 @@ bool protobuf_factory::is_repeated(int schema_id, int field_tag) {
   if (fdesc) {
     return fdesc->is_repeated();
   }
-  throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+  std::stringstream msg;
+  msg << "No field with tag: " << field_tag;
+  LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+  throw std::invalid_argument(msg.str());
 }
 
 schema::field_info protobuf_factory::get_field_info(int schema_id, int index) const {
@@ -368,7 +376,10 @@ schema::field_info protobuf_factory::get_field_info(int schema_id, int index) co
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
   const Descriptor* desc = schemas[schema_id]->GetDescriptor();
   if (index < 0 || index >= desc->field_count()) {
-    throw std::out_of_range("No field with such index: " + std::to_string(index));
+    std::stringstream msg;
+    msg << "No field with such index: " << index;
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
   const FieldDescriptor* fdesc = desc->field(index);
   schema::field_type type;
@@ -392,7 +403,10 @@ schema::field_info protobuf_factory::get_field_info(int schema_id, int index) co
 
 int protobuf_factory::get_schema_id(const string& message_name) const {
   if (schemas_names.find(message_name) == schemas_names.end()) {
-    throw std::invalid_argument("No schema '" + message_name + '\'');
+    std::stringstream msg;
+    msg << "No schema '" << message_name << '\'';
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
   return schemas_names.at(message_name);
 }
@@ -411,7 +425,10 @@ string protobuf_factory::get_field_type(int schema_id, int tag) const {
   if (fdesc) {
     return fdesc->cpp_type_name();
   }
-  throw std::invalid_argument("No field with tag: " + std::to_string(tag));
+  std::stringstream msg;
+  msg << "No field with tag: " << tag;
+  LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+  throw std::invalid_argument(msg.str());
 }
 
 string protobuf_factory::get_message_field_type(int schema_id, int field_tag) const {
@@ -421,11 +438,17 @@ string protobuf_factory::get_message_field_type(int schema_id, int field_tag) co
   const FieldDescriptor* fdesc = schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
     if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
-      throw std::invalid_argument("Field is not message");
+      std::stringstream msg;
+      msg << "Field is not message!";
+      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      throw std::invalid_argument(msg.str());
     }
     return fdesc->message_type()->full_name();
   }
-  throw std::invalid_argument("No field with tag: " + std::to_string(field_tag));
+  std::stringstream msg;
+  msg << "No field with tag: " << field_tag;
+  LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+  throw std::invalid_argument(msg.str());
 }
 
 string protobuf_factory::get_enum_field_type(int schema_id, int field_tag) const {
@@ -435,12 +458,17 @@ string protobuf_factory::get_enum_field_type(int schema_id, int field_tag) const
   const FieldDescriptor* fdesc = schemas[schema_id]->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc) {
     if (fdesc->cpp_type() != FieldDescriptor::CPPTYPE_ENUM) {
-      throw std::invalid_argument("Field is not enum");
+      std::stringstream msg;
+      msg << "Field is not enum!";
+      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      throw std::invalid_argument(msg.str());
     }
     return fdesc->enum_type()->full_name();
   }
-  throw std::invalid_argument("No field with tag: " +
-      std::to_string(field_tag));
+  std::stringstream msg;
+  msg << "No field with tag: " << field_tag;
+  LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+  throw std::invalid_argument(msg.str());
 }
 
 int protobuf_factory::get_field_tag(int schema_id, const string& name) const {
@@ -452,7 +480,10 @@ int protobuf_factory::get_field_tag(int schema_id, const string& name) const {
   if (fdesc) {
     return fdesc->number();
   }
-  throw std::invalid_argument("No field with name: " + name);
+  std::stringstream msg;
+  msg << "No field with name: " << name;
+  LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+  throw std::invalid_argument(msg.str());
 }
 
 // Error collectors helper classes

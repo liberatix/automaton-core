@@ -16,6 +16,7 @@ cc_library(
     ],
     deps = [
       "//automaton/core/crypto",
+      "//automaton/core/log",
     ],
 )
 

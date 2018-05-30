@@ -392,14 +392,17 @@ simulated_connection::simulated_connection(const std::string& address_,
         remote_connection_id(0), time_stamp(0) {
   connection_state = connection::state::disconnected;
   if (!parse_address(address_)) {
-    throw std::runtime_error("ERROR: Connection creation failed! Could not resolve address and "
-                            "parameters in: " + address_);
+    std::stringstream msg;
+    msg << "ERROR: Connection creation failed! Could not resolve address and parameters in: " <<
+      address_;
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
   }
 }
 
 void simulated_connection::async_send(const std::string& message, uint32_t id = 0) {
   if (message.size() < 1) {
-    LOG(ERROR) << "Send called but no message: id -> " << std::to_string(id);
+    LOG(ERROR) << "Send called but no message: id -> " << id;
     return;
   }
   if (connection_state == disconnected) {
@@ -609,13 +612,19 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
     accepted_connections_handler(connections_handler) {
   if (parse_address(address_)) {
     if (!address) {
-      throw std::runtime_error("ERROR: Acceptor creation failed! Acceptor address should be > 0");
+      std::stringstream msg;
+      msg << "ERROR: Acceptor creation failed! Acceptor address should be > 0";
+      LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+      throw std::invalid_argument(msg.str());
     } else {
       simulation::get_simulator()->add_acceptor(address, this);
     }
   } else {
-    throw std::runtime_error("ERROR: Acceptor creation failed! Could not resolve address and "
-                            "parameters in " + address_);
+    std::stringstream msg;
+    msg << "ERROR: Acceptor creation failed! Could not resolve address and parameters in: " <<
+      address_;
+    LOG(ERROR) << msg.str() << el::base::debug::StackTrace();
+    throw std::invalid_argument(msg.str());
     address = 0;
   }
 }
