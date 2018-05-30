@@ -48,12 +48,12 @@ class schema {
      ignored for scalar types.
   */
   struct field_info {
-    unsigned int tag;
+    uint32_t tag;
     field_type type;
     std::string name;
     std::string fully_qualified_type;
     bool is_repeated;
-    field_info(unsigned int tag, field_type type, const std::string& name,
+    field_info(uint32_t tag, field_type type, const std::string& name,
         const std::string& fully_qualified_type, bool is_repeated);
   };
 
@@ -87,7 +87,7 @@ class schema {
     add_*_field) and then add_message() so the created message schema is added
     to the schema.
   **/
-  virtual unsigned int create_message(const std::string& message_name) = 0;
+  virtual uint32_t create_message(const std::string& message_name) = 0;
 
   /**
     Returns the id of the created enum_schema.
@@ -96,15 +96,14 @@ class schema {
     enum (using add_enum_value) and then add_enum() so the created enum schema
     is added to the schema.
   **/
-  virtual unsigned int create_enum(const std::string& enum_name) = 0;
+  virtual uint32_t create_enum(const std::string& enum_name) = 0;
 
   /**
     Used to add values to an already created enum with enum_id. If such enum
     doesn't exist, exception will be thrown.
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  virtual void add_enum_value(unsigned int enum_id, const std::string& value_name, int value)
-      = 0;
+  virtual void add_enum_value(uint32_t enum_id, const std::string& value_name, int32_t value) = 0;
 
   /**
     Used to add nested message. Both messages must already exist. If any of
@@ -115,7 +114,7 @@ class schema {
     TODO(kari): Check for name collisions
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  virtual void add_nested_message(int message_id, unsigned int sub_message_id) = 0;
+  virtual void add_nested_message(int32_t message_id, uint32_t sub_message_id) = 0;
 
   /**
     Used to add an already created message/enum schema to this schema. The
@@ -125,8 +124,8 @@ class schema {
     add_enum or message_id = -1, enum will be added globally. If message/enum
     with the given id doesn't exist, exception will be thrown.
   **/
-  virtual void add_message(int message_id) = 0;
-  virtual void add_enum(unsigned int enum_id, int message_id = -1) = 0;
+  virtual void add_message(int32_t message_id) = 0;
+  virtual void add_enum(uint32_t enum_id, int32_t message_id = -1) = 0;
 
   /**
     These functions are called to add fields to a message. Any of them can be
@@ -135,9 +134,9 @@ class schema {
     add_message_field() is called but the provided field is scalar type),
     exception will be thrown.
   **/
-  virtual void add_scalar_field(field_info field, int message_id) = 0;
-  virtual void add_enum_field(field_info field, int message_id) = 0;
-  virtual void add_message_field(field_info field, int message_id) = 0;
+  virtual void add_scalar_field(field_info field, int32_t message_id) = 0;
+  virtual void add_enum_field(field_info field, int32_t message_id) = 0;
+  virtual void add_message_field(field_info field, int32_t message_id) = 0;
 
  private:
   static std::map<std::string, factory_function_schema_def> schema_definition_factory;

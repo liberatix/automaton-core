@@ -53,7 +53,7 @@ class protobuf_schema: public schema {
     add_*_field) and then add_message() so the created message schema is added
     to the schema.
   **/
-  unsigned int create_message(const std::string& message_name);
+  uint32_t create_message(const std::string& message_name);
 
   /**
     Returns the id of the created enum_schema.
@@ -62,15 +62,14 @@ class protobuf_schema: public schema {
     enum (using add_enum_value) and then add_enum() so the created enum schema
     is added to the schema.
   **/
-  unsigned int create_enum(const std::string& enum_name);
+  uint32_t create_enum(const std::string& enum_name);
 
   /**
     Used to add values to an already created enum with enum_id. If such enum
     doesn't exist, exception will be thrown.
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  void add_enum_value(unsigned int enum_id, const std::string& value_name,
-      int value);
+  void add_enum_value(uint32_t enum_id, const std::string& value_name, int32_t value);
 
   /**
     Used to add nested message. Both messages must already exist. If any of
@@ -81,7 +80,7 @@ class protobuf_schema: public schema {
     TODO(kari): Check for name collisions
     TODO(kari): Decide if duplicate values are allowed.
   **/
-  void add_nested_message(int message_id, unsigned int sub_message_id);
+  void add_nested_message(int32_t message_id, uint32_t sub_message_id);
 
   /**
     Used to add an already created message/enum schema to this schema. The
@@ -91,9 +90,9 @@ class protobuf_schema: public schema {
     add_enum or message_id = -1, enum will be added globally. If message/enum
     with the given id doesn't exist, exception will be thrown.
   **/
-  void add_message(int message_id);
+  void add_message(int32_t message_id);
 
-  void add_enum(unsigned int enum_id, int message_id);
+  void add_enum(uint32_t enum_id, int32_t message_id);
 
   /**
     These functions are called to add fields to a message. Any of them can be
@@ -102,11 +101,11 @@ class protobuf_schema: public schema {
     add_message_field() is called but the provided field is scalar type),
     exception will be thrown.
   **/
-  void add_scalar_field(schema::field_info field, int message_id);
+  void add_scalar_field(schema::field_info field, int32_t message_id);
 
-  void add_enum_field(schema::field_info field, int message_id);
+  void add_enum_field(schema::field_info field, int32_t message_id);
 
-  void add_message_field(schema::field_info field, int message_id);
+  void add_message_field(schema::field_info field, int32_t message_id);
 
   /**
     Serializes schema to JSON string.

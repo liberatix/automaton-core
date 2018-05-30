@@ -29,7 +29,7 @@ This is helper class which is used while parsing proto file.
 **/
 class proto_error_collector : public
     google::protobuf::DescriptorPool::ErrorCollector {
-  unsigned int errors_number;
+  uint32_t errors_number;
   std::string errors_list;
  public:
   proto_error_collector();
@@ -60,7 +60,7 @@ class proto_error_collector : public
 
   void clear_errors();
 
-  unsigned int get_number_errors() const;
+  uint32_t get_number_errors() const;
 
   std::string get_all_errors() const;
 };
@@ -126,8 +126,8 @@ void protobuf_factory::register_self() {
 
 void protobuf_factory::extract_nested_messages(const Descriptor* d) {
   CHECK_NOTNULL(d) << "Message descriptor is nullptr";
-  unsigned int num_msg = d->nested_type_count();
-  for (unsigned int i = 0; i < num_msg; i++) {
+  uint32_t num_msg = d->nested_type_count();
+  for (uint32_t i = 0; i < num_msg; i++) {
     const Descriptor* desc = d->nested_type(i);
     schemas.push_back(dynamic_message_factory->GetPrototype(desc));
     schemas_names[desc->full_name()] = schemas.size() - 1;
@@ -137,14 +137,14 @@ void protobuf_factory::extract_nested_messages(const Descriptor* d) {
 
 void protobuf_factory::extract_nested_enums(const Descriptor* d) {
   CHECK_NOTNULL(d) << "Message descriptor is nullptr";
-  unsigned int number_enums = d->enum_type_count();
-  for (unsigned int i = 0; i < number_enums; i++) {
+  uint32_t number_enums = d->enum_type_count();
+  for (uint32_t i = 0; i < number_enums; i++) {
     const EnumDescriptor* edesc = d->enum_type(i);
     enums.push_back(edesc);
     enums_names[edesc->full_name()] = enums.size() - 1;
   }
-  unsigned int num_msg = d->nested_type_count();
-  for (unsigned int i = 0; i < num_msg; i++) {
+  uint32_t num_msg = d->nested_type_count();
+  for (uint32_t i = 0; i < num_msg; i++) {
     const Descriptor* desc = d->nested_type(i);
     extract_nested_enums(desc);
   }
@@ -156,8 +156,8 @@ bool protobuf_factory::contain_invalid_data(const Descriptor* d) {
     LOG(ERROR) << d->name() << " contains OneOf which is not supported";
     return true;
   }
-  unsigned int number_fields = d->field_count();
-  for (unsigned int i = 0; i < number_fields; i++) {
+  uint32_t number_fields = d->field_count();
+  for (uint32_t i = 0; i < number_fields; i++) {
     const FieldDescriptor* fd = d->field(i);
     if (fd->is_map()) {
       LOG(ERROR) << d->name() << " contains Map which is not supported";
@@ -169,8 +169,8 @@ bool protobuf_factory::contain_invalid_data(const Descriptor* d) {
     }
   }
   bool ans = false;
-  unsigned int num_msg = d->nested_type_count();
-  for (unsigned int i = 0; i < num_msg; i++) {
+  uint32_t num_msg = d->nested_type_count();
+  for (uint32_t i = 0; i < num_msg; i++) {
     const Descriptor* desc = d->nested_type(i);
     ans = ans | contain_invalid_data(desc);
   }
@@ -194,9 +194,9 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
   }
 
   // Check if all dependencies are imported.
-  unsigned int dependencies_number = fdp->dependency_size();
+  uint32_t dependencies_number = fdp->dependency_size();
   LOG(INFO) << "Checking dependencies " << dependencies_number;
-  for (unsigned int i = 0; i < dependencies_number; ++i) {
+  for (uint32_t i = 0; i < dependencies_number; ++i) {
     LOG(INFO) << " dependency " << i << " <" << fdp->dependency(i) << ">";
     if (pool->FindFileByName(fdp->dependency(i)) == nullptr) {
       std::stringstream msg;
@@ -217,8 +217,8 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
 
   LOG(INFO) << "Check for invalid data types";
   // Check for invalid data types
-  unsigned int number_messages = fd->message_type_count();
-  for (unsigned int i = 0; i < number_messages; i++) {
+  uint32_t number_messages = fd->message_type_count();
+  for (uint32_t i = 0; i < number_messages; i++) {
     const Descriptor* desc = fd->message_type(i);
     if (contain_invalid_data(desc)) {
       std::stringstream msg;
@@ -228,7 +228,7 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
     }
   }
 
-  for (unsigned int i = 0; i < number_messages; i++) {
+  for (uint32_t i = 0; i < number_messages; i++) {
     const Descriptor* desc = fd->message_type(i);
     schemas.push_back(dynamic_message_factory->GetPrototype(desc));
     schemas_names[desc->full_name()] = schemas.size() - 1;
@@ -236,8 +236,8 @@ void protobuf_factory::import_from_file_proto(FileDescriptorProto* fdp,
     extract_nested_enums(desc);
   }
 
-  unsigned int number_enums = fd->enum_type_count();
-  for (unsigned int i = 0; i < number_enums; i++) {
+  uint32_t number_enums = fd->enum_type_count();
+  for (uint32_t i = 0; i < number_enums; i++) {
     const EnumDescriptor* edesc = fd->enum_type(i);
     enums.push_back(edesc);
     enums_names[edesc->full_name()] = enums.size() - 1;
@@ -254,7 +254,7 @@ void protobuf_factory::import_schema(schema* schema, const string& name, const s
   import_from_file_proto(pb_schema->get_file_descriptor_proto(), name, package);
 }
 
-void protobuf_factory::dump_message_schema(unsigned int schema_id, std::ostream& ostream_) const {
+void protobuf_factory::dump_message_schema(uint32_t schema_id, std::ostream& ostream_) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
@@ -262,8 +262,8 @@ void protobuf_factory::dump_message_schema(unsigned int schema_id, std::ostream&
   const Descriptor* desc = m->GetDescriptor();
   ostream_ << "MessageType: " << desc->full_name() << " {" << std::endl;
   ostream_ << "Fields: " << std::endl;
-  unsigned int field_count = desc->field_count();
-  for (unsigned int i = 0; i < field_count; i++) {
+  uint32_t field_count = desc->field_count();
+  for (uint32_t i = 0; i < field_count; i++) {
     const FieldDescriptor* fd = desc->field(i);
     ostream_ << "\n\tName: " << fd->name() << std::endl;
     ostream_ << "\tType: ";
@@ -286,7 +286,7 @@ void protobuf_factory::dump_message_schema(unsigned int schema_id, std::ostream&
   ostream_ << "\n}" << std::endl;
 }
 
-std::unique_ptr<msg> protobuf_factory::new_message_by_id(unsigned int schema_id) {
+std::unique_ptr<msg> protobuf_factory::new_message_by_id(uint32_t schema_id) {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   Message* m = schemas[schema_id]->New();
@@ -297,15 +297,15 @@ std::unique_ptr<msg> protobuf_factory::new_message_by_name(const char* schema_na
   return new_message_by_id(get_schema_id(schema_name));
 }
 
-unsigned int protobuf_factory::get_schemas_number() const {
+uint32_t protobuf_factory::get_schemas_number() const {
   return schemas.size();
 }
 
-unsigned int protobuf_factory::get_enums_number() const {
+uint32_t protobuf_factory::get_enums_number() const {
   return enums.size();
 }
 
-unsigned int protobuf_factory::get_enum_id(const string& enum_name) const {
+uint32_t protobuf_factory::get_enum_id(const string& enum_name) const {
   if (enums_names.find(enum_name) == enums_names.end()) {
     std::stringstream msg;
     msg << "No enum '" << enum_name << '\'';
@@ -315,13 +315,13 @@ unsigned int protobuf_factory::get_enum_id(const string& enum_name) const {
   return enums_names.at(enum_name);
 }
 
-void protobuf_factory::dump_enum(unsigned int enum_id, std::ostream& ostream_) const {
+void protobuf_factory::dump_enum(uint32_t enum_id, std::ostream& ostream_) const {
   CHECK_BOUNDS(enum_id, 0, enums.size() - 1);
   CHECK_NOTNULL(enums[enum_id]);
   const EnumDescriptor* edesc = enums[enum_id];
   ostream_ << edesc->full_name() << " {" << std::endl;
-  unsigned int values = edesc->value_count();
-  for (unsigned int i = 0; i < values; i++) {
+  uint32_t values = edesc->value_count();
+  for (uint32_t i = 0; i < values; i++) {
     const EnumValueDescriptor* evdesc = edesc->value(i);
     ostream_ << '\t' << evdesc->name() << " = " << evdesc->number() <<
         std::endl;
@@ -329,7 +329,7 @@ void protobuf_factory::dump_enum(unsigned int enum_id, std::ostream& ostream_) c
   ostream_ << "}" << std::endl;
 }
 
-int protobuf_factory::get_enum_value(unsigned int enum_id, const string& value_name) const {
+int32_t protobuf_factory::get_enum_value(uint32_t enum_id, const string& value_name) const {
   CHECK_BOUNDS(enum_id, 0, enums.size() - 1);
   CHECK_NOTNULL(enums[enum_id]);
   const EnumValueDescriptor* evd = enums[enum_id]->FindValueByName(value_name);
@@ -342,20 +342,20 @@ int protobuf_factory::get_enum_value(unsigned int enum_id, const string& value_n
   return evd->number();
 }
 
-std::vector<std::pair<string, int> > protobuf_factory::get_enum_values(unsigned int enum_id) const {
+std::vector<std::pair<string, int32_t> > protobuf_factory::get_enum_values(uint32_t enum_id) const {
   CHECK_BOUNDS(enum_id, 0, enums.size() - 1);
   CHECK_NOTNULL(enums[enum_id]);
-  std::vector<std::pair<string, int> > result;
+  std::vector<std::pair<string, int32_t> > result;
   const EnumDescriptor* edesc = enums[enum_id];
-  unsigned int values = edesc->value_count();
-  for (unsigned int i = 0; i < values; i++) {
+  uint32_t values = edesc->value_count();
+  for (uint32_t i = 0; i < values; i++) {
     const EnumValueDescriptor* evdesc = edesc->value(i);
     result.push_back(std::make_pair(evdesc->name(), evdesc->number()));
   }
   return result;
 }
 
-unsigned int protobuf_factory::get_fields_number(unsigned int schema_id) const {
+uint32_t protobuf_factory::get_fields_number(uint32_t schema_id) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
@@ -363,7 +363,7 @@ unsigned int protobuf_factory::get_fields_number(unsigned int schema_id) const {
   return desc->field_count();
 }
 
-bool protobuf_factory::is_repeated(unsigned int schema_id, unsigned int field_tag) const {
+bool protobuf_factory::is_repeated(uint32_t schema_id, uint32_t field_tag) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
@@ -378,13 +378,13 @@ bool protobuf_factory::is_repeated(unsigned int schema_id, unsigned int field_ta
   throw std::invalid_argument(msg.str());
 }
 
-schema::field_info protobuf_factory::get_field_info(unsigned int schema_id,
-    unsigned int index) const {
+schema::field_info protobuf_factory::get_field_info(uint32_t schema_id,
+    uint32_t index) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
   const Descriptor* desc = schemas[schema_id]->GetDescriptor();
-  if (index < 0 || (static_cast<unsigned int>(index)) >= desc->field_count()) {
+  if (index < 0 || (static_cast<uint32_t>(index)) >= desc->field_count()) {
     std::stringstream msg;
     msg << "No field with such index: " << index;
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
@@ -410,7 +410,7 @@ schema::field_info protobuf_factory::get_field_info(unsigned int schema_id,
       fdesc->is_repeated());
 }
 
-unsigned int protobuf_factory::get_schema_id(const string& message_name) const {
+uint32_t protobuf_factory::get_schema_id(const string& message_name) const {
   if (schemas_names.find(message_name) == schemas_names.end()) {
     std::stringstream msg;
     msg << "No schema '" << message_name << '\'';
@@ -420,13 +420,13 @@ unsigned int protobuf_factory::get_schema_id(const string& message_name) const {
   return schemas_names.at(message_name);
 }
 
-string protobuf_factory::get_schema_name(unsigned int schema_id) const {
+string protobuf_factory::get_schema_name(uint32_t schema_id) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   return schemas[schema_id]->GetTypeName();
 }
 
-string protobuf_factory::get_field_type(unsigned int schema_id, unsigned int tag) const {
+string protobuf_factory::get_field_type(uint32_t schema_id, uint32_t tag) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
@@ -446,8 +446,8 @@ string protobuf_factory::get_field_type(unsigned int schema_id, unsigned int tag
   throw std::invalid_argument(msg.str());
 }
 
-string protobuf_factory::get_message_field_type(unsigned int schema_id,
-    unsigned int field_tag) const {
+string protobuf_factory::get_message_field_type(uint32_t schema_id,
+    uint32_t field_tag) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
@@ -467,7 +467,7 @@ string protobuf_factory::get_message_field_type(unsigned int schema_id,
   throw std::invalid_argument(msg.str());
 }
 
-string protobuf_factory::get_enum_field_type(unsigned int schema_id, unsigned int field_tag) const {
+string protobuf_factory::get_enum_field_type(uint32_t schema_id, uint32_t field_tag) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
@@ -487,7 +487,7 @@ string protobuf_factory::get_enum_field_type(unsigned int schema_id, unsigned in
   throw std::invalid_argument(msg.str());
 }
 
-unsigned int protobuf_factory::get_field_tag(unsigned int schema_id, const string& name) const {
+uint32_t protobuf_factory::get_field_tag(uint32_t schema_id, const string& name) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
@@ -542,7 +542,7 @@ void proto_error_collector::clear_errors() {
   errors_list = "";
 }
 
-unsigned int proto_error_collector::get_number_errors() const {
+uint32_t proto_error_collector::get_number_errors() const {
   return errors_number;
 }
 

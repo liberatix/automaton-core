@@ -4,7 +4,7 @@ namespace automaton {
 namespace core {
 namespace data {
 
-schema::field_info::field_info(unsigned int tag,
+schema::field_info::field_info(uint32_t tag,
                                field_type type,
                                const std::string& name,
                                const std::string& fully_qualified_type,
