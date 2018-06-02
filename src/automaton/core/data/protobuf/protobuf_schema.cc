@@ -1,10 +1,14 @@
-#include "automaton/core/data/protobuf/protobuf_factory.h"
-
 #include <google/protobuf/compiler/parser.h>
 #include <google/protobuf/util/json_util.h>
 
+#include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/log/log.h"
+
+using google::protobuf::Descriptor;
+using google::protobuf::EnumDescriptor;
+using google::protobuf::EnumValueDescriptor;
+using google::protobuf::FieldDescriptor;
 
 using google::protobuf::DescriptorProto;
 using google::protobuf::EnumDescriptorProto;
@@ -13,6 +17,8 @@ using google::protobuf::FieldDescriptorProto;
 using google::protobuf::FieldDescriptorProto_Label;
 using google::protobuf::FieldDescriptorProto_Type;
 using google::protobuf::FileDescriptorProto;
+
+using google::protobuf::Reflection;
 
 using google::protobuf::compiler::Parser;
 
@@ -325,6 +331,76 @@ bool protobuf_schema::from_json(const std::string& input) {
     std::cout << status.error_message() << std::endl;
   }
   return status.ok();
+}
+void dump_msg(const DescriptorProto dpr, std::ostream& ostream_, const std::string& prefix) {
+  ostream_ << prefix << "message " << dpr.name() << " {" << std::endl;
+  std::string new_prefix = '\t' + prefix;
+  for (int i = 0; i < dpr.field_size(); ++i) {
+    const FieldDescriptorProto fdp = dpr.field(i);
+    ostream_ << new_prefix;
+    if (fdp.label() == google::protobuf::FieldDescriptorProto_Label_LABEL_REPEATED) {
+      ostream_ << "repeated ";
+    }
+    switch (fdp.type()) {
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_INT32:
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_SINT32:
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_SFIXED32: ostream_ << "int32 "; break;
+
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_INT64:
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_SINT64:
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_SFIXED64: ostream_ << "int64 "; break;
+
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_UINT32:
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_FIXED32: ostream_ << "uint32 "; break;
+
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_UINT64:
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_FIXED64: ostream_ << "uint64 "; break;
+
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_BOOL: ostream_ << "boolean "; break;
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_STRING:
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_BYTES: ostream_ << "blob "; break;
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_ENUM: ostream_ << "enum "; break;
+
+      case google::protobuf::FieldDescriptorProto_Type_TYPE_MESSAGE: ostream_ << "message "; break;
+      default: break;
+    }
+    ostream_ << fdp.name() << " = " << fdp.number() << std::endl;
+  }
+  for (int i = 0; i < dpr.enum_type_size(); ++i) {
+    const EnumDescriptorProto edp = dpr.enum_type(i);
+    ostream_ << new_prefix << "enum " << edp.name() << " {" << std::endl;
+    for (int j = 0; j < edp.value_size(); ++j) {
+      const EnumValueDescriptorProto evdp = edp.value(j);
+      ostream_ << new_prefix << '\t' << evdp.name() << " = " << evdp.number() << std::endl;
+    }
+    ostream_ << new_prefix << "}" << std::endl;
+  }
+  for (int i = 0; i < dpr.nested_type_size(); ++i) {
+    dump_msg(dpr.nested_type(i), ostream_, new_prefix);
+  }
+  ostream_ << prefix << "}" << std::endl;
+}
+void protobuf_schema::dump_schema(std::ostream& ostream_) {
+  std::unique_ptr<FileDescriptorProto>& fdp = file_descriptor_proto;
+
+  for (int i = 0; i < fdp->message_type_size(); ++i) {
+    const DescriptorProto d = fdp->message_type(i);
+    dump_msg(d, ostream_, "");
+  }
+  for (int i = 0; i < fdp->enum_type_size(); ++i) {
+    const EnumDescriptorProto edp = fdp->enum_type(i);
+    ostream_ << "enum " << edp.name() << " {" << std::endl;
+    for (int j = 0; j < edp.value_size(); ++j) {
+      const EnumValueDescriptorProto evdp = edp.value(j);
+      ostream_ << '\t' << evdp.name() << " = " << evdp.number() << std::endl;
+    }
+    ostream_ << "}" << std::endl;
+  }
+  /*
+  fd = d->FindFieldByName("enum_type");
+  for (unsigned int i = 0; i < fd->; ++i) {
+
+  }*/
 }
 
 }  // namespace protobuf
