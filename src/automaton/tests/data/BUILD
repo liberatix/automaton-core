@@ -183,18 +183,3 @@ cc_test(
   ],
   size = "small",
 )
-
-cc_test(
-  name = "test_protobuf_schema_schema_info_from_msg",
-  srcs = ["protobuf_schema_schema_info_from_msg.cc",],
-  data = [
-    "//automaton/tests/data:many_fields.proto",
-    "//automaton/tests/data:many_enums.proto",
-  ],
-  deps = [
-    "//automaton/core/io",
-    "//automaton/core/data/protobuf",
-    "@gtest//:gtest_main",
-  ],
-  size = "small",
-)
