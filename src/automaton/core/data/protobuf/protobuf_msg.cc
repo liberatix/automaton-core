@@ -27,7 +27,7 @@ namespace protobuf {
 protobuf_msg::protobuf_msg(google::protobuf::Message * m, uint32_t schema_id): m(m),
     schema_id(schema_id) {}
 
-uint32_t protobuf_msg::get_schema_id() {
+uint32_t protobuf_msg::get_schema_id() const {
   return schema_id;
 }
 

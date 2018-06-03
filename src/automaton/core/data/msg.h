@@ -20,7 +20,7 @@ class msg {
 
   virtual ~msg() = 0;
 
-  virtual uint32_t get_schema_id() = 0;
+  virtual uint32_t get_schema_id() const = 0;
 
   /**
     Returns the name of the message schema.

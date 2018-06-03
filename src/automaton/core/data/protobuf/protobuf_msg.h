@@ -32,7 +32,7 @@ class protobuf_msg : public msg {
   */
   protobuf_msg(google::protobuf::Message * m, uint32_t schema_id);
 
-  uint32_t get_schema_id();
+  uint32_t get_schema_id() const;
 
   /**
     Returns the name of the message schema.
