@@ -30,7 +30,9 @@ class protobuf_msg : public msg {
   /**
     Constructs a protobuf msg implementation.
   */
-  explicit protobuf_msg(google::protobuf::Message * m) : m(m) {}
+  protobuf_msg(google::protobuf::Message * m, uint32_t schema_id);
+
+  uint32_t get_schema_id() const;
 
   /**
     Returns the name of the message schema.
@@ -178,6 +180,7 @@ class protobuf_msg : public msg {
 
  private:
   std::unique_ptr<google::protobuf::Message> m;
+  uint32_t schema_id;
 };
 
 }  // namespace protobuf

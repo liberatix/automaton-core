@@ -117,6 +117,8 @@ class protobuf_schema: public schema {
   */
   bool from_json(const std::string& input);
 
+  void dump_schema(std::ostream& ostream_);
+
  private:
   std::unique_ptr<google::protobuf::FileDescriptorProto> file_descriptor_proto;
   std::vector <google::protobuf::DescriptorProto*> messages;

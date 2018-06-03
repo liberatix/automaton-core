@@ -65,8 +65,7 @@ class factory {
     A pair represents the string name of the value and the int value. If no such
     enum exists, exception will be thrown.
   */
-  virtual std::vector<std::pair<std::string, int32_t> > get_enum_values(uint32_t enum_id)
-      const = 0;
+  virtual std::vector<std::pair<std::string, int32_t> > get_enum_values(uint32_t enum_id) const = 0;
 
   /**
     Prints information about a message schema and its fields. If the given

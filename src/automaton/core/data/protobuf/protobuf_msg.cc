@@ -24,6 +24,13 @@ namespace core {
 namespace data {
 namespace protobuf {
 
+protobuf_msg::protobuf_msg(google::protobuf::Message * m, uint32_t schema_id): m(m),
+    schema_id(schema_id) {}
+
+uint32_t protobuf_msg::get_schema_id() const {
+  return schema_id;
+}
+
 string protobuf_msg::get_message_type() const {
   CHECK(m != nullptr);
   return m->GetTypeName();
@@ -858,7 +865,7 @@ std::unique_ptr<msg> protobuf_msg::get_message(uint32_t field_tag) const {
   const Message* original = &reflect->GetMessage(*m, fdesc);
   Message* copy = original->New();
   copy->CopyFrom(*original);
-  return std::unique_ptr<msg>(new protobuf_msg(copy));
+  return std::unique_ptr<msg>(new protobuf_msg(copy, schema_id));
 }
 
 void protobuf_msg::set_repeated_message(uint32_t field_tag, const msg& sub_message, int32_t index) {
@@ -938,7 +945,7 @@ std::unique_ptr<msg> protobuf_msg::get_repeated_message(uint32_t field_tag, int3
     const Message* original = &reflect->GetRepeatedMessage(*m, fdesc, index);
     Message* copy = original->New();
     copy->CopyFrom(*original);
-    return std::unique_ptr<msg>(new protobuf_msg(copy));
+    return std::unique_ptr<msg>(new protobuf_msg(copy, schema_id));
   } else {
     std::stringstream msg;
     msg << "Index out of range: " << index;
