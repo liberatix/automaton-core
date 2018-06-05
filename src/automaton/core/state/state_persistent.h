@@ -69,10 +69,10 @@ class state_persistent : public state{
        //return prefix_;
      }
      std::string get_hash(storage::blobstore* bs) {
-       uint32_t sz;
-       uint8_t* p_hash = bs->get(hash_, &sz);
-       return std::string(reinterpret_cast<char*>(p_hash), sz);
-       //return hash_;
+       //uint32_t sz;
+       //uint8_t* p_hash = bs->get(hash_, &sz);
+       //return std::string(reinterpret_cast<char*>(p_hash), sz);
+       return hash_;
      }
      std::string get_value(storage::blobstore* bs) {
        uint32_t sz;
@@ -94,9 +94,9 @@ class state_persistent : public state{
        //prefix_ = prefix;
      }
      void  set_hash(const std::string& hash, storage::blobstore* bs) {
-       hash_ = bs->store(hash.length(),
-         reinterpret_cast<const uint8_t*>(hash.c_str()));
-       //hash_ = hash;
+       //hash_ = bs->store(hash.length(),
+       //  reinterpret_cast<const uint8_t*>(hash.c_str()));
+       hash_ = hash;
      }
      void set_value(const std::string& value, storage::blobstore* bs) {
        value_ = bs->store(value.length(),
@@ -110,7 +110,8 @@ class state_persistent : public state{
    private:
     uint64_t parent_ = 0;
     uint64_t prefix_ = 0;
-    uint64_t hash_ = 0;
+    std::string hash_;
+    //uint64_t hash_ = 0;
     uint64_t value_ = 0;
     uint64_t children_[256] = {};
   };
