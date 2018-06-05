@@ -63,10 +63,10 @@ class state_persistent : public state{
        return parent_;
      }
      std::string get_prefix(storage::blobstore* bs) {
-       uint32_t sz;
-       uint8_t* p_prefix = bs->get(prefix_, &sz);
-       return std::string(reinterpret_cast<char*>(p_prefix), sz);
-       //return prefix_;
+       //uint32_t sz;
+       //uint8_t* p_prefix = bs->get(prefix_, &sz);
+       //return std::string(reinterpret_cast<char*>(p_prefix), sz);
+       return prefix_;
      }
      std::string get_hash(storage::blobstore* bs) {
        //uint32_t sz;
@@ -75,10 +75,10 @@ class state_persistent : public state{
        return hash_;
      }
      std::string get_value(storage::blobstore* bs) {
-       uint32_t sz;
-       uint8_t* p_value = bs->get(value_, &sz);
-       return std::string(reinterpret_cast<char*>(p_value), sz);
-       //return value_;
+       //uint32_t sz;
+       //uint8_t* p_value = bs->get(value_, &sz);
+       //return std::string(reinterpret_cast<char*>(p_value), sz);
+       return value_;
      }
      uint32_t get_child(uint8_t child, storage::blobstore* bs) {
        return children_[child];
@@ -88,32 +88,34 @@ class state_persistent : public state{
        //parent_ = bs->store(sizeof(uint32_t), reinterpret_cast<uint8_t*>(&parent));
        parent_ = parent;
      }
-     void  set_prefix(const std::string& prefix, storage::blobstore* bs) {
-       prefix_ = bs->store(prefix.length(),
-           reinterpret_cast<const uint8_t*>(prefix.c_str()));
-       //prefix_ = prefix;
+     void  set_prefix(const std::string prefix, storage::blobstore* bs) {
+       //prefix_ = bs->store(prefix.length(),
+       //    reinterpret_cast<const uint8_t*>(prefix.c_str()));
+       prefix_ = prefix;
      }
-     void  set_hash(const std::string& hash, storage::blobstore* bs) {
+     void  set_hash(const std::string hash, storage::blobstore* bs) {
        //hash_ = bs->store(hash.length(),
        //  reinterpret_cast<const uint8_t*>(hash.c_str()));
        hash_ = hash;
      }
-     void set_value(const std::string& value, storage::blobstore* bs) {
-       value_ = bs->store(value.length(),
-         reinterpret_cast<const uint8_t*>(value.c_str()));
-       //value_ = value;
+     void set_value(const std::string value, storage::blobstore* bs) {
+       //value_ = bs->store(value.length(),
+       //  reinterpret_cast<const uint8_t*>(value.c_str()));
+       value_ = value;
      }
-     void set_child(const uint8_t& child, const uint32_t& value, storage::blobstore* bs) {
+     void set_child(const uint8_t child, const uint32_t value, storage::blobstore* bs) {
        children_[child] = value;
      }
 
    private:
-    uint64_t parent_ = 0;
-    uint64_t prefix_ = 0;
+    uint32_t parent_ = 0;
+    std::string prefix_;
+    //uint64_t prefix_ = 0;
     std::string hash_;
     //uint64_t hash_ = 0;
-    uint64_t value_ = 0;
-    uint64_t children_[256] = {};
+    std::string value_;
+    //uint64_t value_;
+    uint32_t children_[256] = {};
   };
   storage::blobstore* bs;
 

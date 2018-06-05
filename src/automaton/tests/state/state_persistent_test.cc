@@ -95,7 +95,7 @@ std::string hash_key(int i) {
 TEST(state_persistent, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 10000;
+  int32_t key_count = 1000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
