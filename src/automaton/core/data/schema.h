@@ -18,6 +18,9 @@ namespace data {
     * get_field_type_by_tag/name()
     * is_repeated()
     and others
+  TODO(kari): After making dump functions returning string, see if there are to_string functions
+  that do the same.
+
 */
 
 class schema {
@@ -70,6 +73,8 @@ class schema {
     Deserializes schema from JSON string.
   */
   virtual bool from_json(const std::string& input) = 0;
+
+  virtual std::string dump_schema() = 0;
 
   /**
     If this schema (schema A) depends on another one (schema B), it must be

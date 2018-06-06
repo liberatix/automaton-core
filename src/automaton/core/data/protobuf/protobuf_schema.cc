@@ -380,9 +380,9 @@ void dump_msg(const DescriptorProto dpr, std::ostream& ostream_, const std::stri
   }
   ostream_ << prefix << "}" << std::endl;
 }
-void protobuf_schema::dump_schema(std::ostream& ostream_) {
+std::string protobuf_schema::dump_schema() {
   std::unique_ptr<FileDescriptorProto>& fdp = file_descriptor_proto;
-
+  std::stringstream ostream_;
   for (int i = 0; i < fdp->message_type_size(); ++i) {
     const DescriptorProto d = fdp->message_type(i);
     dump_msg(d, ostream_, "");
@@ -396,11 +396,7 @@ void protobuf_schema::dump_schema(std::ostream& ostream_) {
     }
     ostream_ << "}" << std::endl;
   }
-  /*
-  fd = d->FindFieldByName("enum_type");
-  for (unsigned int i = 0; i < fd->; ++i) {
-
-  }*/
+  return ostream_.str();
 }
 
 }  // namespace protobuf
