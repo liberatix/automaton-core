@@ -1,5 +1,7 @@
 #include "automaton/examples/network/extended_node/extended_node_prototype.h"
 
+#include <memory>
+
 #include "automaton/core/data/schema.h"
 #include "automaton/core/data/factory.h"
 #include "automaton/core/data/msg.h"
