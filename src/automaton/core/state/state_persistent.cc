@@ -8,6 +8,7 @@
 #include <set>
 #include <utility>
 #include "automaton/core/crypto/hash_transformation.h"
+#include "automaton/core/log/log.h"
 
 namespace automaton {
 namespace core {
@@ -436,6 +437,7 @@ uint32_t state_persistent::add_node(uint32_t from, unsigned char to) {
 }
 
 void state_persistent::calculate_hash(uint32_t cur_node) {
+  LOG(INFO) << "cur_node: " << cur_node;
   const uint8_t *value, *prefix, *child_hash;
   uint32_t len = 0;
   hasher->restart();  // just in case
