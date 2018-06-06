@@ -21,6 +21,7 @@ cc_test(
       "//automaton/core/crypto",
       "//automaton/core/crypto/cryptopp",
       "//automaton/core/state:state_persistent",
+      "//automaton/core/log",
       "@gtest//:gtest_main",
     ],
 )
