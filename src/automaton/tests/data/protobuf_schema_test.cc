@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     pb_factory.import_schema(&custom_schema2, "name2", "pack2");
     pb_factory.import_schema(&custom_schema, "name3", "pack3");
     for (uint32_t i = 0; i < pb_factory.get_schemas_number(); i++) {
-        pb_factory.dump_message_schema(i, std::cout);
+        std::cout << pb_factory.dump_message_schema(i) << std::endl;
     }
     /*
       int schema_id = pb_factory.get_schema_id("pack3.MyMessage");

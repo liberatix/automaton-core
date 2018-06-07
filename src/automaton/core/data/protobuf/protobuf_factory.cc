@@ -254,10 +254,11 @@ void protobuf_factory::import_schema(schema* schema, const string& name, const s
   import_from_file_proto(pb_schema->get_file_descriptor_proto(), name, package);
 }
 
-void protobuf_factory::dump_message_schema(uint32_t schema_id, std::ostream& ostream_) const {
+std::string protobuf_factory::dump_message_schema(uint32_t schema_id) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
+  std::stringstream ostream_;
   const Message* m = schemas[schema_id];
   const Descriptor* desc = m->GetDescriptor();
   ostream_ << "MessageType: " << desc->full_name() << " {" << std::endl;
@@ -284,6 +285,7 @@ void protobuf_factory::dump_message_schema(uint32_t schema_id, std::ostream& ost
     ostream_ << "\tTag: " << fd->number() << std::endl << std::endl;
   }
   ostream_ << "\n}" << std::endl;
+  return ostream_.str();
 }
 
 std::unique_ptr<msg> protobuf_factory::new_message_by_id(uint32_t schema_id) {
@@ -315,9 +317,10 @@ uint32_t protobuf_factory::get_enum_id(const string& enum_name) const {
   return enums_names.at(enum_name);
 }
 
-void protobuf_factory::dump_enum(uint32_t enum_id, std::ostream& ostream_) const {
+std::string protobuf_factory::dump_enum(uint32_t enum_id) const {
   CHECK_BOUNDS(enum_id, 0, enums.size() - 1);
   CHECK_NOTNULL(enums[enum_id]);
+  std::stringstream ostream_;
   const EnumDescriptor* edesc = enums[enum_id];
   ostream_ << edesc->full_name() << " {" << std::endl;
   uint32_t values = edesc->value_count();
@@ -327,6 +330,7 @@ void protobuf_factory::dump_enum(uint32_t enum_id, std::ostream& ostream_) const
         std::endl;
   }
   ostream_ << "}" << std::endl;
+  return ostream_.str();
 }
 
 int32_t protobuf_factory::get_enum_value(uint32_t enum_id, const string& value_name) const {
@@ -384,7 +388,7 @@ schema::field_info protobuf_factory::get_field_info(uint32_t schema_id,
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
   const Descriptor* desc = schemas[schema_id]->GetDescriptor();
-  if (index < 0 || (static_cast<uint32_t>(index)) >= desc->field_count()) {
+  if (index < 0 || index >= static_cast<uint32_t>(desc->field_count())) {
     std::stringstream msg;
     msg << "No field with such index: " << index;
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
