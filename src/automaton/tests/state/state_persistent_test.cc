@@ -94,7 +94,6 @@ std::string hash_key(int i) {
 }
 
 TEST(state_persistent, node_hash_add_erase) {
-
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
   int32_t key_count = 100000;
@@ -163,7 +162,7 @@ TEST(state_persistent, node_hash_add_erase) {
     }
     EXPECT_EQ(state.get_node_hash(""), root_hashes.top());
     if (state.get_node_hash("") != root_hashes.top()) {
-      //throw std::domain_error("BAD " + std::to_string(i));
+      // throw std::domain_error("BAD " + std::to_string(i));
     }
     root_hashes.pop();
   }
