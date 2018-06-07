@@ -26,8 +26,7 @@ static std::string tohex(std::string s) {
 }
 
 state_persistent::state_persistent(crypto::hash_transformation* hasher, storage::blobstore* bs)
-  :bs(bs)
-{
+  :bs(bs) {
   bs->store(0, nullptr);
   nodes.push_back(state_persistent::node());
   this->hasher = hasher;
@@ -279,7 +278,6 @@ void state_persistent::erase(const std::string& path) {
       std::string new_perfix = nodes[child].get_prefix(bs);
       new_perfix.insert(0, nodes[cur_node].get_prefix(bs));
       nodes[child].set_prefix(new_perfix, bs);
-      
 
       // link parent and child
       path_from_parent = nodes[cur_node].get_prefix(bs)[0];
@@ -450,22 +448,25 @@ void state_persistent::calculate_hash(uint32_t cur_node) {
   }
 
   // Hash the value
+  std::string str_value = nodes[cur_node].get_value(bs);
   value =
-      reinterpret_cast<const uint8_t*>(nodes[cur_node].get_value(bs).c_str());
+      reinterpret_cast<const uint8_t*>(str_value.c_str());
   len = nodes[cur_node].get_value(bs).length();
   hasher->update(value, len);
 
   // Hash the prefix
+  std::string str_prefix = nodes[cur_node].get_prefix(bs);
   prefix =
-      reinterpret_cast<const uint8_t*>(nodes[cur_node].get_prefix(bs).c_str());
+      reinterpret_cast<const uint8_t*>(str_prefix.c_str());
   len = nodes[cur_node].get_prefix(bs).length();
   hasher->update(prefix, len);
   // Hash the children hashes
   for (int i = 0; i < 256; i++) {
     if (nodes[cur_node].get_child(i, bs)) {
       uint32_t child = nodes[cur_node].get_child(i, bs);
-      child_hash =
-          reinterpret_cast<const uint8_t*>(nodes[child].get_hash(bs).c_str());
+
+      std::string str_child_hash = nodes[child].get_hash(bs);
+      child_hash = reinterpret_cast<const uint8_t*>(str_child_hash.c_str());
       len = nodes[child].get_hash(bs).length();
       hasher->update(child_hash, len);
     }
