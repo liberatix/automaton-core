@@ -98,7 +98,7 @@ TEST(state_persistent, set_delete_and_get) {
 TEST(state_persistent, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 5;
+  int32_t key_count = 100000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
@@ -114,9 +114,9 @@ TEST(state_persistent, node_hash_add_erase) {
     std::string data = std::to_string(i);
     keys.push(key);
 
-    state.set(keys.top(), data);
+    state.set(keys.top(), data+data+data);
     LOG(INFO) << "after pushing " << i << ":" << tohex(state.get_node_hash(""));
-    EXPECT_EQ(data, state.get(keys.top()));
+    EXPECT_EQ(data+data+data, state.get(keys.top()));
   }
 
   // Erase the keys in reverse order and check if root hash is the saved one for the same trie state

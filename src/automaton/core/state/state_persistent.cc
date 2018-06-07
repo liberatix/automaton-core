@@ -437,34 +437,51 @@ uint32_t state_persistent::add_node(uint32_t from, unsigned char to) {
 }
 
 void state_persistent::calculate_hash(uint32_t cur_node) {
-  LOG(INFO) << "cur_node: " << cur_node;
-  const uint8_t *value, *prefix, *child_hash;
+  LOG(INFO) << "=====Calculating hash cur_node: " << cur_node;
+  const uint8_t *value;
+  const uint8_t *prefix;
+  const uint8_t *child_hash;
+
   uint32_t len = 0;
   hasher->restart();  // just in case
   // If we are at root and we have no children the hash will be ""
   if (!cur_node && !has_children(cur_node)) {
     nodes[cur_node].set_hash("", bs);
+    LOG(INFO) << "    =====No children!!!: " << cur_node;
     return;
   }
 
   // Hash the value
   value =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].get_value(bs).c_str());
+      //reinterpret_cast<const uint8_t*>(nodes[cur_node].value_.c_str());
   len = nodes[cur_node].get_value(bs).length();
+  std::cout << value << std::endl;
+  std::cout << *value << std::endl;
+  LOG(INFO) << "get_value: " <<  reinterpret_cast<const uint8_t*>(nodes[cur_node].get_value(bs).c_str());
+  LOG(INFO) << "value: " <<  reinterpret_cast<const uint8_t*>(nodes[cur_node].value_.c_str());
+  LOG(INFO) << "    =====Value: " << value;
+  LOG(INFO) << "    =====Value: " << *value;
+  LOG(INFO) << "    =====len: " << len;
   hasher->update(value, len);
 
   // Hash the prefix
   prefix =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].get_prefix(bs).c_str());
   len = nodes[cur_node].get_prefix(bs).length();
+  LOG(INFO) << "    =====prefix: " << tohex(std::string((char*) prefix, len));
+  LOG(INFO) << "    =====len: " << len;
   hasher->update(prefix, len);
   // Hash the children hashes
   for (int i = 0; i < 256; i++) {
     if (nodes[cur_node].get_child(i, bs)) {
       uint32_t child = nodes[cur_node].get_child(i, bs);
+      LOG(INFO) << "    =====child: " << child << "   >i: " << i;
       child_hash =
           reinterpret_cast<const uint8_t*>(nodes[child].get_hash(bs).c_str());
       len = nodes[child].get_hash(bs).length();
+      //LOG(INFO) << "    =====child_hash: " << tohex(std::string((char*) child_hash, len));
+      //LOG(INFO) << "    =====len: " << len;
       hasher->update(child_hash, len);
     }
   }
@@ -472,7 +489,7 @@ void state_persistent::calculate_hash(uint32_t cur_node) {
   hasher->final(digest);
   nodes[cur_node].set_hash(
       std::string(reinterpret_cast<char*>(digest), hasher->digest_size()), bs);
-
+  LOG(INFO) << "    =====digest " << tohex(std::string((char*) digest, hasher->digest_size()));
   delete[] digest;
   if (cur_node != 0) {
     calculate_hash(nodes[cur_node].get_parent(bs));
