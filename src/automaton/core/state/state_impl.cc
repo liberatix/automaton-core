@@ -443,8 +443,6 @@ void state_impl::calculate_hash(uint32_t cur_node) {
   value =
       reinterpret_cast<const uint8_t*>(nodes[cur_node].value.c_str());
   uint32_t len = nodes[cur_node].value.length();
-  LOG(INFO) << "    =====Value: " << value;
-  LOG(INFO) << "    =====len: " << len;
   hasher->update(value, len);
 
   // Hash the prefix
