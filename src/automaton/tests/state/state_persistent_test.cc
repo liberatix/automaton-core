@@ -118,7 +118,7 @@ TEST(state_persistent, node_hash_add_erase) {
     if (i % (key_count/10)) {
      continue;
     }
-    Integrity check for all prior key/values.
+    // Integrity check for all prior key/values.
     std::cout << i << std::endl;
     for (int32_t j = 0; j <= i; j++) {
       std::string data = std::to_string(j);
