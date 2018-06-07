@@ -39,7 +39,7 @@ class factory {
     Prints information about an enum and its values. If the given enum id is not
     valid, exception will be thrown.
   */
-  virtual void dump_enum(uint32_t enum_id, std::ostream& ostream_) const = 0;
+  virtual std::string dump_enum(uint32_t enum_id) const = 0;
 
   /**
     Returns the number of enums in the whole schema definition (both top-level
@@ -71,7 +71,7 @@ class factory {
     Prints information about a message schema and its fields. If the given
     schema id is not valid, exception will be thrown.
   */
-  virtual void dump_message_schema(uint32_t schema_id, std::ostream& ostream_) const = 0;
+  virtual std::string dump_message_schema(uint32_t schema_id) const = 0;
 
   /**
     Returns the number of messages in the whole schema definition (both
