@@ -107,7 +107,6 @@ TEST(state_persistent, node_hash_add_erase) {
   // Add keys/values to the state and add the root hash into a stack.
   for (int32_t i = 0; i < key_count; ++i) {
     root_hashes.push(state.get_node_hash(""));
-    LOG(INFO) << "pushing " << i << ":" << tohex(state.get_node_hash(""));
     std::string key = hash_key(i);
     std::string data = std::to_string(i);
     keys.push(key);
