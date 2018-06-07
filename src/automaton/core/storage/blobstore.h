@@ -6,7 +6,7 @@
 namespace automaton {
 namespace core {
 namespace storage {
-  
+
 /**
   Blobstore interface.
   Can store and delete arbitrary length data in a memory mapped file.
