@@ -97,7 +97,7 @@ TEST(state_persistent, node_hash_add_erase) {
 
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 2;
+  int32_t key_count = 100000;
 
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
@@ -116,10 +116,10 @@ TEST(state_persistent, node_hash_add_erase) {
     state.set(keys.top(), data);
     EXPECT_EQ(data, state.get(keys.top()));
 
-    // if (i % (key_count/10)) {
-    //  continue;
-    // }
-    // Integrity check for all prior key/values.
+    if (i % (key_count/10)) {
+     continue;
+    }
+    Integrity check for all prior key/values.
     std::cout << i << std::endl;
     for (int32_t j = 0; j <= i; j++) {
       std::string data = std::to_string(j);
@@ -139,23 +139,22 @@ TEST(state_persistent, node_hash_add_erase) {
 
   for (int32_t i = 0; i < key_count; i++) {
     state.erase(keys.top());
-    LOG(INFO) << "erasing " << key_count -1 - i << ":" << tohex(state.get_node_hash(""));
     // Integrity check for all prior key/values.
-    // if (i % (key_count/10) == 0) {
-    //   std::cout << i << std::endl;
-    //   for (int32_t j = 0; j < key_count - i - 1; j++) {
-    //     std::string data = std::to_string(j);
-    //     std::string key = hash_key(j);
-    //
-    //     if (data != state.get(key)) {
-    //       std::cout << "Deleting " << (key_count - i) << " fails at "
-    //           << j << std::endl;
-    //       std::cout << "Deleting key " << tohex(keys.top())
-    //         << " fails " << tohex(key) << std::endl;
-    //       throw std::domain_error("!!!");
-    //     }
-    //   }
-    // }
+    if (i % (key_count/10) == 0) {
+      std::cout << i << std::endl;
+      for (int32_t j = 0; j < key_count - i - 1; j++) {
+        std::string data = std::to_string(j);
+        std::string key = hash_key(j);
+
+        if (data != state.get(key)) {
+          std::cout << "Deleting " << (key_count - i) << " fails at "
+              << j << std::endl;
+          std::cout << "Deleting key " << tohex(keys.top())
+            << " fails " << tohex(key) << std::endl;
+          throw std::domain_error("!!!");
+        }
+      }
+    }
 
     keys.pop();
 
