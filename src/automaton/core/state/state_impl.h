@@ -13,7 +13,7 @@ namespace automaton {
 namespace core {
 namespace state {
 
-class state_impl : public state{
+class state_impl : public state {
  public:
   explicit state_impl(crypto::hash_transformation* hasher);
 

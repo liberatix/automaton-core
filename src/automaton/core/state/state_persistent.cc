@@ -503,6 +503,56 @@ void state_persistent::subtrie_mark_free(uint32_t cur_node) {
 }
 
 
+uint32_t state_persistent::node::get_parent(storage::blobstore * bs) {
+  uint32_t sz;
+  uint8_t* p_parent = bs->get(parent_, &sz);
+  return *(reinterpret_cast<uint32_t*>(p_parent));
+}
+
+std::string state_persistent::node::get_prefix(storage::blobstore * bs) {
+  uint32_t sz;
+  uint8_t* p_prefix = bs->get(prefix_, &sz);
+  return std::string(reinterpret_cast<char*>(p_prefix), sz);
+}
+
+std::string state_persistent::node::get_hash(storage::blobstore * bs) {
+  uint32_t sz;
+  uint8_t* p_hash = bs->get(hash_, &sz);
+  return std::string(reinterpret_cast<char*>(p_hash), sz);
+  // return hash_;
+}
+
+std::string state_persistent::node::get_value(storage::blobstore * bs) {
+  uint32_t sz;
+  uint8_t* p_value = bs->get(value_, &sz);
+  return std::string(reinterpret_cast<char*>(p_value), sz);
+}
+
+uint32_t state_persistent::node::get_child(uint8_t child, storage::blobstore * bs) {
+  return children_[child];
+}
+
+void state_persistent::node::set_parent(uint32_t parent, storage::blobstore * bs) {
+  parent_ = bs->store(sizeof(uint32_t), reinterpret_cast<uint8_t*>(&parent));
+}
+
+void state_persistent::node::set_prefix(const std::string prefix, storage::blobstore * bs) {
+  prefix_ = bs->store(prefix.length(), reinterpret_cast<const uint8_t*>(prefix.c_str()));
+}
+
+void state_persistent::node::set_hash(const std::string hash, storage::blobstore * bs) {
+  hash_ = bs->store(hash.length(), reinterpret_cast<const uint8_t*>(hash.c_str()));
+}
+
+void state_persistent::node::set_value(const std::string value, storage::blobstore * bs) {
+  value_ = bs->store(value.length(),
+    reinterpret_cast<const uint8_t*>(value.c_str()));
+}
+
+void state_persistent::node::set_child(const uint8_t child, const uint32_t value, storage::blobstore * bs) {
+  children_[child] = value;
+}
+
 }  // namespace state
 }  // namespace core
 }  // namespace automaton
