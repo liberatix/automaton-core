@@ -18,7 +18,7 @@ class blobstore {
   ~blobstore();
 
   /**
-    Stores the byte array pointed by data with
+    Stores the byte array pointed by data
 
     @returns    uint64_t  returns the ID used to access it.
     @param[in]  size      The size of the data pointed by data in bytes
@@ -37,8 +37,8 @@ class blobstore {
   uint8_t* get(const uint64_t id, uint32_t* size);
 
   /**
-    Frees allocated blob. 
-    
+    Frees allocated blob.
+
     @returns    bool      False if there is no allocated blob with the given id
     @param[in]  id        The ID returned by create_blob
   */

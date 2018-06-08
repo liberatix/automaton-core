@@ -32,13 +32,13 @@ TEST(blobstore, store_get) {
   tests.push_back("Liberatix");
   tests.push_back("Rick and morty");
   tests.push_back("Betahaus");
-  tests.push_back("You should not waste your time reading the actuall strings, those are just"
+  tests.push_back("You should not waste your time reading the actual strings, those are just"
       "test inputs");
   tests.push_back("The end is coming!!!");
   tests.push_back("Did I miss it?");
   tests.push_back("He's almost been right so many times. He was sure it was coming during "
       "the Cataclysm.");
-  tests.push_back("You must be boored, fine here are some good references:");
+  tests.push_back("You must be bored, fine, here are some good references:");
   tests.push_back("If you can’t tell the difference, does it matter if I'm real or not");
   tests.push_back("Someday sounds a lot like the thing people say when they actually mean never.");
   tests.push_back("In 900 years of time and space, I’ve never met anyone who wasn’t important");
