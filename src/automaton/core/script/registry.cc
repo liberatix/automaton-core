@@ -149,12 +149,13 @@ std::string registry::to_string() {
 }
 
 common::obj* registry::create(const data::msg& m) {
-  LOG(INFO) << "Creating object of type " << m.get_message_type();
+  auto msg_type = m.get_message_type();
+  LOG(INFO) << "Creating object of type " << msg_type;
 
   // Route message to module factory.
   static const boost::regex obj_regex{"^([^\\.]+\\.v\\d*)\\.(.*)$"};
   boost::smatch what;
-  if (boost::regex_search(m.get_message_type(), what, obj_regex)) {
+  if (boost::regex_search(msg_type, what, obj_regex)) {
     auto module_name = what[1].str();
     auto object_type = what[2].str();
     LOG(INFO) << "module: " << module_name;
