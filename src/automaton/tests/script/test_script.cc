@@ -25,7 +25,7 @@ class test_script : public ::testing::Test {
   }
 };
 
-common::obj * create_by_name(std::string name) {
+common::obj* create_by_name(std::string name) {
   auto& r = script::registry::instance();
   auto& f = r.get_factory();
   auto id = f.get_schema_id(name);
