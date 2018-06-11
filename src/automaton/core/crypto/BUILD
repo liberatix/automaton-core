@@ -14,6 +14,9 @@ cc_library(
     "digital_signature.h",
     "secure_random.h",
   ],
+  deps = [
+    "//automaton/core/common",
+  ],
 )
 
 cc_library(

@@ -34,6 +34,11 @@ hash_transformation * hash_transformation::create(std::string name) {
   }
 }
 
+common::status hash_transformation::process(const obj& request, obj** response) {
+  return common::status(common::OK);
+}
+
+
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

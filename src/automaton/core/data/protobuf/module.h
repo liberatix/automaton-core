@@ -21,6 +21,10 @@ class module: public script::module {
  private:
   module() : script::module("data.protobuf", "0.0.1.a") {
     add_dependency("data", 0);
+
+    add_implementation("protobuf_factory", nullptr);
+    add_implementation("protobuf_msg", nullptr);
+    add_implementation("protobuf_schema", nullptr);
   }
 };
 

@@ -1,12 +1,12 @@
-#ifndef AUTOMATON_CORE_DATA_MODULE_H__
-#define AUTOMATON_CORE_DATA_MODULE_H__
+#ifndef AUTOMATON_CORE_COMMON_MODULE_H_
+#define AUTOMATON_CORE_COMMON_MODULE_H_
 
 #include "automaton/core/data/schema.h"
 #include "automaton/core/script/registry.h"
 
 namespace automaton {
 namespace core {
-namespace data {
+namespace common {
 
 class module: public script::module {
  public:
@@ -18,15 +18,11 @@ class module: public script::module {
   data::schema* schema() const;
 
  private:
-  module() : script::module("data", "0.0.1.a") {
-    add_concept("factory");
-    add_concept("msg");
-    add_concept("schema");
-  }
+  module() : script::module("cli", "0.0.1.a") {}
 };
 
-}  // namespace data
+}  // namespace common
 }  // namespace core
 }  // namespace automaton
 
-#endif  // AUTOMATON_CORE_DATA_MODULE_H__
+#endif  // AUTOMATON_CORE_COMMON_MODULE_H_

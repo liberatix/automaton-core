@@ -1,9 +1,11 @@
 #ifndef AUTOMATON_CORE_CRYPTO_CRYPTOPP_MODULE_H_
 #define AUTOMATON_CORE_CRYPTO_CRYPTOPP_MODULE_H_
 
+#include "automaton/core/common/obj.h"
+#include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/data/schema.h"
 #include "automaton/core/script/registry.h"
-#include "automaton/core/data/protobuf/protobuf_schema.h"
 
 namespace automaton {
 namespace core {
@@ -19,9 +21,23 @@ class module: public script::module {
 
   data::schema* schema() const;
 
+  static common::obj* create_sha256(const data::msg& m) {
+    return new SHA256_cryptopp();
+  }
+
  private:
-  module() : script::module("crypto_cryptopp", "0.0.1.a") {
+  module() : script::module("cryptopp", "0.0.1.a") {
     add_dependency("crypto", 0);
+
+    add_implementation("keccak256", nullptr);
+    add_implementation("ripemd160", nullptr);
+    add_implementation("sha256", &create_sha256);
+    add_implementation("sha3", nullptr);
+    add_implementation("sha512", nullptr);
+
+    add_implementation("random", nullptr);
+
+    add_implementation("secp256k1", nullptr);
   }
 };
 

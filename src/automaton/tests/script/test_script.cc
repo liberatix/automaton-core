@@ -1,5 +1,7 @@
 #include "automaton/core/crypto/module.h"
+
 #include "automaton/core/crypto/cryptopp/module.h"
+#include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/crypto/ed25519_orlp/module.h"
 #include "automaton/core/data/module.h"
 #include "automaton/core/data/protobuf/module.h"
@@ -38,6 +40,13 @@ TEST_F(test_script, module_registration) {
   r.import<crypto::cryptopp::module>();
   r.import<crypto::ed25519_orlp::module>();
   r.import<data::protobuf::module>();
+
+  auto& f = r.get_factory();
+  auto id = f.get_schema_id("cryptopp.v0.sha256");
+  std::unique_ptr<data::msg> m = f.new_message(id);
+  auto obj = r.create(*m.get());
+
+  auto sha256 = dynamic_cast<crypto::SHA256_cryptopp*>(obj);
 
   std::cout << r.to_string() << std::endl;
 }
