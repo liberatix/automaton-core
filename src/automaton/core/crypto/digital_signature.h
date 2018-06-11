@@ -121,6 +121,7 @@ class digital_signature {
                                digital_signature_factory_function func);
 
   virtual ~digital_signature() {}
+
  private:
   /**
     Map holding the function pointers used to instantiate classes implementing
