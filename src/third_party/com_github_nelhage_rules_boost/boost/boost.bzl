@@ -18,7 +18,10 @@ srcs_patterns = [
 
 # Building boost results in many warnings for unused values. Downstream users
 # won't be interested, so just disable the warning.
-default_copts = ["-Wno-unused-value"]
+# TODO (martin): find the proper command for VS & implemented it as an if statement
+# TODO (martin): here is the original command:
+# TODO (martin): default_copts = ["-Wno-unused-value"]
+default_copts = []
 
 def srcs_list(library_name, exclude):
   return native.glob([p % (library_name,) for p in srcs_patterns],

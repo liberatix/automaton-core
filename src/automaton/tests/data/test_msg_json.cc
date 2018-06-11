@@ -23,7 +23,7 @@ const char* STRING_FIELD_2 = "string_field_2";
 const char* STRING_FIELD_NESTED = "string_field_nested";
 const char* MESSAGE_FIELD = "message_field";
 const char* REPEATED_MSG_FIELD = "repeated_msg_field";
-const char* REPEATED_STRING_FIELD = "repeated_string_field";
+const char* REPEATED_BLOB_FIELD = "repeated_blob_field";
 
 const char* VALUE_1 = "value_1";
 const char* VALUE_2 = "value_2";
@@ -49,7 +49,7 @@ class test_msg_json : public ::testing::Test {
     first_message {
       string string_field_1 = 1;
       second_message message_field = 2;
-      repeated string repeated_string_field = 3;
+      repeated string repeated_blob_field = 3;
 
       nested_message {
         string string_field_nested = 1;
@@ -69,11 +69,11 @@ class test_msg_json : public ::testing::Test {
     int m4 = pb_schema->create_message(THIRD_MESSAGE);
 
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_1, "", false), m1);
+        schema::field_info(1, schema::blob, STRING_FIELD_1, "", false), m1);
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_2, "", false), m2);
+        schema::field_info(1, schema::blob, STRING_FIELD_2, "", false), m2);
     pb_schema->add_scalar_field(
-        schema::field_info(1, schema::string, STRING_FIELD_NESTED, "", false),
+        schema::field_info(1, schema::blob, STRING_FIELD_NESTED, "", false),
         m3);
 
     pb_schema->add_message_field(schema::field_info(2,
@@ -81,7 +81,7 @@ class test_msg_json : public ::testing::Test {
         SECOND_MESSAGE, false), m1);
 
     pb_schema->add_scalar_field(
-        schema::field_info(3, schema::string, REPEATED_STRING_FIELD, "", true), m1);
+        schema::field_info(3, schema::blob, REPEATED_BLOB_FIELD, "", true), m1);
 
     pb_schema->add_message_field(schema::field_info(1,
         schema::message_type, REPEATED_MSG_FIELD,
@@ -103,17 +103,17 @@ std::unique_ptr<protobuf_factory> test_msg_json::pb_factory;
 TEST_F(test_msg_json, serialize_json) {
   pb_factory->import_schema(pb_schema.get(), "test", "");
 
-  auto msg1 = pb_factory->new_message(FIRST_MESSAGE);
-  auto msg2 = pb_factory->new_message(SECOND_MESSAGE);
-  auto msg3 = pb_factory->new_message(FIRST_MESSAGE_NESTED_MESSAGE);
+  auto msg1 = pb_factory->new_message_by_name(FIRST_MESSAGE);
+  auto msg2 = pb_factory->new_message_by_name(SECOND_MESSAGE);
+  auto msg3 = pb_factory->new_message_by_name(FIRST_MESSAGE_NESTED_MESSAGE);
 
-  msg1->set_string(1, VALUE_1);
+  msg1->set_blob(1, VALUE_1);
 
-  msg2->set_string(1, VALUE_2);
+  msg2->set_blob(1, VALUE_2);
   msg1->set_message(2, *msg2);
-  msg1->set_repeated_string(3, "R1", -1);
-  msg1->set_repeated_string(3, "R2", -1);
-  msg1->set_repeated_string(3, "R3", -1);
+  msg1->set_repeated_blob(3, "R1", -1);
+  msg1->set_repeated_blob(3, "R2", -1);
+  msg1->set_repeated_blob(3, "R3", -1);
 
   // Deserialize to JSON.
   std::string json;
@@ -121,7 +121,7 @@ TEST_F(test_msg_json, serialize_json) {
   std::cout << json << std::endl;
 
   // Serialize from JSON.
-  auto msg4 = pb_factory->new_message(FIRST_MESSAGE);
+  auto msg4 = pb_factory->new_message_by_name(FIRST_MESSAGE);
   msg4->from_json(json);
   std::cout << "DESERIALIZED MSG: " << msg4->to_string() << std::endl;
 

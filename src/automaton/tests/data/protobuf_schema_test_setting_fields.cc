@@ -24,8 +24,8 @@ TEST(protobuf_factory, setting_fields) {
 
   // No such field
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_string(100, "value");
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
+    msg->set_blob(100, "value");
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
@@ -35,24 +35,24 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is repeated
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_string(4, "value");
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
+    msg->set_blob(4, "value");
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is repeated");
+    EXPECT_EQ(message, "Field is repeated!");
   }
 
-  // Field is not string
+  // Field is not blob
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_string(3, "value");
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
+    msg->set_blob(3, "value");
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not string");
+    EXPECT_EQ(message, "Field is not blob!");
   }
 
   /**
@@ -61,8 +61,8 @@ TEST(protobuf_factory, setting_fields) {
 
   // No such field
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_repeated_string(100, "value", -1);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
+    msg->set_repeated_blob(100, "value", -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
@@ -72,31 +72,31 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is not repeated
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_repeated_string(1, "value", -1);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
+    msg->set_repeated_blob(1, "value", -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not repeated");
+    EXPECT_EQ(message, "Field is not repeated!");
   }
 
-  // Field is not string
+  // Field is not blob
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
-    msg->set_repeated_string(3, "value", -1);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
+    msg->set_repeated_blob(3, "value", -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not string");
+    EXPECT_EQ(message, "Field is not blob!");
   }
 
   // *** Int32 functions ***
 
   // No such field
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_int32(100, 42);
   }
   catch (std::invalid_argument& e) {
@@ -107,31 +107,31 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is repeated
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_int32(7, 42);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is repeated");
+    EXPECT_EQ(message, "Field is repeated!");
   }
 
   // Field is not int32
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_int32(1, 42);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not int32");
+    EXPECT_EQ(message, "Field is not int32!");
   }
 
   // *** Int32 array functions ***
 
   // No such field
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_repeated_int32(100, 42, -1);
   }
   catch (std::invalid_argument& e) {
@@ -142,24 +142,24 @@ TEST(protobuf_factory, setting_fields) {
 
   // Data field is not repeated
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_repeated_int32(2, 42, -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not repeated");
+    EXPECT_EQ(message, "Field is not repeated!");
   }
 
   // Field is not int32
   try {
-    auto msg = pb_factory.new_message(TEST_MSG);
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
     msg->set_repeated_int32(4, 42, -1);
   }
   catch (std::invalid_argument& e) {
     std::string message = e.what();
     std::cerr << message << std::endl;
-    EXPECT_EQ(message, "Field is not int32");
+    EXPECT_EQ(message, "Field is not int32!");
   }
   google::protobuf::ShutdownProtobufLibrary();
 }

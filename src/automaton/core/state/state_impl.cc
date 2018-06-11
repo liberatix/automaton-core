@@ -8,6 +8,8 @@
 #include <set>
 #include <utility>
 #include "automaton/core/crypto/hash_transformation.h"
+ #include "automaton/core/log/log.h"
+
 
 namespace automaton {
 namespace core {
@@ -142,7 +144,10 @@ std::string state_impl::get_node_hash(const std::string& path) {
   std::vector<std::string> result;
   int32_t node_index = get_node_index(path);
   if (node_index == -1) {
-    throw std::out_of_range("No node at this path");
+    std::stringstream msg;
+    msg << "No node at this path";
+    //  LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
   uint8_t i = 0;
   do {
@@ -159,7 +164,10 @@ void state_impl::delete_node_tree(const std::string& path) {
   // TODO(Samir): Implement delete subtrie ( subtrie of node with value only? )
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].value == "") {
-    throw std::out_of_range("No set node at path: " + tohex(path));
+    std::stringstream msg;
+    msg << "No set node at path: " << tohex(path);
+    //  LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
   backup_nodes(nodes[cur_node].parent);
   subtrie_mark_free(cur_node);
@@ -208,7 +216,10 @@ void state_impl::delete_node_tree(const std::string& path) {
 void state_impl::erase(const std::string& path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].value == "") {
-    throw std::out_of_range("No set node at path: " + tohex(path));
+    std::stringstream msg;
+    msg << "No set node at path: " << tohex(path);
+    //  LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+    throw std::out_of_range(msg.str());
   }
 
   backup_nodes(cur_node);

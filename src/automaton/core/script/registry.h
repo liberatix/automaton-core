@@ -58,7 +58,10 @@ class module {
       extra_version_ = what[4].str();
     } else {
       // TODO(asen): Trhow an actual exception.
-      throw "Invalid version!";
+      std::stringstream msg;
+      msg << "Invalid version";
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+      throw std::invalid_argument(msg.str());
     }
   }
 
@@ -118,8 +121,11 @@ class registry {
     M& m = M::instance();
     LOG(INFO) << "Importing module " << m.name() << " " << &(M::instance());
     if (modules_.count(m.name_with_api_version()) > 0) {
-      LOG(ERROR) << "Module [" << m.name_with_api_version() << "] has already been imported!";
-      throw "Already registered!";
+      std::stringstream msg;
+      msg << "Module [" << m.name_with_api_version() << "] has already been imported!";
+      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+      throw std::runtime_error(msg.str());
+      // throw "Already registered!";
     }
     modules_[m.name_with_api_version()] = &m;
     std::string json;
@@ -129,9 +135,12 @@ class registry {
     // Ensure dependencies are already imported.
     for (const auto& dep : m.dependencies()) {
       if (modules_.count(dep) == 0) {
-        LOG(ERROR) << m.name_with_api_version() << " depends on "
-            << dep << " which hasn't been imported yet!";
-        throw "dependency issue!";
+        std::stringstream msg;
+        msg << m.name_with_api_version() << " depends on " << dep <<
+            " which hasn't been imported yet!";
+        LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+        throw std::runtime_error(msg.str());
+        // throw "dependency issue!";
       }
       const auto& dep_module = modules_[dep];
       m.schema()->add_dependency(dep_module->name_with_api_version());

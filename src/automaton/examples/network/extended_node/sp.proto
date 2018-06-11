@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+message blocks_request {
+/**
+  Peer A send this when requesting blocks to show what is its top of the chain so if he is many
+  blocks behind peer B will send him more blocks. If connects for the first time, this will be zero.
+*/
+  string top_block_hash = 1;
+
+  /// Peer A sends the hash/es of the block/s he requests from B
+  repeated string block_hash_requested = 2;
+}
+message blocks_response {
+  /// Peer B sets the hash/es of the block/s he sends to A
+  repeated string block_hash_response = 1;
+   /// Peer B sends the whole block/s with hash/es block_hash_response to A
+  repeated string block = 2;
+}
+
+message data {
+  blocks_request msg_type_1 = 1;
+  blocks_response msg_type_2 = 2;
+
+  /// This is only temporary.
+  uint32 height = 3;
+}

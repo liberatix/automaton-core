@@ -16,8 +16,29 @@ cc_library(
     ],
     deps = [
       "//automaton/core/crypto",
+      "//automaton/core/log",
     ],
 )
+
+cc_library(
+    name = "state_persistent",
+    srcs = [
+      "state_persistent.cc",
+      "state_persistent.h",
+      "state.cc",
+      "state.h",
+    ],
+    hdrs = [
+      "state_persistent.h",
+      "state.h",
+    ],
+    deps = [
+      "//automaton/core/crypto",
+      "//automaton/core/storage",
+      "//automaton/core/log",
+    ],
+)
+
 
 cc_library(
   name = "module",

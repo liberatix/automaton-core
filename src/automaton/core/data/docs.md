@@ -41,7 +41,7 @@ int m1 = custom_schema.create_message("MyMessage");
     * is repeated (array) - false
 */
 custom_schema.add_scalar_field(schema::field_info(1,
-    schema::field_type::string, "string_field", "", false), m1);
+    schema::field_type::blob, "string_field", "", false), m1);
 
 /*
   Adds message field (string, int, ...) to the m1.
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     protobuf_schema_definition custom_schema;
     int m1 = custom_schema.create_message("MyMessage");
     custom_schema.add_scalar_field(schema::field_info(1,
-        schema::field_type::string, "string_field", "", false), m1);
+        schema::field_type::blob, "string_field", "", false), m1);
     custom_schema.add_message_field(schema::field_info(2,
         schema::field_type::message_type, "message_field", "pack1.TestMsg",
         false), m1);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     protobuf_schema_definition custom_schema2;
     int m2 = custom_schema2.create_message("TestMsg2");
     custom_schema2.add_scalar_field(schema::field_info(1,
-        schema::field_type::string, "string_field", "", false), m1);
+        schema::field_type::blob, "string_field", "", false), m1);
     custom_schema2.add_message(m2);
 
     protobuf_schema sc;
@@ -132,10 +132,10 @@ int main(int argc, char* argv[]) {
     int schema_id = sc.get_schema_id("pack3.MyMessage");
     std::string msg = sc.get_message_field_type(schema_id,
         sc.get_field_tag(schema_id, "message_field2"));
-    int a = sc.new_message(sc.get_schema_id(msg));
-    sc.set_string(a,1,"alabala");
+    int a = sc.new_message_by_name(msg);
+    sc.set_blob(a,1,"alabala");
     std::cout << sc.to_string(a) << std::endl;
-    int b = sc.new_message(schema_id);
+    int b = sc.new_message_by_id(schema_id);
     sc.set_message(b,3,a);
     std::cout << sc.to_string(b) << std::endl;
 

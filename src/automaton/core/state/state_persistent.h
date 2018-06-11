@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_STATE_STATE_IMPL_H_
-#define AUTOMATON_CORE_STATE_STATE_IMPL_H_
+#ifndef AUTOMATON_CORE_STATE_STATE_PERSISTENT_H__
+#define AUTOMATON_CORE_STATE_STATE_PERSISTENT_H__
 
 #include <stdint.h>
 #include <string>
@@ -8,14 +8,15 @@
 #include <set>
 #include "automaton/core/state/state.h"
 #include "automaton/core/crypto/hash_transformation.h"
+#include "automaton/core/storage/blobstore.h"
 
 namespace automaton {
 namespace core {
 namespace state {
 
-class state_impl : public state {
+class state_persistent : public state {
  public:
-  explicit state_impl(crypto::hash_transformation* hasher);
+  state_persistent(crypto::hash_transformation* hasher, storage::blobstore* bs);
 
   // Get the value at given path. Empty string if no value is set or
   // there is no node at the given path
@@ -53,13 +54,37 @@ class state_impl : public state {
   uint32_t size();
 
  private:
-  struct node {
-    uint32_t parent;
-    std::string prefix;
-    std::string hash;
-    std::string value;
-    uint32_t children[256];
+  class node {
+   public:
+     uint32_t get_parent(storage::blobstore* bs);
+
+     std::string get_prefix(storage::blobstore* bs);
+
+     std::string get_hash(storage::blobstore* bs);
+
+     std::string get_value(storage::blobstore* bs);
+
+     uint32_t get_child(uint8_t child, storage::blobstore* bs);
+
+     void set_parent(uint32_t parent, storage::blobstore* bs);
+
+     void  set_prefix(const std::string prefix, storage::blobstore* bs);
+
+     void  set_hash(const std::string hash, storage::blobstore* bs);
+
+     void set_value(const std::string value, storage::blobstore* bs);
+
+     void set_child(const uint8_t child, const uint32_t value, storage::blobstore* bs);
+
+   public:
+    uint32_t parent_ = 0;
+    uint64_t prefix_ = 0;
+    uint64_t hash_ = 0;
+    uint64_t value_ = 0;
+    uint32_t children_[256] = {};
   };
+  storage::blobstore* bs;
+
   std::vector<node> nodes;
   std::map<uint32_t, node> backup;
   std::set<uint32_t> free_locations;
@@ -69,7 +94,7 @@ class state_impl : public state {
 
   int32_t get_node_index(const std::string& path);
   bool has_children(uint32_t node_index);
-  uint32_t add_node(uint32_t from, uint8_t to);
+  uint32_t add_node(uint32_t from, unsigned char to);
   // This needs to be called at the end of set() and erase() to recalculate the
   // hashes of all nodes from lowest child that was changed to the root
   void calculate_hash(uint32_t cur_node);
@@ -84,4 +109,4 @@ class state_impl : public state {
 }  // namespace core
 }  // namespace automaton
 
-#endif  // AUTOMATON_CORE_STATE_STATE_IMPL_H_
+#endif  //  AUTOMATON_CORE_STATE_STATE_PERSISTENT_H__
