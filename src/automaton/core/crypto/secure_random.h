@@ -5,13 +5,20 @@
 #include <map>
 #include <string>
 
+#include "automaton/core/common/obj.h"
+
 namespace automaton {
 namespace core {
 namespace crypto {
 
 // Class used for getting cryptographically secure random
-class secure_random {
+class secure_random : public common::obj {
  public:
+  /**
+    Handles process requests from script and routing to corresponding method.
+  */
+  common::status process(const obj& request, obj** response);
+
   // Generate random bit
   virtual bool bit() = 0;
 

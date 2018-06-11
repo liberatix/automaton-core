@@ -14,9 +14,9 @@ using automaton::core::io::get_file_contents;
 
 int main(int argc, char* argv[]) {
   protobuf_schema loaded_schema(get_file_contents("automaton/tests/data/many_fields.proto"));
-  loaded_schema.dump_schema(std::cout);
+  std::cout << loaded_schema.dump_schema();
   std::cout << "======================" << std::endl;
   protobuf_schema loaded_schema2(get_file_contents("automaton/tests/data/many_enums.proto"));
-  loaded_schema2.dump_schema(std::cout);
+  std::cout << loaded_schema2.dump_schema();
   google::protobuf::ShutdownProtobufLibrary();
 }

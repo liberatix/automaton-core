@@ -31,7 +31,6 @@ class hash_transformation : public common::obj {
   */
   common::status process(const obj& request, obj** response);
 
-
   // Updates the hash with additional input and computes the hash of the current
   // message.
   // Precondition digest_size == digest in bytes.

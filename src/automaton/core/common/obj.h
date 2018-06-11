@@ -24,6 +24,8 @@ struct status {
 */
 class obj {
  public:
+  virtual ~obj() {}
+
   typedef uint64_t id;
 
   id get_id() {

@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include "automaton/core/common/obj.h"
+
 namespace automaton {
 namespace core {
 namespace crypto {
@@ -11,8 +13,13 @@ namespace crypto {
 /**
   Digital signature interface
 */
-class digital_signature {
+class digital_signature : public common::obj {
  public:
+  /**
+    Handles process requests from script and routing to corresponding method.
+  */
+  common::status process(const obj& request, obj** response);
+
   /** The size of the public key in bytes */
   virtual size_t public_key_size() = 0;
 

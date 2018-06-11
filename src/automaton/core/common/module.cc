@@ -3,7 +3,13 @@
 #include <iostream>
 #include <string>
 
+#include "automaton/core/data/protobuf/protobuf_factory.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
+
+using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::data::protobuf::protobuf_schema;
+using automaton::core::io::get_file_contents;
 
 namespace automaton {
 namespace core {

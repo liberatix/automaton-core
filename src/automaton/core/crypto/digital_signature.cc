@@ -21,6 +21,10 @@ void digital_signature::register_factory(std::string name,
   digital_signature_factory[name] = func;
 }
 
+common::status digital_signature::process(const obj& request, obj** response) {
+  return common::status(common::OK);
+}
+
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton
