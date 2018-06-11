@@ -1,11 +1,5 @@
 syntax = "proto3";
 
-message factory {
-  message ed25519_orlp {
-    message create {
-    }
-    message concepts {
-      crypto_v0.concepts.digital_signature c1 = 1;
-    }
-  }
+message ed25519 {
+  crypto.v0.dsig c1 = 1;
 }

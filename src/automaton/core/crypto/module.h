@@ -19,7 +19,11 @@ class module: public script::module {
   data::schema* schema() const;
 
  private:
-  module() : script::module("crypto", "0.0.1.a") {}
+  module() : script::module("crypto", "0.0.1.a") {
+    add_concept("hash");
+    add_concept("dsig");
+    add_concept("rand");
+  }
 };
 
 }  // namespace crypto

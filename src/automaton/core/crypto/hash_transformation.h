@@ -5,12 +5,14 @@
 #include <map>
 #include <string>
 
+#include "automaton/core/common/obj.h"
+
 namespace automaton {
 namespace core {
 namespace crypto {
 
 // Base class for hash functions
-class hash_transformation {
+class hash_transformation : public common::obj {
  public:
   // A function pointer given to the register_factory to register.
   // The function will be used by create() to instantiate a hash_transformation
@@ -24,6 +26,11 @@ class hash_transformation {
       hash_transformation_factory;
 
  public:
+  /**
+    Handles process requests from script and routing to corresponding method.
+  */
+  common::status process(const obj& request, obj** response);
+
   // Updates the hash with additional input and computes the hash of the current
   // message.
   // Precondition digest_size == digest in bytes.

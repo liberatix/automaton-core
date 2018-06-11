@@ -27,7 +27,7 @@ void clear_buffers() {
 
 /// Constants
 
-static const uint32_t NUMBER_NODES = 1000;
+static const uint32_t NUMBER_NODES = 100000;
 // These include only the peers that a node connects to, not the accepted ones
 static const uint32_t NUMBER_PEERS_IN_NODE = 4;
 static const uint32_t MIN_LAG = 100;

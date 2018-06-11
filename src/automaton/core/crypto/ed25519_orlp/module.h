@@ -1,9 +1,10 @@
 #ifndef AUTOMATON_CORE_CRYPTO_ED25519_ORLP_MODULE_H_
 #define AUTOMATON_CORE_CRYPTO_ED25519_ORLP_MODULE_H_
 
+#include "automaton/core/crypto/ed25519_orlp/ed25519_orlp.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/data/schema.h"
 #include "automaton/core/script/registry.h"
-#include "automaton/core/data/protobuf/protobuf_schema.h"
 
 namespace automaton {
 namespace core {
@@ -19,9 +20,15 @@ class module: public script::module {
 
   data::schema* schema() const;
 
+  static common::obj* create_ed25519_orlp(const data::msg& m) {
+    return new ed25519_orlp();
+  }
+
  private:
-  module() : script::module("crypto_ed25519_orlp", "0.0.1.a") {
+  module() : script::module("ed25519_orlp", "0.0.1.a") {
     add_dependency("crypto", 0);
+
+    add_implementation("ed25519", &create_ed25519_orlp);
   }
 };
 

@@ -9,7 +9,9 @@
 #include <vector>
 #include <boost/regex.hpp>
 
+#include "automaton/core/common/obj.h"
 #include "automaton/core/data/factory.h"
+#include "automaton/core/data/msg.h"
 #include "automaton/core/data/schema.h"
 #include "automaton/core/log/log.h"
 
@@ -22,6 +24,8 @@ namespace script {
 */
 class module {
  public:
+  typedef common::obj * (*object_factory_function)(const data::msg& m);
+
   virtual const std::string name() const { return name_; }
   virtual const std::string name_with_api_version() const {
     return name_with_api_version(name_, api_version_);
@@ -31,12 +35,17 @@ class module {
   virtual const uint32_t minor_version() const { return minor_version_; }
   virtual const uint32_t patch_version() const { return patch_version_; }
   virtual const std::string extra_version() const { return extra_version_; }
-  virtual const std::vector<std::string> dependencies() const { return dependencies_; }
+
   virtual data::schema* schema() const = 0;
 
-  virtual void add_dependency(const std::string dependency, uint32_t api_version) {
-    dependencies_.push_back(name_with_api_version(dependency, api_version));
+  virtual const std::vector<std::string> dependencies() const { return dependencies_; }
+  virtual const std::vector<std::string> functions() const { return functions_; }
+  virtual const std::vector<std::string> concepts() const { return concepts_; }
+  virtual const std::unordered_map<std::string, object_factory_function> implementations() const {
+    return implementations_;
   }
+
+  // virtual void process(const data::msg& input, data::msg* output) = 0;
 
  protected:
   module(const std::string name, const std::string version) : name_(name), version_(version) {
@@ -56,10 +65,32 @@ class module {
     }
   }
 
+  void add_dependency(const std::string dependency, uint32_t api_version) {
+    dependencies_.push_back(name_with_api_version(dependency, api_version));
+  }
+
+  void add_function(const std::string function) {
+    functions_.push_back(function);
+  }
+
+  void add_concept(const std::string concept) {
+    concepts_.push_back(concept);
+  }
+
+  void add_implementation(const std::string implementation, object_factory_function f) {
+    if (implementations_.count(implementation) > 0) {
+      std::stringstream ss;
+      ss << "Module " << name() << " already has implementation for " << implementation;
+      LOG(ERROR) << ss.str();
+      throw ss.str();
+    }
+    implementations_[implementation] = f;
+    // implementations_.push_back(implementation);
+  }
+
  private:
-  static const std::string name_with_api_version(const std::string name,
-                                                   uint32_t api_version) {
-    return name + "_v" + std::to_string(api_version);
+  static const std::string name_with_api_version(const std::string name, uint32_t api_version) {
+    return name + ".v" + std::to_string(api_version);
   }
   std::string name_;
   std::string version_;
@@ -68,6 +99,10 @@ class module {
   uint32_t patch_version_;
   std::string extra_version_;
   std::vector<std::string> dependencies_;
+  std::vector<std::string> functions_;
+  std::vector<std::string> concepts_;
+  // std::vector<std::string> implementations_;
+  std::unordered_map<std::string, object_factory_function> implementations_;
 };
 
 /**
@@ -117,8 +152,6 @@ class registry {
     factory_->import_schema(m.schema(), m.name_with_api_version(), m.name_with_api_version());
   }
 
-  void configure();
-
   /**
     Dumps information about all registered modules, functions, classes and schemas into a string.
   */
@@ -135,11 +168,17 @@ class registry {
     return inst;
   }
 
+  data::factory& get_factory() { return *factory_.get() ; }
+  common::obj* create(const data::msg& m);
+
+  void process(const data::msg& request, data::msg* response);
+
  private:
   registry();
 
   std::unordered_map<std::string, module*> modules_;
   std::unique_ptr<data::factory> factory_;
+  // std::unordered_map<uint64_t, common::obj> objects_;
 };
 
 }  // namespace script

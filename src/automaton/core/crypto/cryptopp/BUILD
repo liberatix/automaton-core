@@ -23,6 +23,7 @@ cc_library(
     "SHA512_cryptopp.h",
   ],
   deps = [
+    "//automaton/core/common",
     "//automaton/core/crypto",
     "@cryptopp//:cryptopp",
   ],
@@ -34,6 +35,7 @@ cc_library(
   hdrs = ["module.h"],
   data = ["module.proto"],
   deps = [
+    "//automaton/core/common",
     "//automaton/core/crypto/cryptopp",
     "//automaton/core/data/protobuf",
     "//automaton/core/io",
