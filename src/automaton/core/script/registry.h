@@ -24,7 +24,7 @@ namespace script {
 */
 class module {
  public:
-  typedef common::obj * (*object_factory_function)(const data::msg& m);
+  typedef common::obj* (*object_factory_function)(const data::msg& m);
 
   virtual const std::string name() const { return name_; }
   virtual const std::string name_with_api_version() const {

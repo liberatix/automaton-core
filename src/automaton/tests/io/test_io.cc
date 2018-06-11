@@ -3,7 +3,7 @@
 
 using automaton::core::io::get_file_contents;
 
-const char * TEST_TXT_CONTENTS = "Hello, World!";
+const char* TEST_TXT_CONTENTS = "Hello, World!";
 
 TEST(get_file_contents, sucess) {
   std::string test_txt = get_file_contents("automaton/tests/io/test.txt");
