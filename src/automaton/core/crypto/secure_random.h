@@ -46,6 +46,8 @@ class secure_random {
   static void register_factory(std::string name,
       secure_random_factory_function func);
 
+  virtual ~secure_random() {}
+
  private:
   // Map holding the function pointers used to instantiate classes implementing
   // the interface.

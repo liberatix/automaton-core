@@ -39,6 +39,8 @@ class state {
 
   // Get the size of the hash in bytes
   virtual uint32_t hash_size() = 0;
+
+  virtual ~state() {}
 };
 
 }  // namespace state
