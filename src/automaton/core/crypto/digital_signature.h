@@ -120,6 +120,7 @@ class digital_signature {
   static void register_factory(std::string name,
                                digital_signature_factory_function func);
 
+  virtual ~digital_signature() {}
  private:
   /**
     Map holding the function pointers used to instantiate classes implementing

@@ -64,6 +64,8 @@ class hash_transformation {
   // IN:      name:      The registered name of the function used to
   //                     instantiate an implementation of this interface.
   static hash_transformation * create(const std::string name);
+
+  virtual ~hash_transformation() {}
 };
 
 }  // namespace crypto
