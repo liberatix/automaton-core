@@ -11,9 +11,23 @@
 #include "automaton/core/script/registry.h"
 #include "automaton/core/state/module.h"
 #include "gtest/gtest.h"
+#include "cryptlib.h"  // NOLINT
+#include "hex.h"  // NOLINT
 
 namespace automaton {
 namespace core {
+
+// Helper function to convert bytes to hex values
+// Each byte is converted to 2 hex values, encoding the left and
+// right 4 bits of each byte.
+static std::string toHex(uint8_t * digest, size_t size) {
+  CryptoPP::HexEncoder encoder;
+  std::string output;
+  encoder.Attach(new CryptoPP::StringSink(output));
+  encoder.Put(digest, size);
+  encoder.MessageEnd();
+  return output;
+}
 
 class test_script : public ::testing::Test {
  protected:
@@ -49,19 +63,37 @@ TEST_F(test_script, module_registration) {
   r.import<crypto::ed25519_orlp::module>();
   r.import<data::protobuf::module>();
 
-  // Test instantiation of all hash objects.
-  auto keccak256 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.keccak256"));
-  auto ripemd160 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.ripemd160"));
-  auto sha256 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.sha256"));
-  auto sha3 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.sha3"));
-  auto sha512 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.sha512"));
+  std::string tests[][3] = {
+    {"keccak256", "", "C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470"},
+    {"keccak256", "abc", "4E03657AEA45A94FC7D47BA826C8D667C0D1E6E33A64A036EC44F58FA12D6C45"},
+    {"ripemd160", "", "9C1185A5C5E9FC54612808977EE8F548B2258D31"},
+    {"sha256", "", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"},
+    {"sha3", "", "A7FFC6F8BF1ED76651C14756A061D662F580FF4DE43B49FA82D80A4B80F8434A"},
+    {"sha512", "",
+        "CF83E1357EEFB8BDF1542850D66D8007D620E4050B5715DC83F4A921D36CE9CE"
+        "47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E"},
+  };
+
+  // Test instantiation and correctness of dynamically created hash_transformation objects.
+  for (auto test : tests) {
+    auto hash =
+        dynamic_cast<crypto::hash_transformation*>(create_by_name("cryptopp.v0." + test[0]));
+
+    uint8_t* digest = new uint8_t[hash->digest_size()];
+    hash->calculate_digest(
+        reinterpret_cast<const uint8_t*>(test[1].c_str()), test[1].length(), &digest[0]);
+    EXPECT_EQ(toHex(digest, hash->digest_size()), test[2]);
+    delete[] digest;
+  }
 
   // Test instantiation of random object.
-  auto random = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.random"));
+  auto random = dynamic_cast<crypto::secure_random*>(create_by_name("cryptopp.v0.random"));
 
   // Test instantiation of digital signatures object.
-  auto secp256k1 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.secp256k1"));
-  auto ed25519 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("ed25519_orlp.v0.ed25519"));
+  auto secp256k1 =
+     dynamic_cast<crypto::digital_signature*>(create_by_name("cryptopp.v0.secp256k1"));
+  auto ed25519 =
+     dynamic_cast<crypto::digital_signature*>(create_by_name("ed25519_orlp.v0.ed25519"));
 
   std::cout << r.to_string() << std::endl;
 }
