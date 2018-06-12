@@ -63,9 +63,6 @@ TEST_F(test_script, module_registration) {
   r.import<crypto::ed25519_orlp::module>();
   r.import<data::protobuf::module>();
 
-  const char* blank = "";
-  uint8_t digest[1024];
-
   std::string tests[][3] = {
     {"keccak256", "", "C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470"},
     {"keccak256", "abc", "4E03657AEA45A94FC7D47BA826C8D667C0D1E6E33A64A036EC44F58FA12D6C45"},
@@ -82,9 +79,11 @@ TEST_F(test_script, module_registration) {
     auto hash =
         dynamic_cast<crypto::hash_transformation*>(create_by_name("cryptopp.v0." + test[0]));
 
+    uint8_t* digest = new uint8_t[hash->digest_size()];
     hash->calculate_digest(
         reinterpret_cast<const uint8_t*>(test[1].c_str()), test[1].length(), &digest[0]);
     EXPECT_EQ(toHex(digest, hash->digest_size()), test[2]);
+    delete[] digest;
   }
 
   // Test instantiation of random object.
