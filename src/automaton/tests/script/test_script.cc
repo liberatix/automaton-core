@@ -81,16 +81,19 @@ TEST_F(test_script, module_registration) {
     auto hash =
         dynamic_cast<crypto::hash_transformation*>(create_by_name("cryptopp.v0." + test[0]));
 
-    hash->calculate_digest(reinterpret_cast<const uint8_t*>(test[1].c_str()), 0, &digest[0]);
+    hash->calculate_digest(
+        reinterpret_cast<const uint8_t*>(test[1].c_str()), tests[1].length(), &digest[0]);
     EXPECT_EQ(toHex(digest, hash->digest_size()), test[2]);
   }
 
   // Test instantiation of random object.
-  auto random = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.random"));
+  auto random = dynamic_cast<crypto::secure_random*>(create_by_name("cryptopp.v0.random"));
 
   // Test instantiation of digital signatures object.
-  auto secp256k1 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("cryptopp.v0.secp256k1"));
-  auto ed25519 = dynamic_cast<crypto::SHA256_cryptopp*>(create_by_name("ed25519_orlp.v0.ed25519"));
+  auto secp256k1 =
+     dynamic_cast<crypto::digital_signature*>(create_by_name("cryptopp.v0.secp256k1"));
+  auto ed25519 =
+     dynamic_cast<crypto::digital_signature*>(create_by_name("ed25519_orlp.v0.ed25519"));
 
   std::cout << r.to_string() << std::endl;
 }
