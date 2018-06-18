@@ -11,8 +11,8 @@ cc_library(
       "node_prototype.h",
     ],
     deps = [
-      "//automaton/core/log",
       "//automaton/core/network:simulated_connection",
+      "//automaton/core/log",
     ],
 )
 cc_binary (
@@ -20,7 +20,7 @@ cc_binary (
 	srcs = ["simulation_big_test.cc",],
 	deps = [
     "//automaton/core/network:simulated_connection",
-      "//automaton/core/log",
+    "//automaton/core/log",
   ],
 )
 cc_binary (
