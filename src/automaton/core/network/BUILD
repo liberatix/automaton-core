@@ -12,6 +12,10 @@ cc_library(
     "acceptor.h",
     "connection.h",
   ],
+  defines = select({
+      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
+      "//conditions:default": [],
+  }),
   deps = [
     "@boost//:asio",
   ],
