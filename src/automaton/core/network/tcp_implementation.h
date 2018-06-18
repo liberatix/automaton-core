@@ -1,6 +1,5 @@
 #ifndef AUTOMATON_CORE_NETWORK_TCP_IMPLEMENTATION_H_
 #define AUTOMATON_CORE_NETWORK_TCP_IMPLEMENTATION_H_
-
 #include <iostream>
 #include <string>
 #include <vector>

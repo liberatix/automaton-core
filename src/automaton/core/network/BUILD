@@ -12,6 +12,10 @@ cc_library(
     "acceptor.h",
     "connection.h",
   ],
+  defines = select({
+      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
+      "//conditions:default": [],
+  }),
   deps = [
     "@boost//:asio",
   ],
@@ -27,6 +31,10 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
+  defines = select({
+      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
+      "//conditions:default": [],
+  }),
 )
 
 cc_library(
@@ -39,6 +47,10 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
+  defines = select({
+      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
+      "//conditions:default": [],
+  }),
 )
 
 cc_library(
