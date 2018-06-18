@@ -28,8 +28,8 @@ cc_binary (
 	srcs = ["simulation_test_node_prototype.cc",],
 	deps = [
     "//automaton/core/network:simulated_connection",
-    "//automaton/examples/network:node_prototype",
     "//automaton/core/log",
+    "//automaton/examples/network:node_prototype",
   ],
 )
 cc_binary (
@@ -37,7 +37,7 @@ cc_binary (
 	srcs = ["simulation_test_localhost.cc",],
 	deps = [
     "//automaton/core/network:network_tcp",
-    "//automaton/examples/network:node_prototype",
     "//automaton/core/log",
+    "//automaton/examples/network:node_prototype",
   ],
 )
