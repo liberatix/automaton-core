@@ -13,7 +13,7 @@ using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 using automaton::core::io::get_file_contents;
 
-const char * TEST_MSG = "TestMsg";
+const char* TEST_MSG = "TestMsg";
 
 TEST(protobuf_factory, setting_fields) {
   protobuf_factory pb_factory;

@@ -21,7 +21,7 @@ using automaton::core::io::get_file_contents;
   repeated bool g = 7; -> repeated boolean
 */
 
-const char * TEST_MSG = "TestMsg5";
+const char* TEST_MSG = "TestMsg5";
 
 TEST(protobuf_factory, all_data_types) {
   protobuf_factory pb_factory;
