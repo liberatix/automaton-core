@@ -10,17 +10,22 @@ message blocks_request {
   /// Peer A sends the hash/es of the block/s he requests from B
   repeated string block_hash_requested = 2;
 }
+
+message block {
+  string hash = 1;
+  string prev_hash = 2;
+  uint32 height = 3;
+  string discovered_by = 4;
+}
+
 message blocks_response {
   /// Peer B sets the hash/es of the block/s he sends to A
-  repeated string block_hash_response = 1;
-   /// Peer B sends the whole block/s with hash/es block_hash_response to A
-  repeated string block = 2;
+  repeated string block_hash = 1;
+   /// Peer B sends the whole block/s (serialized block messages) to A
+  repeated string whole_block = 2;
 }
 
 message data {
   blocks_request msg_type_1 = 1;
   blocks_response msg_type_2 = 2;
-
-  /// This is only temporary.
-  uint32 height = 3;
 }
