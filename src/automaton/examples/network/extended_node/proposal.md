@@ -70,9 +70,9 @@ message block {
 
 message blocks_response {
   /// Peer B sets the hash/es of the block/s he sends to A
-  repeated string block_hash_response = 1;
-   /// Peer B sends the whole block/s with hash/es block_hash_response to A
-  repeated block whole_block = 2;
+  repeated string block_hash = 1;
+   /// Peer B sends the whole block/s (serialized block messages) to A
+  repeated string whole_block = 2;
 }
 
 message data {
