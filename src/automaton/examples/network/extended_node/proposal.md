@@ -8,7 +8,7 @@ Node/ Protocol set up:
   * A state storing <hash, block> is used by every peer to represent the blockchain.
 
 Block validation and state synchronization:
- 1. Check if hash satisfies difficulty. If doesn't, ignore it.
+ 1. Check if hash satisfies difficulty. If it doesn't, ignore it.
  2. Check if hash is in the tree, if it is, ignore it.
  3. Check if prev hash is present in the chain/ tree.
   1. If prev hash is the top, add the new block to the top. See if there are orphan blocks that are
