@@ -1,28 +1,34 @@
 syntax = "proto3";
 
+/*
+  [libprotobuf ERROR external/com_google_protobuf/src/google/protobuf/wire_format_lite.cc:629]
+  String field 'block.hash' contains invalid UTF-8 data when serializing a protocol buffer. Use
+  the 'bytes' type if you intend to send raw bytes. 
+ */
+
 message blocks_request {
-/**
+/*
   Peer A send this when requesting blocks to show what is its top of the chain so if he is many
   blocks behind peer B will send him more blocks. If connects for the first time, this will be zero.
 */
-  string top_block_hash = 1;
+  bytes top_block_hash = 1;
 
-  /// Peer A sends the hash/es of the block/s he requests from B
-  repeated string block_hash_requested = 2;
+  // Peer A sends the hash/es of the block/s he requests from B
+  repeated bytes block_hash_requested = 2;
 }
 
 message block {
-  string hash = 1;
-  string prev_hash = 2;
+  bytes hash = 1;
+  bytes prev_hash = 2;
   uint32 height = 3;
-  string discovered_by = 4;
+  bytes discovered_by = 4;
 }
 
 message blocks_response {
-  /// Peer B sets the hash/es of the block/s he sends to A
-  repeated string block_hash = 1;
-   /// Peer B sends the whole block/s (serialized block messages) to A
-  repeated string whole_block = 2;
+  // Peer B sets the hash/es of the block/s he sends to A
+  repeated bytes block_hash = 1;
+   // Peer B sends the whole block/s (serialized block messages) to A
+  repeated bytes whole_block = 2;
 }
 
 message data {
