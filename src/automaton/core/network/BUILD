@@ -41,10 +41,6 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
-  defines = select({
-      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
-      "//conditions:default": [],
-  }),
 )
 
 cc_library(
