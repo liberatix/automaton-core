@@ -44,6 +44,11 @@ TEST(protobuf_factory, setting_fields) {
     EXPECT_EQ(message, "Field is repeated!");
   }
 
+  // Get field tag
+  {
+    auto msg = pb_factory.new_message_by_name(TEST_MSG);
+    EXPECT_EQ(msg->get_field_tag("opt"), 3);
+  }
   // Field is not blob
   try {
     auto msg = pb_factory.new_message_by_name(TEST_MSG);

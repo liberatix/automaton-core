@@ -1,6 +1,8 @@
 #include "automaton/examples/network/extended_node/extended_node_prototype.h"
 
+#include <iomanip>
 #include <memory>
+#include <sstream>
 
 #include "automaton/core/data/schema.h"
 #include "automaton/core/data/factory.h"
@@ -8,35 +10,80 @@
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/data/protobuf/protobuf_msg.h"
-
+#include "automaton/core/crypto/hash_transformation.h"
+#include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/log/log.h"
+#include "automaton/core/state/state_impl.h"
 
-namespace acn = automaton::core::network;
-namespace acd = automaton::core::data;
-namespace protobuf = acd::protobuf;
+
+using automaton::core::data::msg;
+using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::data::protobuf::protobuf_msg;
+using automaton::core::data::protobuf::protobuf_schema;
+using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::hash_transformation;
+using automaton::core::network::acceptor;
+using automaton::core::network::connection;
+using automaton::core::state::state_impl;
+
+namespace automaton {
+namespace examples {
 
 static const char* PROTO_FILE = "automaton/examples/network/extended_node/sp.proto";
-// TO BE REMOVED
-static uint32_t HEIGHT_TAG = 3;
 
-acd::factory* node::msg_factory = nullptr;
+core::data::factory* node::msg_factory = nullptr;
+
+static std::string tohex(std::string s) {
+  std::stringstream ss;
+  for (int i = 0; i < s.size(); i++) {
+    ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') <<
+        (static_cast<int32_t>(s[i]) & 0xff);
+  }
+  return ss.str();
+}
 
 /// Node's connection handler
 
 node::handler::handler(node* n): node_(n) {}
-void node::handler::on_message_received(acn::connection* c, char* buffer,
+void node::handler::on_message_received(connection* c, char* buffer,
     uint32_t bytes_read, uint32_t id) {
   try {
     std::string data = std::string(buffer, bytes_read);
-    std::unique_ptr<acd::msg> message = msg_factory->new_message_by_name("data");
-    message->deserialize_message(data);
-    uint32_t received_height = message->get_uint32(HEIGHT_TAG);
-    if (received_height > node_->height) {
-      node_->height = received_height;
-      node_->send_height();
+    if (data == "") {
+      return;
     }
-    c -> async_read(buffer, 16, 0, 0);
+    std::unique_ptr<msg> received_msg = msg_factory->new_message_by_name("data");
+    received_msg->deserialize_message(data);
+    std::unique_ptr<msg> msg_type = received_msg->get_message(2);
+    if (msg_type) {
+      std::string hash = msg_type->get_repeated_blob(1, 0);
+      if (node_->global_state->get(hash) == "" &&
+          node_->orphan_blocks.find(hash) == node_->orphan_blocks.end()) {
+        std::string serialized_block = msg_type->get_repeated_blob(2, 0);
+        std::unique_ptr<msg> block_msg = msg_factory->new_message_by_name("block");
+        block_msg->deserialize_message(serialized_block);
+        block b = node_->msg_to_block(block_msg.get());
+        /// validate block
+        if (!hash.compare(node_->hash_block(b))) {
+          node_->handle_block(hash, b, serialized_block);
+        }
+      }
+    } else {
+      msg_type = received_msg->get_message(1);
+      uint32_t hashes_number = msg_type->get_repeated_field_size(1);
+      if (hashes_number > 0) {
+        std::vector<std::string> hashes;
+        for (uint32_t i = 0; i < hashes_number; i++) {
+          hashes.push_back(msg_type->get_repeated_blob(1, i));
+        }
+        std::string message = node_->create_send_blocks_message(hashes);
+        if (message.size() != 0) {
+          c->async_send(message);
+        }
+      }
+    }
+    c -> async_read(buffer, 256, 0, 0);
   } catch (std::exception& e) {
     std::stringstream msg;
     msg << e.what();
@@ -45,8 +92,8 @@ void node::handler::on_message_received(acn::connection* c, char* buffer,
     LOG(ERROR) << el::base::debug::StackTrace();
   }
 }
-void node::handler::on_message_sent(acn::connection* c, uint32_t id,
-    acn::connection::error e) {
+void node::handler::on_message_sent(connection* c, uint32_t id,
+    connection::error e) {
   if (e) {
      LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
         c->get_address() << "\nError " << std::to_string(e);
@@ -55,15 +102,15 @@ void node::handler::on_message_sent(acn::connection* c, uint32_t id,
     //    c->get_address());
   }
 }
-void node::handler::on_connected(acn::connection* c) {
-  c->async_read(node_->add_buffer(16), 16, 0, 0);
+void node::handler::on_connected(connection* c) {
+  c->async_read(node_->add_buffer(256), 256, 0, 0);
 }
-void node::handler::on_disconnected(acn::connection* c) {
+void node::handler::on_disconnected(connection* c) {
   // logging("Disconnected with: " + c->get_address());
 }
-void node::handler::on_error(acn::connection* c,
-    acn::connection::error e) {
-  if (e == acn::connection::no_error) {
+void node::handler::on_error(connection* c,
+    connection::error e) {
+  if (e == connection::no_error) {
     return;
   }
   LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
@@ -77,27 +124,29 @@ bool node::lis_handler::on_requested(const std::string& address) {
   // logging("Connection request from: " + address + ". Accepting...");
   return node_->accept_connection(/*address*/);
 }
-void node::lis_handler::on_connected(acn::connection* c,
+void node::lis_handler::on_connected(connection* c,
     const std::string& address) {
   // logging("Accepted connection from: " + address);
   node_->peers[node_->get_next_peer_id()] = c;
-  c->async_read(node_->add_buffer(16), 16, 0, 0);
+  c->async_read(node_->add_buffer(256), 256, 0, 0);
 }
-void node::lis_handler::on_error(acn::connection::error e) {
+void node::lis_handler::on_error(connection::error e) {
   LOG(ERROR) << std::to_string(e);
 }
 
 /// Node
 
-node::node():initialized(false), height(0), peer_ids(0) {}
+node::node():height(0), initialized(false), peer_ids(0), chain_top("") {}
 
 bool node::init() {
   if (!msg_factory) {
     try {
-      msg_factory = new protobuf::protobuf_factory();
-      protobuf::protobuf_schema loaded_schema(automaton::core::io::get_file_contents(PROTO_FILE));
+      msg_factory = new protobuf_factory();
+      protobuf_schema loaded_schema(core::io::get_file_contents(PROTO_FILE));
       LOG(DEBUG) << "SCHEMA::" << loaded_schema.dump_schema();
       msg_factory->import_schema(&loaded_schema, "proto", "");
+      SHA256_cryptopp::register_self();
+      // miner = new basic_hash_miner(hasher);
     } catch (std::exception& e) {
       std::stringstream msg;
       msg << e.what();
@@ -110,15 +159,43 @@ bool node::init() {
   }
   handler_ = new handler(this);
   lis_handler_ = new lis_handler(this);
+  hasher = hash_transformation::create("SHA256");
+  global_state = new state_impl(hasher);
   return initialized = true;
 }
 node::~node() {
   for (uint32_t i = 0; i < buffers.size(); ++i) {
     delete [] buffers[i];
   }
+  // delete miner;
+  // delete global_state;
+  // delete hasher;
   // TODO(kari): delete all acceptors and connections
 }
+node::block::block() {}
+node::block::block(std::string hash, std::string prev_hash, uint32_t height, std::string miner):
+    hash(hash), prev_hash(prev_hash), height(height), miner(miner) {}
 
+std::string node::block::to_string() const {
+  std::stringstream stream;
+  stream << "block {\n\thash :" << tohex(hash) << "\n\tprev_hash: " << tohex(prev_hash) <<
+    "\n\theight: " << height << "\n\tminer: " << miner << "\n}";
+  return stream.str();
+}
+
+/// For now mined hash will be passed from the simulation; No actual mining happens in the node
+void node::mine(const std::string& new_hash) {
+  block b(new_hash, chain_top, ++height, std::to_string(acceptors.begin()->first));
+  // LOG(INFO) << id << " MINED NEW BLOCK:" << b.to_string();
+  std::string hash = hash_block(b);
+  std::string serialized_block;
+  std::unique_ptr<msg> block_msg = block_to_msg(b);
+  block_msg->serialize_message(&serialized_block);
+  // LOG(DEBUG) << id << " ADDING BLOCK: " << tohex(hash);
+  global_state->set(hash, serialized_block);
+  chain_top = hash;
+  send_message(create_send_blocks_message({hash}));
+}
 char* node::add_buffer(uint32_t size) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(buffer_mutex);
@@ -136,9 +213,9 @@ bool node::add_peer(uint32_t id, const std::string& connection_type, const std::
   if (it != peers.end()) {
   //  delete it->second;  /// Delete existing acceptor
   }
-  acn::connection* new_connection;
+  connection* new_connection;
   try {
-    new_connection = acn::connection::create(connection_type, address,
+    new_connection = connection::create(connection_type, address,
         handler_);
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
@@ -167,9 +244,9 @@ bool node::add_acceptor(uint32_t id, const std::string& connection_type,
   if (it != acceptors.end()) {
     // delete it->second;  /// Delete existing acceptor
   }
-  acn::acceptor* new_acceptor;
+  acceptor* new_acceptor;
   try {
-    new_acceptor = acn::acceptor::create(connection_type, address,
+    new_acceptor = acceptor::create(connection_type, address,
         lis_handler_, handler_);
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
@@ -191,21 +268,103 @@ void node::remove_acceptor(uint32_t id) {
     acceptors.erase(it);
   }
 }
-void node::send_height(uint32_t connection_id) {
+void node::send_message(const std::string& message, uint32_t connection_id) {
+  if (!connection_id) {
+    for (auto it = peers.begin(); it != peers.end(); ++it) {
+      // TODO(kari): if connected
+      it->second->async_send(message, 0);
+    }
+  } else {
+    peers[connection_id]->async_send(message, 0);
+  }
+}
+void node::check_orphans() {
+  bool erased = false;
+  do {
+    for (auto it = orphan_blocks.begin(); it != orphan_blocks.end(); ++it) {
+      block b = it->second;
+      std::string hash = it->first;
+      std::string serialized_prev_block = global_state->get(b.prev_hash);
+      if (serialized_prev_block != "") {
+        std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
+        deserialized_prev_block->deserialize_message(serialized_prev_block);
+        // If height is not what is expected, throw the block
+        if (deserialized_prev_block->get_uint32(3) + 1 != b.height) {
+          LOG(ERROR) << "Invalid block height!";
+          orphan_blocks.erase(it);
+          erased = true;
+          break;
+        }
+        std::unique_ptr<msg> block_msg = block_to_msg(b);
+        if (!block_msg) {
+          LOG(DEBUG) << "Message is null";
+        }
+        std::string serialized_block;
+        block_msg->serialize_message(&serialized_block);
+        // LOG(DEBUG) << id << " ADDING BLOCK: " << tohex(hash);
+        global_state->set(hash, serialized_block);
+        orphan_blocks.erase(it);
+        erased = true;
+        if (b.prev_hash == chain_top || b.height > height) {
+          chain_top = hash;
+          height = b.height;
+        }
+      } else if (it == (orphan_blocks.end()--)) {
+        erased = false;
+      }
+    }
+  } while (erased);
+}
+void node::handle_block(const std::string& hash, const block& block_,
+    const std::string& serialized_block) {
+  std::string serialized_prev_block = global_state->get(block_.prev_hash);
+  /// If we don't have the previous block
+  if (block_.prev_hash != "" && serialized_prev_block == "") {
+    orphan_blocks[hash] = block_;
+    if (orphan_blocks.find(block_.prev_hash) == orphan_blocks.end()) {
+      send_message(create_request_blocks_message({block_.prev_hash}));
+    }
+    return;
+  } else if (serialized_prev_block != "") {
+    std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
+    deserialized_prev_block->deserialize_message(serialized_prev_block);
+    // If height is not what is expected, throw the block
+    if (deserialized_prev_block->get_uint32(3) + 1 != block_.height) {
+      LOG(ERROR) << "Invalid block height!";
+      return;
+    }
+  }
+  // LOG(DEBUG) << id << " ADDING BLOCK: " << tohex(hash);
+  global_state->set(hash, serialized_block);
+  std::string old_chain_top = chain_top;
+  /// If the new block is extending the main chain
+  if (block_.prev_hash == chain_top || block_.height > height) {
+    chain_top = hash;
+    height = block_.height;
+  }
+  check_orphans();
+  if (old_chain_top != chain_top) {
+    send_message(create_send_blocks_message({chain_top}));
+  }
+}
+
+std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   try {
-    std::string data;
-    std::unique_ptr<acd::msg> message = msg_factory->new_message_by_name("data");
-    message->set_uint32(HEIGHT_TAG, height);
-    message->serialize_message(&data);
-    if (!connection_id) {
-      for (auto it = peers.begin(); it != peers.end(); ++it) {
-        // TODO(kari): if connected
-        it->second->async_send(data, 0);
+    std::unique_ptr<msg> msg_to_send = msg_factory->new_message_by_name("data");
+    std::unique_ptr<msg> msg_type = msg_factory->new_message_by_name("blocks_response");
+    std::string data, serialized_block;
+    for (uint32_t i = 0; i < hashes.size(); ++i) {
+      serialized_block = global_state->get(hashes[i]);
+      if (serialized_block == "") {
+        continue;
       }
-    } else {
-      peers[connection_id]->async_send(data, 0);
+      msg_type->set_repeated_blob(1, hashes[i]);
+      msg_type->set_repeated_blob(2, serialized_block);
     }
+    msg_to_send->set_message(2, *msg_type);
+    msg_to_send->serialize_message(&data);
+    return data;
   } catch (std::exception& e) {
     std::stringstream msg;
     msg << e.what();
@@ -213,4 +372,61 @@ void node::send_height(uint32_t connection_id) {
   } catch (...) {
     LOG(ERROR) << el::base::debug::StackTrace();
   }
+  return "";
 }
+
+std::string node::create_request_blocks_message(std::vector<std::string> hashes) {
+  CHECK(initialized == true) << "Node is not initialized! Call init() first!";
+  try {
+    std::unique_ptr<msg> msg_to_send = msg_factory->new_message_by_name("data");
+    std::unique_ptr<msg> msg_type = msg_factory->new_message_by_name("blocks_request");
+    std::string data;
+    for (uint32_t i = 0; i < hashes.size(); ++i) {
+      msg_type->set_repeated_blob(2, hashes[i]);
+    // if (!connection_id) {
+    //   for (auto it = peers.begin(); it != peers.end(); ++it) {
+    //     // TODO(kari): if connected
+    //     it->second->async_send(data, 0);
+    //   }
+    // } else {
+    //   peers[connection_id]->async_send(data, 0);
+    // }
+    }
+    msg_to_send->set_message(1, *msg_type);
+    msg_to_send->serialize_message(&data);
+    return data;
+  } catch (std::exception& e) {
+    std::stringstream msg;
+    msg << e.what();
+    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+  } catch (...) {
+    LOG(ERROR) << el::base::debug::StackTrace();
+  }
+  return "";
+}
+
+node::block node::msg_to_block(core::data::msg* m) const {
+  return block(m->get_blob(1), m->get_blob(2), m->get_uint32(3), m->get_blob(4));
+}
+std::unique_ptr<msg> node::block_to_msg(const block& b) const {
+  std::unique_ptr<msg> message = msg_factory->new_message_by_name("block");
+  message->set_blob(1, b.hash);
+  message->set_blob(2, b.prev_hash);
+  message->set_uint32(3, b.height);
+  message->set_blob(4, b.miner);
+  return message;
+}
+std::string node::hash_block(const block& block_) const {
+  uint8_t hash[32];
+  core::crypto::hash_transformation* hasher = hash_transformation::create("SHA256");
+  hasher->update(reinterpret_cast<const uint8_t*>(block_.hash.c_str()), block_.hash.size());
+  hasher->update(reinterpret_cast<const uint8_t*>(block_.prev_hash.c_str()),
+      block_.prev_hash.size());
+  hasher->update(reinterpret_cast<const uint8_t*>(&block_.height), 4);
+  hasher->update(reinterpret_cast<const uint8_t*>(block_.miner.c_str()), block_.miner.size());
+  hasher->final(hash);
+  return std::string(hash, hash + 32);
+}
+
+}  // namespace examples
+}  // namespace automaton

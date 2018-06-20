@@ -1084,6 +1084,20 @@ int32_t protobuf_msg::get_repeated_enum(uint32_t field_tag, int32_t index) const
   }
 }
 
+uint32_t protobuf_msg::get_field_tag(const std::string& name) const {
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
+  const FieldDescriptor* fdesc =
+      m->GetDescriptor()->FindFieldByName(name);
+  if (fdesc) {
+    return fdesc->number();
+  }
+  std::stringstream msg;
+  msg << "No field with name: " << name;
+  LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+  throw std::invalid_argument(msg.str());
+}
+
 }  // namespace protobuf
 }  // namespace data
 }  // namespace core

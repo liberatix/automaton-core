@@ -12,10 +12,14 @@ cc_library(
     ],
     data = ["//automaton/examples/network/extended_node:sp.proto"],
     deps = [
+      "//automaton/core/crypto",
+      "//automaton/core/crypto/cryptopp",
+      "//automaton/core/data/protobuf",
       "//automaton/core/io",
       "//automaton/core/log",
+      "//automaton/core/state:state",
       "//automaton/core/network:network",
-      "//automaton/core/data/protobuf",
+      "//automaton/examples/crypto:basic_hash_miner",
     ],
 )
 
@@ -23,8 +27,11 @@ cc_binary (
 	name = "simulation_test_extended_node_prototype",
 	srcs = ["simulation_test_extended_node_prototype.cc",],
 	deps = [
+    "//automaton/core/crypto",
+    "//automaton/core/crypto/cryptopp",
     "//automaton/core/log",
     "//automaton/core/network:simulated_connection",
+    "//automaton/examples/crypto:basic_hash_miner",
     "//automaton/examples/network/extended_node:extended_node_prototype",
   ],
 )
