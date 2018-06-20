@@ -178,6 +178,8 @@ class protobuf_msg : public msg {
 
   int32_t get_repeated_enum(uint32_t field_tag, int32_t index) const;
 
+  uint32_t get_field_tag(const std::string& name) const;
+
  private:
   std::unique_ptr<google::protobuf::Message> m;
   uint32_t schema_id;
