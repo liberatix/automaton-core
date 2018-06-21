@@ -13,6 +13,7 @@ cc_library(
     "connection.h",
   ],
   linkstatic=True,
+)
 
 cc_library(
   name = "network_tcp",
