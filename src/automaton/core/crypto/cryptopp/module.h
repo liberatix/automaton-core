@@ -1,6 +1,8 @@
 #ifndef AUTOMATON_CORE_CRYPTO_CRYPTOPP_MODULE_H_
 #define AUTOMATON_CORE_CRYPTO_CRYPTOPP_MODULE_H_
 
+#include <memory>
+
 #include "automaton/core/common/obj.h"
 #include "automaton/core/crypto/cryptopp/Keccak_256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/RIPEMD160_cryptopp.h"
@@ -27,32 +29,32 @@ class module: public script::module {
 
   data::schema* schema() const;
 
-  static common::obj* create_sha256(const data::msg& m) {
-    return new SHA256_cryptopp();
+  static std::unique_ptr<common::obj> create_sha256(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new SHA256_cryptopp());
   }
 
-  static common::obj* create_sha3(const data::msg& m) {
-    return new SHA3_256_cryptopp();
+  static std::unique_ptr<common::obj> create_sha3(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new SHA3_256_cryptopp());
   }
 
-  static common::obj* create_sha512(const data::msg& m) {
-    return new SHA512_cryptopp();
+  static std::unique_ptr<common::obj> create_sha512(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new SHA512_cryptopp());
   }
 
-  static common::obj* create_keccak256(const data::msg& m) {
-    return new Keccak_256_cryptopp();
+  static std::unique_ptr<common::obj> create_keccak256(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new Keccak_256_cryptopp());
   }
 
-  static common::obj* create_ripemd160(const data::msg& m) {
-    return new RIPEMD160_cryptopp();
+  static std::unique_ptr<common::obj> create_ripemd160(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new RIPEMD160_cryptopp());
   }
 
-  static common::obj* create_random(const data::msg& m) {
-    return new secure_random_cryptopp();
+  static std::unique_ptr<common::obj> create_random(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new secure_random_cryptopp());
   }
 
-  static common::obj* create_secp256k1(const data::msg& m) {
-    return new secp256k1_cryptopp();
+  static std::unique_ptr<common::obj> create_secp256k1(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new secp256k1_cryptopp());
   }
 
  private:

@@ -15,6 +15,7 @@ cc_library(
   deps = [
     "@boost//:asio",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -27,6 +28,7 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -39,6 +41,7 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -50,4 +53,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

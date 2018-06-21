@@ -12,7 +12,8 @@ cc_library(
   ],
   deps = [
     "//automaton/core/log",
-  ]
+  ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -24,4 +25,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

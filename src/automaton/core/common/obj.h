@@ -12,8 +12,7 @@ enum status_code {
 };
 
 struct status {
-  // NOLINTNEXTLINE
-  status(status_code code) : code(code), msg("") {}
+  explicit status(status_code code) : code(code), msg("") {}
   status(status_code code, std::string msg) : code(code), msg(msg) {}
   status_code code;
   std::string msg;
@@ -32,7 +31,7 @@ class obj {
     return id_;
   }
 
-  virtual status process(const obj& request, obj** response) = 0;
+  virtual status process(const obj& request, obj* response) = 0;
 
  private:
   id id_;

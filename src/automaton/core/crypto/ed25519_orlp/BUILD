@@ -14,6 +14,7 @@ cc_library(
     "//automaton/core/crypto",
     "@ed25519_orlp//:ed25519_orlp",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -27,4 +28,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

@@ -21,6 +21,10 @@ factory* factory::create(std::string name) {
   }
 }
 
+common::status factory::process(const obj& request, obj* response) {
+  return common::status(common::OK);
+}
+
 }  // namespace data
 }  // namespace core
 }  // namespace automaton

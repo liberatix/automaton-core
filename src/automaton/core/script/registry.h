@@ -24,7 +24,7 @@ namespace script {
 */
 class module {
  public:
-  typedef common::obj* (*object_factory_function)(const data::msg& m);
+  typedef std::unique_ptr<common::obj> (*object_factory_function)(const data::msg& m);
 
   virtual const std::string name() const { return name_; }
   virtual const std::string name_with_api_version() const {
@@ -169,7 +169,7 @@ class registry {
   }
 
   data::factory& get_factory() { return *factory_.get() ; }
-  common::obj* create(const data::msg& m);
+  std::unique_ptr<common::obj> create(const data::msg& m);
 
   void process(const data::msg& request, data::msg* response);
 

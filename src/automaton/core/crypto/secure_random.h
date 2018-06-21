@@ -17,7 +17,7 @@ class secure_random : public common::obj {
   /**
     Handles process requests from script and routing to corresponding method.
   */
-  common::status process(const obj& request, obj** response);
+  common::status process(const obj& request, obj* response);
 
   // Generate random bit
   virtual bool bit() = 0;

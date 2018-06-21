@@ -3,40 +3,42 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "state",
-    srcs = [
-      "state_impl.cc",
-      "state_impl.h",
-      "state.cc",
-      "state.h",
-    ],
-    hdrs = [
-      "state_impl.h",
-      "state.h",
-    ],
-    deps = [
-      "//automaton/core/crypto",
-      "//automaton/core/log",
-    ],
+  name = "state",
+  srcs = [
+    "state_impl.cc",
+    "state_impl.h",
+    "state.cc",
+    "state.h",
+  ],
+  hdrs = [
+    "state_impl.h",
+    "state.h",
+  ],
+  deps = [
+    "//automaton/core/crypto",
+    "//automaton/core/log",
+  ],
+  linkstatic=True,
 )
 
 cc_library(
-    name = "state_persistent",
-    srcs = [
-      "state_persistent.cc",
-      "state_persistent.h",
-      "state.cc",
-      "state.h",
-    ],
-    hdrs = [
-      "state_persistent.h",
-      "state.h",
-    ],
-    deps = [
-      "//automaton/core/crypto",
-      "//automaton/core/storage",
-      "//automaton/core/log",
-    ],
+  name = "state_persistent",
+  srcs = [
+    "state_persistent.cc",
+    "state_persistent.h",
+    "state.cc",
+    "state.h",
+  ],
+  hdrs = [
+    "state_persistent.h",
+    "state.h",
+  ],
+  deps = [
+    "//automaton/core/crypto",
+    "//automaton/core/storage",
+    "//automaton/core/log",
+  ],
+  linkstatic=True,
 )
 
 
@@ -49,4 +51,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

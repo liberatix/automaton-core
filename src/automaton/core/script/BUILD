@@ -17,4 +17,5 @@ cc_library(
     "//automaton/core/log",
     "@boost//:regex",
   ],
+  linkstatic=True,
 )

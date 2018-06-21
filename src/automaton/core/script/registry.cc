@@ -148,7 +148,7 @@ std::string registry::to_string() {
   return ss.str();
 }
 
-common::obj* registry::create(const data::msg& m) {
+std::unique_ptr<common::obj> registry::create(const data::msg& m) {
   auto msg_type = m.get_message_type();
   LOG(INFO) << "Creating object of type " << msg_type;
 
