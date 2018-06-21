@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "automaton/core/crypto/hash_transformation.h"
@@ -59,8 +60,6 @@ class node {
   ~node();
   bool init();
   uint32_t id;
-  std::string chain_top;
-  uint32_t height;
   void mine(const std::string& new_hash);
   char* add_buffer(uint32_t size);
   /// This function is created because the acceptor needs ids for the connections it accepts
@@ -73,14 +72,25 @@ class node {
   void send_message(const std::string& message, uint32_t connection_id = 0);
   void handle_block(const std::string& hash, const block& block_,
       const std::string& serialized_block);
+  std::pair<uint32_t, std::string> get_height_and_top();
   // process
  private:
+  std::string chain_top;
+  uint32_t height;
   bool initialized;
+  // TODO(kari): remove this and add hello message passing id as well as a list of ids and peers
   uint32_t peer_ids;  // count
   handler* handler_;
   lis_handler* lis_handler_;
   std::vector<char*> buffers;
   std::mutex buffer_mutex;
+  std::mutex global_state_mutex;
+  std::mutex orphan_blocks_mutex;
+  std::mutex peer_ids_mutex;
+  std::mutex peers_mutex;
+  std::mutex acceptors_mutex;
+  std::mutex chain_top_mutex;
+  std::mutex height_mutex;
   std::map<std::string, block> orphan_blocks;
   std::map<uint32_t, core::network::acceptor*> acceptors;
   std::map<uint32_t, core::network::connection*> peers;
