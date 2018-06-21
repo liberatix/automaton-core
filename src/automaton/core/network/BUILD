@@ -12,6 +12,7 @@ cc_library(
     "acceptor.h",
     "connection.h",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -25,10 +26,7 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
-  defines = select({
-      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
-      "//conditions:default": [],
-  }),
+  linkstatic=True,
 )
 
 cc_library(
@@ -41,6 +39,7 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -52,4 +51,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

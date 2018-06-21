@@ -16,4 +16,5 @@ cc_library(
     "ELPP_FEATURE_PERFORMANCE_TRACKING",
     "ELPP_FEATURE_CRASH_LOG",
   ],
+  linkstatic=True,
 )

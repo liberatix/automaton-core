@@ -4,14 +4,21 @@
 #include <memory>
 #include <string>
 
+#include "automaton/core/common/obj.h"
+
 namespace automaton {
 namespace core {
 namespace data {
 
 /** Schema message interface
 */
-class msg {
+class msg : public common::obj {
  public:
+  /**
+    Handles process requests from script and routing to corresponding method.
+  */
+  common::status process(const obj& request, obj* response);
+
   msg() {}
 
   // TODO(asen): Produce a copy of the message.

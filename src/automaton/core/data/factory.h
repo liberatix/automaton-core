@@ -7,8 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include "automaton/core/data/schema.h"
+#include "automaton/core/common/obj.h"
 #include "automaton/core/data/msg.h"
+#include "automaton/core/data/schema.h"
 
 namespace automaton {
 namespace core {
@@ -16,8 +17,13 @@ namespace data {
 
 /** Schema data structure interface.
 */
-class factory {
+class factory : public common::obj {
  public:
+  /**
+    Handles process requests from script and routing to corresponding method.
+  */
+  common::status process(const obj& request, obj* response);
+
   virtual ~factory() = 0;
 
   typedef factory* (*data_factory_function)();
