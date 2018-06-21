@@ -138,7 +138,7 @@ bool node::lis_handler::on_requested(const std::string& address) {
 
 void node::lis_handler::on_connected(connection* c, const std::string& address) {
   // logging("Accepted connection from: " + address);
-  node_->peers[node_->get_next_peer_id()] = c;
+  node_->peers[std::to_string(node_->get_next_peer_id())] = c;
   c->async_read(node_->add_buffer(256), 256, 0, 0);
 }
 
@@ -148,7 +148,7 @@ void node::lis_handler::on_error(connection::error e) {
 
 /// Node
 
-node::node():id(0), chain_top(""), height(0), initialized(false), peer_ids(0) {}
+node::node():id(""), chain_top(""), height(0), initialized(false), peer_ids(0) {}
 
 bool node::init() {
   if (initialized) {
@@ -207,7 +207,7 @@ void node::mine(const std::string& new_hash) {
   std::lock_guard<std::mutex> height_lock(height_mutex);
   std::lock_guard<std::mutex> top_lock(chain_top_mutex);
   std::lock_guard<std::mutex> orphans_lock(orphan_blocks_mutex);
-  block b(new_hash, chain_top, ++height, std::to_string(acceptors.begin()->first));
+  block b(new_hash, chain_top, ++height, acceptors.begin()->first);
   // LOG(INFO) << id << " MINED NEW BLOCK:" << b.to_string();
   std::string hash = hash_block(b);
   std::string serialized_block;
@@ -239,7 +239,8 @@ bool node::accept_connection() {
   return true;
 }
 
-bool node::add_peer(uint32_t id, const std::string& connection_type, const std::string& address) {
+bool node::add_peer(const std::string& id, const std::string& connection_type,
+    const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = peers.find(id);
@@ -264,7 +265,7 @@ bool node::add_peer(uint32_t id, const std::string& connection_type, const std::
   return true;
 }
 
-void node::remove_peer(uint32_t id) {
+void node::remove_peer(const std::string& id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = peers.find(id);
@@ -273,7 +274,7 @@ void node::remove_peer(uint32_t id) {
   }
 }
 
-bool node::add_acceptor(uint32_t id, const std::string& connection_type,
+bool node::add_acceptor(const std::string& id, const std::string& connection_type,
     const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(acceptors_mutex);
@@ -299,7 +300,7 @@ bool node::add_acceptor(uint32_t id, const std::string& connection_type,
   return true;
 }
 
-void node::remove_acceptor(uint32_t id) {
+void node::remove_acceptor(const std::string& id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
 
   std::lock_guard<std::mutex> lock(acceptors_mutex);
@@ -318,7 +319,7 @@ void node::send_message(const std::string& message, uint32_t connection_id) {
       it->second->async_send(message, 0);
     }
   } else {
-    peers[connection_id]->async_send(message, 0);
+    peers[std::to_string(connection_id)]->async_send(message, 0);
   }
 }
 

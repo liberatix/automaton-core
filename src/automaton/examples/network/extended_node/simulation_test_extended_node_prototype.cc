@@ -117,12 +117,10 @@ void collect_stats() {
   heights.clear();
   // logging("Nodes size: " + std::to_string(nodes.size()));
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-    std::string hash = tohex(nodes[i]->chain_top);
+    auto res = nodes[i]->get_height_and_top();
+    std::string hash = tohex(res.second);
     hashes[hash]++;
-    if (heights.find(hash) != heights.end() && heights[hash] != nodes[i]->height) {
-      LOG(ERROR) << "Hash doesn't match height!";
-    }
-    heights[hash] = nodes[i]->height;
+    heights[hash] = res.first;
   }
   LOG(INFO) << "==== Heights ====";
   for (auto it = hashes.begin(); it != hashes.end(); ++it) {
@@ -143,12 +141,12 @@ int main() {
       nodes[i] = new node();
       nodes[i]->id = i;
       nodes[i]->init();
-      nodes[i]->add_acceptor(i, "sim", create_acceptor_address(i+1));
+      nodes[i]->add_acceptor(std::to_string(i), "sim", create_acceptor_address(i+1));
     }
     LOG(INFO) << "Creating connections...";
     for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
       for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
-        nodes[i]->add_peer(nodes[i]->get_next_peer_id(), "sim",
+        nodes[i]->add_peer(std::to_string(nodes[i]->get_next_peer_id()), "sim",
             create_connection_address(NUMBER_NODES, i));
       }
     }

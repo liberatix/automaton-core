@@ -75,7 +75,7 @@ class node {
 
   bool init();
 
-  uint32_t id;
+  std::string id;
 
   void mine(const std::string& new_hash);
 
@@ -86,13 +86,15 @@ class node {
 
   bool accept_connection();
 
-  bool add_peer(uint32_t id, const std::string& connection_type, const std::string& address);
+  bool add_peer(const std::string& id, const std::string& connection_type,
+      const std::string& address);
 
-  void remove_peer(uint32_t id);
+  void remove_peer(const std::string& id);
 
-  bool add_acceptor(uint32_t id, const std::string& connection_type, const std::string& address);
+  bool add_acceptor(const std::string& id, const std::string& connection_type,
+      const std::string& address);
 
-  void remove_acceptor(uint32_t id);
+  void remove_acceptor(const std::string& id);
 
   void send_message(const std::string& message, uint32_t connection_id = 0);
 
@@ -121,8 +123,8 @@ class node {
   std::mutex chain_top_mutex;
   std::mutex height_mutex;
   std::map<std::string, block> orphan_blocks;
-  std::map<uint32_t, core::network::acceptor*> acceptors;
-  std::map<uint32_t, core::network::connection*> peers;
+  std::map<std::string, core::network::acceptor*> acceptors;
+  std::map<std::string, core::network::connection*> peers;
   core::crypto::hash_transformation* hasher;
   core::state::state* global_state;  // map block_hash -> serialized msg, containing the block
   // basic_hash_miner* miner

@@ -92,15 +92,16 @@ int main() {
     automaton::core::network::tcp_init();
     LOG(INFO) << "Creating acceptors...";
     for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+      std::string address = LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i);
       nodes[i] = new node();
       nodes[i]->init();
-      nodes[i]->id = i;
-      nodes[i]->add_acceptor(i, "tcp", LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i));
+      nodes[i]->id = address;
+      nodes[i]->add_acceptor(address, "tcp", address);
     }
     LOG(INFO) << "Creating connections...";
     for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
       for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
-        nodes[i]->add_peer(nodes[i]->get_next_peer_id(), "tcp", LOCALHOST +
+        nodes[i]->add_peer(std::to_string(nodes[i]->get_next_peer_id()), "tcp", LOCALHOST +
             std::to_string(FIRST_ACCEPTOR_PORT + std::rand() % NUMBER_NODES));
       }
     }
