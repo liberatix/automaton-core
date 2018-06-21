@@ -12,11 +12,7 @@ cc_library(
     "acceptor.h",
     "connection.h",
   ],
-  deps = [
-    "@boost//:asio",
-  ],
   linkstatic=True,
-)
 
 cc_library(
   name = "network_tcp",
@@ -25,6 +21,7 @@ cc_library(
     "tcp_implementation.cc",
   ],
   deps = [
+    "@boost//:asio",
     ":network",
     "//automaton/core/log",
   ],

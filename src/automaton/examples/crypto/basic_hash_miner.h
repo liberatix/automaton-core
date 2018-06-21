@@ -4,12 +4,11 @@
 #include "automaton/core/crypto/hash_transformation.h"
 
 namespace automaton {
-namespace core {
 namespace examples {
 
 class basic_hash_miner {
  public:
-  explicit basic_hash_miner(crypto::hash_transformation* hash_transformation);
+  explicit basic_hash_miner(core::crypto::hash_transformation* hash_transformation);
 
   int get_nonce_lenght();
   uint8_t* mine(const uint8_t* block_hash,
@@ -18,7 +17,7 @@ class basic_hash_miner {
 
  private:
   int nonce_lenght_;
-  crypto::hash_transformation* hash_transformation_;
+  core::crypto::hash_transformation* hash_transformation_;
   uint8_t* nonce_;
 
   void next_nonce();
@@ -27,7 +26,6 @@ class basic_hash_miner {
 };
 
 }  // namespace examples
-}  // namespace core
 }  // namespace automaton
 
 #endif  // AUTOMATON_EXAMPLES_CRYPTO_BASIC_HASH_MINER_H_

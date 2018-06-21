@@ -174,6 +174,8 @@ class msg : public common::obj {
   virtual void set_repeated_enum(uint32_t field_tag, int32_t value, int32_t index = -1) = 0;
 
   virtual int32_t get_repeated_enum(uint32_t field_tag, int32_t index) const = 0;
+
+  virtual uint32_t get_field_tag(const std::string& name) const = 0;
 };
 
 }  // namespace data

@@ -10,7 +10,7 @@
 
 using automaton::core::crypto::hash_transformation;
 using automaton::core::crypto::SHA256_cryptopp;
-using automaton::core::examples::basic_hash_miner;
+using automaton::examples::basic_hash_miner;
 
 const char DEMO_HASH[] = "some block hash";
 const int MINER_PRECISION_BITS = 14;

@@ -3,9 +3,9 @@
 #include <string>
 #include <sstream>
 
-#include "automaton/core/log/log.h"
 #include "automaton/core/network/tcp_implementation.h"
 #include "automaton/examples/network/node_prototype.h"
+#include "automaton/core/log/log.h"
 
 namespace acn = automaton::core::network;
 

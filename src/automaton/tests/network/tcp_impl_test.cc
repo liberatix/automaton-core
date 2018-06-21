@@ -1,8 +1,9 @@
+
 #include <string>
 #include <thread>
 
-#include "automaton/core/log/log.h"
 #include "automaton/core/network/tcp_implementation.h"
+#include "automaton/core/log/log.h"
 
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;
