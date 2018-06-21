@@ -18,8 +18,6 @@ using automaton::core::network::connection;
 using automaton::examples::basic_hash_miner;
 using automaton::examples::node;
 
-std::mutex buffer_mutex;
-
 /// Constants
 
 static const int FIRST_ACCEPTOR_PORT = 12345;
@@ -35,9 +33,9 @@ static const uint32_t MAX_BANDWIDTH = 16;
 static const uint32_t LOOP_STEP = 100;
 static const uint32_t BLOCK_CREATION_STEP = 1500;
 static const uint32_t MAX_SIMULATION_TIME = 10000;
-const uint32_t MINER_PRECISION_BITS = 10;
+static const uint32_t MINER_PRECISION_BITS = 10;
 
-const char* LOCALHOST = "127.0.0.1:";
+static const char* LOCALHOST = "127.0.0.1:";
 
 /// Global variables
 

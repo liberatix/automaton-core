@@ -31,49 +31,78 @@ class node {
     std::string prev_hash;
     uint32_t height;
     std::string miner;
+
     std::string to_string() const;
+
     block();
+
     block(std::string hash, std::string prev_hash, uint32_t height, std::string miner);
   };
   class handler: public core::network::connection::connection_handler {
    public:
     node* node_;
+
     explicit handler(node* n);
+
     void on_message_received(core::network::connection* c, char* buffer,
         uint32_t bytes_read, uint32_t id);
+
     void on_message_sent(core::network::connection* c, uint32_t id,
         core::network::connection::error e);
+
     void on_connected(core::network::connection* c);
+
     void on_disconnected(core::network::connection* c);
+
     void on_error(core::network::connection* c,
         core::network::connection::error e);
   };
   class lis_handler: public core::network::acceptor::acceptor_handler {
    public:
     node* node_;
+
     explicit lis_handler(node* n);
+
     bool on_requested(const std::string& address);
+
     void on_connected(core::network::connection* c, const std::string& address);
+
     void on_error(core::network::connection::error e);
   };
   node();
+
   ~node();
+
   bool init();
+
   uint32_t id;
+
   void mine(const std::string& new_hash);
+
   char* add_buffer(uint32_t size);
+
   /// This function is created because the acceptor needs ids for the connections it accepts
   uint32_t get_next_peer_id();
+
   bool accept_connection();
+
   bool add_peer(uint32_t id, const std::string& connection_type, const std::string& address);
+
   void remove_peer(uint32_t id);
+
   bool add_acceptor(uint32_t id, const std::string& connection_type, const std::string& address);
+
   void remove_acceptor(uint32_t id);
+
   void send_message(const std::string& message, uint32_t connection_id = 0);
+
   void handle_block(const std::string& hash, const block& block_,
       const std::string& serialized_block);
+
   std::pair<uint32_t, std::string> get_height_and_top();
+
   // process
+
  private:
   std::string chain_top;
   uint32_t height;
@@ -99,11 +128,17 @@ class node {
   // basic_hash_miner* miner
 
   void check_orphans();
+
   std::string create_send_blocks_message(std::vector<std::string> hashes);
+
   std::string create_request_blocks_message(std::vector<std::string> hashes);
+
   /// Helper functions
+
   block msg_to_block(core::data::msg* message) const;
+
   std::unique_ptr<core::data::msg> block_to_msg(const block& block) const;
+
   std::string hash_block(const block& block) const;
 };
 

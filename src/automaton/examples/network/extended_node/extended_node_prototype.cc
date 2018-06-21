@@ -46,6 +46,7 @@ static std::string tohex(std::string s) {
 /// Node's connection handler
 
 node::handler::handler(node* n): node_(n) {}
+
 void node::handler::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
     uint32_t id) {
   try {
@@ -99,6 +100,7 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
     LOG(ERROR) << el::base::debug::StackTrace();
   }
 }
+
 void node::handler::on_message_sent(connection* c, uint32_t id, connection::error e) {
   if (e) {
      LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
@@ -108,12 +110,15 @@ void node::handler::on_message_sent(connection* c, uint32_t id, connection::erro
     //    c->get_address());
   }
 }
+
 void node::handler::on_connected(connection* c) {
   c->async_read(node_->add_buffer(256), 256, 0, 0);
 }
+
 void node::handler::on_disconnected(connection* c) {
   // logging("Disconnected with: " + c->get_address());
 }
+
 void node::handler::on_error(connection* c, connection::error e) {
   if (e == connection::no_error) {
     return;
@@ -124,16 +129,19 @@ void node::handler::on_error(connection* c, connection::error e) {
 /// Node's acceptor handler
 
 node::lis_handler::lis_handler(node* n):node_(n) {}
+
 bool node::lis_handler::on_requested(const std::string& address) {
   // EXPECT_EQ(address, address_a);
   // logging("Connection request from: " + address + ". Accepting...");
   return node_->accept_connection(/*address*/);
 }
+
 void node::lis_handler::on_connected(connection* c, const std::string& address) {
   // logging("Accepted connection from: " + address);
   node_->peers[node_->get_next_peer_id()] = c;
   c->async_read(node_->add_buffer(256), 256, 0, 0);
 }
+
 void node::lis_handler::on_error(connection::error e) {
   LOG(ERROR) << std::to_string(e);
 }
@@ -170,6 +178,7 @@ bool node::init() {
     return false;
   }
 }
+
 node::~node() {
   for (uint32_t i = 0; i < buffers.size(); ++i) {
     delete [] buffers[i];
@@ -179,7 +188,9 @@ node::~node() {
   // delete hasher;
   // TODO(kari): delete all acceptors and connections
 }
+
 node::block::block() {}
+
 node::block::block(std::string hash, std::string prev_hash, uint32_t height, std::string miner):
     hash(hash), prev_hash(prev_hash), height(height), miner(miner) {}
 
@@ -208,22 +219,26 @@ void node::mine(const std::string& new_hash) {
   global_state_mutex.unlock();
   send_message(create_send_blocks_message({hash}));
 }
+
 char* node::add_buffer(uint32_t size) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(buffer_mutex);
   buffers.push_back(new char[size]);
   return buffers[buffers.size() - 1];
 }
+
 /// This function is created because the acceptor needs ids for the connections it accepts
 uint32_t node::get_next_peer_id() {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peer_ids_mutex);
   return ++peer_ids;
 }
+
 bool node::accept_connection() {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   return true;
 }
+
 bool node::add_peer(uint32_t id, const std::string& connection_type, const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
@@ -248,6 +263,7 @@ bool node::add_peer(uint32_t id, const std::string& connection_type, const std::
   new_connection->connect();
   return true;
 }
+
 void node::remove_peer(uint32_t id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
@@ -256,6 +272,7 @@ void node::remove_peer(uint32_t id) {
     peers.erase(it);
   }
 }
+
 bool node::add_acceptor(uint32_t id, const std::string& connection_type,
     const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
@@ -281,6 +298,7 @@ bool node::add_acceptor(uint32_t id, const std::string& connection_type,
   new_acceptor->start_accepting();
   return true;
 }
+
 void node::remove_acceptor(uint32_t id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
 
@@ -290,6 +308,7 @@ void node::remove_acceptor(uint32_t id) {
     acceptors.erase(it);
   }
 }
+
 void node::send_message(const std::string& message, uint32_t connection_id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
@@ -302,6 +321,7 @@ void node::send_message(const std::string& message, uint32_t connection_id) {
     peers[connection_id]->async_send(message, 0);
   }
 }
+
 void node::handle_block(const std::string& hash, const block& block_,
     const std::string& serialized_block) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
@@ -343,6 +363,7 @@ void node::handle_block(const std::string& hash, const block& block_,
     send_message(create_send_blocks_message({top}));
   }
 }
+
 std::pair<uint32_t, std::string> node::get_height_and_top() {
   std::lock_guard<std::mutex> height_lock(height_mutex);
   std::lock_guard<std::mutex> top_lock(chain_top_mutex);
@@ -357,6 +378,7 @@ std::pair<uint32_t, std::string> node::get_height_and_top() {
   // ===================
   return std::make_pair(height, chain_top);
 }
+
 // Private functions
 void node::check_orphans() {
   bool erased = false;
@@ -395,6 +417,7 @@ void node::check_orphans() {
     }
   } while (erased);
 }
+
 std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
   try {
     std::unique_ptr<msg> msg_to_send = msg_factory->new_message_by_name("data");
@@ -421,6 +444,7 @@ std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
   }
   return "";
 }
+
 std::string node::create_request_blocks_message(std::vector<std::string> hashes) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   try {
@@ -442,9 +466,11 @@ std::string node::create_request_blocks_message(std::vector<std::string> hashes)
   }
   return "";
 }
+
 node::block node::msg_to_block(core::data::msg* m) const {
   return block(m->get_blob(1), m->get_blob(2), m->get_uint32(3), m->get_blob(4));
 }
+
 std::unique_ptr<msg> node::block_to_msg(const block& b) const {
   std::unique_ptr<msg> message = msg_factory->new_message_by_name("block");
   message->set_blob(1, b.hash);
@@ -453,6 +479,7 @@ std::unique_ptr<msg> node::block_to_msg(const block& b) const {
   message->set_blob(4, b.miner);
   return message;
 }
+
 std::string node::hash_block(const block& block_) const {
   uint8_t hash[32];
   core::crypto::hash_transformation* hasher = hash_transformation::create("SHA256");
