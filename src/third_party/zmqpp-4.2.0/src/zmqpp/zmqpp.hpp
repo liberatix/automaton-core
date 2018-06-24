@@ -56,7 +56,7 @@
  */
 #define	ZMQPP_VERSION_REVISION 1
 
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 #include "compatibility.hpp"
 #include "context.hpp"

@@ -14,6 +14,7 @@
  * \author Prem Shankar Kumar (\@meprem)
  */
 
+#include <iterator>
 #include "zap_request.hpp"
 #include "message.hpp"
 #include "socket.hpp"

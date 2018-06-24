@@ -10,7 +10,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 namespace zmqpp
 {

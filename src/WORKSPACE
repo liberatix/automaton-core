@@ -59,6 +59,12 @@ new_local_repository(
   build_file = "third_party/di.BUILD",
 )
 
+new_local_repository(
+  name = "zmqpp",
+  path = "third_party/zmqpp-4.2.0/src/zmqpp",
+  build_file = "third_party/zmqpp.BUILD",
+)
+
 # new_local_repository(
 #   name = "nlohmann_json",
 #   path = "third_party/json-3.1.2",

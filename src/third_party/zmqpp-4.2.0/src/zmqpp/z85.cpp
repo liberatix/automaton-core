@@ -9,7 +9,7 @@
 
 #include "z85.hpp"
 #include <memory>
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 #include "exception.hpp"
 
 using namespace zmqpp;

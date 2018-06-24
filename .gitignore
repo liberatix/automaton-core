@@ -27,3 +27,6 @@
 # Visual Studio
 .vs
 .vscode
+
+# Third party build files
+third_party_lib

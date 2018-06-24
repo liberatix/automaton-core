@@ -24,7 +24,7 @@
 #include <vector>
 #include <utility>
 
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 #include "compatibility.hpp"
 #include "frame.hpp"
