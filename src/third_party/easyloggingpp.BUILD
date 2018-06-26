@@ -15,6 +15,8 @@ cc_library(
     "ELPP_NO_DEFAULT_LOG_FILE",
     "ELPP_FEATURE_PERFORMANCE_TRACKING",
     "ELPP_FEATURE_CRASH_LOG",
+    "ELPP_THREAD_SAFE",
+    "ELPP_STL_LOGGING",
   ],
   linkstatic=True,
 )
