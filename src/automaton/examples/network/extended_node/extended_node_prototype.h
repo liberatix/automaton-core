@@ -16,7 +16,6 @@
 #include "automaton/core/state/state.h"
 #include "automaton/core/network/connection.h"
 #include "automaton/core/network/acceptor.h"
-#include "automaton/examples/crypto/basic_hash_miner.h"
 
 namespace automaton {
 namespace examples {
@@ -31,12 +30,14 @@ class node {
     std::string prev_hash;
     uint32_t height;
     std::string miner;
+    std::string nonce;
 
     std::string to_string() const;
 
     block();
 
-    block(std::string hash, std::string prev_hash, uint32_t height, std::string miner);
+    block(std::string hash, std::string prev_hash, uint32_t height, std::string miner,
+        std::string nonce);
   };
   class handler: public core::network::connection::connection_handler {
    public:
@@ -89,6 +90,8 @@ class node {
   bool add_peer(const std::string& id, const std::string& connection_type,
       const std::string& address);
 
+  bool add_peer(automaton::core::network::connection* c, const std::string& address);
+
   void remove_peer(const std::string& id);
 
   bool add_acceptor(const std::string& id, const std::string& connection_type,
@@ -103,9 +106,12 @@ class node {
 
   std::pair<uint32_t, std::string> get_height_and_top();
 
-  // process
+  // void process(msg* input_message, msg* output_message);
+
+  void mine(uint32_t number_tries, uint32_t required_leading_zeros);
 
  private:
+  std::string first_block_hash;
   std::string chain_top;
   uint32_t height;
   bool initialized;
@@ -142,6 +148,14 @@ class node {
   std::unique_ptr<core::data::msg> block_to_msg(const block& block) const;
 
   std::string hash_block(const block& block) const;
+
+  /// Miner
+
+  uint8_t* nonce;
+
+  void increase_nonce();
+
+  bool is_hash_valid(uint8_t* hash, uint8_t required_leading_zeros);
 };
 
 }  // namespace examples
