@@ -68,7 +68,7 @@ class connection {
     virtual void on_disconnected(connection* c) = 0;
     virtual void on_error(connection* c, connection::error e) = 0;
   };
-
+  virtual ~connection() {}
   /**
     Function that is used to send message to the remote peer. Id shows the
     sequence_id at the time of sending the message. On_message_sent should be
