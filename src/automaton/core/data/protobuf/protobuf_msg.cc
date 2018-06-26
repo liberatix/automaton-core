@@ -860,6 +860,9 @@ std::unique_ptr<msg> protobuf_msg::get_message(uint32_t field_tag) const {
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());
   }
+  if (!(reflect->HasField(*m, fdesc))) {
+    return nullptr;
+  }
   // name resolution need to be done
   // to get Dynamic Message Factory of the class containing the sub message
   const Message* original = &reflect->GetMessage(*m, fdesc);
