@@ -66,12 +66,14 @@ tcp_connection::tcp_connection(const std::string& addr, const
 
 tcp_connection::~tcp_connection() {
   boost::system::error_code boost_error_code;
-  asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both,
-      boost_error_code);
-  if (boost_error_code) {
-    LOG(ERROR) << boost_error_code.message();
+  if (asio_socket.is_open()) {
+    asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both,
+        boost_error_code);
+    if (boost_error_code) {
+      LOG(ERROR) << "Error on socket shutdown: " << boost_error_code.message();
+    }
+    asio_socket.close();
   }
-  asio_socket.close();
 }
 
 void tcp_connection::connect() {
@@ -123,7 +125,7 @@ void tcp_connection::async_send(const std::string& msg, uint32_t id) {
     handler->on_message_sent(this, id, connection::error::unknown);
     // TODO(kari): what to do here? needs to be connected
   } else {
-    LOG(ERROR) << "Socket closed";
+    LOG(ERROR) << "Socket closed or not yet connected";
     // handler->on_error(this, connection::error::closed_by_peer);
     handler->on_message_sent(this, id, connection::error::closed_by_peer);
   }
@@ -140,8 +142,7 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
           if (boost_error_code == boost::asio::error::eof) {
             handler->on_disconnected(this);
             return;
-          } else if (boost_error_code ==
-                boost::asio::error::operation_aborted) {
+          } else if (boost_error_code == boost::asio::error::operation_aborted) {
             return;
           } else {
             LOG(ERROR) << boost_error_code.message();
@@ -162,8 +163,7 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
           if (boost_error_code == boost::asio::error::eof) {
             handler->on_disconnected(this);
             return;
-          } else if (boost_error_code ==
-              boost::asio::error::operation_aborted) {
+          } else if (boost_error_code == boost::asio::error::operation_aborted) {
             return;
           } else {
             LOG(ERROR) << boost_error_code.message();
@@ -262,8 +262,7 @@ void tcp_acceptor::start_accepting() {
         (const boost::system::error_code& boost_error_code,
         boost::asio::ip::tcp::socket socket_) {
        if (!boost_error_code) {
-          boost::asio::ip::tcp::endpoint remote_endpoint =
-              socket_.remote_endpoint();
+          boost::asio::ip::tcp::endpoint remote_endpoint = socket_.remote_endpoint();
           std::string remote_address = (remote_endpoint.address()).to_string() +
           ":" + std::to_string(remote_endpoint.port());
           bool accepted = handler->on_requested(remote_address);
@@ -278,6 +277,9 @@ void tcp_acceptor::start_accepting() {
           start_accepting();
         } else {
           // TODO(kari): Handle errors
+          if (boost_error_code == boost::asio::error::operation_aborted) {
+            return;
+          }
           LOG(ERROR) << boost_error_code.message();
           handler->on_error(connection::error::unknown);
           // TODO(kari): start listen again? depends on the errors
