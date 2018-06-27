@@ -31,7 +31,7 @@ class acceptor {
     virtual void on_connected(connection* c, const std::string& address) = 0;
     virtual void on_error(connection::error e) = 0;
   };
-
+  virtual ~acceptor() {}
   /**
     Function that defines how the acceptor works. It should specify the way
     acceptor listens for and accepts connections. It should call handler's
