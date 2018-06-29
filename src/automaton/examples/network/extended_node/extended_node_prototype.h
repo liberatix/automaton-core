@@ -137,7 +137,7 @@ class node {
   core::state::state* global_state;  // map block_hash -> serialized msg, containing the block
   // basic_hash_miner* miner
 
-  void check_orphans();
+  void check_orphans(const std::string& hash);
 
   std::string create_send_blocks_message(std::vector<std::string> hashes);
 

@@ -1,11 +1,5 @@
 syntax = "proto3";
 
-/*
-  [libprotobuf ERROR external/com_google_protobuf/src/google/protobuf/wire_format_lite.cc:629]
-  String field 'block.hash' contains invalid UTF-8 data when serializing a protocol buffer. Use
-  the 'bytes' type if you intend to send raw bytes.
- */
-
 message blocks_request {
 /*
   Peer A send this when requesting blocks to show what is its top of the chain so if he is many
