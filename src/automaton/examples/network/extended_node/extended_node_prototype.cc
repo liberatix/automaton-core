@@ -446,61 +446,6 @@ uint32_t node::get_height() {
 }
 
 // Private functions
-// void node::check_orphans() {
-//   bool erased;
-//   // LOG(DEBUG) << id << " checking start " << "top: " << core::io::string_to_hex(chain_top) <<
-//       " h: " << height;
-//   do {
-//     erased = false;
-//     for (auto it = orphan_blocks.begin(); it != orphan_blocks.end(); ++it) {
-//       // LOG(DEBUG) << id << " here 2 HASH: " << core::io::string_to_hex(it->first);
-//       block b = it->second;
-//       std::string hash = it->first;
-//       std::string serialized_prev_block = global_state->get(b.prev_hash);
-//        // LOG(DEBUG) << "here 3";
-//       /// If the previous block is in the state
-//       if (serialized_prev_block != "") {
-//         // LOG(DEBUG) << "here 4";
-//         std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
-//         deserialized_prev_block->deserialize_message(serialized_prev_block);
-//         // If height is not what is expected, throw the block
-//         if (deserialized_prev_block->get_uint32(3) + 1 != b.height) {
-//           LOG(ERROR) << "Invalid block height!";
-//           orphan_blocks.erase(it);
-//           erased = true;
-//           break;
-//         }
-//          // LOG(DEBUG) << "here 5";
-//         std::unique_ptr<msg> block_msg = block_to_msg(b);
-//         if (!block_msg) {
-//           std::stringstream msg;
-//           msg << "Message is null";
-//           LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
-//           throw std::runtime_error(msg.str());
-//         }
-//         std::string serialized_block;
-//         block_msg->serialize_message(&serialized_block);
-//         // LOG(DEBUG) << id << " ADDING BLOCK: " << automaton::core::io::string_to_hex(hash);
-//         global_state->set(hash, serialized_block);
-//         orphan_blocks.erase(it);
-//         // LOG(DEBUG) << "here 6";
-//         erased = true;
-//         if (b.prev_hash == chain_top || b.height > height) {
-//           // LOG(DEBUG) << "here 7.0";
-//           chain_top = hash;
-//           height = b.height;
-//           // LOG(DEBUG) << "here 7.1";
-//         }
-//         // LOG(DEBUG) << "here 8";
-//         break;
-//       } else if (it == (orphan_blocks.end()--)) {
-//         // LOG(DEBUG) << "here 10";
-//         erased = false;
-//       }
-//     }
-//   } while (erased && orphan_blocks.size() > 0);
-//   // LOG(DEBUG) << "checking end";
-// }
 
 void node::check_orphans() {
   bool erased;
