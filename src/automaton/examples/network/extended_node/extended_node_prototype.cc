@@ -45,21 +45,26 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
   try {
     std::string data = std::string(buffer, bytes_read);
     if (data == "") {
+      c->async_read(buffer, 256, 0, 0);
       return;
     }
+    // LOG(DEBUG) << id << " receiving msg: 0";
     std::unique_ptr<msg> received_msg = msg_factory->new_message_by_name("data");
     received_msg->deserialize_message(data);
-    std::unique_ptr<msg> msg_type = received_msg->get_message(2);
+    std::unique_ptr<msg> msg_type = received_msg->get_message(2);  // response
     if (msg_type) {
+      // // LOG(DEBUG) << id << " receiving msg: 1";
       uint32_t hashes_number = msg_type->get_repeated_field_size(1);
       for (uint32_t i = 0; i < hashes_number; ++i) {
+        // // LOG(DEBUG) << id << " receiving msg: loop " << i;
         std::string hash = msg_type->get_repeated_blob(1, i);
         node_->global_state_mutex.lock();
         node_->orphan_blocks_mutex.lock();
         if (node_->global_state->get(hash) == "" &&
             node_->orphan_blocks.find(hash) == node_->orphan_blocks.end()) {
-          node_->global_state_mutex.unlock();
+          // // LOG(DEBUG) << id << " receiving msg: loop " << i << "if";
           node_->orphan_blocks_mutex.unlock();
+          node_->global_state_mutex.unlock();
           std::string serialized_block = msg_type->get_repeated_blob(2, i);
           std::unique_ptr<msg> block_msg = msg_factory->new_message_by_name("block");
           block_msg->deserialize_message(serialized_block);
@@ -73,23 +78,41 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
             LOG(ERROR) << "Block validation failed!";
           }
         } else {
-          node_->global_state_mutex.unlock();
+          // // LOG(DEBUG) << id << " receiving msg: loop " << i << "else";
           node_->orphan_blocks_mutex.unlock();
+          node_->global_state_mutex.unlock();
         }
       }
     } else {
-      msg_type = received_msg->get_message(1);
-      uint32_t hashes_number = msg_type->get_repeated_field_size(1);
+      // LOG(DEBUG) << id << " receiving msg: 2";
+      msg_type = received_msg->get_message(1);  // request
+      if (!msg_type) {
+        std::stringstream msg;
+        msg << "Received message is empty! data msg is " <<
+            core::io::string_to_hex(received_msg->to_string());
+        LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+        throw std::runtime_error(msg.str());
+      }
+      std::vector<std::string> hashes;
+      uint32_t hashes_number = msg_type->get_repeated_field_size(2);
       if (hashes_number > 0) {
-        std::vector<std::string> hashes;
         for (uint32_t i = 0; i < hashes_number; i++) {
-          hashes.push_back(msg_type->get_repeated_blob(1, i));
-        }
-        std::string message = node_->create_send_blocks_message(hashes);
-        if (message.size() != 0) {
-          c->async_send(message);
+          hashes.push_back(msg_type->get_repeated_blob(2, i));
         }
       }
+      // // LOG(DEBUG) << id << " receiving msg: 3";
+      std::string top_block_hash = msg_type->get_blob(1);
+      // // LOG(DEBUG) << "TOP :: " << top_block_hash;
+      if (top_block_hash != node_->get_top()) {
+        hashes.push_back(node_->get_top());
+      }
+      if (hashes.size() > 0) {
+      //  // LOG(DEBUG) << "SENDING :: " << hashes;
+        c->async_send(node_->create_send_blocks_message(hashes));
+      }
+      // // LOG(DEBUG) << "sending top 1";
+      // c->async_send(node_->create_send_blocks_message({node_->get_top()}));
+      // // LOG(DEBUG) << "sending top 2";
     }
     c->async_read(buffer, 256, 0, 0);
   } catch (std::exception& e) {
@@ -99,11 +122,12 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
   } catch (...) {
     LOG(ERROR) << el::base::debug::StackTrace();
   }
+  // LOG(DEBUG) << id << " receiving msg: end";
 }
 
 void node::handler::on_message_sent(connection* c, uint32_t id, connection::error e) {
   if (e) {
-     LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
+    LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
         c->get_address() << "\nError " << std::to_string(e);
   } else {
     // logging("Message with id " + std::to_string(id) + " was successfully sent to " +
@@ -113,6 +137,7 @@ void node::handler::on_message_sent(connection* c, uint32_t id, connection::erro
 
 void node::handler::on_connected(connection* c) {
   // LOG(INFO) << node_->id << " connected with: " + c->get_address();
+  c->async_send(node_->create_request_blocks_message({}));
   c->async_read(node_->add_buffer(256), 256, 0, 0);
 }
 
@@ -160,7 +185,7 @@ bool node::init() {
     if (!msg_factory) {
       msg_factory = new protobuf_factory();
       protobuf_schema loaded_schema(core::io::get_file_contents(PROTO_FILE));
-      LOG(DEBUG) << "SCHEMA::" << loaded_schema.dump_schema();
+      // LOG(DEBUG) << "SCHEMA::" << loaded_schema.dump_schema();
       msg_factory->import_schema(&loaded_schema, "proto", "");
       SHA256_cryptopp::register_self();
     }
@@ -238,8 +263,7 @@ bool node::add_peer(const std::string& id, const std::string& connection_type,
   }
   connection* new_connection;
   try {
-    new_connection = connection::create(connection_type, address,
-        handler_);
+    new_connection = connection::create(connection_type, address, handler_);
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
     peers[id] = nullptr;
@@ -259,7 +283,7 @@ bool node::add_peer(automaton::core::network::connection* c, const std::string& 
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = peers.find(address);
   if (it != peers.end() && c != it->second) {
-    LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
+    // LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
     delete it->second;
   }
   peers[address] = c;
@@ -281,7 +305,7 @@ bool node::add_acceptor(const std::string& id, const std::string& connection_typ
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   auto it = acceptors.find(id);
   if (it != acceptors.end()) {
-    LOG(DEBUG) << "Acceptor with this id already exists!";
+    // LOG(DEBUG) << "Acceptor with this id already exists!";
     delete it->second;
   }
   acceptor* new_acceptor;
@@ -311,55 +335,66 @@ void node::remove_acceptor(const std::string& id) {
   }
 }
 
-void node::send_message(const std::string& message, uint32_t connection_id) {
+void node::send_message(const std::string& message, const std::string& connection_id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
-  if (!connection_id) {
+  if (connection_id == "") {
     for (auto it = peers.begin(); it != peers.end(); ++it) {
       // TODO(kari): if connected
       it->second->async_send(message, 0);
     }
   } else {
-    peers[std::to_string(connection_id)]->async_send(message, 0);
+    peers[connection_id]->async_send(message, 0);
   }
 }
 
 void node::handle_block(const std::string& hash, const block& block_,
     const std::string& serialized_block) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
-  // LOG(DEBUG) << "Handling block " << hash << '\n' << block_.to_string();
+  // LOG(DEBUG) << id << " handling block " << core::io::string_to_hex(hash) << '\n' <<
+      block_.to_string();
   global_state_mutex.lock();
-  std::lock_guard<std::mutex> height_lock(height_mutex);
-  std::lock_guard<std::mutex> top_lock(chain_top_mutex);
-  std::lock_guard<std::mutex> orphans_lock(orphan_blocks_mutex);
+  orphan_blocks_mutex.lock();
+  height_mutex.lock();
+  chain_top_mutex.lock();
+
   std::string serialized_prev_block = global_state->get(block_.prev_hash);
   /// If we don't have the previous block
-  if (block_.prev_hash != first_block_hash && serialized_prev_block == "") {
+  if (block_.prev_hash == first_block_hash && block_.height != 1) {
+    // LOG(DEBUG) << "HANDLE 1";
+    chain_top_mutex.unlock();
+    height_mutex.unlock();
+    orphan_blocks_mutex.unlock();
+    global_state_mutex.unlock();
+    LOG(ERROR) << "Invalid block height!";
+    return;
+  } else if (block_.prev_hash != first_block_hash && serialized_prev_block == "") {
     // LOG(DEBUG) << "HANDLE 0";
+    chain_top_mutex.unlock();
     orphan_blocks[hash] = block_;
     if (orphan_blocks.find(block_.prev_hash) == orphan_blocks.end()) {
       send_message(create_request_blocks_message({block_.prev_hash}));
     }
+    height_mutex.unlock();
+    orphan_blocks_mutex.unlock();
     global_state_mutex.unlock();
     return;
   /// If this is the second block
-} else if (block_.prev_hash == first_block_hash && block_.height != 1) {
-    // LOG(DEBUG) << "HANDLE 1";
-    LOG(ERROR) << "Invalid block height!";
-    global_state_mutex.unlock();
-    return;
   } else if (serialized_prev_block != "") {
     // LOG(DEBUG) << "HANDLE 2";
     std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
     deserialized_prev_block->deserialize_message(serialized_prev_block);
     // If height is not what is expected, throw the block
     if (deserialized_prev_block->get_uint32(3) + 1 != block_.height) {
-      LOG(ERROR) << "Invalid block height!";
+      chain_top_mutex.unlock();
+      height_mutex.unlock();
+      orphan_blocks_mutex.unlock();
       global_state_mutex.unlock();
+      LOG(ERROR) << "Invalid block height!";
       return;
     }
   }
-  // LOG(DEBUG) << "ADDING BLOCK: " << automaton::core::io::string_to_hex(hash);
+  // LOG(DEBUG) << id << " ADDING BLOCK: " << core::io::string_to_hex(hash);
   global_state->set(hash, serialized_block);
   std::string old_chain_top = chain_top;
   /// If the new block is extending the main chain
@@ -367,17 +402,27 @@ void node::handle_block(const std::string& hash, const block& block_,
     chain_top = hash;
     height = block_.height;
   }
+  // LOG(DEBUG) << id << " checking orphans";
   check_orphans();
+  // LOG(DEBUG) << id << " end of checking orphans";
   std::string top = chain_top;
+  chain_top_mutex.unlock();
+  height_mutex.unlock();
+  orphan_blocks_mutex.unlock();
   global_state_mutex.unlock();
+  // LOG(DEBUG) << id << " unlocked";
   if (old_chain_top != top) {
     send_message(create_send_blocks_message({top}));
   }
+  // LOG(DEBUG) << id << " end of handle";
 }
 
 std::pair<uint32_t, std::string> node::get_height_and_top() {
+  // LOG(DEBUG) << "node " << id << " ::get 0";
   std::lock_guard<std::mutex> height_lock(height_mutex);
+    // LOG(DEBUG) << "node " << id << " ::get 0.5";
   std::lock_guard<std::mutex> top_lock(chain_top_mutex);
+  // LOG(DEBUG) << "node " << id << " ::get 1";
   // ==== FOR DEBUG ==== {
   // std::lock_guard<std::mutex> state_lock(global_state_mutex);
   // std::string serialized_block = global_state->get(chain_top);
@@ -390,32 +435,98 @@ std::pair<uint32_t, std::string> node::get_height_and_top() {
   return std::make_pair(height, chain_top);
 }
 
+std::string node::get_top() {
+  std::lock_guard<std::mutex> lock(chain_top_mutex);
+  return chain_top;
+}
+
+uint32_t node::get_height() {
+  std::lock_guard<std::mutex> lock(height_mutex);
+  return height;
+}
+
 // Private functions
+// void node::check_orphans() {
+//   bool erased;
+//   // LOG(DEBUG) << id << " checking start " << "top: " << core::io::string_to_hex(chain_top) <<
+//       " h: " << height;
+//   do {
+//     erased = false;
+//     for (auto it = orphan_blocks.begin(); it != orphan_blocks.end(); ++it) {
+//       // LOG(DEBUG) << id << " here 2 HASH: " << core::io::string_to_hex(it->first);
+//       block b = it->second;
+//       std::string hash = it->first;
+//       std::string serialized_prev_block = global_state->get(b.prev_hash);
+//        // LOG(DEBUG) << "here 3";
+//       /// If the previous block is in the state
+//       if (serialized_prev_block != "") {
+//         // LOG(DEBUG) << "here 4";
+//         std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
+//         deserialized_prev_block->deserialize_message(serialized_prev_block);
+//         // If height is not what is expected, throw the block
+//         if (deserialized_prev_block->get_uint32(3) + 1 != b.height) {
+//           LOG(ERROR) << "Invalid block height!";
+//           orphan_blocks.erase(it);
+//           erased = true;
+//           break;
+//         }
+//          // LOG(DEBUG) << "here 5";
+//         std::unique_ptr<msg> block_msg = block_to_msg(b);
+//         if (!block_msg) {
+//           std::stringstream msg;
+//           msg << "Message is null";
+//           LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+//           throw std::runtime_error(msg.str());
+//         }
+//         std::string serialized_block;
+//         block_msg->serialize_message(&serialized_block);
+//         // LOG(DEBUG) << id << " ADDING BLOCK: " << automaton::core::io::string_to_hex(hash);
+//         global_state->set(hash, serialized_block);
+//         orphan_blocks.erase(it);
+//         // LOG(DEBUG) << "here 6";
+//         erased = true;
+//         if (b.prev_hash == chain_top || b.height > height) {
+//           // LOG(DEBUG) << "here 7.0";
+//           chain_top = hash;
+//           height = b.height;
+//           // LOG(DEBUG) << "here 7.1";
+//         }
+//         // LOG(DEBUG) << "here 8";
+//         break;
+//       } else if (it == (orphan_blocks.end()--)) {
+//         // LOG(DEBUG) << "here 10";
+//         erased = false;
+//       }
+//     }
+//   } while (erased && orphan_blocks.size() > 0);
+//   // LOG(DEBUG) << "checking end";
+// }
+
 void node::check_orphans() {
-  bool erased = false;
+  bool erased;
   do {
-    for (auto it = orphan_blocks.begin(); it != orphan_blocks.end(); ++it) {
-      block b = it->second;
+    erased = false;
+    for (auto it = orphan_blocks.begin(); it != orphan_blocks.end() && !erased; ++it) {
       std::string hash = it->first;
+      block b = it->second;
       std::string serialized_prev_block = global_state->get(b.prev_hash);
-      /// If the previous block is in the state
       if (serialized_prev_block != "") {
         std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
         deserialized_prev_block->deserialize_message(serialized_prev_block);
-        // If height is not what is expected, throw the block
         if (deserialized_prev_block->get_uint32(3) + 1 != b.height) {
-          LOG(ERROR) << "Invalid block height!";
           orphan_blocks.erase(it);
           erased = true;
           break;
         }
         std::unique_ptr<msg> block_msg = block_to_msg(b);
         if (!block_msg) {
-          LOG(DEBUG) << "Message is null";
+          std::stringstream msg;
+          msg << "Message is null";
+          LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+          throw std::runtime_error(msg.str());
         }
         std::string serialized_block;
         block_msg->serialize_message(&serialized_block);
-        // LOG(DEBUG) << id << " ADDING BLOCK: " << automaton::core::io::string_to_hex(hash);
         global_state->set(hash, serialized_block);
         orphan_blocks.erase(it);
         erased = true;
@@ -423,27 +534,29 @@ void node::check_orphans() {
           chain_top = hash;
           height = b.height;
         }
-      } else if (it == (orphan_blocks.end()--)) {
-        erased = false;
       }
     }
-  } while (erased);
+  } while (erased && orphan_blocks.size() > 0);
 }
 
 std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
+  // LOG(DEBUG) << id << " create send blocks msg";
   try {
     std::unique_ptr<msg> msg_to_send = msg_factory->new_message_by_name("data");
     std::unique_ptr<msg> msg_type = msg_factory->new_message_by_name("blocks_response");
     std::string data, serialized_block;
-    std::lock_guard<std::mutex> lock_state(global_state_mutex);
+    // LOG(DEBUG) << id << " create:: before loop";
     for (uint32_t i = 0; i < hashes.size(); ++i) {
+      global_state_mutex.lock();
       serialized_block = global_state->get(hashes[i]);
+      global_state_mutex.unlock();
       if (serialized_block == "") {
         continue;
       }
       msg_type->set_repeated_blob(1, hashes[i]);
       msg_type->set_repeated_blob(2, serialized_block);
     }
+    // LOG(DEBUG) << id << " create:: after loop";
     msg_to_send->set_message(2, *msg_type);
     msg_to_send->serialize_message(&data);
     return data;
@@ -466,6 +579,7 @@ std::string node::create_request_blocks_message(std::vector<std::string> hashes)
     for (uint32_t i = 0; i < hashes.size(); ++i) {
       msg_type->set_repeated_blob(2, hashes[i]);
     }
+    msg_type->set_blob(1, get_top());
     msg_to_send->set_message(1, *msg_type);
     msg_to_send->serialize_message(&data);
     return data;
@@ -478,16 +592,7 @@ std::string node::create_request_blocks_message(std::vector<std::string> hashes)
   }
   return "";
 }
-/*
-node::block node::get_block_by_hash(std::string hash) {
-  global_state_mutex.lock();
-  std::string serialized_block = global_state->get(hash);
-  global_state_mutex.unlock();
-  std::unique_ptr<msg> block_msg = msg_factory->new_message_by_name("block");
-  block_msg->deserialize_message(serialized_block);
-  return node_->msg_to_block(block_msg.get());
-}
-*/
+
 node::block node::msg_to_block(core::data::msg* m) const {
   return block(m->get_blob(1), m->get_blob(2), m->get_uint32(3), m->get_blob(4), m->get_blob(5));
 }
@@ -547,47 +652,35 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
   std::string previous_hash;
   uint32_t current_height;
   uint8_t* next_block_hash = new uint8_t[HASH_SIZE]();
-
-  uint32_t size = HASH_SIZE + 4 + id.size();
+  // LOG(DEBUG) << id << " mining: 0";
   std::pair<uint32_t, std::string> res = get_height_and_top();
   current_height = res.first + 1;
   previous_hash = res.second;
-
-  uint8_t* to_hash = new uint8_t[size];
-  std::memcpy(&to_hash[0], previous_hash.c_str(), HASH_SIZE);
-  std::memcpy(&to_hash[HASH_SIZE], &current_height, 4);
-  std::memcpy(&to_hash[HASH_SIZE + 4], id.c_str(), id.size());
-
-  // uint32_t i = 0;
+  // // LOG(DEBUG) << id << " mining: 0.1";
   for (uint32_t i = 0; i < number_tries; ++i) {
-  /*  if (!(i % number_tries)) {
-      auto res = get_height_and_top();
-      if (res.first != current_height) {
-        std::memset(&nonce, 255, HASH_SIZE);
-        current_height = res.first;
-        previous_hash = res.second;
-        std::memcpy(to_hash, previous_hash.c_str(), 32);
-        std::memcpy(&to_hash[32], &current_height, 32);
-        std::memcpy(&to_hash[64], id.c_str(), id.size());
-        i = 1;
-      }
-    }
-    */
     increase_nonce();
     std::memset(next_block_hash, 255, HASH_SIZE);
     hasher->restart();
-    hasher->update(to_hash, size);
+    hasher->update(reinterpret_cast<const uint8_t*>(previous_hash.c_str()), HASH_SIZE);
+    hasher->update(reinterpret_cast<const uint8_t*>(&current_height), 4);
+    hasher->update(reinterpret_cast<const uint8_t*>(id.c_str()), id.size());
     hasher->update(nonce, HASH_SIZE);
     hasher->final(next_block_hash);
-    // LOG(DEBUG) << id << " is mining " << i;
+    // // LOG(DEBUG) << id << " mining loop: " << i << " FOUND " <<
+    //     core::io::string_to_hex(std::string(reinterpret_cast<char*>(next_block_hash), HASH_SIZE))
+    //     << " with NONCE " <<
+    //     core::io::string_to_hex(std::string(reinterpret_cast<char*>(nonce), HASH_SIZE));
+    // // LOG(DEBUG) << id << " is mining " << i;
     if (is_hash_valid(next_block_hash, required_leading_zeros)) {
       std::string new_hash(reinterpret_cast<char*>(next_block_hash), HASH_SIZE);
       global_state_mutex.lock();
-      std::lock_guard<std::mutex> height_lock(height_mutex);
-      std::lock_guard<std::mutex> top_lock(chain_top_mutex);
-      std::lock_guard<std::mutex> orphans_lock(orphan_blocks_mutex);
+      height_mutex.lock();
+      chain_top_mutex.lock();
       if (height != current_height - 1) {
         LOG(INFO) << "Newly found block has become invalid!";
+        chain_top_mutex.unlock();
+        height_mutex.unlock();
+        global_state_mutex.unlock();
         return;
         // TODO(kari): Start over
       }
@@ -597,10 +690,12 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
       LOG(INFO) << id << " MINED NEW BLOCK:" << b.to_string();
       std::string hash = hash_block(b);
       if (hash != new_hash) {
+        chain_top_mutex.unlock();
+        height_mutex.unlock();
+        global_state_mutex.unlock();
         std::stringstream msg;
         msg << "Hashing doesn't work! " << hash << " vs " << new_hash;
         LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
-        global_state_mutex.unlock();
         throw std::runtime_error(msg.str());
       }
       std::string serialized_block;
@@ -610,10 +705,14 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
       // LOG(DEBUG) << id << " ADDING BLOCK: " << automaton::core::io::string_to_hex(hash);
       global_state->set(hash, serialized_block);
       chain_top = hash;
+      chain_top_mutex.unlock();
+      height_mutex.unlock();
       global_state_mutex.unlock();
       send_message(create_send_blocks_message({hash}));
     }
   }
+  // LOG(DEBUG) << id << " mining: 1";
+  delete next_block_hash;
 }
 }  // namespace examples
 }  // namespace automaton
