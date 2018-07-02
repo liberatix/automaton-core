@@ -78,8 +78,6 @@ class node {
 
   std::string id;
 
-  void mine(const std::string& new_hash);
-
   char* add_buffer(uint32_t size);
 
   /// This function is created because the acceptor needs ids for the connections it accepts
@@ -99,12 +97,16 @@ class node {
 
   void remove_acceptor(const std::string& id);
 
-  void send_message(const std::string& message, uint32_t connection_id = 0);
+  void send_message(const std::string& message, const std::string& connection_id = "");
 
   void handle_block(const std::string& hash, const block& block_,
       const std::string& serialized_block);
 
   std::pair<uint32_t, std::string> get_height_and_top();
+
+  std::string get_top();
+
+  uint32_t get_height();
 
   // void process(msg* input_message, msg* output_message);
 
@@ -135,7 +137,7 @@ class node {
   core::state::state* global_state;  // map block_hash -> serialized msg, containing the block
   // basic_hash_miner* miner
 
-  void check_orphans();
+  void check_orphans(const std::string& hash);
 
   std::string create_send_blocks_message(std::vector<std::string> hashes);
 

@@ -24,19 +24,6 @@ cc_library(
 )
 
 cc_binary (
-	name = "simulation_test_extended_node_prototype",
-	srcs = ["simulation_test_extended_node_prototype.cc",],
-	deps = [
-    "//automaton/core/crypto",
-    "//automaton/core/crypto/cryptopp",
-    "//automaton/core/log",
-    "//automaton/core/network:simulated_connection",
-    "//automaton/examples/crypto:basic_hash_miner",
-    "//automaton/examples/network/extended_node:extended_node_prototype",
-  ],
-)
-
-cc_binary (
 	name = "simulation_test_localhost",
 	srcs = ["simulation_test_localhost.cc",],
 	deps = [
