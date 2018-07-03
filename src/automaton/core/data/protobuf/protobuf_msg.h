@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 
+#include "automaton/core/data/factory.h"
 #include "automaton/core/data/msg.h"
 
 namespace automaton {
@@ -30,9 +31,11 @@ class protobuf_msg : public msg {
   /**
     Constructs a protobuf msg implementation.
   */
-  protobuf_msg(google::protobuf::Message * m, uint32_t schema_id);
+  protobuf_msg(google::protobuf::Message * m, factory* msg_factory, uint32_t schema_id);
 
   uint32_t get_schema_id() const;
+
+  factory* get_factory() const;
 
   /**
     Returns the name of the message schema.
@@ -182,6 +185,7 @@ class protobuf_msg : public msg {
 
  private:
   std::unique_ptr<google::protobuf::Message> m;
+  factory* msg_factory;
   uint32_t schema_id;
 };
 
