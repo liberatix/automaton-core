@@ -30,3 +30,11 @@ message data {
   blocks_request msg_type_1 = 1;
   blocks_response msg_type_2 = 2;
 }
+
+message header {
+  uint32 message_size = 1;
+}
+
+message peer_info {
+  string data = 1;
+}
