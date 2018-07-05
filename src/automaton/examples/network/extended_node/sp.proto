@@ -35,6 +35,46 @@ message header {
   uint32 message_size = 1;
 }
 
-message peer_info {
-  string data = 1;
-}
+// Not in use right now
+
+// message peer_info {
+//   string data = 1;
+// }
+//
+// message add_peer {
+//   string id = 1;
+//   string connection_type = 2;
+//   string address = 3;
+// }
+//
+// message remove_peer {
+//   string id = 1;
+// }
+//
+// message add_acceptor {
+//   string id = 1;
+//   string connection_type = 2;
+//   string address = 3;
+// }
+//
+// message remove_acceptor {
+//   string id = 1;
+// }
+//
+// message send_message {
+//   bytes data = 1;
+//   string peer_id = 2;
+// }
+//
+// message handle_block {
+//   block block_ = 1;
+// }
+//
+// message command {
+//   add_peer add_peer_cmd = 1;
+//   remove_peer remove_peer_cmd = 2;
+//   add_acceptor add_acceptor_cmd = 3;
+//   remove_acceptor remove_acceptor_cmd = 4;
+//   send_message send_message_cmd = 5;
+//   handle_block handle_block_cmd = 6;
+// }

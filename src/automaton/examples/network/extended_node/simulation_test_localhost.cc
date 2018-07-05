@@ -187,6 +187,7 @@ int main() {
   } catch(...) {
     LOG(ERROR) << "UNKOWN EXCEPTION!";
   }
+  LOG(INFO) << "SIMULATION END!";
   simulation_end = true;
   miner.join();
   collect_stats();
