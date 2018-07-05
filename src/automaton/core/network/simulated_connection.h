@@ -190,7 +190,7 @@ class simulated_connection: public connection {
   void handle_read();
   void handle_send();
 
-  state get_state() const;
+  state get_state();
   std::string get_address() const;
   uint32_t get_lag() const;
   void connect();
@@ -219,7 +219,7 @@ class simulated_acceptor: public acceptor {
 
   void start_accepting();
 
-  state get_state() const;
+  state get_state();
 
   std::string get_address() const;
 

@@ -1,10 +1,12 @@
 #ifndef AUTOMATON_CORE_NETWORK_TCP_IMPLEMENTATION_H_
 #define AUTOMATON_CORE_NETWORK_TCP_IMPLEMENTATION_H_
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include <utility>
 #include <memory>
+#include <mutex>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
@@ -102,13 +104,15 @@ class tcp_connection: public connection {
 
   std::string get_address() const;
 
-  connection::state get_state() const;
+  connection::state get_state();
 
  private:
   boost::asio::ip::tcp::endpoint asio_endpoint;
   boost::asio::ip::tcp::socket asio_socket;
   connection::state connection_state;
   std::string address;
+  std::mutex connection_mutex;
+  std::mutex state_mutex;
 };
 
 class tcp_acceptor:public acceptor {
@@ -142,7 +146,7 @@ class tcp_acceptor:public acceptor {
 
   std::string get_address() const;
 
-  acceptor::state get_state() const;
+  acceptor::state get_state();
 
  private:
   boost::asio::ip::tcp::acceptor asio_acceptor;
