@@ -92,6 +92,8 @@ class node {
 
   void remove_peer(const std::string& id);
 
+  automaton::core::network::connection* get_peer(const std::string& address);
+
   bool add_acceptor(const std::string& id, const std::string& connection_type,
       const std::string& address);
 

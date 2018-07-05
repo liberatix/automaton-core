@@ -119,7 +119,7 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
 void node::handler::on_message_sent(connection* c, uint32_t id, connection::error e) {
   if (e) {
     LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
-        c->get_address() << "\nError " << std::to_string(e);
+        c->get_address() << " -> Error " << std::to_string(e) << " occurred";
   } else {
     // logging("Message with id " + std::to_string(id) + " was successfully sent to " +
     //    c->get_address());
@@ -249,6 +249,7 @@ bool node::add_peer(const std::string& id, const std::string& connection_type,
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = peers.find(id);
   if (it != peers.end()) {
+    LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
     delete it->second;
   }
   connection* new_connection;
@@ -287,6 +288,16 @@ void node::remove_peer(const std::string& id) {
   if (it != peers.end()) {
     peers.erase(it);
   }
+}
+
+automaton::core::network::connection* node::get_peer(const std::string& address) {
+  CHECK(initialized == true) << "Node is not initialized! Call init() first!";
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  auto it = peers.find(address);
+  if (it == peers.end()) {
+    return nullptr;
+  }
+  return it->second;
 }
 
 bool node::add_acceptor(const std::string& id, const std::string& connection_type,
