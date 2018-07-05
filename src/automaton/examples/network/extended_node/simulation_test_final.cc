@@ -176,7 +176,7 @@ int main() {
     LOG(INFO) << "Starting simulation...";
     miner = std::thread(miner_thread_function);
     // ==============================================
-    for (uint32_t i = 0; i < SIMULATION_TIME / 2; i += LOOP_STEP) {
+    for (uint32_t i = 0; i < 2 * SIMULATION_TIME / 3; i += LOOP_STEP) {
       LOG(INFO) << "PROCESSING: " + std::to_string(i);
       int32_t events_processed = sim->process(i);
       LOG(INFO) << "Events processed: " << events_processed;
@@ -200,7 +200,7 @@ int main() {
     }
     nodes_mutex.unlock();
     LOG(INFO) << "Continuing simulation...";
-    for (uint32_t i = SIMULATION_TIME / 2; i < SIMULATION_TIME * 3; i += LOOP_STEP) {
+    for (uint32_t i =  2 * SIMULATION_TIME / 3; i < SIMULATION_TIME * 2; i += LOOP_STEP) {
       LOG(INFO) << "PROCESSING: " + std::to_string(i);
       int32_t events_processed = sim->process(i);
       LOG(INFO) << "Events processed: " << events_processed;

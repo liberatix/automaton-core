@@ -147,18 +147,18 @@ void node::handler::on_error(connection* c, connection::error e) {
 
 node::lis_handler::lis_handler(node* n):node_(n) {}
 
-bool node::lis_handler::on_requested(const std::string& address) {
+bool node::lis_handler::on_requested(acceptor* a, const std::string& address) {
   // EXPECT_EQ(address, address_a);
   // LOG(INFO) << node_->id << " received connection request from : " + address;
   return node_->accept_connection(/*address*/);
 }
 
-void node::lis_handler::on_connected(connection* c, const std::string& address) {
+void node::lis_handler::on_connected(acceptor* a, connection* c, const std::string& address) {
   // LOG(INFO) << node_->id << " accepted connection from " << address;
   node_->add_peer(c, address);
 }
 
-void node::lis_handler::on_error(connection::error e) {
+void node::lis_handler::on_error(acceptor* a, connection::error e) {
   LOG(ERROR) << std::to_string(e);
 }
 

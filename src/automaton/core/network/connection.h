@@ -69,6 +69,9 @@ class connection {
     virtual void on_error(connection* c, connection::error e) = 0;
   };
   virtual ~connection() {}
+
+  virtual bool init() = 0;
+
   /**
     Function that is used to send message to the remote peer. Id shows the
     sequence_id at the time of sending the message. On_message_sent should be
@@ -92,8 +95,7 @@ class connection {
   static connection* create(const std::string& type, const std::string& address,
       connection_handler* handler);
 
-  typedef connection* (*factory_function)(const std::string& address,
-      connection_handler* handler);
+  typedef connection* (*factory_function)(const std::string& address, connection_handler* handler);
 
   /**
     Function that is used to register how an object from child class will be
@@ -103,8 +105,7 @@ class connection {
     arguments should this function accept. If such type name exists in the
     registry, the factory_function pointer will be overriden.
   */
-  static void register_connection_type(const std::string& type,
-      factory_function func);
+  static void register_connection_type(const std::string& type, factory_function func);
 
  protected:
   /**

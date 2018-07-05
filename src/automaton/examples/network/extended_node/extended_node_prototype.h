@@ -55,8 +55,7 @@ class node {
 
     void on_disconnected(core::network::connection* c);
 
-    void on_error(core::network::connection* c,
-        core::network::connection::error e);
+    void on_error(core::network::connection* c, core::network::connection::error e);
   };
   class lis_handler: public core::network::acceptor::acceptor_handler {
    public:
@@ -64,11 +63,12 @@ class node {
 
     explicit lis_handler(node* n);
 
-    bool on_requested(const std::string& address);
+    bool on_requested(core::network::acceptor* a, const std::string& address);
 
-    void on_connected(core::network::connection* c, const std::string& address);
+    void on_connected(core::network::acceptor* a, core::network::connection* c,
+        const std::string& address);
 
-    void on_error(core::network::connection::error e);
+    void on_error(core::network::acceptor* a, core::network::connection::error e);
   };
   node();
 
@@ -108,7 +108,7 @@ class node {
 
   uint32_t get_height();
 
-  void process(core::data::msg* input_message, automaton::core::network::connection* c);
+  void process(core::data::msg* input_message, automaton::core::network::connection* c = nullptr);
 
   void mine(uint32_t number_tries, uint32_t required_leading_zeros);
 

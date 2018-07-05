@@ -171,7 +171,7 @@ int main() {
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
     }
   } catch (std::exception& e) {
-    LOG(ERROR) << "EXCEPTION " + std::string(e.what());
+    LOG(ERROR) << "EXCEPTION " << std::string(e.what());
   } catch(...) {
     LOG(ERROR) << "UNKOWN EXCEPTION!";
   }
