@@ -49,16 +49,14 @@ core::data::factory* node::msg_factory = nullptr;
 
 /// Node's connection handler
 
-node::handler::handler(node* n): node_(n) {}
-
-void node::handler::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
+void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
     uint32_t id) {
   // LOG(DEBUG) << id << " RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read));
   switch (id) {
     case WAITING_HEADER_SIZE: {
       if (bytes_read != 1) {
         std::stringstream msg;
-        msg << node_->id << " Reading 1 byte was not successful! Read " << bytes_read << " instead";
+        msg << id << " Reading 1 byte was not successful! Read " << bytes_read << " instead";
         LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
         throw std::runtime_error(msg.str());
       }
@@ -73,7 +71,7 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
       uint32_t message_size = header->get_uint32(1);
       if (!message_size || message_size > MAX_MESSAGE_SIZE) {
         std::stringstream msg;
-        msg << node_->id << " Reading header was not successful!";
+        msg << id << " Reading header was not successful!";
         LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
         throw std::runtime_error(msg.str());
       } else {
@@ -84,11 +82,11 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
     case WAITING_MESSAGE: {
       try {
         std::string data = std::string(buffer, bytes_read);
-        // LOG(DEBUG) << node_->id << " RECEIVED " << data.size() << " bytes: ";
+        // LOG(DEBUG) << id << " RECEIVED " << data.size() << " bytes: ";
             // << core::io::string_to_hex(data);
         if (data == "") {
           std::stringstream msg;
-          msg << node_->id << " Reading message was not successful!";
+          msg << id << " Reading message was not successful!";
           LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
           throw std::runtime_error(msg.str());
         }
@@ -96,11 +94,11 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
         received_msg->deserialize_message(data);
         if (received_msg->get_message(1)) {
           // LOG(DEBUG) << "PROCESS 1: 0";
-          node_->process((received_msg->get_message(1)).get(), c);
+          process((received_msg->get_message(1)).get(), c);
         }
         if (received_msg->get_message(2)) {
           // LOG(DEBUG) << "PROCESS 2: 0";
-          node_->process((received_msg->get_message(2)).get(), c);
+          process((received_msg->get_message(2)).get(), c);
         }
         c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
       } catch (std::exception& e) {
@@ -116,7 +114,7 @@ void node::handler::on_message_received(connection* c, char* buffer, uint32_t by
   }
 }
 
-void node::handler::on_message_sent(connection* c, uint32_t id, connection::error e) {
+void node::on_message_sent(connection* c, uint32_t id, connection::error e) {
   if (e) {
     LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
         c->get_address() << " -> Error " << std::to_string(e) << " occurred";
@@ -126,17 +124,17 @@ void node::handler::on_message_sent(connection* c, uint32_t id, connection::erro
   }
 }
 
-void node::handler::on_connected(connection* c) {
-  // LOG(INFO) << node_->id << " connected with: " + c->get_address();
-  c->async_send(node_->add_header(node_->create_request_blocks_message({})));
-  c->async_read(node_->add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+void node::on_connected(connection* c) {
+  // LOG(INFO) << id << " connected with: " + c->get_address();
+  c->async_send(add_header(create_request_blocks_message({})));
+  c->async_read(add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
 }
 
-void node::handler::on_disconnected(connection* c) {
-  // LOG(INFO) << node_->id << " disconnected with: " + c->get_address();
+void node::on_disconnected(connection* c) {
+  // LOG(INFO) << id << " disconnected with: " + c->get_address();
 }
 
-void node::handler::on_error(connection* c, connection::error e) {
+void node::on_error(connection* c, connection::error e) {
   if (e == connection::no_error) {
     return;
   }
@@ -145,20 +143,18 @@ void node::handler::on_error(connection* c, connection::error e) {
 
 /// Node's acceptor handler
 
-node::lis_handler::lis_handler(node* n):node_(n) {}
-
-bool node::lis_handler::on_requested(acceptor* a, const std::string& address) {
+bool node::on_requested(acceptor* a, const std::string& address) {
   // EXPECT_EQ(address, address_a);
-  // LOG(INFO) << node_->id << " received connection request from : " + address;
-  return node_->accept_connection(/*address*/);
+  // LOG(INFO) << id << " received connection request from : " + address;
+  return accept_connection(/*address*/);
 }
 
-void node::lis_handler::on_connected(acceptor* a, connection* c, const std::string& address) {
-  // LOG(INFO) << node_->id << " accepted connection from " << address;
-  node_->add_peer(c, address);
+void node::on_connected(acceptor* a, connection* c, const std::string& address) {
+  // LOG(INFO) << id << " accepted connection from " << address;
+  add_peer(c, address);
 }
 
-void node::lis_handler::on_error(acceptor* a, connection::error e) {
+void node::on_error(acceptor* a, connection::error e) {
   LOG(ERROR) << std::to_string(e);
 }
 
@@ -179,8 +175,6 @@ bool node::init() {
       msg_factory->import_schema(&loaded_schema, "proto", "");
       SHA256_cryptopp::register_self();
     }
-    handler_ = new handler(this);
-    lis_handler_ = new lis_handler(this);
     nonce = new uint8_t[HASH_SIZE]();
     hasher = hash_transformation::create("SHA256");
     global_state = new state_impl(hasher);
@@ -254,7 +248,7 @@ bool node::add_peer(const std::string& id, const std::string& connection_type,
   }
   connection* new_connection;
   try {
-    new_connection = connection::create(connection_type, address, handler_);
+    new_connection = connection::create(connection_type, address, this);
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
     peers[id] = nullptr;
@@ -311,7 +305,7 @@ bool node::add_acceptor(const std::string& id, const std::string& connection_typ
   }
   acceptor* new_acceptor;
   try {
-    new_acceptor = acceptor::create(connection_type, address, lis_handler_, handler_);
+    new_acceptor = acceptor::create(connection_type, address, this, this);
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
     acceptors[id] = nullptr;
@@ -632,7 +626,7 @@ void node::process(msg* input_message, connection* sender) {
         hashes.push_back(input_message->get_repeated_blob(2, i));
       }
     }
-    // LOG(DEBUG) << node_->node_->id << " receiving msg: 3";
+    // LOG(DEBUG) << id << " receiving msg: 3";
     std::string top_block_hash = input_message->get_blob(1);
     // LOG(DEBUG) << "TOP :: " << top_block_hash;
     if (top_block_hash != get_top()) {
@@ -644,7 +638,7 @@ void node::process(msg* input_message, connection* sender) {
     }
   } else if (msg_type == "blocks_response") {
     // LOG(DEBUG) << "PROCESS 2: 1";
-    // LOG(DEBUG) << node_->id << " receiving msg: 1";
+    // LOG(DEBUG) << id << " receiving msg: 1";
     uint32_t hashes_number = input_message->get_repeated_field_size(1);
     uint32_t blocks_number = input_message->get_repeated_field_size(2);
     if (hashes_number != blocks_number) {
@@ -658,13 +652,13 @@ void node::process(msg* input_message, connection* sender) {
       return;
     }
     for (uint32_t i = 0; i < hashes_number; ++i) {
-      // LOG(DEBUG) << node_->id << " receiving msg: loop " << i;
+      // LOG(DEBUG) << id << " receiving msg: loop " << i;
       std::string hash = input_message->get_repeated_blob(1, i);
       global_state_mutex.lock();
       orphan_blocks_mutex.lock();
       if (global_state->get(hash) == "" &&
           orphan_blocks.find(hash) == orphan_blocks.end()) {
-        // LOG(DEBUG) << node_->id << " receiving msg: loop " << i << "if";
+        // LOG(DEBUG) << id << " receiving msg: loop " << i << "if";
         orphan_blocks_mutex.unlock();
         global_state_mutex.unlock();
         std::string serialized_block = input_message->get_repeated_blob(2, i);
@@ -681,7 +675,7 @@ void node::process(msg* input_message, connection* sender) {
           LOG(ERROR) << "Block validation failed!";
         }
       } else {
-        // LOG(DEBUG) << node_->id << " receiving msg: loop " << i << "else";
+        // LOG(DEBUG) << id << " receiving msg: loop " << i << "else";
         orphan_blocks_mutex.unlock();
         global_state_mutex.unlock();
       }

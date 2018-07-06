@@ -60,6 +60,7 @@ class connection {
   */
   class connection_handler {
    public:
+    virtual ~connection_handler() {}
     virtual void on_message_received(connection* c, char* buffer,
         uint32_t bytes_read, uint32_t id) = 0;
     virtual void on_message_sent(connection* c, uint32_t id,
