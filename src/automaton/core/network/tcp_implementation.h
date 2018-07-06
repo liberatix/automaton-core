@@ -161,6 +161,8 @@ class tcp_acceptor:public acceptor {
 */
 void tcp_init();
 
+void tcp_release();
+
 void parse_address(const std::string&, std::string* result_addr, std::string*
     result_port);
 

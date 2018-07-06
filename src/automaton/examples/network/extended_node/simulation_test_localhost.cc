@@ -191,6 +191,7 @@ int main() {
   simulation_end = true;
   miner.join();
   collect_stats();
+  automaton::core::network::tcp_release();
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     delete nodes[i];
   }

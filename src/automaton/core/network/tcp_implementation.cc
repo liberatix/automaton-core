@@ -344,7 +344,11 @@ void tcp_init() {
   tcp_initialized = true;
 }
 
-// TODO(kari): void destroy(){}; stop work, join thread, clean resources...
+void tcp_release() {
+  asio_io_service.stop();
+  worker_thread->join();
+  tcp_initialized = false;
+}
 
 void parse_address(const std::string& address, std::string* result_addr,
   std::string* result_port) {
