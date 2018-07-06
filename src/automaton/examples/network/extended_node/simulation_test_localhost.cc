@@ -117,24 +117,30 @@ void miner_thread_function() {
 int main() {
   try {
     automaton::core::network::tcp_init();
-    LOG(INFO) << "Creating acceptors...";
-    for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-      std::string address = LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i);
-      nodes.push_back(new node());
-      nodes[i]->init();
-      nodes[i]->id = address;
-      nodes[i]->add_acceptor(address, "tcp", address);
-    }
-    LOG(INFO) << "Creating connections...";
-    for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-      for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
-        std::string address;
-        do {
-          address = LOCALHOST +
-              std::to_string(FIRST_ACCEPTOR_PORT + std::rand() % NUMBER_NODES);
-        } while (address == nodes[i]->id);
-        nodes[i]->add_peer(address, "tcp", address);
+    try {
+      LOG(INFO) << "Creating acceptors...";
+      for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+        std::string address = LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i);
+        nodes.push_back(new node());
+        nodes[i]->init();
+        nodes[i]->id = address;
+        nodes[i]->add_acceptor(address, "tcp", address);
       }
+      LOG(INFO) << "Creating connections...";
+      for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+        for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
+          std::string address;
+          do {
+            address = LOCALHOST +
+                std::to_string(FIRST_ACCEPTOR_PORT + std::rand() % NUMBER_NODES);
+          } while (address == nodes[i]->id || nodes[i]->get_peer(address));
+          nodes[i]->add_peer(address, "tcp", address);
+        }
+      }
+    } catch (std::exception& e) {
+      LOG(ERROR) << "EXCEPTION " << std::string(e.what());
+    } catch(...) {
+      LOG(ERROR) << "UNKOWN EXCEPTION!";
     }
     LOG(INFO) << "Starting simulation...";
     miner = std::thread(miner_thread_function);
@@ -145,23 +151,29 @@ int main() {
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
     }
     nodes_mutex.lock();
-    for (uint32_t i = NUMBER_NODES; i < NUMBER_NODES + NEW_NODES; ++i) {
-      std::string address = LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i);
-      nodes.push_back(new node());
-      nodes[i]->init();
-      nodes[i]->id = address;
-      nodes[i]->add_acceptor(address, "tcp", address);
-    }
-    LOG(INFO) << "Creating connections...";
-    for (uint32_t i = NUMBER_NODES; i < NUMBER_NODES + NEW_NODES; ++i) {
-      for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
-        std::string address;
-        do {
-          address = LOCALHOST +
-              std::to_string(FIRST_ACCEPTOR_PORT + std::rand() % NUMBER_NODES);
-        } while (address == nodes[i]->id);
-        nodes[i]->add_peer(address, "tcp", address);
+    try {
+      for (uint32_t i = NUMBER_NODES; i < NUMBER_NODES + NEW_NODES; ++i) {
+        std::string address = LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i);
+        nodes.push_back(new node());
+        nodes[i]->init();
+        nodes[i]->id = address;
+        nodes[i]->add_acceptor(address, "tcp", address);
       }
+      LOG(INFO) << "Creating connections...";
+      for (uint32_t i = NUMBER_NODES; i < NUMBER_NODES + NEW_NODES; ++i) {
+        for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
+          std::string address;
+          do {
+            address = LOCALHOST +
+                std::to_string(FIRST_ACCEPTOR_PORT + std::rand() % NUMBER_NODES);
+          } while (address == nodes[i]->id || nodes[i]->get_peer(address));
+          nodes[i]->add_peer(address, "tcp", address);
+        }
+      }
+    } catch (std::exception& e) {
+      LOG(ERROR) << "EXCEPTION " << std::string(e.what());
+    } catch(...) {
+      LOG(ERROR) << "UNKOWN EXCEPTION!";
     }
     nodes_mutex.unlock();
     LOG(INFO) << "Continuing simulation...";
@@ -171,13 +183,15 @@ int main() {
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
     }
   } catch (std::exception& e) {
-    LOG(ERROR) << "EXCEPTION " + std::string(e.what());
+    LOG(ERROR) << "EXCEPTION " << std::string(e.what());
   } catch(...) {
     LOG(ERROR) << "UNKOWN EXCEPTION!";
   }
+  LOG(INFO) << "SIMULATION END!";
   simulation_end = true;
   miner.join();
   collect_stats();
+  automaton::core::network::tcp_release();
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     delete nodes[i];
   }

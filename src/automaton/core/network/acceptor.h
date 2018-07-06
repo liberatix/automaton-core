@@ -13,6 +13,11 @@ namespace network {
 // Class that is used to listen for and accept incoming connections. (Server)
 class acceptor {
  public:
+  enum state {
+    invalid_state = 0,
+    accepting = 1,
+    not_accepting = 2,
+  };
   /**
     Handler class used to inform the client for events.
       - on_requested will be invoked when a peer wants to connect; it passes
@@ -25,19 +30,27 @@ class acceptor {
   */
   class acceptor_handler {
    public:
+    virtual ~acceptor_handler() {}
     // IDEA(kari): return string (schema message with connection params) instead
     // of bool
-    virtual bool on_requested(const std::string& address) = 0;
-    virtual void on_connected(connection* c, const std::string& address) = 0;
-    virtual void on_error(connection::error e) = 0;
+    virtual bool on_requested(acceptor* a, const std::string& address) = 0;
+    virtual void on_connected(acceptor* a, connection* c, const std::string& address) = 0;
+    virtual void on_error(acceptor* a, connection::error e) = 0;
   };
   virtual ~acceptor() {}
+
+  virtual bool init() = 0;
+
   /**
     Function that defines how the acceptor works. It should specify the way
     acceptor listens for and accepts connections. It should call handler's
     functions on the specified events to inform the client about them.
   */
   virtual void start_accepting() = 0;
+
+  virtual std::string get_address() const = 0;
+
+  virtual acceptor::state get_state() const = 0;
 
   /**
     Function that is used to create objects from a specified child class.
@@ -49,9 +62,8 @@ class acceptor {
       acceptor_handler* handler_, connection::connection_handler*
       connections_handler);
 
-  typedef acceptor* (*factory_function)(const std::string& address,
-      acceptor_handler* handler_, connection::connection_handler*
-      connections_handler);
+  typedef acceptor* (*factory_function)(const std::string& address, acceptor_handler* handler_,
+      connection::connection_handler* connections_handler);
 
   /**
     Function that is used to register how an object from child class will be
@@ -61,8 +73,7 @@ class acceptor {
     arguments should this function accept. If such type name exists in the
     registry, the factory_function pointer will be overriden.
   */
-  static void register_acceptor_type(const std::string& type,
-      factory_function func);
+  static void register_acceptor_type(const std::string& type, factory_function func);
 
  protected:
   /** Class constructor. */

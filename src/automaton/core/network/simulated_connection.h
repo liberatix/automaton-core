@@ -180,6 +180,8 @@ class simulated_connection: public connection {
 
   simulated_connection(const std::string& address_, connection_handler* handler_);
 
+  bool init();
+
   bool parse_address(const std::string& address);
 
   void async_send(const std::string& message, uint32_t message_id);
@@ -209,10 +211,20 @@ class simulated_acceptor: public acceptor {
   acceptor_params parameters;
   bool started_accepting;
   connection::connection_handler* accepted_connections_handler;
+
   simulated_acceptor(const std::string& address_, acceptor::acceptor_handler*
       handler_, connection::connection_handler* accepted_connections_handler);
+
+  bool init();
+
   void start_accepting();
+
+  state get_state() const;
+
+  std::string get_address() const;
+
   bool parse_address(const std::string& address);  // not implemented yet
+
   acceptor_handler* get_handler();
 };
 

@@ -52,7 +52,6 @@ void collect_stats() {
 int main() {
   try {
     acn::tcp_init();
-    acn::simulation* sim = acn::simulation::get_simulator();
     LOG(INFO) << "Creating acceptors...";
     for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
       nodes[i] = new node();

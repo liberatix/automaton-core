@@ -152,7 +152,7 @@ void simulation::handle_event(const event& e) {
       new_event.destination = e.source;
       new_event.time_of_handling = sim->get_time() + source->get_lag();
       const connection_params& params = source->parameters;
-      if (acceptor_->get_handler()->on_requested(source_address)) {
+      if (acceptor_->get_handler()->on_requested(acceptor_, source_address)) {
         // LOG(DEBUG) << "accepted";
         new_event.type_ = event::type::accept;
         /**
@@ -172,7 +172,7 @@ void simulation::handle_event(const event& e) {
         new_connection->connection_state = connection::state::connected;
         new_connection->remote_connection_id = source->local_connection_id;
         new_connection->time_stamp = new_event.time_of_handling;
-        acceptor_->get_handler()->on_connected(new_connection, source_address);
+        acceptor_->get_handler()->on_connected(acceptor_, new_connection, source_address);
         new_connection->get_handler()->on_connected(new_connection);
       } else {
         // LOG(DEBUG) << "refused";
@@ -399,6 +399,8 @@ simulated_connection::simulated_connection(const std::string& address_,
     throw std::invalid_argument(msg.str());
   }
 }
+
+bool simulated_connection::init() {return false;}
 
 void simulated_connection::async_send(const std::string& message, uint32_t id = 0) {
   if (message.size() < 1) {
@@ -630,6 +632,8 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
   }
 }
 
+bool simulated_acceptor::init() {return false;}
+
 bool simulated_acceptor::parse_address(const std::string& address_) {
   std::regex rgx_sim("(\\d+):(\\d+):(\\d+)");
   std::smatch match;
@@ -648,6 +652,12 @@ void simulated_acceptor::start_accepting() {
   }
   started_accepting = true;
 }
+
+acceptor::state simulated_acceptor::get_state() const {
+  return acceptor::invalid_state;
+}
+
+std::string simulated_acceptor::get_address() const {return "";}
 
 acceptor::acceptor_handler* simulated_acceptor::get_handler() {
   return handler;

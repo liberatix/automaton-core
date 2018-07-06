@@ -21,7 +21,8 @@ namespace automaton {
 namespace examples {
 
 /// Class node
-class node {
+class node: public core::network::connection::connection_handler,
+    public core::network::acceptor::acceptor_handler {
  public:
   // TODO(kari): This need to be deleted.
   static core::data::factory* msg_factory;
@@ -39,37 +40,7 @@ class node {
     block(std::string hash, std::string prev_hash, uint32_t height, std::string miner,
         std::string nonce);
   };
-  class handler: public core::network::connection::connection_handler {
-   public:
-    node* node_;
 
-    explicit handler(node* n);
-
-    void on_message_received(core::network::connection* c, char* buffer,
-        uint32_t bytes_read, uint32_t id);
-
-    void on_message_sent(core::network::connection* c, uint32_t id,
-        core::network::connection::error e);
-
-    void on_connected(core::network::connection* c);
-
-    void on_disconnected(core::network::connection* c);
-
-    void on_error(core::network::connection* c,
-        core::network::connection::error e);
-  };
-  class lis_handler: public core::network::acceptor::acceptor_handler {
-   public:
-    node* node_;
-
-    explicit lis_handler(node* n);
-
-    bool on_requested(const std::string& address);
-
-    void on_connected(core::network::connection* c, const std::string& address);
-
-    void on_error(core::network::connection::error e);
-  };
   node();
 
   ~node();
@@ -92,6 +63,8 @@ class node {
 
   void remove_peer(const std::string& id);
 
+  automaton::core::network::connection* get_peer(const std::string& address);
+
   bool add_acceptor(const std::string& id, const std::string& connection_type,
       const std::string& address);
 
@@ -108,7 +81,7 @@ class node {
 
   uint32_t get_height();
 
-  void process(core::data::msg* input_message, automaton::core::network::connection* c);
+  void process(core::data::msg* input_message, automaton::core::network::connection* c = nullptr);
 
   void mine(uint32_t number_tries, uint32_t required_leading_zeros);
 
@@ -121,8 +94,6 @@ class node {
   bool initialized;
   // TODO(kari): remove this and add hello message passing id as well as a list of ids and peers
   uint32_t peer_ids;  // count
-  handler* handler_;
-  lis_handler* lis_handler_;
   std::vector<char*> buffers;
   std::mutex buffer_mutex;
   std::mutex global_state_mutex;
@@ -137,7 +108,27 @@ class node {
   std::map<std::string, core::network::connection*> peers;
   core::crypto::hash_transformation* hasher;
   core::state::state* global_state;  // map block_hash -> serialized msg, containing the block
-  // basic_hash_miner* miner
+
+  /// Inherited handlers' functions
+
+  void on_message_received(core::network::connection* c, char* buffer,
+      uint32_t bytes_read, uint32_t id);
+
+  void on_message_sent(core::network::connection* c, uint32_t id,
+      core::network::connection::error e);
+
+  void on_connected(core::network::connection* c);
+
+  void on_disconnected(core::network::connection* c);
+
+  void on_error(core::network::connection* c, core::network::connection::error e);
+
+  bool on_requested(core::network::acceptor* a, const std::string& address);
+
+  void on_connected(core::network::acceptor* a, core::network::connection* c,
+      const std::string& address);
+
+  void on_error(core::network::acceptor* a, core::network::connection::error e);
 
   void check_orphans(const std::string& hash);
 
