@@ -50,7 +50,7 @@ class acceptor {
 
   virtual std::string get_address() const = 0;
 
-  virtual acceptor::state get_state() = 0;
+  virtual acceptor::state get_state() const = 0;
 
   /**
     Function that is used to create objects from a specified child class.

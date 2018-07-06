@@ -196,24 +196,28 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
 }
 
 void tcp_connection::disconnect() {
-  std::lock_guard<std::mutex> lock(connection_mutex);
   state_mutex.lock();
   connection_state = connection::state::disconnected;
   state_mutex.unlock();
+  connection_mutex.lock();
   if (asio_socket.is_open()) {
     boost::system::error_code boost_error_code_shut;
     asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
+    boost::system::error_code boost_error_code_close;
+    asio_socket.close(boost_error_code_close);
+
+    connection_mutex.unlock();
     if (boost_error_code_shut) {
       handler->on_error(this, connection::error::unknown);
       LOG(ERROR) << address << " -> " <<  boost_error_code_shut.message();
     }
-    boost::system::error_code boost_error_code_close;
-    asio_socket.close(boost_error_code_close);
     if (boost_error_code_close) {
       handler->on_error(this, connection::error::unknown);
       LOG(ERROR) << address << " -> " <<  boost_error_code_close.message();
     }
     handler->on_disconnected(this);
+  } else {
+    connection_mutex.unlock();
   }
 }
 
@@ -226,7 +230,7 @@ std::string tcp_connection::get_address() const {
   return address;
 }
 
-connection::state tcp_connection::get_state() {
+connection::state tcp_connection::get_state() const {
   std::lock_guard<std::mutex> lock(state_mutex);
   return connection_state;
 }
@@ -317,7 +321,7 @@ std::string tcp_acceptor::get_address() const {
   return address;
 }
 
-acceptor::state tcp_acceptor::get_state() {
+acceptor::state tcp_acceptor::get_state() const {
   // TODO(kari): implement this
   return acceptor_state;
 }

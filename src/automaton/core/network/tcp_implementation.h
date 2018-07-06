@@ -104,7 +104,7 @@ class tcp_connection: public connection {
 
   std::string get_address() const;
 
-  connection::state get_state();
+  connection::state get_state() const;
 
  private:
   boost::asio::ip::tcp::endpoint asio_endpoint;
@@ -112,7 +112,7 @@ class tcp_connection: public connection {
   connection::state connection_state;
   std::string address;
   std::mutex connection_mutex;
-  std::mutex state_mutex;
+  mutable std::mutex state_mutex;
 };
 
 class tcp_acceptor:public acceptor {
@@ -146,7 +146,7 @@ class tcp_acceptor:public acceptor {
 
   std::string get_address() const;
 
-  acceptor::state get_state();
+  acceptor::state get_state() const;
 
  private:
   boost::asio::ip::tcp::acceptor asio_acceptor;

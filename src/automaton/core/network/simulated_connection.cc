@@ -524,7 +524,7 @@ bool simulated_connection::parse_address(const std::string& address) {
   return false;
 }
 
-connection::state simulated_connection::get_state() {
+connection::state simulated_connection::get_state() const {
   return connection_state;
 }
 
@@ -653,7 +653,9 @@ void simulated_acceptor::start_accepting() {
   started_accepting = true;
 }
 
-acceptor::state simulated_acceptor::get_state() {return acceptor::invalid_state;}
+acceptor::state simulated_acceptor::get_state() const {
+  return acceptor::invalid_state;
+}
 
 std::string simulated_acceptor::get_address() const {return "";}
 
