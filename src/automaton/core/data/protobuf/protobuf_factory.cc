@@ -292,7 +292,7 @@ std::unique_ptr<msg> protobuf_factory::new_message_by_id(uint32_t schema_id) {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   Message* m = schemas[schema_id]->New();
-  return std::unique_ptr<msg>(new protobuf_msg(m, schema_id));
+  return std::unique_ptr<msg>(new protobuf_msg(m, this, schema_id));
 }
 
 std::unique_ptr<msg> protobuf_factory::new_message_by_name(const char* schema_name) {

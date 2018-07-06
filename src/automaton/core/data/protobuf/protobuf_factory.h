@@ -32,9 +32,6 @@ class protobuf_factory: public factory {
   google::protobuf::DescriptorPool* pool;
   google::protobuf::DynamicMessageFactory* dynamic_message_factory = nullptr;
 
-  /// Spots in the messages vector.
-  std::stack<uint32_t> free_message_spots;
-
   /// Message type name to index in vector<const Message*> schemas
   std::map<std::string, uint32_t> schemas_names;
 

@@ -20,7 +20,7 @@ using automaton::examples::node;
 /// Constants
 
 static const int FIRST_ACCEPTOR_PORT = 11100;
-static const uint32_t NUMBER_NODES = 100;
+static const uint32_t NUMBER_NODES = 16;
 // These include only the peers that a node connects to, not the accepted ones
 static const uint32_t NUMBER_PEERS_IN_NODE = 2;
 static const uint32_t MIN_CONNECTIONS = 0;
@@ -28,7 +28,7 @@ static const uint32_t MAX_CONNECTIONS = 1;
 static const uint32_t LOOP_STEP = 48;
 static const uint32_t SIMULATION_TIME = 10000;
 static const uint32_t MINER_PRECISION_BITS = 20;
-static const uint32_t NEW_NODES = 10;
+static const uint32_t NEW_NODES = 48;
 
 static const char* LOCALHOST = "127.0.0.1:";
 

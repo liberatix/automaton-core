@@ -33,6 +33,17 @@ namespace examples {
 
 static const char* PROTO_FILE = "automaton/examples/network/extended_node/sp.proto";
 static const uint32_t HASH_SIZE = 32;
+static const uint32_t MAX_HEADER_SIZE = 255;
+static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
+/// Header size size is 1 byte
+
+/**
+  Next 3 are used as an id in async_read and on_message_received to show at what state is the
+  receiving of the message
+*/
+static const uint32_t WAITING_HEADER_SIZE = 0;
+static const uint32_t WAITING_HEADER = 1;
+static const uint32_t WAITING_MESSAGE = 2;
 
 core::data::factory* node::msg_factory = nullptr;
 
@@ -42,109 +53,67 @@ node::handler::handler(node* n): node_(n) {}
 
 void node::handler::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
     uint32_t id) {
-  try {
-    std::string data = std::string(buffer, bytes_read);
-    // LOG(DEBUG) << node_->id << " RECEIVED " << data.size() << " bytes: " <<
-    //     core::io::string_to_hex(data);
-    if (data == "") {
-      c->async_read(buffer, 512, 0, 0);
-      return;
+  // LOG(DEBUG) << id << " RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read));
+  switch (id) {
+    case WAITING_HEADER_SIZE: {
+      if (bytes_read != 1) {
+        std::stringstream msg;
+        msg << node_->id << " Reading 1 byte was not successful! Read " << bytes_read << " instead";
+        LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+        throw std::runtime_error(msg.str());
+      }
+      uint32_t s = buffer[0];
+      c->async_read(buffer, MAX_MESSAGE_SIZE, s, WAITING_HEADER);
     }
-    // LOG(DEBUG) << node_->id << " receiving msg: 0";
-    std::unique_ptr<msg> received_msg = msg_factory->new_message_by_name("data");
-    received_msg->deserialize_message(data);
-    // LOG(DEBUG) << "Data message: " << received_msg->to_string();
-    std::unique_ptr<msg> msg_type_request = received_msg->get_message(1);  // request
-    std::unique_ptr<msg> msg_type_response = received_msg->get_message(2);  // response
-    // if (msg_type_request) {
-    //   LOG(DEBUG) << "Request message: " << msg_type_request->to_string();
-    // }
-    // if (msg_type_response) {
-    //   LOG(DEBUG) << "Response message 2: " << msg_type_response->to_string();
-    // }
-
-    // =================================
-    if (msg_type_response) {
-      // // LOG(DEBUG) << node_->id << " receiving msg: 1";
-      uint32_t hashes_number = msg_type_response->get_repeated_field_size(1);
-      uint32_t blocks_number = msg_type_response->get_repeated_field_size(2);
-      if (hashes_number != blocks_number) {
-        // TODO(kari): Handle this situation
-        LOG(ERROR) << "Received message contains different number of hashes and blocks";
-        // LOG(DEBUG) << "Blocks:: ";
-        // for (int i = 0; i < blocks_number; ++i) {
-        //   LOG(DEBUG) << "block: " <<
-        //       core::io::string_to_hex(msg_type_response->get_repeated_blob(2, i));
-        // }
-        return;
+    break;
+    case WAITING_HEADER: {
+      std::string serialized_header = std::string(buffer, bytes_read);
+      std::unique_ptr<msg> header = msg_factory->new_message_by_name("header");
+      header->deserialize_message(serialized_header);
+      uint32_t message_size = header->get_uint32(1);
+      if (!message_size || message_size > MAX_MESSAGE_SIZE) {
+        std::stringstream msg;
+        msg << node_->id << " Reading header was not successful!";
+        LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+        throw std::runtime_error(msg.str());
+      } else {
+        c->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
       }
-      for (uint32_t i = 0; i < hashes_number; ++i) {
-        // // LOG(DEBUG) << node_->id << " receiving msg: loop " << i;
-        std::string hash = msg_type_response->get_repeated_blob(1, i);
-        node_->global_state_mutex.lock();
-        node_->orphan_blocks_mutex.lock();
-        if (node_->global_state->get(hash) == "" &&
-            node_->orphan_blocks.find(hash) == node_->orphan_blocks.end()) {
-          // // LOG(DEBUG) << node_->id << " receiving msg: loop " << i << "if";
-          node_->orphan_blocks_mutex.unlock();
-          node_->global_state_mutex.unlock();
-          std::string serialized_block = msg_type_response->get_repeated_blob(2, i);
-          // WHY NO node::msg_factory ???
-          std::unique_ptr<msg> block_msg = msg_factory->new_message_by_name("block");
-          block_msg->deserialize_message(serialized_block);
-          block b = node_->msg_to_block(block_msg.get());
-          // LOG(DEBUG) << "Received block: " << b.to_string();
-          /// validate block
-          if (!hash.compare(node_->hash_block(b)) && !hash.compare(b.hash)) {
-            // LOG(DEBUG) << "Received valid block! Block send to handler!";
-            node_->handle_block(hash, b, serialized_block);
-          } else {
-            LOG(ERROR) << "Block validation failed!";
-          }
-        } else {
-          // // LOG(DEBUG) << node_->id << " receiving msg: loop " << i << "else";
-          node_->orphan_blocks_mutex.unlock();
-          node_->global_state_mutex.unlock();
-        }
-      }
-    } else if (msg_type_request) {
-      // LOG(DEBUG) << node_->id << " receiving msg: 2";
-      std::vector<std::string> hashes;
-      uint32_t hashes_number = msg_type_request->get_repeated_field_size(2);
-      if (hashes_number > 0) {
-        for (uint32_t i = 0; i < hashes_number; i++) {
-          hashes.push_back(msg_type_request->get_repeated_blob(2, i));
-        }
-      }
-      // // LOG(DEBUG) << node_->node_->id << " receiving msg: 3";
-      std::string top_block_hash = msg_type_request->get_blob(1);
-      // // LOG(DEBUG) << "TOP :: " << top_block_hash;
-      if (top_block_hash != node_->get_top()) {
-        hashes.push_back(node_->get_top());
-      }
-      if (hashes.size() > 0) {
-      //  // LOG(DEBUG) << "SENDING :: " << hashes;
-        c->async_send(node_->create_send_blocks_message(hashes));
-      }
-      // // LOG(DEBUG) << "sending top 1";
-      // c->async_send(node_->create_send_blocks_message({node_->get_top()}));
-      // // LOG(DEBUG) << "sending top 2";
-    } else {
-      std::stringstream msg;
-      msg << "Received message is empty! data msg is " <<
-          core::io::string_to_hex(received_msg->to_string()) << "\n";
-      LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
-      throw std::runtime_error(msg.str());
     }
-    c->async_read(buffer, 512, 0, 0);
-  } catch (std::exception& e) {
-    std::stringstream msg;
-    msg << e.what();
-    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
-  } catch (...) {
-    LOG(ERROR) << el::base::debug::StackTrace();
+    break;
+    case WAITING_MESSAGE: {
+      try {
+        std::string data = std::string(buffer, bytes_read);
+        // LOG(DEBUG) << node_->id << " RECEIVED " << data.size() << " bytes: ";
+            // << core::io::string_to_hex(data);
+        if (data == "") {
+          std::stringstream msg;
+          msg << node_->id << " Reading message was not successful!";
+          LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+          throw std::runtime_error(msg.str());
+        }
+        std::unique_ptr<msg> received_msg = msg_factory->new_message_by_name("data");
+        received_msg->deserialize_message(data);
+        if (received_msg->get_message(1)) {
+          // LOG(DEBUG) << "PROCESS 1: 0";
+          node_->process((received_msg->get_message(1)).get(), c);
+        }
+        if (received_msg->get_message(2)) {
+          // LOG(DEBUG) << "PROCESS 2: 0";
+          node_->process((received_msg->get_message(2)).get(), c);
+        }
+        c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+      } catch (std::exception& e) {
+        std::stringstream msg;
+        msg << e.what();
+        LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+      } catch (...) {
+        LOG(ERROR) << el::base::debug::StackTrace();
+      }
+    }
+    break;
+    default: {}
   }
-  // LOG(DEBUG) << node_->id << " receiving msg: end";
 }
 
 void node::handler::on_message_sent(connection* c, uint32_t id, connection::error e) {
@@ -159,8 +128,8 @@ void node::handler::on_message_sent(connection* c, uint32_t id, connection::erro
 
 void node::handler::on_connected(connection* c) {
   // LOG(INFO) << node_->id << " connected with: " + c->get_address();
-  c->async_send(node_->create_request_blocks_message({}));
-  c->async_read(node_->add_buffer(512), 512, 0, 0);
+  c->async_send(node_->add_header(node_->create_request_blocks_message({})));
+  c->async_read(node_->add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
 }
 
 void node::handler::on_disconnected(connection* c) {
@@ -187,7 +156,6 @@ bool node::lis_handler::on_requested(const std::string& address) {
 void node::lis_handler::on_connected(connection* c, const std::string& address) {
   // LOG(INFO) << node_->id << " accepted connection from " << address;
   node_->add_peer(c, address);
-  c->async_read(node_->add_buffer(512), 512, 0, 0);
 }
 
 void node::lis_handler::on_error(connection::error e) {
@@ -207,7 +175,7 @@ bool node::init() {
     if (!msg_factory) {
       msg_factory = new protobuf_factory();
       protobuf_schema loaded_schema(core::io::get_file_contents(PROTO_FILE));
-      // LOG(DEBUG) << "SCHEMA::" << loaded_schema.dump_schema();
+      LOG(DEBUG) << "SCHEMA::" << loaded_schema.dump_schema();
       msg_factory->import_schema(&loaded_schema, "proto", "");
       SHA256_cryptopp::register_self();
     }
@@ -305,7 +273,7 @@ bool node::add_peer(automaton::core::network::connection* c, const std::string& 
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = peers.find(address);
   if (it != peers.end() && c != it->second) {
-    // LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
+    LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
     delete it->second;
   }
   peers[address] = c;
@@ -327,7 +295,7 @@ bool node::add_acceptor(const std::string& id, const std::string& connection_typ
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   auto it = acceptors.find(id);
   if (it != acceptors.end()) {
-    // LOG(DEBUG) << "Acceptor with this id already exists!";
+    LOG(DEBUG) << "Acceptor with this id already exists!";
     delete it->second;
   }
   acceptor* new_acceptor;
@@ -359,14 +327,15 @@ void node::remove_acceptor(const std::string& id) {
 
 void node::send_message(const std::string& message, const std::string& connection_id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
+  std::string new_message = add_header(message);
   std::lock_guard<std::mutex> lock(peers_mutex);
   if (connection_id == "") {
     for (auto it = peers.begin(); it != peers.end(); ++it) {
       // TODO(kari): if connected
-      it->second->async_send(message, 0);
+      it->second->async_send(new_message, 0);
     }
   } else {
-    peers[connection_id]->async_send(message, 0);
+    peers[connection_id]->async_send(new_message, 0);
   }
 }
 
@@ -469,43 +438,6 @@ uint32_t node::get_height() {
 
 // Private functions
 
-// void node::check_orphans() {
-//   bool erased;
-//   do {
-//     erased = false;
-//     for (auto it = orphan_blocks.begin(); it != orphan_blocks.end() && !erased; ++it) {
-//       std::string hash = it->first;
-//       block b = it->second;
-//       std::string serialized_prev_block = global_state->get(b.prev_hash);
-//       if (serialized_prev_block != "") {
-//         std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
-//         deserialized_prev_block->deserialize_message(serialized_prev_block);
-//         if (deserialized_prev_block->get_uint32(3) + 1 != b.height) {
-//           orphan_blocks.erase(it);
-//           erased = true;
-//           break;
-//         }
-//         std::unique_ptr<msg> block_msg = block_to_msg(b);
-//         if (!block_msg) {
-//           std::stringstream msg;
-//           msg << "Message is null";
-//           LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
-//           throw std::runtime_error(msg.str());
-//         }
-//         std::string serialized_block;
-//         block_msg->serialize_message(&serialized_block);
-//         global_state->set(hash, serialized_block);
-//         orphan_blocks.erase(it);
-//         erased = true;
-//         if (b.prev_hash == chain_top || b.height > height) {
-//           chain_top = hash;
-//           height = b.height;
-//         }
-//       }
-//     }
-//   } while (erased && orphan_blocks.size() > 0);
-// }
-
 void node::check_orphans(const std::string& hash) {
   bool erased;
   std::string current_hash = hash;
@@ -560,8 +492,8 @@ std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
       msg_type->set_repeated_blob(2, serialized_block);
     }
     // LOG(DEBUG) << id << " create:: after loop";
-    uint32_t hashes_number = msg_type->get_repeated_field_size(1);
-    uint32_t blocks_number = msg_type->get_repeated_field_size(2);
+    // uint32_t hashes_number = msg_type->get_repeated_field_size(1);
+    // uint32_t blocks_number = msg_type->get_repeated_field_size(2);
     // if (hashes_number != blocks_number) {
     //   // TODO(kari): Handle this situation
     //   LOG(ERROR) << "Sending message that contains different number of hashes and blocks";
@@ -573,8 +505,9 @@ std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
     // }
     msg_to_send->set_message(2, *msg_type);
     msg_to_send->serialize_message(&data);
-    if (data.size() > 512) {
-      LOG(ERROR) << "Create send blocks :: Message size is bigger than 512 -> " << hashes;
+    if (data.size() > MAX_MESSAGE_SIZE) {
+      LOG(ERROR) << "Create send blocks :: Message size is bigger than " << MAX_MESSAGE_SIZE <<
+          " -> " << hashes;
     }
     // LOG(DEBUG) << id << " SENDING " << data.size() << "bytes: " << core::io::string_to_hex(data);
     return data;
@@ -600,8 +533,9 @@ std::string node::create_request_blocks_message(std::vector<std::string> hashes)
     msg_type->set_blob(1, get_top());
     msg_to_send->set_message(1, *msg_type);
     msg_to_send->serialize_message(&data);
-    if (data.size() > 512) {
-      LOG(ERROR) << "Create request blocks :: Message size is bigger than 512 -> " << hashes;
+    if (data.size() > MAX_MESSAGE_SIZE) {
+      LOG(ERROR) << "Create request blocks :: Message size is bigger than " << MAX_MESSAGE_SIZE <<
+          " -> " << hashes;
     }
     return data;
   } catch (std::exception& e) {
@@ -669,6 +603,81 @@ void node::increase_nonce() {
   nonce[current]++;
 }
 
+void node::process(msg* input_message, connection* sender) {
+  CHECK(initialized == true) << "Node is not initialized! Call init() first!";
+  // LOG(DEBUG) << "PROCESS 1";
+  if (!input_message) {
+    // LOG(DEBUG) << "PROCESS NO MESSAGE";
+    return;
+  }
+  std::string msg_type = msg_factory->get_schema_name(input_message->get_schema_id());
+  // LOG(DEBUG) << "PROCESS TYPE " << msg_type;
+  if (msg_type == "blocks_request") {
+    // LOG(DEBUG) << "PROCESS 1: 1";
+    std::vector<std::string> hashes;
+    uint32_t hashes_number = input_message->get_repeated_field_size(2);
+    if (hashes_number > 0) {
+      for (uint32_t i = 0; i < hashes_number; i++) {
+        hashes.push_back(input_message->get_repeated_blob(2, i));
+      }
+    }
+    // LOG(DEBUG) << node_->node_->id << " receiving msg: 3";
+    std::string top_block_hash = input_message->get_blob(1);
+    // LOG(DEBUG) << "TOP :: " << top_block_hash;
+    if (top_block_hash != get_top()) {
+      hashes.push_back(get_top());
+    }
+    if (hashes.size() > 0) {
+    //  LOG(DEBUG) << "SENDING :: " << hashes;
+      sender->async_send(add_header(create_send_blocks_message(hashes)));
+    }
+  } else if (msg_type == "blocks_response") {
+    // LOG(DEBUG) << "PROCESS 2: 1";
+    // LOG(DEBUG) << node_->id << " receiving msg: 1";
+    uint32_t hashes_number = input_message->get_repeated_field_size(1);
+    uint32_t blocks_number = input_message->get_repeated_field_size(2);
+    if (hashes_number != blocks_number) {
+      // TODO(kari): Handle this situation
+      LOG(ERROR) << "Received message contains different number of hashes and blocks";
+      // LOG(DEBUG) << "Blocks:: ";
+      // for (int i = 0; i < blocks_number; ++i) {
+      //   LOG(DEBUG) << "block: " <<
+      //       core::io::string_to_hex(msg_type_response->get_repeated_blob(2, i));
+      // }
+      return;
+    }
+    for (uint32_t i = 0; i < hashes_number; ++i) {
+      // LOG(DEBUG) << node_->id << " receiving msg: loop " << i;
+      std::string hash = input_message->get_repeated_blob(1, i);
+      global_state_mutex.lock();
+      orphan_blocks_mutex.lock();
+      if (global_state->get(hash) == "" &&
+          orphan_blocks.find(hash) == orphan_blocks.end()) {
+        // LOG(DEBUG) << node_->id << " receiving msg: loop " << i << "if";
+        orphan_blocks_mutex.unlock();
+        global_state_mutex.unlock();
+        std::string serialized_block = input_message->get_repeated_blob(2, i);
+        // WHY NO node::msg_factory ???
+        std::unique_ptr<msg> block_msg = msg_factory->new_message_by_name("block");
+        block_msg->deserialize_message(serialized_block);
+        block b = msg_to_block(block_msg.get());
+         // LOG(DEBUG) << "Received block: " << b.to_string();
+        /// validate block
+        if (!hash.compare(hash_block(b)) && !hash.compare(b.hash)) {
+          // LOG(DEBUG) << "Received valid block! Block send to handler!";
+          handle_block(hash, b, serialized_block);
+        } else {
+          LOG(ERROR) << "Block validation failed!";
+        }
+      } else {
+        // LOG(DEBUG) << node_->id << " receiving msg: loop " << i << "else";
+        orphan_blocks_mutex.unlock();
+        global_state_mutex.unlock();
+      }
+    }
+  }
+}
+
 void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
   std::string previous_hash;
   uint32_t current_height;
@@ -677,7 +686,7 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
   std::pair<uint32_t, std::string> res = get_height_and_top();
   current_height = res.first + 1;
   previous_hash = res.second;
-  // // LOG(DEBUG) << id << " mining: 0.1";
+  // LOG(DEBUG) << id << " mining: 0.1";
   for (uint32_t i = 0; i < number_tries; ++i) {
     increase_nonce();
     std::memset(next_block_hash, 255, HASH_SIZE);
@@ -687,11 +696,11 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
     hasher->update(reinterpret_cast<const uint8_t*>(id.c_str()), id.size());
     hasher->update(nonce, HASH_SIZE);
     hasher->final(next_block_hash);
-    // // LOG(DEBUG) << id << " mining loop: " << i << " FOUND " <<
+    // LOG(DEBUG) << id << " mining loop: " << i << " FOUND " <<
     //     core::io::string_to_hex(std::string(reinterpret_cast<char*>(next_block_hash), HASH_SIZE))
     //     << " with NONCE " <<
     //     core::io::string_to_hex(std::string(reinterpret_cast<char*>(nonce), HASH_SIZE));
-    // // LOG(DEBUG) << id << " is mining " << i;
+    // LOG(DEBUG) << id << " is mining " << i;
     if (is_hash_valid(next_block_hash, required_leading_zeros)) {
       std::string new_hash(reinterpret_cast<char*>(next_block_hash), HASH_SIZE);
       global_state_mutex.lock();
@@ -735,5 +744,39 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
   // LOG(DEBUG) << id << " mining: 1";
   delete next_block_hash;
 }
+
+std::string node::add_header(const std::string& message) {
+  CHECK(initialized == true) << "Node is not initialized! Call init() first!";
+  if (message.size() < 1) {
+    return "";
+  }
+  if (message.size() > MAX_MESSAGE_SIZE) {
+    std::stringstream msg;
+    msg << "Message size is too big";
+    LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+    throw std::runtime_error(msg.str());
+  }
+  std::string new_message;
+  std::unique_ptr<msg> header = msg_factory->new_message_by_name("header");
+  /// Setting message size
+  header->set_uint32(1, message.size());
+  header->serialize_message(&new_message);
+  uint32_t header_size = new_message.size();
+  if (header_size < 1) {
+    std::stringstream msg;
+    msg << "Header serialization was not successful!";
+    LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+    throw std::runtime_error(msg.str());
+  }
+  if (header_size > MAX_HEADER_SIZE) {
+    std::stringstream msg;
+    msg << "Header size is too big";
+    LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
+    throw std::runtime_error(msg.str());
+  }
+  new_message.insert(0, 1, header_size);
+  return new_message.append(message);
+}
+
 }  // namespace examples
 }  // namespace automaton

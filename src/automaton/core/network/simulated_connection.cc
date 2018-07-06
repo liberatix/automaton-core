@@ -490,7 +490,8 @@ void simulated_connection::async_read(char* buffer, uint32_t buffer_size,
     read event is created).
   */
   if (num_bytes > buffer_size) {
-    LOG(ERROR) << "ERROR: Buffer size is smaller than needed! Reading aborted!";
+    LOG(ERROR) << "ERROR: Buffer size " << buffer_size << " is smaller than needed (" <<
+        num_bytes << ")! Reading aborted!";
     return;
   }
   // logging("Setting buffers in connection: " + get_address());

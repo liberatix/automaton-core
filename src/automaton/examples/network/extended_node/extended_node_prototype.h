@@ -108,9 +108,11 @@ class node {
 
   uint32_t get_height();
 
-  // void process(msg* input_message, msg* output_message);
+  void process(core::data::msg* input_message, automaton::core::network::connection* c);
 
   void mine(uint32_t number_tries, uint32_t required_leading_zeros);
+
+  std::string add_header(const std::string& message);
 
  private:
   std::string first_block_hash;
