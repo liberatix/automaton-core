@@ -16,7 +16,7 @@
 #include "socket.hpp"
 #include "loop.hpp"
 #include <algorithm>
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 namespace zmqpp
 {

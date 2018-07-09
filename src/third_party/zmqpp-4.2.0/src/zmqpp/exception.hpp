@@ -20,7 +20,7 @@
 #include <stdexcept>
 #include <string>
 
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 #include "compatibility.hpp"
 

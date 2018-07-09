@@ -19,7 +19,7 @@
 
 #include <cassert>
 
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 #include "compatibility.hpp"
 #include "exception.hpp"

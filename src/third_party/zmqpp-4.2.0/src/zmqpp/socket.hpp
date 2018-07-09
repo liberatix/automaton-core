@@ -21,7 +21,7 @@
 #include <string>
 #include <list>
 
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 #include "compatibility.hpp"
 

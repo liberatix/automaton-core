@@ -17,6 +17,7 @@
 #ifndef ZMQPP_ZAP_REQUEST_HPP_
 #define ZMQPP_ZAP_REQUEST_HPP_
 
+#include <iterator>
 #include <string>
 #include "socket.hpp"
 #include <unordered_map>

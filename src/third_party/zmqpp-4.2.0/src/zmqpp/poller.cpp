@@ -16,7 +16,7 @@
 #include "socket.hpp"
 #include "poller.hpp"
 
-#include <zmq.h>
+#include "external/zmqpp/zmq.h"
 
 namespace zmqpp
 {
