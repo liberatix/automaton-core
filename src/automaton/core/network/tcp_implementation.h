@@ -113,6 +113,8 @@ class tcp_connection: public connection {
   std::string address;
   std::mutex connection_mutex;
   mutable std::mutex state_mutex;
+
+  void set_state(connection::state new_state);
 };
 
 class tcp_acceptor:public acceptor {
@@ -152,7 +154,10 @@ class tcp_acceptor:public acceptor {
   boost::asio::ip::tcp::acceptor asio_acceptor;
   connection::connection_handler* accepted_connections_handler;
   acceptor::state acceptor_state;
+  mutable std::mutex state_mutex;
   std::string address;
+
+  void set_state(acceptor::state new_state);
 };
 
 /**
