@@ -400,7 +400,9 @@ simulated_connection::simulated_connection(const std::string& address_,
   }
 }
 
-bool simulated_connection::init() {return false;}
+bool simulated_connection::init() {
+  return true;
+}
 
 void simulated_connection::async_send(const std::string& message, uint32_t id = 0) {
   if (message.size() < 1) {
@@ -632,7 +634,9 @@ simulated_acceptor::simulated_acceptor(const std::string& address_,
   }
 }
 
-bool simulated_acceptor::init() {return false;}
+bool simulated_acceptor::init() {
+  return true;
+}
 
 bool simulated_acceptor::parse_address(const std::string& address_) {
   std::regex rgx_sim("(\\d+):(\\d+):(\\d+)");

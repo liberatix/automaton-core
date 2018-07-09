@@ -249,6 +249,12 @@ bool node::add_peer(const std::string& id, const std::string& connection_type,
   connection* new_connection;
   try {
     new_connection = connection::create(connection_type, address, this);
+    if (new_connection && !new_connection->init()) {
+      LOG(DEBUG) << "Connection initialization failed! Connection was not created!";
+      delete new_connection;
+      peers[id] = nullptr;
+      return false;
+    }
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
     peers[id] = nullptr;
@@ -306,6 +312,12 @@ bool node::add_acceptor(const std::string& id, const std::string& connection_typ
   acceptor* new_acceptor;
   try {
     new_acceptor = acceptor::create(connection_type, address, this, this);
+    if (new_acceptor && !new_acceptor->init()) {
+      LOG(DEBUG) << "Acceptor initialization failed! Acceptor was not created!";
+      delete new_acceptor;
+      acceptors[id] = nullptr;
+      return false;
+    }
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
     acceptors[id] = nullptr;
@@ -448,7 +460,7 @@ void node::check_orphans(const std::string& hash) {
   std::string current_hash = hash;
   do {
     erased = false;
-    for (auto it = orphan_blocks.begin(); it != orphan_blocks.end() && !erased; ++it) {
+    for (auto it = orphan_blocks.begin(); it != orphan_blocks.end(); ++it) {
       std::string new_hash = it->first;
       block b = it->second;
       if (b.prev_hash == current_hash) {
@@ -468,12 +480,13 @@ void node::check_orphans(const std::string& hash) {
         block_msg->serialize_message(&serialized_new_block);
         global_state->set(new_hash, serialized_new_block);
         orphan_blocks.erase(it);
-        erased = true;
         if (b.prev_hash == chain_top || b.height > height) {
           chain_top = new_hash;
           height = b.height;
         }
         current_hash = new_hash;
+        erased = true;
+        break;
       }
     }
   } while (erased && orphan_blocks.size() > 0);

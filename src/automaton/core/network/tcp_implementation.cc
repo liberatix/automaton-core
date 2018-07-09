@@ -42,22 +42,16 @@ static bool tcp_initialized = false;
 
 tcp_connection::tcp_connection(const std::string& address_, connection_handler*
     handler_):connection(handler_), asio_socket{asio_io_service},
-    connection_state(connection::state::disconnected) {
-  address = address_;
-  boost::system::error_code boost_error_code;
-  boost::asio::ip::tcp::resolver resolver{asio_io_service};
-  std::string ip, port;
-  parse_address(address_, &ip, &port);
-  boost::asio::ip::tcp::resolver::query q{ip, port};
-  asio_endpoint = *resolver.resolve(q, boost_error_code);
-  if (boost_error_code) {
-    LOG(ERROR) << address << " -> " <<  boost_error_code.message();
-    handler_->on_error(this, connection::error::invalid_address);
-  } else {
-    // LOG(INFO) << "Successfully resolved address, no connection was made yet";
+    connection_state(connection::state::invalid_state), address(address_) {
+  if (!tcp_initialized) {
+    std::stringstream msg;
+    msg << "TCP is not initialized! Call tcp_init() first!";
+    LOG(ERROR) << address << " -> " <<  msg.str() << '\n' << el::base::debug::StackTrace();
+    throw std::runtime_error(msg.str());
   }
 }
 
+/// This is called only from acceptor
 tcp_connection::tcp_connection(const std::string& addr, const boost::asio::ip::tcp::socket& sock,
     connection_handler* handler_):connection(handler_),
     asio_socket(std::move(const_cast<boost::asio::ip::tcp::socket&>(sock))),
@@ -68,7 +62,32 @@ tcp_connection::~tcp_connection() {
   disconnect();
 }
 
-bool tcp_connection::init() {return false;}
+bool tcp_connection::init() {
+  if (tcp_initialized) {
+    try {
+      boost::system::error_code boost_error_code;
+      boost::asio::ip::tcp::resolver resolver{asio_io_service};
+      std::string ip, port;
+      parse_address(address, &ip, &port);
+      boost::asio::ip::tcp::resolver::query q{ip, port};
+      asio_endpoint = *resolver.resolve(q, boost_error_code);
+      if (boost_error_code) {
+        LOG(ERROR) << address << " -> " <<  boost_error_code.message();
+        return false;
+      } else {
+        state_mutex.lock();
+        connection_state = connection::state::disconnected;
+        state_mutex.unlock();
+        return true;
+      }
+    } catch (...) {
+      return false;
+    }
+  } else {
+    LOG(ERROR) << address << " -> " <<  "Not initialized! tcp_init() must be called first";
+    return false;
+  }
+}
 
 void tcp_connection::connect() {
   if (tcp_initialized) {
@@ -143,7 +162,7 @@ void tcp_connection::async_send(const std::string& msg, uint32_t id) {
 void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
     uint32_t num_bytes, uint32_t id) {
   if (tcp_initialized && asio_socket.is_open()) {
-    if (num_bytes <= 0) {
+    if (num_bytes == 0) {
       asio_socket.async_read_some(boost::asio::buffer(buffer, buffer_size),
           [this, buffer, id](const boost::system::error_code& boost_error_code,
           size_t bytes_transferred) {
@@ -241,32 +260,12 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
     handler_, connection::connection_handler* connections_handler_):
     acceptor(handler_), asio_acceptor{asio_io_service},
     accepted_connections_handler(connections_handler_),
-    acceptor_state(acceptor::state::not_accepting), address(address) {
+    acceptor_state(acceptor::state::invalid_state), address(address) {
   if (!tcp_initialized) {
     std::stringstream msg;
     msg << "TCP is not initialized! Call tcp_init() first!";
     LOG(ERROR) << address << " -> " <<  msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::runtime_error(msg.str());
-  }
-  boost::asio::ip::tcp::resolver resolver{asio_io_service};
-  boost::system::error_code boost_error_code;
-  std::string ip, port;
-  parse_address(address, &ip, &port);
-  boost::asio::ip::tcp::resolver::query q{ip, port};
-  boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(q, boost_error_code);
-  if (boost_error_code) {
-    LOG(ERROR) << address << " -> " <<  boost_error_code.message();
-    handler->on_error(this, connection::error::invalid_address);
-  } else {
-    boost::system::error_code ecc;
-    asio_acceptor.open(((boost::asio::ip::tcp::endpoint)*it).protocol());
-    asio_acceptor.bind(*it, ecc);
-    if (ecc) {
-      handler->on_error(this, connection::error::unknown);
-      LOG(ERROR) << address << " -> " <<  ecc.message();
-    } else {
-      asio_acceptor.listen();
-    }
   }
 }
 
@@ -274,7 +273,34 @@ tcp_acceptor::~tcp_acceptor() {
   asio_acceptor.close();
 }
 
-bool tcp_acceptor::init() {return false;}
+bool tcp_acceptor::init() {
+  if (tcp_initialized) {
+    boost::asio::ip::tcp::resolver resolver{asio_io_service};
+    boost::system::error_code boost_error_code;
+    std::string ip, port;
+    parse_address(address, &ip, &port);
+    boost::asio::ip::tcp::resolver::query q{ip, port};
+    boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(q, boost_error_code);
+    if (boost_error_code) {
+      LOG(ERROR) << address << " -> " <<  boost_error_code.message();
+      return false;
+    } else {
+      boost::system::error_code ecc;
+      asio_acceptor.open(((boost::asio::ip::tcp::endpoint)*it).protocol());
+      asio_acceptor.bind(*it, ecc);
+      if (ecc) {
+        LOG(ERROR) << address << " -> " <<  ecc.message();
+        return false;
+      } else {
+        asio_acceptor.listen();
+        return true;
+      }
+    }
+  } else {
+    LOG(ERROR) << address << " -> " <<  "Not initialized! tcp_init() must be called first";
+    return false;
+  }
+}
 
 void tcp_acceptor::start_accepting() {
   if (tcp_initialized && asio_acceptor.is_open()) {
@@ -337,8 +363,7 @@ void tcp_init() {
     return reinterpret_cast<connection*>(new tcp_connection(address, handler));
   });
   acceptor::register_acceptor_type("tcp", [](const std::string& address,
-      acceptor::acceptor_handler* handler_, connection::connection_handler*
-      connections_handler_) {
+      acceptor::acceptor_handler* handler_, connection::connection_handler* connections_handler_) {
     return reinterpret_cast<acceptor*>(new tcp_acceptor(address, handler_,
       connections_handler_));
   });
