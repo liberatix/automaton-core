@@ -16,10 +16,10 @@ using automaton::examples::node;
 
 /// Constants
 
-static const uint32_t NUMBER_NODES = 100;
-static const uint32_t NEW_NODES = 5;
+static const uint32_t NUMBER_NODES = 1000;
+static const uint32_t NEW_NODES = 25;
 // These include only the peers that a node connects to, not the accepted ones
-static const uint32_t NUMBER_PEERS_IN_NODE = 2;
+static const uint32_t NUMBER_PEERS_IN_NODE = 4;
 static const uint32_t MIN_LAG = 10;
 static const uint32_t MAX_LAG = 100;
 static const uint32_t MIN_CONNECTIONS = 0;
@@ -27,7 +27,7 @@ static const uint32_t MAX_CONNECTIONS = 1;
 static const uint32_t MIN_BANDWIDTH = 512;
 static const uint32_t MAX_BANDWIDTH = 512;
 static const uint32_t LOOP_STEP = 100;
-static const uint32_t SIMULATION_TIME = 1000;
+static const uint32_t SIMULATION_TIME = 10000;
 
 const uint32_t MINER_PRECISION_BITS = 17;
 

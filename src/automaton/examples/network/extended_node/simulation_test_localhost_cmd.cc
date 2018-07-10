@@ -117,7 +117,7 @@ int main(int argc, const char * argv[]) {
       nodes[i]->add_acceptor(address, "tcp", address);
     }
     /// Sleeping this executable  for 30 sec untill all other their open acceptors
-    std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     LOG(INFO) << "Creating connections...";
     for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
       for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
