@@ -41,7 +41,21 @@ class node: public core::network::connection::connection_handler,
         std::string nonce);
   };
 
-  node();
+  struct node_params {
+    std::string connection_type;  // "tcp" or "sim"
+    uint32_t acceptors_count;
+    uint32_t connected_peers_count;
+    /// Instead of peer list
+    uint32_t min_port_number;
+    uint32_t max_port_number;
+  };
+
+  struct peer_stats {
+    std::string id;
+    /// other data
+  };
+
+  explicit node(node_params params);
 
   ~node();
 
@@ -83,11 +97,19 @@ class node: public core::network::connection::connection_handler,
 
   void process(core::data::msg* input_message, automaton::core::network::connection* c = nullptr);
 
+  /**
+    Mine and update should be called from new threads. For now are called from a thread in the
+    simulation until every node starts its own threads.
+  */
+
   void mine(uint32_t number_tries, uint32_t required_leading_zeros);
+
+  void update();
 
   std::string add_header(const std::string& message);
 
  private:
+  node_params params;
   std::string first_block_hash;
   std::string chain_top;
   uint32_t height;
