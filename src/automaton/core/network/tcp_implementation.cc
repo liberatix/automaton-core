@@ -206,19 +206,15 @@ void tcp_connection::disconnect() {
   set_state(connection::state::disconnected);
   connection_mutex.lock();
   if (asio_socket.is_open()) {
-    try {
-      boost::system::error_code boost_error_code_shut;
-      asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
-      if (boost_error_code_shut) {
-        // LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
-      }
-      boost::system::error_code boost_error_code_close;
-      asio_socket.close(boost_error_code_close);
-      if (boost_error_code_close) {
-        // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
-      }
-    } catch (...) {
-      //
+    boost::system::error_code boost_error_code_shut;
+    asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
+    if (boost_error_code_shut) {
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
+    }
+    boost::system::error_code boost_error_code_close;
+    asio_socket.close(boost_error_code_close);
+    if (boost_error_code_close) {
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
     connection_mutex.unlock();
     handler->on_disconnected(this);
