@@ -1,0 +1,154 @@
+graph G {
+  bgcolor=white
+  fontcolor=black
+  labelloc=t
+  fontname=Arial
+  fontsiZe=16
+
+  subgraph cluster_0bit {
+    label="Hypercube Zones 0 bits"
+    node[
+      shape="box"
+      style="rounded,filled"
+      fillcolor="#ffffff:#e0ffff"
+      margin=0.1
+      fontname=Helvetica fontsiZe=12 fontcolor=black
+      penwidth=1
+      width=0.5
+      height=0.3
+    ]
+
+    master[label = "MASTER"]
+  }
+
+  subgraph cluster_1bit {
+    label="Hypercube Zones 1 bits"
+    node[
+      shape="box"
+      style="rounded,filled"
+      fillcolor="#ffffff:#e0ffff"
+      margin=0.1
+      fontname=Helvetica fontsiZe=12 fontcolor=black
+      penwidth=1
+      width=0.5
+      height=0.3
+    ]
+
+    Z0[label = "MASTER\nZ0"]
+
+    Z0 -- Z1
+  }
+
+  subgraph cluster_2bit {
+    label="Hypercube Zones 2 bits"
+    node[
+      shape="box"
+      style="rounded,filled"
+      fillcolor="#ffffff:#e0ffff"
+      margin=0.1
+      fontname=Helvetica fontsiZe=12 fontcolor=black
+      penwidth=1
+      width=0.5
+      height=0.3
+    ]
+
+    Z00[label = "MASTER\nZ00"]
+
+    Z00 -- Z01
+    Z00 -- Z10
+    
+    Z01 -- Z11
+    Z10 -- Z11
+  }
+
+  subgraph cluster_3bit {
+    label="Hypercube Zones 3 bits"
+    node[
+      shape="box"
+      style="rounded,filled"
+      fillcolor="#ffffff:#e0ffff"
+      margin=0.1
+      fontname=Helvetica fontsiZe=12 fontcolor=black
+      penwidth=1
+      width=0.5
+      height=0.3
+    ]
+
+    Z000[label = "MASTER\nZ0"]
+
+    Z000 -- Z001
+    Z000 -- Z010
+    Z000 -- Z100
+
+    Z001 -- Z011
+    Z001 -- Z101
+    Z010 -- Z011
+    Z010 -- Z110
+    Z100 -- Z101
+    Z100 -- Z110
+
+    Z011 -- Z111
+    Z110 -- Z111
+    Z101 -- Z111
+  }
+
+  subgraph cluster_4bit {
+    label="Hypercube Zones 4 bits"
+    node[
+      shape="box"
+      style="rounded,filled"
+      fillcolor="#ffffff:#e0ffff"
+      margin=0.1
+      fontname=Helvetica fontsiZe=12 fontcolor=black
+      penwidth=1
+      width=0.5
+      height=0.3
+    ]
+
+    Z0000[label = "MASTER\nZ0000"]
+    
+    Z0000 -- Z0001
+    Z0000 -- Z0010
+    Z0000 -- Z0100
+    Z0000 -- Z1000
+
+    Z0001 -- Z0011
+    Z0001 -- Z0101
+    Z0001 -- Z1001
+
+    Z0010 -- Z0011
+    Z0010 -- Z0110
+    Z0010 -- Z1010
+
+    Z0100 -- Z0101
+    Z0100 -- Z0110
+    Z0100 -- Z1100
+
+    Z1000 -- Z1001
+    Z1000 -- Z1010
+    Z1000 -- Z1100
+
+    Z0011 -- Z0111
+    Z0011 -- Z1011
+
+    Z0101 -- Z0111
+    Z0101 -- Z1101
+
+    Z1010 -- Z1110
+    Z1010 -- Z1011
+
+    Z0110 -- Z0111
+    Z0110 -- Z1110
+    
+    Z1001 -- Z1011
+    Z1001 -- Z1101
+
+    Z1100 -- Z1101
+    Z1100 -- Z1110
+
+    Z1110 -- Z1111
+    Z1101 -- Z1111
+    Z1011 -- Z1111
+    Z0111 -- Z1111
+  }
+}

@@ -1,0 +1,41 @@
+graph G {
+  bgcolor=white
+  fontcolor=black
+  labelloc=t
+  fontname=Arial
+  fontsize=12
+
+  label="Zone Splitting & Validators"
+  node[
+    shape="box"
+    style="rounded,filled"
+    fillcolor="#ffffff:#e0ffff"
+    margin=0.05
+    fontname=Helvetica fontsiZe=12 fontcolor=black
+    fontsize=7
+    penwidth=0.2
+    edgewidth=3
+    width=0.1
+    height=0.1
+  ]
+
+  // L0
+  master[label = "MASTER"]
+  
+  master -- 0
+  master -- 1
+  master -- 2
+  master -- 3
+  master -- 4
+  master -- 5
+  master -- 6
+  master -- 7
+  master -- 8
+  master -- 9
+  master -- A
+  master -- B
+  master -- C
+  master -- D
+  master -- E
+  master -- F
+}

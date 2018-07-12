@@ -1,0 +1,66 @@
+graph G {
+  bgcolor=white
+  fontcolor=black
+  labelloc=t
+  fontname=Arial
+  fontsize=12
+
+  label="Hypercube Zones 4 bits"
+  node[
+    shape="box"
+    style="rounded,filled"
+    fillcolor="#ffffff:#e0ffff"
+    margin=0.1
+    fontname=Helvetica fontsiZe=12 fontcolor=black
+    penwidth=1
+    width=0.5
+    height=0.3
+    fontsize=7
+  ]
+
+  Z0000[label = "MASTER\nZ0000"]
+  
+  Z0000 -- Z0001
+  Z0000 -- Z0010
+  Z0000 -- Z0100
+  Z0000 -- Z1000
+
+  Z0001 -- Z0011
+  Z0001 -- Z0101
+  Z0001 -- Z1001
+
+  Z0010 -- Z0011
+  Z0010 -- Z0110
+  Z0010 -- Z1010
+
+  Z0100 -- Z0101
+  Z0100 -- Z0110
+  Z0100 -- Z1100
+
+  Z1000 -- Z1001
+  Z1000 -- Z1010
+  Z1000 -- Z1100
+
+  Z0011 -- Z0111
+  Z0011 -- Z1011
+
+  Z0101 -- Z0111
+  Z0101 -- Z1101
+
+  Z1010 -- Z1110
+  Z1010 -- Z1011
+
+  Z0110 -- Z0111
+  Z0110 -- Z1110
+  
+  Z1001 -- Z1011
+  Z1001 -- Z1101
+
+  Z1100 -- Z1101
+  Z1100 -- Z1110
+
+  Z1110 -- Z1111
+  Z1101 -- Z1111
+  Z1011 -- Z1111
+  Z0111 -- Z1111
+}

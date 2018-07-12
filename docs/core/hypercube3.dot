@@ -1,0 +1,36 @@
+graph G {
+  bgcolor=white
+  fontcolor=black
+  labelloc=t
+  fontname=Arial
+  fontsiZe=16
+
+  label="Hypercube Zones 3 bits"
+  node[
+    shape="box"
+    style="rounded,filled"
+    fillcolor="#ffffff:#e0ffff"
+    margin=0.1
+    fontname=Helvetica fontsiZe=12 fontcolor=black
+    penwidth=1
+    width=0.5
+    height=0.3
+  ]
+
+  Z000[label = "MASTER\nZ0"]
+
+  Z000 -- Z001
+  Z000 -- Z010
+  Z000 -- Z100
+
+  Z001 -- Z011
+  Z001 -- Z101
+  Z010 -- Z011
+  Z010 -- Z110
+  Z100 -- Z101
+  Z100 -- Z110
+
+  Z011 -- Z111
+  Z110 -- Z111
+  Z101 -- Z111
+}
