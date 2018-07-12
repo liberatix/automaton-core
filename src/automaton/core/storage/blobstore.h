@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_STORAGE_BLOBSTORE_H__
 
 #include <string>
+#include <boost/iostreams/device/mapped_file.hpp>
 
 namespace automaton {
 namespace core {
@@ -14,7 +15,7 @@ namespace storage {
 */
 class blobstore {
  public:
-  explicit blobstore(std::string file_path);
+  blobstore();
   ~blobstore();
 
   /**
@@ -43,9 +44,15 @@ class blobstore {
     @param[in]  id        The ID returned by create_blob
   */
   bool free(const uint32_t id);
+  /**
+    TODO(Samir): document
+  */
+  bool map_file(std::string path);
 
  private:
   uint32_t* storage;
+  boost::iostreams::mapped_file mmf;
+
   std::string file_path;
   uint64_t next_free;
   // capacity of storage in 4byte chunks (size in bytes/4)

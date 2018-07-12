@@ -11,4 +11,9 @@ cc_library(
     hdrs = [
       "blobstore.h",
     ],
+    deps = select({
+      "//conditions:windows": ["@localboost//:iostreams"],
+      "//conditions:default": ["@boost//:iostreams"],
+    }),
+    defines = ["BOOST_ALL_NO_LIB"],
 )
