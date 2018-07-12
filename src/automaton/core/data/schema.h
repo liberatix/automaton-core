@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+#include "automaton/core/common/obj.h"
+
 namespace automaton {
 namespace core {
 namespace data {
@@ -23,7 +25,7 @@ namespace data {
 
 */
 
-class schema {
+class schema : public common::obj {
  public:
   /**
    Allowed data types.
@@ -63,6 +65,11 @@ class schema {
   typedef schema* (*factory_function_schema_def)();
   static void register_factory(std::string name, factory_function_schema_def func);
   static schema* create(const std::string name);
+
+  /**
+    Handles process requests from script and routing to corresponding method.
+  */
+  common::status process(const obj& request, obj* response);
 
   /**
     Serializes schema to JSON string.

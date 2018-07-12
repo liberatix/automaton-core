@@ -1,6 +1,8 @@
 #ifndef AUTOMATON_CORE_CRYPTO_ED25519_ORLP_MODULE_H_
 #define AUTOMATON_CORE_CRYPTO_ED25519_ORLP_MODULE_H_
 
+#include <memory>
+
 #include "automaton/core/crypto/ed25519_orlp/ed25519_orlp.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/data/schema.h"
@@ -20,8 +22,8 @@ class module: public script::module {
 
   data::schema* schema() const;
 
-  static common::obj* create_ed25519_orlp(const data::msg& m) {
-    return new ed25519_orlp();
+  static std::unique_ptr<common::obj> create_ed25519_orlp(const data::msg& m) {
+    return std::unique_ptr<common::obj>(new ed25519_orlp());
   }
 
  private:

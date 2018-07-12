@@ -31,6 +31,10 @@ schema* schema::create(std::string name) {
   }
 }
 
+common::status schema::process(const obj& request, obj* response) {
+  return common::status(common::status::OK);
+}
+
 }  // namespace data
 }  // namespace core
 }  // namespace automaton

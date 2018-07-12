@@ -6,7 +6,6 @@
 using automaton::core::crypto::hash_transformation;
 
 namespace automaton {
-namespace core {
 namespace examples {
 
 void basic_hash_miner::next_nonce() {
@@ -73,5 +72,4 @@ uint8_t* basic_hash_miner::mine(const uint8_t* block_hash,
 }
 
 }  // namespace examples
-}  // namespace core
 }  // namespace automaton

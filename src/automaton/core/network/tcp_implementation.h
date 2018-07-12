@@ -1,10 +1,12 @@
 #ifndef AUTOMATON_CORE_NETWORK_TCP_IMPLEMENTATION_H_
 #define AUTOMATON_CORE_NETWORK_TCP_IMPLEMENTATION_H_
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include <utility>
 #include <memory>
+#include <mutex>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
@@ -62,6 +64,8 @@ class tcp_connection: public connection {
   */
   ~tcp_connection();
 
+  bool init();
+
   /**
     This function is used in the constructor. It is used to start async_connect with
     the peer. It can be used outside the constructor if the connection didn't happen
@@ -105,7 +109,12 @@ class tcp_connection: public connection {
  private:
   boost::asio::ip::tcp::endpoint asio_endpoint;
   boost::asio::ip::tcp::socket asio_socket;
+  connection::state connection_state;
   std::string address;
+  std::mutex connection_mutex;
+  mutable std::mutex state_mutex;
+
+  void set_state(connection::state new_state);
 };
 
 class tcp_acceptor:public acceptor {
@@ -123,6 +132,8 @@ class tcp_acceptor:public acceptor {
   */
   ~tcp_acceptor();
 
+  bool init();
+
   /**
     This function is called from the constructor to start asynchronous
     accepting. When a remote peer request to make a connection, handler's
@@ -135,9 +146,18 @@ class tcp_acceptor:public acceptor {
   */
   void start_accepting();
 
+  std::string get_address() const;
+
+  acceptor::state get_state() const;
+
  private:
   boost::asio::ip::tcp::acceptor asio_acceptor;
   connection::connection_handler* accepted_connections_handler;
+  acceptor::state acceptor_state;
+  mutable std::mutex state_mutex;
+  std::string address;
+
+  void set_state(acceptor::state new_state);
 };
 
 /**
@@ -145,6 +165,8 @@ class tcp_acceptor:public acceptor {
   and io_service.run() called in it.
 */
 void tcp_init();
+
+void tcp_release();
 
 void parse_address(const std::string&, std::string* result_addr, std::string*
     result_port);

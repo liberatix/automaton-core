@@ -15,6 +15,10 @@ cc_library(
     "data_exception.h",
     "msg.h",
   ],
+  deps = [
+    "//automaton/core/common",
+  ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -27,4 +31,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

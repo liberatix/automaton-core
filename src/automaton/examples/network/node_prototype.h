@@ -28,9 +28,11 @@ class node {
    public:
     node* node_;
     explicit lis_handler(node* n);
-    bool on_requested(const std::string& address);
-    void on_connected(automaton::core::network::connection* c, const std::string& address);
-    void on_error(automaton::core::network::connection::error e);
+    bool on_requested(automaton::core::network::acceptor* a, const std::string& address);
+    void on_connected(automaton::core::network::acceptor* a,
+        automaton::core::network::connection* c, const std::string& address);
+    void on_error(automaton::core::network::acceptor* a,
+        automaton::core::network::connection::error e);
   };
   node();
   ~node();

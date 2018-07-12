@@ -10,6 +10,7 @@ cc_library(
   hdrs = [
     "obj.h",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -22,4 +23,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

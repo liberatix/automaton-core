@@ -21,8 +21,8 @@ void secure_random::register_factory(std::string name,
   secure_random_factory[name] = func;
 }
 
-common::status secure_random::process(const obj& request, obj** response) {
-  return common::status(common::OK);
+common::status secure_random::process(const obj& request, obj* response) {
+  return common::status(common::status::OK);
 }
 
 }  // namespace crypto

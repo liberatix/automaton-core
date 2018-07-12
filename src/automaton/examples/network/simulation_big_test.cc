@@ -148,17 +148,17 @@ class lis_handler: public acceptor::acceptor_handler {
  public:
   node* node_;
   explicit lis_handler(node* n):node_(n) {}
-  bool on_requested(const std::string& address) {
+  bool on_requested(acceptor* a, const std::string& address) {
     // EXPECT_EQ(address, address_a);
     // logging("Connection request from: " + address + ". Accepting...");
     return true;
   }
-  void on_connected(connection* c, const std::string& address) {
+  void on_connected(acceptor* a, connection* c, const std::string& address) {
     // logging("Accepted connection from: " + address);
     c->async_read(add_buffer(16), 16, 0, 0);
     node_->peers.push_back(c);
   }
-  void on_error(connection::error e) {
+  void on_error(acceptor* a, connection::error e) {
     LOG(ERROR) << std::to_string(e);
   }
 };

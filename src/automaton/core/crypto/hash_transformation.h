@@ -29,7 +29,7 @@ class hash_transformation : public common::obj {
   /**
     Handles process requests from script and routing to corresponding method.
   */
-  common::status process(const obj& request, obj** response);
+  common::status process(const obj& request, obj* response);
 
   // Updates the hash with additional input and computes the hash of the current
   // message.
