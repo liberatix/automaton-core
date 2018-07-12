@@ -17,7 +17,7 @@ using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::examples::node;
 
-/// Constants
+// Constants
 
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 2;
@@ -28,7 +28,7 @@ static const uint32_t NEW_NODES = 48;
 
 static const char* LOCALHOST = "127.0.0.1:";
 
-/// Global variables
+// Global variables
 
 static uint32_t MIN_PORT = 0;
 static uint32_t MAX_PORT = 0;
@@ -36,13 +36,14 @@ static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
 static uint32_t NUMBER_NODES = 0;
 
-/// height -> how many connections have that height
+// height -> how many connections have that height
 static std::map<std::string, uint32_t> hashes;
 static std::map<std::string, uint32_t> heights;
 static std::vector<node*> nodes;
 std::mutex nodes_mutex;
 bool simulation_end = false;
 std::thread miner;
+std::thread updater;
 
 std::string to_hex_string(uint8_t *data, uint32_t len) {
   const char hexmap[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -56,7 +57,7 @@ std::string to_hex_string(uint8_t *data, uint32_t len) {
   return s;
 }
 
-/// Function that collects and prints test results
+// Function that collects and prints test results
 void collect_stats() {
   hashes.clear();
   heights.clear();
@@ -74,6 +75,26 @@ void collect_stats() {
   }
   LOG(INFO) << "=================";
   nodes_mutex.unlock();
+}
+
+void update_thread_function() {
+  try {
+    while (!simulation_end) {
+      nodes_mutex.lock();
+      uint32_t n_number = nodes.size();
+      nodes_mutex.unlock();
+      for (uint32_t i = 0; i < n_number && !simulation_end; ++i) {
+        nodes_mutex.lock();
+        node* n = nodes[i];
+        nodes_mutex.unlock();
+        n->update();
+      }
+    }
+  } catch (std::exception& e) {
+    LOG(ERROR) << "EXCEPTION " + std::string(e.what());
+  } catch(...) {
+    LOG(ERROR) << "UNKOWN EXCEPTION!";
+  }
 }
 
 void miner_thread_function() {
@@ -108,34 +129,25 @@ int main(int argc, const char * argv[]) {
     MY_MAX_PORT = std::stoi(argv[4]);
     NUMBER_NODES = MY_MAX_PORT - MY_MIN_PORT + 1;
     automaton::core::network::tcp_init();
+    node::node_params params;
+    params.acceptors_count = 1;
+    params.connected_peers_count = NUMBER_PEERS_IN_NODE;
+    params.min_port_number = MIN_PORT;
+    params.max_port_number = MAX_PORT;
     LOG(INFO) << "Creating acceptors...";
     for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
       std::string address = LOCALHOST + std::to_string(MY_MIN_PORT + i);
-      nodes.push_back(new node());
+      nodes.push_back(new node(params));
       nodes[i]->init();
-      nodes[i]->id = address;
-      nodes[i]->add_acceptor(address, "tcp", address);
-    }
-    /// Sleeping this executable  for 30 sec untill all other their open acceptors
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    LOG(INFO) << "Creating connections...";
-    for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-      for (uint32_t j = 0; j < NUMBER_PEERS_IN_NODE; ++j) {
-        std::string address;
-        uint32_t port;
-        do {
-          port = MIN_PORT + std::rand() % (MAX_PORT - MIN_PORT);
-        } while (port >= MY_MIN_PORT && port <= MY_MAX_PORT);
-        address = LOCALHOST + std::to_string(port);
-        nodes[i]->add_peer(address, "tcp", address);
-      }
+      nodes[i]->add_acceptor("tcp", address);
     }
     LOG(INFO) << "Starting simulation...";
+    updater = std::thread(update_thread_function);
     miner = std::thread(miner_thread_function);
     // ==============================================
-    for (uint32_t i = 0; i < SIMULATION_TIME / 3; i += LOOP_STEP) {
-      LOG(INFO) << "PROCESSING: " + std::to_string(i);
-      collect_stats();
+    for (uint32_t i = 0; i < SIMULATION_TIME; i += LOOP_STEP) {
+      // LOG(INFO) << "PROCESSING: " + std::to_string(i);
+      // collect_stats();
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
     }
   } catch (std::exception& e) {
@@ -145,7 +157,9 @@ int main(int argc, const char * argv[]) {
   }
   simulation_end = true;
   miner.join();
+  updater.join();
   collect_stats();
+  automaton::core::network::tcp_release();
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     delete nodes[i];
   }

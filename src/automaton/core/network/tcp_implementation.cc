@@ -75,9 +75,7 @@ bool tcp_connection::init() {
         LOG(ERROR) << address << " -> " <<  boost_error_code.message();
         return false;
       } else {
-        state_mutex.lock();
-        connection_state = connection::state::disconnected;
-        state_mutex.unlock();
+        set_state(connection::state::disconnected);
         return true;
       }
     } catch (...) {
@@ -93,15 +91,11 @@ void tcp_connection::connect() {
   if (tcp_initialized) {
     std::lock_guard<std::mutex> lock(connection_mutex);
     if (get_state() == connection::state::disconnected) {
-      state_mutex.lock();
-      connection_state = connection::state::connecting;
-      state_mutex.unlock();
+      set_state(connection::state::connecting);
       asio_socket.async_connect(asio_endpoint,
           [this](const boost::system::error_code& boost_error_code) {
             if (boost_error_code) {
-              state_mutex.lock();
-              connection_state = connection::state::disconnected;
-              state_mutex.unlock();
+              set_state(connection::state::disconnected);
               LOG(ERROR) << address << " -> " <<  boost_error_code.message();
               if (boost_error_code == boost::asio::error::connection_refused) {
                 handler->on_error(this, connection::error::connection_refused);
@@ -110,9 +104,7 @@ void tcp_connection::connect() {
               }
               disconnect();
             } else {
-              state_mutex.lock();
-              connection_state = connection::state::connected;
-              state_mutex.unlock();
+              set_state(connection::state::connected);
               handler->on_connected(this);
             }
       });
@@ -149,12 +141,10 @@ void tcp_connection::async_send(const std::string& msg, uint32_t id) {
     });
   } else if (!tcp_initialized) {
     LOG(ERROR) << address << " -> " <<  "Not initialized";
-    // handler->on_error(this, connection::error::unknown);
     handler->on_message_sent(this, id, connection::error::unknown);
     // TODO(kari): what to do here? needs to be connected
   } else {
     LOG(ERROR) << address << " -> " <<  "Socket closed or not yet connected";
-    // handler->on_error(this, connecon_errortion::error::closed_by_peer);
     handler->on_message_sent(this, id, connection::error::closed_by_peer);
   }
 }
@@ -169,7 +159,6 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
             disconnect();
-            // handler->on_disconnected(this);
             return;
           } else if (boost_error_code == boost::asio::error::operation_aborted) {
             return;
@@ -190,7 +179,6 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
             disconnect();
-            // handler->on_disconnected(this);
             return;
           } else if (boost_error_code == boost::asio::error::operation_aborted) {
             return;
@@ -215,25 +203,20 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
 }
 
 void tcp_connection::disconnect() {
-  state_mutex.lock();
-  connection_state = connection::state::disconnected;
-  state_mutex.unlock();
+  set_state(connection::state::disconnected);
   connection_mutex.lock();
   if (asio_socket.is_open()) {
     boost::system::error_code boost_error_code_shut;
     asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
+    if (boost_error_code_shut) {
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
+    }
     boost::system::error_code boost_error_code_close;
     asio_socket.close(boost_error_code_close);
-
-    connection_mutex.unlock();
-    if (boost_error_code_shut) {
-      handler->on_error(this, connection::error::unknown);
-      LOG(ERROR) << address << " -> " <<  boost_error_code_shut.message();
-    }
     if (boost_error_code_close) {
-      handler->on_error(this, connection::error::unknown);
-      LOG(ERROR) << address << " -> " <<  boost_error_code_close.message();
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
+    connection_mutex.unlock();
     handler->on_disconnected(this);
   } else {
     connection_mutex.unlock();
@@ -252,6 +235,11 @@ std::string tcp_connection::get_address() const {
 connection::state tcp_connection::get_state() const {
   std::lock_guard<std::mutex> lock(state_mutex);
   return connection_state;
+}
+
+void tcp_connection::set_state(connection::state new_state) {
+  std::lock_guard<std::mutex> lock(state_mutex);
+  connection_state = new_state;
 }
 
 // Acceptor functions
@@ -304,7 +292,7 @@ bool tcp_acceptor::init() {
 
 void tcp_acceptor::start_accepting() {
   if (tcp_initialized && asio_acceptor.is_open()) {
-    acceptor_state = acceptor::state::accepting;
+    set_state(acceptor::state::accepting);
     asio_acceptor.async_accept(asio_io_service, [this]
         (const boost::system::error_code& boost_error_code, boost::asio::ip::tcp::socket socket_) {
        if (!boost_error_code) {
@@ -322,7 +310,7 @@ void tcp_acceptor::start_accepting() {
           }
           start_accepting();
         } else {
-          acceptor_state = acceptor::state::not_accepting;
+          set_state(acceptor::state::not_accepting);
           // TODO(kari): Handle errors
           if (boost_error_code == boost::asio::error::operation_aborted) {
             return;
@@ -350,6 +338,11 @@ std::string tcp_acceptor::get_address() const {
 acceptor::state tcp_acceptor::get_state() const {
   // TODO(kari): implement this
   return acceptor_state;
+}
+
+void tcp_acceptor::set_state(acceptor::state new_state) {
+  std::lock_guard<std::mutex> lock(state_mutex);
+  acceptor_state = new_state;
 }
 
 // Global functions

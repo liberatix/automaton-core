@@ -35,7 +35,9 @@ static const char* PROTO_FILE = "automaton/examples/network/extended_node/sp.pro
 static const uint32_t HASH_SIZE = 32;
 static const uint32_t MAX_HEADER_SIZE = 255;
 static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
-/// Header size size is 1 byte
+// Header size size is 1 byte
+
+static const char* LOCALHOST = "127.0.0.1:";
 
 /**
   Next 3 are used as an id in async_read and on_message_received to show at what state is the
@@ -47,12 +49,11 @@ static const uint32_t WAITING_MESSAGE = 2;
 
 core::data::factory* node::msg_factory = nullptr;
 
-/// Node's connection handler
+// Node's connection handler
 
-void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
-    uint32_t id) {
+void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id_) {
   // LOG(DEBUG) << id << " RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read));
-  switch (id) {
+  switch (id_) {
     case WAITING_HEADER_SIZE: {
       if (bytes_read != 1) {
         std::stringstream msg;
@@ -92,14 +93,8 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         }
         std::unique_ptr<msg> received_msg = msg_factory->new_message_by_name("data");
         received_msg->deserialize_message(data);
-        if (received_msg->get_message(1)) {
-          // LOG(DEBUG) << "PROCESS 1: 0";
-          process((received_msg->get_message(1)).get(), c);
-        }
-        if (received_msg->get_message(2)) {
-          // LOG(DEBUG) << "PROCESS 2: 0";
-          process((received_msg->get_message(2)).get(), c);
-        }
+        process((received_msg->get_message(1)).get(), c);
+        process((received_msg->get_message(2)).get(), c);
         c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
       } catch (std::exception& e) {
         std::stringstream msg;
@@ -114,9 +109,9 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
   }
 }
 
-void node::on_message_sent(connection* c, uint32_t id, connection::error e) {
+void node::on_message_sent(connection* c, uint32_t id_, connection::error e) {
   if (e) {
-    LOG(ERROR) << "Message with id " << std::to_string(id) << " was NOT sent to " <<
+    LOG(ERROR) << "Message with id " << std::to_string(id_) << " was NOT sent to " <<
         c->get_address() << " -> Error " << std::to_string(e) << " occurred";
   } else {
     // logging("Message with id " + std::to_string(id) + " was successfully sent to " +
@@ -138,10 +133,10 @@ void node::on_error(connection* c, connection::error e) {
   if (e == connection::no_error) {
     return;
   }
-  LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
+  // LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
 }
 
-/// Node's acceptor handler
+// Node's acceptor handler
 
 bool node::on_requested(acceptor* a, const std::string& address) {
   // EXPECT_EQ(address, address_a);
@@ -156,12 +151,13 @@ void node::on_connected(acceptor* a, connection* c, const std::string& address) 
 
 void node::on_error(acceptor* a, connection::error e) {
   LOG(ERROR) << std::to_string(e);
+  remove_acceptor(a->get_address());
 }
 
-/// Node
+// Node
 
-node::node():id(""), first_block_hash(std::string(HASH_SIZE, 0)), chain_top(first_block_hash),
-    height(0), initialized(false), peer_ids(0) {}
+node::node(node_params params):id(""), params(params), first_block_hash(std::string(HASH_SIZE, 0)),
+    chain_top(first_block_hash), height(0), initialized(false), peer_ids(0) {}
 
 bool node::init() {
   if (initialized) {
@@ -225,7 +221,7 @@ char* node::add_buffer(uint32_t size) {
   return buffers[buffers.size() - 1];
 }
 
-/// This function is created because the acceptor needs ids for the connections it accepts
+// This function is created because the acceptor needs ids for the connections it accepts
 uint32_t node::get_next_peer_id() {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peer_ids_mutex);
@@ -237,14 +233,13 @@ bool node::accept_connection() {
   return true;
 }
 
-bool node::add_peer(const std::string& id, const std::string& connection_type,
-    const std::string& address) {
+bool node::add_peer(const std::string& connection_type, const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = peers.find(id);
+  auto it = peers.find(address);
   if (it != peers.end()) {
-    LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
-    delete it->second;
+    LOG(DEBUG) << "Peer with this address already exists!";
+    return false;
   }
   connection* new_connection;
   try {
@@ -252,19 +247,17 @@ bool node::add_peer(const std::string& id, const std::string& connection_type,
     if (new_connection && !new_connection->init()) {
       LOG(DEBUG) << "Connection initialization failed! Connection was not created!";
       delete new_connection;
-      peers[id] = nullptr;
       return false;
     }
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
-    peers[id] = nullptr;
     return false;
   }
   if (!new_connection) {
     LOG(ERROR) << "Connection was not created!";  // Possible reason: tcp_init was never called
     return false;
   }
-  peers[id] = new_connection;
+  peers[address] = new_connection;
   new_connection->connect();
   return true;
 }
@@ -273,18 +266,21 @@ bool node::add_peer(automaton::core::network::connection* c, const std::string& 
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = peers.find(address);
-  if (it != peers.end() && c != it->second) {
-    LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
+  if (it != peers.end() && it->second == c) {
+    LOG(DEBUG) << "Peer with this address already exists!";
+    return false;
+  } else if (it != peers.end()) {
     delete it->second;
+    peers.erase(it);
   }
   peers[address] = c;
   return true;
 }
 
-void node::remove_peer(const std::string& id) {
+void node::remove_peer(const std::string& id_) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = peers.find(id);
+  auto it = peers.find(id_);
   if (it != peers.end()) {
     peers.erase(it);
   }
@@ -300,14 +296,13 @@ automaton::core::network::connection* node::get_peer(const std::string& address)
   return it->second;
 }
 
-bool node::add_acceptor(const std::string& id, const std::string& connection_type,
-    const std::string& address) {
+bool node::add_acceptor(const std::string& connection_type, const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(acceptors_mutex);
-  auto it = acceptors.find(id);
+  auto it = acceptors.find(address);
   if (it != acceptors.end()) {
-    LOG(DEBUG) << "Acceptor with this id already exists!";
-    delete it->second;
+    LOG(DEBUG) << "Acceptor with this address already exists!";
+    return false;
   }
   acceptor* new_acceptor;
   try {
@@ -315,29 +310,29 @@ bool node::add_acceptor(const std::string& id, const std::string& connection_typ
     if (new_acceptor && !new_acceptor->init()) {
       LOG(DEBUG) << "Acceptor initialization failed! Acceptor was not created!";
       delete new_acceptor;
-      acceptors[id] = nullptr;
       return false;
     }
   } catch (std::exception& e) {
     LOG(ERROR) << e.what();
-    acceptors[id] = nullptr;
     return false;
   }
   if (!new_acceptor) {
     LOG(ERROR) << "Acceptor was not created!";
     return false;
   }
-  acceptors[id] = new_acceptor;
+  acceptors[address] = new_acceptor;
+  this->id = address;
   new_acceptor->start_accepting();
   return true;
 }
 
-void node::remove_acceptor(const std::string& id) {
+void node::remove_acceptor(const std::string& id_) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
 
   std::lock_guard<std::mutex> lock(acceptors_mutex);
-  auto it = acceptors.find(id);
+  auto it = acceptors.find(id_);
   if (it != acceptors.end()) {
+    delete it->second;
     acceptors.erase(it);
   }
 }
@@ -348,11 +343,15 @@ void node::send_message(const std::string& message, const std::string& connectio
   std::lock_guard<std::mutex> lock(peers_mutex);
   if (connection_id == "") {
     for (auto it = peers.begin(); it != peers.end(); ++it) {
-      // TODO(kari): if connected
-      it->second->async_send(new_message, 0);
+      if (it->second->get_state() == connection::state::connected) {
+        it->second->async_send(new_message, 0);
+      }
     }
   } else {
-    peers[connection_id]->async_send(new_message, 0);
+    connection* peer = get_peer(connection_id);
+    if (peer && peer->get_state() == connection::state::connected) {
+      peer->async_send(new_message, 0);
+    }
   }
 }
 
@@ -367,7 +366,7 @@ void node::handle_block(const std::string& hash, const block& block_,
   chain_top_mutex.lock();
 
   std::string serialized_prev_block = global_state->get(block_.prev_hash);
-  /// If we don't have the previous block
+  // If we don't have the previous block
   if (block_.prev_hash == first_block_hash && block_.height != 1) {
     // LOG(DEBUG) << "HANDLE 1";
     chain_top_mutex.unlock();
@@ -387,7 +386,7 @@ void node::handle_block(const std::string& hash, const block& block_,
     orphan_blocks_mutex.unlock();
     global_state_mutex.unlock();
     return;
-  /// If this is the second block
+  // If this is the second block
   } else if (serialized_prev_block != "") {
     // LOG(DEBUG) << "HANDLE 2";
     std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
@@ -405,7 +404,7 @@ void node::handle_block(const std::string& hash, const block& block_,
   // LOG(DEBUG) << id << " ADDING BLOCK: " << core::io::string_to_hex(hash);
   global_state->set(hash, serialized_block);
   std::string old_chain_top = chain_top;
-  /// If the new block is extending the main chain
+  // If the new block is extending the main chain
   if (block_.prev_hash == chain_top || block_.height > height) {
     chain_top = hash;
     height = block_.height;
@@ -425,7 +424,7 @@ void node::handle_block(const std::string& hash, const block& block_,
   // LOG(DEBUG) << id << " end of handle";
 }
 
-std::pair<uint32_t, std::string> node::get_height_and_top() {
+std::pair<uint32_t, std::string> node::get_height_and_top() const {
   // LOG(DEBUG) << "node " << id << " ::get 0";
   std::lock_guard<std::mutex> height_lock(height_mutex);
     // LOG(DEBUG) << "node " << id << " ::get 0.5";
@@ -443,12 +442,12 @@ std::pair<uint32_t, std::string> node::get_height_and_top() {
   return std::make_pair(height, chain_top);
 }
 
-std::string node::get_top() {
+std::string node::get_top() const {
   std::lock_guard<std::mutex> lock(chain_top_mutex);
   return chain_top;
 }
 
-uint32_t node::get_height() {
+uint32_t node::get_height() const {
   std::lock_guard<std::mutex> lock(height_mutex);
   return height;
 }
@@ -509,18 +508,6 @@ std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
       msg_type->set_repeated_blob(1, hashes[i]);
       msg_type->set_repeated_blob(2, serialized_block);
     }
-    // LOG(DEBUG) << id << " create:: after loop";
-    // uint32_t hashes_number = msg_type->get_repeated_field_size(1);
-    // uint32_t blocks_number = msg_type->get_repeated_field_size(2);
-    // if (hashes_number != blocks_number) {
-    //   // TODO(kari): Handle this situation
-    //   LOG(ERROR) << "Sending message that contains different number of hashes and blocks";
-    // }
-    // LOG(DEBUG) << "Sending msg: " << msg_type->to_string();
-    // LOG(DEBUG) << "Blocks:: ";
-    // for (int j = 0; j < blocks_number; ++j) {
-    //   LOG(DEBUG) << "block: " << core::io::string_to_hex(msg_type->get_repeated_blob(2, j));
-    // }
     msg_to_send->set_message(2, *msg_type);
     msg_to_send->serialize_message(&data);
     if (data.size() > MAX_MESSAGE_SIZE) {
@@ -680,7 +667,7 @@ void node::process(msg* input_message, connection* sender) {
         block_msg->deserialize_message(serialized_block);
         block b = msg_to_block(block_msg.get());
          // LOG(DEBUG) << "Received block: " << b.to_string();
-        /// validate block
+        // validate block
         if (!hash.compare(hash_block(b)) && !hash.compare(b.hash)) {
           // LOG(DEBUG) << "Received valid block! Block send to handler!";
           handle_block(hash, b, serialized_block);
@@ -763,7 +750,41 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
   delete next_block_hash;
 }
 
-std::string node::add_header(const std::string& message) {
+void node::update() {
+  // Check if has the right number of acceptors
+  acceptors_mutex.lock();
+  uint32_t new_acceptors = params.acceptors_count - acceptors.size();
+  acceptors_mutex.unlock();
+  if (new_acceptors && new_acceptors > 0) {
+    for (uint32_t i = 0; i < new_acceptors; ++i) {
+      std::string address = LOCALHOST + std::to_string(params.min_port_number +
+          std::rand() % (params.max_port_number - params.min_port_number + 1));
+      add_acceptor("tcp", address);
+    }
+  }
+  peers_mutex.lock();
+  // Check if there are disconnected peers
+  for (auto it = peers.begin(); it != peers.end();) {
+    if (it->second->get_state() == connection::state::disconnected) {
+      peers.erase(it);
+    }
+    it++;
+  }
+  int32_t new_peers = params.connected_peers_count - peers.size();
+  peers_mutex.unlock();
+  if (new_peers && new_peers > 0) {
+    for (int32_t i = 0; i < new_peers; ++i) {
+      std::string address;
+      do {
+        address = LOCALHOST + std::to_string(params.min_port_number +
+            std::rand() % (params.max_port_number - params.min_port_number + 1));
+      } while (address == id || get_peer(address));
+      add_peer("tcp", address);
+    }
+  }
+}
+
+std::string node::add_header(const std::string& message) const {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   if (message.size() < 1) {
     return "";
@@ -776,7 +797,7 @@ std::string node::add_header(const std::string& message) {
   }
   std::string new_message;
   std::unique_ptr<msg> header = msg_factory->new_message_by_name("header");
-  /// Setting message size
+  // Setting message size
   header->set_uint32(1, message.size());
   header->serialize_message(&new_message);
   uint32_t header_size = new_message.size();
@@ -794,6 +815,21 @@ std::string node::add_header(const std::string& message) {
   }
   new_message.insert(0, 1, header_size);
   return new_message.append(message);
+}
+
+void node::print_node_info() const {
+  std::lock_guard<std::mutex> acct_lock(acceptors_mutex);
+  std::lock_guard<std::mutex> peer_lock(peers_mutex);
+  std::stringstream s;
+  s << "NODE ID: " << id << " \nacceptors: ";
+  for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
+    s << it->first << " ";
+  }
+  s << "\npeers: ";
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    s << it->first << " ";
+  }
+  LOG(INFO) << s.str();
 }
 
 }  // namespace examples

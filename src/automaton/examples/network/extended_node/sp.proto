@@ -26,9 +26,14 @@ message blocks_response {
   repeated bytes whole_block = 2;
 }
 
+message hello {
+  string id = 1;
+}
+
 message data {
-  blocks_request msg_type_1 = 1;
-  blocks_response msg_type_2 = 2;
+  blocks_request msg_type_request = 1;
+  blocks_response msg_type_response = 2;
+  hello msg_type_hello = 3;
 }
 
 message header {
