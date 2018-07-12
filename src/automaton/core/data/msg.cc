@@ -7,7 +7,7 @@ namespace data {
 msg::~msg() {}
 
 common::status msg::process(const obj& request, obj* response) {
-  return common::status(common::OK);
+  return common::status(common::status::OK);
 }
 
 }  // namespace data
