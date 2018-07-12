@@ -22,7 +22,7 @@ void digital_signature::register_factory(std::string name,
 }
 
 common::status digital_signature::process(const obj& request, obj* response) {
-  return common::status(common::OK);
+  return common::status(common::status::OK);
 }
 
 }  // namespace crypto

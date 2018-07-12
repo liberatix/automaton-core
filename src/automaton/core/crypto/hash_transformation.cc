@@ -76,7 +76,7 @@ common::status hash_transformation::process(const obj& request, obj* response) {
     restart();
   }
 
-  return common::status(common::OK);
+  return common::status(common::status::OK);
 }
 
 }  // namespace crypto
