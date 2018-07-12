@@ -63,19 +63,16 @@ class node: public core::network::connection::connection_handler,
 
   std::string id;
 
-  char* add_buffer(uint32_t size);
-
   /// This function is created because the acceptor needs ids for the connections it accepts
   uint32_t get_next_peer_id();
 
   bool accept_connection();
 
-  bool add_peer(const std::string& id, const std::string& connection_type,
-      const std::string& address);
+  bool add_peer(const std::string& connection_type, const std::string& address);
 
   bool add_peer(automaton::core::network::connection* c, const std::string& address);
 
-  void remove_peer(const std::string& id);
+  void remove_peer(const std::string& address);
 
   automaton::core::network::connection* get_peer(const std::string& address);
 
@@ -89,11 +86,11 @@ class node: public core::network::connection::connection_handler,
   void handle_block(const std::string& hash, const block& block_,
       const std::string& serialized_block);
 
-  std::pair<uint32_t, std::string> get_height_and_top();
+  std::pair<uint32_t, std::string> get_height_and_top() const;
 
-  std::string get_top();
+  std::string get_top() const;
 
-  uint32_t get_height();
+  uint32_t get_height() const;
 
   void process(core::data::msg* input_message, automaton::core::network::connection* c = nullptr);
 
@@ -106,7 +103,7 @@ class node: public core::network::connection::connection_handler,
 
   void update();
 
-  std::string add_header(const std::string& message);
+  void print_node_info() const;
 
  private:
   node_params params;
@@ -121,10 +118,10 @@ class node: public core::network::connection::connection_handler,
   std::mutex global_state_mutex;
   std::mutex orphan_blocks_mutex;
   std::mutex peer_ids_mutex;
-  std::mutex peers_mutex;
-  std::mutex acceptors_mutex;
-  std::mutex chain_top_mutex;
-  std::mutex height_mutex;
+  mutable std::mutex peers_mutex;
+  mutable std::mutex acceptors_mutex;
+  mutable std::mutex chain_top_mutex;
+  mutable std::mutex height_mutex;
   std::map<std::string, block> orphan_blocks;
   std::map<std::string, core::network::acceptor*> acceptors;
   std::map<std::string, core::network::connection*> peers;
@@ -160,11 +157,15 @@ class node: public core::network::connection::connection_handler,
 
   /// Helper functions
 
+  char* add_buffer(uint32_t size);
+
   block msg_to_block(core::data::msg* message) const;
 
   std::unique_ptr<core::data::msg> block_to_msg(const block& block) const;
 
   std::string hash_block(const block& block) const;
+
+  std::string add_header(const std::string& message) const;
 
   /// Miner
 

@@ -51,8 +51,7 @@ core::data::factory* node::msg_factory = nullptr;
 
 /// Node's connection handler
 
-void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
-    uint32_t id_) {
+void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id_) {
   // LOG(DEBUG) << id << " RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read));
   switch (id_) {
     case WAITING_HEADER_SIZE: {
@@ -94,14 +93,8 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         }
         std::unique_ptr<msg> received_msg = msg_factory->new_message_by_name("data");
         received_msg->deserialize_message(data);
-        if (received_msg->get_message(1)) {
-          // LOG(DEBUG) << "PROCESS 1: 0";
-          process((received_msg->get_message(1)).get(), c);
-        }
-        if (received_msg->get_message(2)) {
-          // LOG(DEBUG) << "PROCESS 2: 0";
-          process((received_msg->get_message(2)).get(), c);
-        }
+        process((received_msg->get_message(1)).get(), c);
+        process((received_msg->get_message(2)).get(), c);
         c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
       } catch (std::exception& e) {
         std::stringstream msg;
@@ -240,15 +233,13 @@ bool node::accept_connection() {
   return true;
 }
 
-bool node::add_peer(const std::string& id_, const std::string& connection_type,
-    const std::string& address) {
+bool node::add_peer(const std::string& connection_type, const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = peers.find(id_);
+  auto it = peers.find(address);
   if (it != peers.end()) {
-    LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
-    delete it->second;
-    peers.erase(it);
+    LOG(DEBUG) << "Peer with this address already exists!";
+    return false;
   }
   connection* new_connection;
   try {
@@ -266,7 +257,7 @@ bool node::add_peer(const std::string& id_, const std::string& connection_type,
     LOG(ERROR) << "Connection was not created!";  // Possible reason: tcp_init was never called
     return false;
   }
-  peers[id_] = new_connection;
+  peers[address] = new_connection;
   new_connection->connect();
   return true;
 }
@@ -275,8 +266,10 @@ bool node::add_peer(automaton::core::network::connection* c, const std::string& 
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = peers.find(address);
-  if (it != peers.end() && c != it->second) {
-    LOG(DEBUG) << "Peer with this id already exists and will be replaced!";
+  if (it != peers.end() && it->second == c) {
+    LOG(DEBUG) << "Peer with this address already exists!";
+    return false;
+  } else if (it != peers.end()) {
     delete it->second;
     peers.erase(it);
   }
@@ -433,7 +426,7 @@ void node::handle_block(const std::string& hash, const block& block_,
   // LOG(DEBUG) << id << " end of handle";
 }
 
-std::pair<uint32_t, std::string> node::get_height_and_top() {
+std::pair<uint32_t, std::string> node::get_height_and_top() const {
   // LOG(DEBUG) << "node " << id << " ::get 0";
   std::lock_guard<std::mutex> height_lock(height_mutex);
     // LOG(DEBUG) << "node " << id << " ::get 0.5";
@@ -451,12 +444,12 @@ std::pair<uint32_t, std::string> node::get_height_and_top() {
   return std::make_pair(height, chain_top);
 }
 
-std::string node::get_top() {
+std::string node::get_top() const {
   std::lock_guard<std::mutex> lock(chain_top_mutex);
   return chain_top;
 }
 
-uint32_t node::get_height() {
+uint32_t node::get_height() const {
   std::lock_guard<std::mutex> lock(height_mutex);
   return height;
 }
@@ -788,12 +781,12 @@ void node::update() {
         address = LOCALHOST + std::to_string(params.min_port_number +
             std::rand() % (params.max_port_number - params.min_port_number + 1));
       } while (address == id || get_peer(address));
-      add_peer(address, "tcp", address);
+      add_peer("tcp", address);
     }
   }
 }
 
-std::string node::add_header(const std::string& message) {
+std::string node::add_header(const std::string& message) const {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   if (message.size() < 1) {
     return "";
@@ -824,6 +817,21 @@ std::string node::add_header(const std::string& message) {
   }
   new_message.insert(0, 1, header_size);
   return new_message.append(message);
+}
+
+void node::print_node_info() const {
+  std::lock_guard<std::mutex> acct_lock(acceptors_mutex);
+  std::lock_guard<std::mutex> peer_lock(peers_mutex);
+  std::stringstream s;
+  s << "NODE ID: " << id << " \nacceptors: ";
+  for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
+    s << it->first << " ";
+  }
+  s << "\npeers: ";
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    s << it->first << " ";
+  }
+  LOG(INFO) << s.str();
 }
 
 }  // namespace examples

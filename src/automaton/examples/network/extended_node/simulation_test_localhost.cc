@@ -64,6 +64,7 @@ void collect_stats() {
     std::string hash = automaton::core::io::string_to_hex(res.second);
     hashes[hash]++;
     heights[hash] = res.first;
+    nodes[i]->print_node_info();
   }
   LOG(INFO) << "==== Heights ====";
   for (auto it = hashes.begin(); it != hashes.end(); ++it) {
