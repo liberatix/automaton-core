@@ -296,15 +296,13 @@ automaton::core::network::connection* node::get_peer(const std::string& address)
   return it->second;
 }
 
-bool node::add_acceptor(const std::string& id_, const std::string& connection_type,
-    const std::string& address) {
+bool node::add_acceptor(const std::string& connection_type, const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(acceptors_mutex);
-  auto it = acceptors.find(id_);
+  auto it = acceptors.find(address);
   if (it != acceptors.end()) {
-    LOG(DEBUG) << "Acceptor with this id already exists!";
-    delete it->second;
-    acceptors.erase(it);
+    LOG(DEBUG) << "Acceptor with this address already exists!";
+    return false;
   }
   acceptor* new_acceptor;
   try {
@@ -322,8 +320,8 @@ bool node::add_acceptor(const std::string& id_, const std::string& connection_ty
     LOG(ERROR) << "Acceptor was not created!";
     return false;
   }
-  acceptors[id_] = new_acceptor;
-  this->id = id_;
+  acceptors[address] = new_acceptor;
+  this->id = address;
   new_acceptor->start_accepting();
   return true;
 }
@@ -761,7 +759,7 @@ void node::update() {
     for (uint32_t i = 0; i < new_acceptors; ++i) {
       std::string address = LOCALHOST + std::to_string(params.min_port_number +
           std::rand() % (params.max_port_number - params.min_port_number + 1));
-      add_acceptor(address, "tcp", address);
+      add_acceptor("tcp", address);
     }
   }
   peers_mutex.lock();

@@ -76,8 +76,7 @@ class node: public core::network::connection::connection_handler,
 
   automaton::core::network::connection* get_peer(const std::string& address);
 
-  bool add_acceptor(const std::string& id, const std::string& connection_type,
-      const std::string& address);
+  bool add_acceptor(const std::string& connection_type, const std::string& address);
 
   void remove_acceptor(const std::string& id);
 
