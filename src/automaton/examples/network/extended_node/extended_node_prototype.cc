@@ -35,7 +35,7 @@ static const char* PROTO_FILE = "automaton/examples/network/extended_node/sp.pro
 static const uint32_t HASH_SIZE = 32;
 static const uint32_t MAX_HEADER_SIZE = 255;
 static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
-/// Header size size is 1 byte
+// Header size size is 1 byte
 
 static const char* LOCALHOST = "127.0.0.1:";
 
@@ -49,7 +49,7 @@ static const uint32_t WAITING_MESSAGE = 2;
 
 core::data::factory* node::msg_factory = nullptr;
 
-/// Node's connection handler
+// Node's connection handler
 
 void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id_) {
   // LOG(DEBUG) << id << " RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read));
@@ -136,7 +136,7 @@ void node::on_error(connection* c, connection::error e) {
   // LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
 }
 
-/// Node's acceptor handler
+// Node's acceptor handler
 
 bool node::on_requested(acceptor* a, const std::string& address) {
   // EXPECT_EQ(address, address_a);
@@ -154,7 +154,7 @@ void node::on_error(acceptor* a, connection::error e) {
   remove_acceptor(a->get_address());
 }
 
-/// Node
+// Node
 
 node::node(node_params params):id(""), params(params), first_block_hash(std::string(HASH_SIZE, 0)),
     chain_top(first_block_hash), height(0), initialized(false), peer_ids(0) {}
@@ -221,7 +221,7 @@ char* node::add_buffer(uint32_t size) {
   return buffers[buffers.size() - 1];
 }
 
-/// This function is created because the acceptor needs ids for the connections it accepts
+// This function is created because the acceptor needs ids for the connections it accepts
 uint32_t node::get_next_peer_id() {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peer_ids_mutex);
@@ -366,7 +366,7 @@ void node::handle_block(const std::string& hash, const block& block_,
   chain_top_mutex.lock();
 
   std::string serialized_prev_block = global_state->get(block_.prev_hash);
-  /// If we don't have the previous block
+  // If we don't have the previous block
   if (block_.prev_hash == first_block_hash && block_.height != 1) {
     // LOG(DEBUG) << "HANDLE 1";
     chain_top_mutex.unlock();
@@ -386,7 +386,7 @@ void node::handle_block(const std::string& hash, const block& block_,
     orphan_blocks_mutex.unlock();
     global_state_mutex.unlock();
     return;
-  /// If this is the second block
+  // If this is the second block
   } else if (serialized_prev_block != "") {
     // LOG(DEBUG) << "HANDLE 2";
     std::unique_ptr<msg> deserialized_prev_block = msg_factory->new_message_by_name("block");
@@ -404,7 +404,7 @@ void node::handle_block(const std::string& hash, const block& block_,
   // LOG(DEBUG) << id << " ADDING BLOCK: " << core::io::string_to_hex(hash);
   global_state->set(hash, serialized_block);
   std::string old_chain_top = chain_top;
-  /// If the new block is extending the main chain
+  // If the new block is extending the main chain
   if (block_.prev_hash == chain_top || block_.height > height) {
     chain_top = hash;
     height = block_.height;
@@ -667,7 +667,7 @@ void node::process(msg* input_message, connection* sender) {
         block_msg->deserialize_message(serialized_block);
         block b = msg_to_block(block_msg.get());
          // LOG(DEBUG) << "Received block: " << b.to_string();
-        /// validate block
+        // validate block
         if (!hash.compare(hash_block(b)) && !hash.compare(b.hash)) {
           // LOG(DEBUG) << "Received valid block! Block send to handler!";
           handle_block(hash, b, serialized_block);
@@ -751,7 +751,7 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
 }
 
 void node::update() {
-  /// Check if has the right number of acceptors
+  // Check if has the right number of acceptors
   acceptors_mutex.lock();
   uint32_t new_acceptors = params.acceptors_count - acceptors.size();
   acceptors_mutex.unlock();
@@ -763,7 +763,7 @@ void node::update() {
     }
   }
   peers_mutex.lock();
-  /// Check if there are disconnected peers
+  // Check if there are disconnected peers
   for (auto it = peers.begin(); it != peers.end();) {
     if (it->second->get_state() == connection::state::disconnected) {
       peers.erase(it);
@@ -797,7 +797,7 @@ std::string node::add_header(const std::string& message) const {
   }
   std::string new_message;
   std::unique_ptr<msg> header = msg_factory->new_message_by_name("header");
-  /// Setting message size
+  // Setting message size
   header->set_uint32(1, message.size());
   header->serialize_message(&new_message);
   uint32_t header_size = new_message.size();

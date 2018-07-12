@@ -20,7 +20,7 @@
 namespace automaton {
 namespace examples {
 
-/// Class node
+// Class node
 class node: public core::network::connection::connection_handler,
     public core::network::acceptor::acceptor_handler {
  public:
@@ -45,14 +45,13 @@ class node: public core::network::connection::connection_handler,
     std::string connection_type;  // "tcp" or "sim"
     uint32_t acceptors_count;
     uint32_t connected_peers_count;
-    /// Instead of peer list
     uint32_t min_port_number;
     uint32_t max_port_number;
   };
 
   struct peer_stats {
     std::string id;
-    /// other data
+    // other data
   };
 
   explicit node(node_params params);
@@ -63,7 +62,7 @@ class node: public core::network::connection::connection_handler,
 
   std::string id;
 
-  /// This function is created because the acceptor needs ids for the connections it accepts
+  // This function is created because the acceptor needs ids for the connections it accepts
   uint32_t get_next_peer_id();
 
   bool accept_connection();
@@ -127,7 +126,7 @@ class node: public core::network::connection::connection_handler,
   core::crypto::hash_transformation* hasher;
   core::state::state* global_state;  // map block_hash -> serialized msg, containing the block
 
-  /// Inherited handlers' functions
+  // Inherited handlers' functions
 
   void on_message_received(core::network::connection* c, char* buffer,
       uint32_t bytes_read, uint32_t id);
@@ -154,7 +153,7 @@ class node: public core::network::connection::connection_handler,
 
   std::string create_request_blocks_message(std::vector<std::string> hashes);
 
-  /// Helper functions
+  // Helper functions
 
   char* add_buffer(uint32_t size);
 
@@ -166,7 +165,7 @@ class node: public core::network::connection::connection_handler,
 
   std::string add_header(const std::string& message) const;
 
-  /// Miner
+  // Miner
 
   uint8_t* nonce;
 

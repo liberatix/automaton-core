@@ -17,7 +17,7 @@ using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::examples::node;
 
-/// Constants
+// Constants
 
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 2;
@@ -28,7 +28,7 @@ static const uint32_t NEW_NODES = 48;
 
 static const char* LOCALHOST = "127.0.0.1:";
 
-/// Global variables
+// Global variables
 
 static uint32_t MIN_PORT = 0;
 static uint32_t MAX_PORT = 0;
@@ -36,7 +36,7 @@ static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
 static uint32_t NUMBER_NODES = 0;
 
-/// height -> how many connections have that height
+// height -> how many connections have that height
 static std::map<std::string, uint32_t> hashes;
 static std::map<std::string, uint32_t> heights;
 static std::vector<node*> nodes;
@@ -57,7 +57,7 @@ std::string to_hex_string(uint8_t *data, uint32_t len) {
   return s;
 }
 
-/// Function that collects and prints test results
+// Function that collects and prints test results
 void collect_stats() {
   hashes.clear();
   heights.clear();

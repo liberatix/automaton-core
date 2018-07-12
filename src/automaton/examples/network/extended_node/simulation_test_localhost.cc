@@ -17,7 +17,7 @@ using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::examples::node;
 
-/// Constants
+// Constants
 
 static const int FIRST_ACCEPTOR_PORT = 11100;
 static const int LAST_ACCEPTOR_PORT  = 11200;
@@ -31,9 +31,9 @@ static const uint32_t SIMULATION_TIME = 10000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 static const uint32_t NEW_NODES = 48;
 
-/// Global variables
+// Global variables
 
-/// height -> how many connections have that height
+// height -> how many connections have that height
 static std::map<std::string, uint32_t> hashes;
 static std::map<std::string, uint32_t> heights;
 static std::vector<node*> nodes;
@@ -54,7 +54,7 @@ std::string to_hex_string(uint8_t *data, uint32_t len) {
   return s;
 }
 
-/// Function that collects and prints test results
+// Function that collects and prints test results
 void collect_stats() {
   hashes.clear();
   heights.clear();
