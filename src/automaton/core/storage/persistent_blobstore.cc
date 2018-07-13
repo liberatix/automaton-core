@@ -1,4 +1,4 @@
-#include "automaton/core/storage/blobstore.h"
+#include "automaton/core/storage/persistent_blobstore.h"
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem.hpp>
 #include <cstring>
@@ -8,20 +8,20 @@ namespace automaton {
 namespace core {
 namespace storage {
 
-blobstore::blobstore()
+persistent_blobstore::persistent_blobstore()
     : next_free(0)
     , capacity(0) {
   // TODO(Samir): Remove from constructor and do it when creating blob
-  //storage = new uint32_t[1ULL << 28];
-  //capacity = 1ULL << 28;
+  // storage = new uint32_t[1ULL << 28];
+  // capacity = 1ULL << 28;
 }
 
-blobstore::~blobstore() {
+persistent_blobstore::~persistent_blobstore() {
   mmf.close();
-  //delete[] storage;
+  // delete[] storage;
 }
 
-uint8_t* blobstore::create_blob(const uint32_t size, uint64_t* id) {
+uint8_t* persistent_blobstore::create_blob(const uint32_t size, uint64_t* id) {
   uint32_t size_in_int32 =  size % 4 ? size / 4 + 1 : size / 4;
   *id = next_free;
 
@@ -44,14 +44,14 @@ uint8_t* blobstore::create_blob(const uint32_t size, uint64_t* id) {
   return out_blob_pointer;
 }
 
-uint64_t blobstore::store(const uint32_t size, const uint8_t* data) {
+uint64_t persistent_blobstore::store(const uint32_t size, const uint8_t* data) {
   uint64_t id = 0;
   uint8_t* blob = create_blob(size, &id);
   std::memcpy(blob, data, size);
   return id;
 }
 
-uint8_t* blobstore::get(const uint64_t id, uint32_t* size) {
+uint8_t* persistent_blobstore::get(const uint64_t id, uint32_t* size) {
   // check if id is out of range
   if (id+1 >= capacity) {
     return 0;
@@ -60,13 +60,13 @@ uint8_t* blobstore::get(const uint64_t id, uint32_t* size) {
   return reinterpret_cast<uint8_t*>(&storage[id + 1]);
 }
 
-bool blobstore::free(const uint32_t id) {
+bool persistent_blobstore::free(const uint32_t id) {
   // TODO(Samir): Change storage to unt8_t. Mark deleted nodes with *= -1
   storage[id] = 0;
   return 1;
 }
 
-bool blobstore::map_file(std::string path) {
+bool persistent_blobstore::map_file(std::string path) {
   if (boost::filesystem::exists(path)) {
     mmf.open(path, boost::iostreams::mapped_file::mapmode::readwrite);
   } else {
@@ -76,7 +76,7 @@ bool blobstore::map_file(std::string path) {
     new_mmf.new_file_size = 1ULL << 10;
     capacity = new_mmf.new_file_size / 4;
     mmf.open(new_mmf);
-    storage = (uint32_t*) mmf.data();
+    storage = reinterpret_cast<uint32_t*>(mmf.data());
   }
   return true;
 }
