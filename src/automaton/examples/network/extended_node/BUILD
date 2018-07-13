@@ -24,6 +24,17 @@ cc_library(
 )
 
 cc_binary (
+	name = "simulation_test_final",
+	srcs = ["simulation_test_final.cc",],
+	deps = [
+    "//automaton/core/io",
+    "//automaton/core/log",
+    "//automaton/core/network:simulated_connection",
+    "//automaton/examples/network/extended_node:extended_node_prototype",
+  ],
+)
+
+cc_binary (
 	name = "simulation_test_localhost",
 	srcs = ["simulation_test_localhost.cc",],
 	deps = [
