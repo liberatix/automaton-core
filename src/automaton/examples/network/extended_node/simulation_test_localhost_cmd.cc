@@ -143,8 +143,8 @@ int main(int argc, const char * argv[]) {
       NUMBER_NODES = std::stoi(argv[2]);
       // MIN_PORT = std::stoi(argv[3]);
       // MAX_PORT = std::stoi(argv[4]);
-      MY_MIN_PORT = std::stoi(argv[5]);
-      MY_MAX_PORT = std::stoi(argv[6]);
+      MY_MIN_PORT = std::stoi(argv[3]);
+      MY_MAX_PORT = std::stoi(argv[4]);
       if (MY_MAX_PORT - MY_MIN_PORT + 1 < NUMBER_NODES) {
         LOG(ERROR) << "Not enough ports to run " << NUMBER_NODES << " nodes!";
         return 0;
@@ -162,7 +162,7 @@ int main(int argc, const char * argv[]) {
         LOG(ERROR) << "Not enough ports to run " << NUMBER_NODES << " nodes!";
         return 0;
       }
-      for (int i = 6; i <= argc; i++) {
+      for (int i = 4; i < argc; i++) {
         KNOWN_IPS.push_back(argv[i]);
       }
     }
@@ -179,7 +179,7 @@ int main(int argc, const char * argv[]) {
         nodes[i]->init();
         do {
           address = LOCALHOST + std::to_string(MY_MIN_PORT +
-              std::rand() % (MY_MAX_PORT - MY_MIN_PORT));
+              std::rand() % (MY_MAX_PORT - MY_MIN_PORT + 1));
           nodes[i]->id = address;
         }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
       }
@@ -191,7 +191,7 @@ int main(int argc, const char * argv[]) {
         nodes[i]->init();
         do {
           address = MY_IP +
-              std::to_string(MIN_PORT + std::rand() % (MAX_PORT - MIN_PORT));
+              std::to_string(MIN_PORT + std::rand() % (MAX_PORT - MIN_PORT + 1));
           nodes[i]->id = address;
         }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
       }
