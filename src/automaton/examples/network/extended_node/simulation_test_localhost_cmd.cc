@@ -7,8 +7,8 @@
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/log/log.h"
 #include "automaton/core/network/tcp_implementation.h"
+#include "automaton/core/log/log.h"
 #include "automaton/examples/network/extended_node/extended_node_prototype.h"
 
 using automaton::core::crypto::hash_transformation;
@@ -20,7 +20,7 @@ using automaton::examples::node;
 // Constants
 
 // static const uint32_t NUMBER_NODES = 64;
-static const uint32_t NUMBER_PEERS_IN_NODE = 2;
+static const uint32_t NUMBER_PEERS_IN_NODE = 4;
 static const uint32_t LOOP_STEP = 48;
 static const uint32_t SIMULATION_TIME = 10000;
 static const uint32_t MINER_PRECISION_BITS = 20;
