@@ -2,57 +2,50 @@
 #define AUTOMATON_CORE_STORAGE_BLOBSTORE_H__
 
 #include <string>
-#include <boost/iostreams/device/mapped_file.hpp>
 
 namespace automaton {
 namespace core {
 namespace storage {
 
 /**
-  Blobstore interface.
-  Can store and delete arbitrary length data in a memory mapped file.
-  There are no protections. The pointer points to the internal memory.
+Blobstore interface.
+Can store and delete arbitrary length data in a memory mapped file.
+There are no protections. The pointer points to the internal memory.
 */
-class blobstore {
+class blobstore{
  public:
-  blobstore();
+  explicit blobstore(std::string file_path);
   ~blobstore();
 
   /**
-    Stores the byte array pointed by data
+  Stores the byte array pointed by data
 
-    @returns    uint64_t  returns the ID used to access it.
-    @param[in]  size      The size of the data pointed by data in bytes
-    @param[out] data      Pointer to the data
+  @returns    uint64_t  returns the ID used to access it.
+  @param[in]  size      The size of the data pointed by data in bytes
+  @param[out] data      Pointer to the data
   */
   uint64_t store(const uint32_t size, const uint8_t* data);
 
   /**
-    Used to get access to previously allocated blob.
+  Used to get access to previously allocated blob.
 
-    @returns    uint8_t*  pointer to the blob or nullptr if id>=capacity
-    @param[in]  id        The ID returned by create_blob
-    @param[out] size      The size of the data pointed by the returned
-                          pointer in bytes
+  @returns    uint8_t*  pointer to the blob or nullptr if id>=capacity
+  @param[in]  id        The ID returned by create_blob
+  @param[out] size      The size of the data pointed by the returned
+  pointer in bytes
   */
   uint8_t* get(const uint64_t id, uint32_t* size);
 
   /**
-    Frees allocated blob.
+  Frees allocated blob.
 
-    @returns    bool      False if there is no allocated blob with the given id
-    @param[in]  id        The ID returned by create_blob
+  @returns    bool      False if there is no allocated blob with the given id
+  @param[in]  id        The ID returned by create_blob
   */
   bool free(const uint32_t id);
-  /**
-    TODO(Samir): document
-  */
-  bool map_file(std::string path);
 
  private:
   uint32_t* storage;
-  boost::iostreams::mapped_file mmf;
-
   std::string file_path;
   uint64_t next_free;
   // capacity of storage in 4byte chunks (size in bytes/4)

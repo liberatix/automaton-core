@@ -1,24 +1,21 @@
 #include "automaton/core/storage/blobstore.h"
-#include <boost/iostreams/device/mapped_file.hpp>
-#include <boost/filesystem.hpp>
 #include <cstring>
-#include <iostream>
 
 namespace automaton {
 namespace core {
 namespace storage {
 
-blobstore::blobstore()
-    : next_free(0)
+blobstore::blobstore(std::string file_path)
+    : file_path(file_path)
+    , next_free(0)
     , capacity(0) {
   // TODO(Samir): Remove from constructor and do it when creating blob
-  //storage = new uint32_t[1ULL << 28];
-  //capacity = 1ULL << 28;
+  storage = new uint32_t[1ULL << 28];
+  capacity = 1ULL << 28;
 }
 
 blobstore::~blobstore() {
-  mmf.close();
-  //delete[] storage;
+  delete[] storage;
 }
 
 uint8_t* blobstore::create_blob(const uint32_t size, uint64_t* id) {
@@ -64,21 +61,6 @@ bool blobstore::free(const uint32_t id) {
   // TODO(Samir): Change storage to unt8_t. Mark deleted nodes with *= -1
   storage[id] = 0;
   return 1;
-}
-
-bool blobstore::map_file(std::string path) {
-  if (boost::filesystem::exists(path)) {
-    mmf.open(path, boost::iostreams::mapped_file::mapmode::readwrite);
-  } else {
-    boost::iostreams::mapped_file_params new_mmf(path);
-    new_mmf.flags = boost::iostreams::mapped_file::mapmode::readwrite;
-    // The starting size is 1gb by default, we should add a option set the starting size
-    new_mmf.new_file_size = 1ULL << 10;
-    capacity = new_mmf.new_file_size / 4;
-    mmf.open(new_mmf);
-    storage = (uint32_t*) mmf.data();
-  }
-  return true;
 }
 
 }  //  namespace storage
