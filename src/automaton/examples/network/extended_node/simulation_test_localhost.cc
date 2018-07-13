@@ -21,7 +21,7 @@ using automaton::examples::node;
 
 static const int FIRST_ACCEPTOR_PORT = 11100;
 static const int LAST_ACCEPTOR_PORT  = 11200;
-static const uint32_t NUMBER_NODES   = 16;
+static const uint32_t NUMBER_NODES   = 24;
 // These include only the peers that a node connects to, not the accepted ones
 static const uint32_t NUMBER_PEERS_IN_NODE = 2;
 static const uint32_t MIN_CONNECTIONS = 0;
@@ -30,6 +30,8 @@ static const uint32_t LOOP_STEP = 48;
 static const uint32_t SIMULATION_TIME = 10000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 static const uint32_t NEW_NODES = 48;
+
+static const char* LOCALHOST = "127.0.0.1:";
 
 // Global variables
 
@@ -42,16 +44,13 @@ bool simulation_end = false;
 std::thread miner;
 std::thread updater;
 
-std::string to_hex_string(uint8_t *data, uint32_t len) {
-  const char hexmap[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                          'a', 'b', 'c', 'd', 'e', 'f' };
-
-  std::string s(len * 2, ' ');
-  for (uint32_t i = 0; i < len; ++i) {
-    s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
-    s[2 * i + 1] = hexmap[data[i] & 0x0F];
-  }
-  return s;
+std::string create_connection_address(node* n, const node::node_params& params) {
+  std::string address;
+  do {
+    address = LOCALHOST + std::to_string(std::rand() % (LAST_ACCEPTOR_PORT - FIRST_ACCEPTOR_PORT) +
+        FIRST_ACCEPTOR_PORT);
+  } while (address == n->id);
+  return address;
 }
 
 // Function that collects and prints test results
@@ -64,7 +63,7 @@ void collect_stats() {
     std::string hash = automaton::core::io::string_to_hex(res.second);
     hashes[hash]++;
     heights[hash] = res.first;
-    nodes[i]->print_node_info();
+    // nodes[i]->print_node_info();
   }
   LOG(INFO) << "==== Heights ====";
   for (auto it = hashes.begin(); it != hashes.end(); ++it) {
@@ -121,17 +120,17 @@ int main() {
     automaton::core::network::tcp_init();
     node::node_params params;
     params.connection_type = "tcp";
-    params.acceptors_count = 1;
     params.connected_peers_count = NUMBER_PEERS_IN_NODE;
-    params.min_port_number = FIRST_ACCEPTOR_PORT;
-    params.max_port_number = LAST_ACCEPTOR_PORT;
 
     LOG(INFO) << "Creating nodes...";
 
     try {
       for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-        nodes.push_back(new node(params));
+        nodes.push_back(new node(params, create_connection_address));
         nodes[i]->init();
+        std::string address = LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i);
+        nodes[i]->id = address;
+        nodes[i]->add_acceptor("tcp", address);
       }
     } catch (std::exception& e) {
       LOG(ERROR) << "EXCEPTION " << std::string(e.what());
@@ -144,7 +143,7 @@ int main() {
     updater = std::thread(update_thread_function);
     miner = std::thread(miner_thread_function);
 
-    for (uint32_t i = 0; i < SIMULATION_TIME / 3; i += LOOP_STEP) {
+    for (uint32_t i = 0; i < SIMULATION_TIME; i += LOOP_STEP) {
       LOG(INFO) << "PROCESSING: " + std::to_string(i);
       collect_stats();
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
@@ -155,8 +154,11 @@ int main() {
     nodes_mutex.lock();
     try {
       for (uint32_t i = NUMBER_NODES; i < NUMBER_NODES + NEW_NODES; ++i) {
-        nodes.push_back(new node(params));
+        nodes.push_back(new node(params, create_connection_address));
         nodes[i]->init();
+        std::string address = LOCALHOST + std::to_string(FIRST_ACCEPTOR_PORT + i);
+        nodes[i]->id = address;
+        nodes[i]->add_acceptor("tcp", address);
       }
     } catch (std::exception& e) {
       LOG(ERROR) << "EXCEPTION " << std::string(e.what());

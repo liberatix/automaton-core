@@ -41,12 +41,11 @@ class node: public core::network::connection::connection_handler,
         std::string nonce);
   };
 
+  // This should be msg
   struct node_params {
     std::string connection_type;  // "tcp" or "sim"
-    uint32_t acceptors_count;
     uint32_t connected_peers_count;
-    uint32_t min_port_number;
-    uint32_t max_port_number;
+    uint32_t bandwidth;  // simulated connection
   };
 
   struct peer_stats {
@@ -54,13 +53,16 @@ class node: public core::network::connection::connection_handler,
     // other data
   };
 
-  explicit node(node_params params);
+  node(node_params params,
+      std::string (*get_randon_peer_address)(node* n, const node_params& params));
 
   ~node();
 
   bool init();
 
   std::string id;
+
+  std::string (*get_randon_peer_address)(node* n, const node_params& params);
 
   // This function is created because the acceptor needs ids for the connections it accepts
   uint32_t get_next_peer_id();

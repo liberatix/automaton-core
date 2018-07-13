@@ -30,11 +30,14 @@ static const char* LOCALHOST = "127.0.0.1:";
 
 // Global variables
 
-static uint32_t MIN_PORT = 0;
-static uint32_t MAX_PORT = 0;
+static bool IS_LOCALHOST;
+static char* MY_IP;
+static uint32_t MIN_PORT = 11000;
+static uint32_t MAX_PORT = 12500;
 static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
 static uint32_t NUMBER_NODES = 0;
+static std::vector<std::string> KNOWN_IPS;
 
 // height -> how many connections have that height
 static std::map<std::string, uint32_t> hashes;
@@ -45,16 +48,20 @@ bool simulation_end = false;
 std::thread miner;
 std::thread updater;
 
-std::string to_hex_string(uint8_t *data, uint32_t len) {
-  const char hexmap[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                          'a', 'b', 'c', 'd', 'e', 'f' };
+std::string create_localhost_connection_address(node* n, const node::node_params& params) {
+  std::string address;
+  uint32_t port;
+  do {
+    port = std::rand() % (MAX_PORT - MIN_PORT + 1) + MIN_PORT;
+  } while (port >= MY_MIN_PORT && port <= MY_MAX_PORT);
+  address = LOCALHOST + std::to_string(port);
+  return address;
+}
 
-  std::string s(len * 2, ' ');
-  for (uint32_t i = 0; i < len; ++i) {
-    s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
-    s[2 * i + 1] = hexmap[data[i] & 0x0F];
-  }
-  return s;
+std::string create_remote_connection_address(node* n, const node::node_params& params) {
+  std::string address = KNOWN_IPS[std::rand() % KNOWN_IPS.size()] +
+        std::to_string(std::rand() % (MAX_PORT - MIN_PORT + 1) + MIN_PORT);
+  return address;
 }
 
 // Function that collects and prints test results
@@ -117,29 +124,77 @@ void miner_thread_function() {
   }
 }
 
+// ARGS:
+// is_localhost -> 1 number_nodes my_min_port my_max_port
+// not_localhost-> 0 number_nodes my_ip [other_ips]
+
 int main(int argc, const char * argv[]) {
-  if (argc != 5) {
+  if (argc < 1) {
     LOG(ERROR) << "Number of provided arguments is not as expected!";
     return 0;
   }
+  IS_LOCALHOST = std::stoi(argv[1]);
   try {
-    MIN_PORT = std::stoi(argv[1]);
-    MAX_PORT = std::stoi(argv[2]);
-    MY_MIN_PORT = std::stoi(argv[3]);
-    MY_MAX_PORT = std::stoi(argv[4]);
-    NUMBER_NODES = MY_MAX_PORT - MY_MIN_PORT + 1;
+    if (IS_LOCALHOST) {
+      if (argc != 5) {
+        LOG(ERROR) << "Number of provided arguments is not as expected!";
+        return 0;
+      }
+      NUMBER_NODES = std::stoi(argv[2]);
+      // MIN_PORT = std::stoi(argv[3]);
+      // MAX_PORT = std::stoi(argv[4]);
+      MY_MIN_PORT = std::stoi(argv[5]);
+      MY_MAX_PORT = std::stoi(argv[6]);
+      if (MY_MAX_PORT - MY_MIN_PORT + 1 < NUMBER_NODES) {
+        LOG(ERROR) << "Not enough ports to run " << NUMBER_NODES << " nodes!";
+        return 0;
+      }
+    } else {
+      if (argc < 5) {
+        LOG(ERROR) << "Number of provided arguments is not as expected!";
+        return 0;
+      }
+      NUMBER_NODES = std::stoi(argv[2]);
+      MY_IP = const_cast<char*>(argv[3]);
+      // MIN_PORT = std::stoi(argv[3]);
+      // MAX_PORT = std::stoi(argv[4]);
+      if (MAX_PORT - MIN_PORT  + 1 < NUMBER_NODES) {
+        LOG(ERROR) << "Not enough ports to run " << NUMBER_NODES << " nodes!";
+        return 0;
+      }
+      for (int i = 6; i <= argc; i++) {
+        KNOWN_IPS.push_back(argv[i]);
+      }
+    }
     automaton::core::network::tcp_init();
     node::node_params params;
-    params.acceptors_count = 1;
+    params.connection_type = "tcp";
     params.connected_peers_count = NUMBER_PEERS_IN_NODE;
-    params.min_port_number = MIN_PORT;
-    params.max_port_number = MAX_PORT;
     LOG(INFO) << "Creating acceptors...";
-    for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-      std::string address = LOCALHOST + std::to_string(MY_MIN_PORT + i);
-      nodes.push_back(new node(params));
-      nodes[i]->init();
-      nodes[i]->add_acceptor("tcp", address);
+    if (IS_LOCALHOST) {
+      for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+        uint32_t tries = 5;
+        std::string address;
+        nodes.push_back(new node(params, create_localhost_connection_address));
+        nodes[i]->init();
+        do {
+          address = LOCALHOST + std::to_string(MY_MIN_PORT +
+              std::rand() % (MY_MAX_PORT - MY_MIN_PORT));
+          nodes[i]->id = address;
+        }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
+      }
+    } else {
+      for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+        uint32_t tries = 5;
+        std::string address;
+        nodes.push_back(new node(params, create_remote_connection_address));
+        nodes[i]->init();
+        do {
+          address = MY_IP +
+              std::to_string(MIN_PORT + std::rand() % (MAX_PORT - MIN_PORT));
+          nodes[i]->id = address;
+        }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
+      }
     }
     LOG(INFO) << "Starting simulation...";
     updater = std::thread(update_thread_function);
@@ -147,7 +202,7 @@ int main(int argc, const char * argv[]) {
     // ==============================================
     for (uint32_t i = 0; i < SIMULATION_TIME; i += LOOP_STEP) {
       // LOG(INFO) << "PROCESSING: " + std::to_string(i);
-      // collect_stats();
+      collect_stats();
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
     }
   } catch (std::exception& e) {
