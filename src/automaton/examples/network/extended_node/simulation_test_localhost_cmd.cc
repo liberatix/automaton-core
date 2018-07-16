@@ -22,7 +22,7 @@ using automaton::examples::node;
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 4;
 static const uint32_t LOOP_STEP = 48;
-static const uint32_t SIMULATION_TIME = 10000;
+static const uint32_t SIMULATION_TIME = 600000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 static const uint32_t NEW_NODES = 48;
 
