@@ -66,6 +66,7 @@ std::string create_remote_connection_address(node* n, const node::node_params& p
 
 // Function that collects and prints test results
 void collect_stats() {
+  LOG(DEBUG) << "collect stats 0";
   hashes.clear();
   heights.clear();
   nodes_mutex.lock();
@@ -82,20 +83,25 @@ void collect_stats() {
   }
   LOG(INFO) << "=================";
   nodes_mutex.unlock();
+  LOG(DEBUG) << "collect stats 1";
 }
 
 void update_thread_function() {
   try {
     while (!simulation_end) {
+      LOG(DEBUG) << "updater loop 0";
       nodes_mutex.lock();
       uint32_t n_number = nodes.size();
       nodes_mutex.unlock();
       for (uint32_t i = 0; i < n_number && !simulation_end; ++i) {
+        LOG(DEBUG) << "updater inner loop 0";
         nodes_mutex.lock();
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->update();
+        LOG(DEBUG) << "updater inner loop 0";
       }
+      LOG(DEBUG) << "updater loop 1";
     }
   } catch (std::exception& e) {
     LOG(ERROR) << "EXCEPTION " + std::string(e.what());
@@ -107,15 +113,19 @@ void update_thread_function() {
 void miner_thread_function() {
   try {
     while (!simulation_end) {
+      LOG(DEBUG) << "miner loop 0";
       nodes_mutex.lock();
       uint32_t n_number = nodes.size();
       nodes_mutex.unlock();
       for (uint32_t i = 0; i < n_number && !simulation_end; ++i) {
+        LOG(DEBUG) << "miner inner loop 0";
         nodes_mutex.lock();
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->mine(128, MINER_PRECISION_BITS);
+        LOG(DEBUG) << "miner inner loop 0";
       }
+      LOG(DEBUG) << "miner loop 1";
     }
   } catch (std::exception& e) {
     LOG(ERROR) << "EXCEPTION " + std::string(e.what());
@@ -210,6 +220,7 @@ int main(int argc, const char * argv[]) {
   } catch(...) {
     LOG(ERROR) << "UNKOWN EXCEPTION!";
   }
+  LOG(INFO) << "Ending simulation...";
   simulation_end = true;
   miner.join();
   updater.join();
