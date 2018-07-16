@@ -21,7 +21,7 @@ using automaton::examples::node;
 
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 4;
-static const uint32_t LOOP_STEP = 48;
+static const uint32_t LOOP_STEP = 1000;
 static const uint32_t SIMULATION_TIME = 600000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 static const uint32_t NEW_NODES = 48;
@@ -32,7 +32,7 @@ static const char* LOCALHOST = "127.0.0.1:";
 
 static bool IS_LOCALHOST;
 static char* MY_IP;
-static uint32_t MIN_PORT = 11000;
+static uint32_t MIN_PORT = 12000;
 static uint32_t MAX_PORT = 12500;
 static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
