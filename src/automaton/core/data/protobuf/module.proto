@@ -1,13 +1,10 @@
 syntax = "proto3";
 
-message protobuf_msg {
-  data.v0.msg c1 = 1;
+message pb_msg {
 }
 
-message protobuf_schema {
-  data.v0.schema c1 = 1;
+message pb_schema {
 }
 
-message protobuf_factory {
-  data.v0.factory c1 = 1;
+message pb_factory {
 }

@@ -16,6 +16,56 @@ namespace automaton {
 namespace core {
 namespace script {
 
+void module::add_function(const std::string function_name, module_static_function func) {
+  if (functions_.count(function_name) > 0) {
+    std::stringstream ss;
+    ss << "Module " << name() << " already has function named " << function_name;
+    LOG(ERROR) << ss.str();
+    throw ss.str();
+  }
+  functions_[function_name] = func;
+}
+
+void module::add_implementation(const std::string implementation,
+                                const std::vector<std::string> concepts,
+                                object_factory_function f) {
+  CHECK_GT(concepts.size(), 0) << implementation << " should have a concept!";
+  if (implementations_.count(implementation) > 0) {
+    std::stringstream ss;
+    ss << "Module " << name() << " already has implementation for " << implementation;
+    LOG(ERROR) << ss.str();
+    throw ss.str();
+  }
+  implementations_[implementation] = std::make_pair(f, concepts);
+
+  // Check whether concepts have already been imported.
+  auto& factory = registry::instance().get_factory();
+  for (auto& concept : concepts) {
+    try {
+      factory.get_schema_id(concept);
+    } catch (...) {
+      std::stringstream ss;
+      ss << "Could not locate concept interface for " << concept;
+      LOG(ERROR) << ss.str();
+      throw ss.str();
+    }
+  }
+}
+
+void module::check_implementation(const std::string implementation) {
+  auto& factory = registry::instance().get_factory();
+  auto full_scope_implementation = name_with_api_version() + "." + implementation;
+  try {
+    factory.get_schema_id(full_scope_implementation);
+  } catch (...) {
+    std::stringstream ss;
+    ss << "Could not locate constructor message schema for " << full_scope_implementation;
+    LOG(ERROR) << ss.str();
+    throw ss.str();
+  }
+}
+
+
 registry::registry() {
   auto ptr = new protobuf_factory();
   LOG(INFO) << "Created factory " << ptr;
@@ -82,7 +132,7 @@ std::string registry::to_string() {
     bool first_line = true;
     for (auto function : m.functions()) {
       ss << "| " << std::setw(w1) << (first_line ? "functions" : "")
-         << "| " << std::setw(w2) << function
+         << "| " << std::setw(w2) << function.first
          << "|" << std::endl;
       first_line = false;
     }
@@ -114,14 +164,14 @@ std::string registry::to_string() {
       impl_info << implementation << " (";
 
       // List implemented concepts.
-      auto schema_id = factory_->get_schema_id(m.name_with_api_version() + "." + implementation);
-      auto num_fields = factory_->get_fields_number(schema_id);
+      auto& concepts = kv.second.second;
+      auto num_fields = concepts.size();
       for (size_t i = 0; i < num_fields; ++i) {
-        auto field_info = factory_->get_field_info(schema_id, i);
+        auto concept = concepts[i];
         if (i > 0) {
           impl_info << ", ";
         }
-        impl_info << field_info.fully_qualified_type;
+        impl_info << concept;
       }
       impl_info << ")";
 
@@ -174,7 +224,7 @@ std::unique_ptr<common::obj> registry::create(const data::msg& m) {
       LOG(ERROR) << msg.str();
       throw std::invalid_argument(msg.str());
     }
-    return impls.at(object_type)(m);
+    return impls.at(object_type).first(m);
   } else {
     // TODO(asen): Trhow an actual exception.
     throw "Invalid creation message!";

@@ -61,15 +61,15 @@ class module: public script::module {
   module() : script::module("cryptopp", "0.0.1.a") {
     add_dependency("crypto", 0);
 
-    add_implementation("keccak256", &create_keccak256);
-    add_implementation("ripemd160", &create_ripemd160);
-    add_implementation("sha256", &create_sha256);
-    add_implementation("sha3", &create_sha3);
-    add_implementation("sha512", &create_sha512);
+    add_implementation("keccak256", {"crypto.v0.hash"}, &create_keccak256);
+    add_implementation("ripemd160", {"crypto.v0.hash"}, &create_ripemd160);
+    add_implementation("sha256", {"crypto.v0.hash"}, &create_sha256);
+    add_implementation("sha3", {"crypto.v0.hash"}, &create_sha3);
+    add_implementation("sha512", {"crypto.v0.hash"}, &create_sha512);
 
-    add_implementation("random", &create_random);
+    add_implementation("random", {"crypto.v0.rand"}, &create_random);
 
-    add_implementation("secp256k1", &create_secp256k1);
+    add_implementation("secp256k1", {"crypto.v0.dsig"}, &create_secp256k1);
   }
 };
 
