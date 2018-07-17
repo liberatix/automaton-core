@@ -131,6 +131,7 @@ void node::on_error(connection* c, connection::error e) {
   if (e == connection::no_error) {
     return;
   }
+  c->disconnect();
   // LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
 }
 

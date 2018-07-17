@@ -95,6 +95,7 @@ void update_thread_function() {
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->update();
+        n->print_node_info();
       }
     }
   } catch (std::exception& e) {
