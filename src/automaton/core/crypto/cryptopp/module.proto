@@ -1,29 +1,22 @@
 syntax = "proto3";
 
 message ripemd160 {
-  crypto.v0.hash c1 = 1;
 }
 
 message keccak256 {
-  crypto.v0.hash c1 = 1;
 }
 
 message sha3 {
-  crypto.v0.hash c1 = 1;
 }
 
 message sha256 {
-  crypto.v0.hash c1 = 1;
 }
 
 message sha512 {
-  crypto.v0.hash c1 = 1;
 }
 
 message random {
-  crypto.v0.rand c1 = 1;
 }
 
 message secp256k1 {
-  crypto.v0.dsig c1 = 1;
 }
