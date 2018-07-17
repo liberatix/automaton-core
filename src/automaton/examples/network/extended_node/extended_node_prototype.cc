@@ -37,6 +37,8 @@ static const uint32_t MAX_HEADER_SIZE = 255;
 static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
 // Header size size is 1 byte
 
+static const char* LOCALHOST = "127.0.0.1:";
+
 /**
   Next 3 are used as an id in async_read and on_message_received to show at what state is the
   receiving of the message
@@ -155,11 +157,8 @@ void node::on_error(acceptor* a, connection::error e) {
 
 // Node
 
-node::node(node_params params,
-          std::string (*get_randon_peer_address)(node* n, const node_params& params)):id(""),
-          get_randon_peer_address(get_randon_peer_address), params(params),
-          first_block_hash(std::string(HASH_SIZE, 0)), chain_top(first_block_hash), height(0),
-          initialized(false), peer_ids(0) {}
+node::node(node_params params):id(""), params(params), first_block_hash(std::string(HASH_SIZE, 0)),
+    chain_top(first_block_hash), height(0), initialized(false), peer_ids(0) {}
 
 bool node::init() {
   if (initialized) {
@@ -753,11 +752,17 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
 }
 
 void node::update() {
+  // Check if has the right number of acceptors
   acceptors_mutex.lock();
-  if (!acceptors.size()) {
-    // LOG(ERROR) << "No acceptors in this node!";
-  }
+  uint32_t new_acceptors = params.acceptors_count - acceptors.size();
   acceptors_mutex.unlock();
+  if (new_acceptors && new_acceptors > 0) {
+    for (uint32_t i = 0; i < new_acceptors; ++i) {
+      std::string address = LOCALHOST + std::to_string(params.min_port_number +
+          std::rand() % (params.max_port_number - params.min_port_number + 1));
+      add_acceptor("tcp", address);
+    }
+  }
   peers_mutex.lock();
   // Check if there are disconnected peers
   for (auto it = peers.begin(); it != peers.end();) {
@@ -772,9 +777,10 @@ void node::update() {
     for (int32_t i = 0; i < new_peers; ++i) {
       std::string address;
       do {
-        address = get_randon_peer_address(this, params);
+        address = LOCALHOST + std::to_string(params.min_port_number +
+            std::rand() % (params.max_port_number - params.min_port_number + 1));
       } while (address == id || get_peer(address));
-      add_peer(params.connection_type, address);
+      add_peer("tcp", address);
     }
   }
 }

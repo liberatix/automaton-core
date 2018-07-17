@@ -78,12 +78,18 @@ local_repository(
 #  build_file = "luajit.BUILD",
 #)
 
+new_local_repository(
+  name = "localboost",
+  path = "third_party/localboost-s-x64-1_67",
+  build_file = "third_party/localboost.BUILD",
+)
+
 # REMOTE REPOSITORIES
 
 # BOOST
 local_repository(
   name = "com_github_nelhage_rules_boost",
-  # commit = "25e4da1141c56c207a5692b6d3c2aeeffc656fa4",
+  # commit = "675f1bdca5e2aab241b5d4e51597d6610e2f3d3e",
   # remote = "https://github.com/nelhage/rules_boost",
   path = "third_party/com_github_nelhage_rules_boost",
 )
