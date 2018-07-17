@@ -21,12 +21,12 @@ using automaton::examples::node;
 
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 4;
-static const uint32_t LOOP_STEP = 1000;
-static const uint32_t SIMULATION_TIME = 600000;
+static const uint32_t LOOP_STEP = 500;
+static const uint32_t SIMULATION_TIME = 60000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 static const uint32_t NEW_NODES = 48;
 
-static const char* LOCALHOST = "127.0.0.1:";
+static const char* LOCALHOST = "192.168.0.101:";  // "127.0.0.1:";
 
 // Global variables
 
@@ -96,6 +96,7 @@ void update_thread_function() {
         nodes_mutex.unlock();
         n->update();
         n->print_node_info();
+        std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
       }
     }
   } catch (std::exception& e) {

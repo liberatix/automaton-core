@@ -60,7 +60,9 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         throw std::runtime_error(msg.str());
       }
       uint32_t s = buffer[0];
-      c->async_read(buffer, MAX_MESSAGE_SIZE, s, WAITING_HEADER);
+      if (c->get_state() == connection::state::connected) {
+        c->async_read(buffer, MAX_MESSAGE_SIZE, s, WAITING_HEADER);
+      }
     }
     break;
     case WAITING_HEADER: {
@@ -74,7 +76,9 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
         throw std::runtime_error(msg.str());
       } else {
-        c->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
+        if (c->get_state() == connection::state::connected) {
+          c->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
+        }
       }
     }
     break;
@@ -93,7 +97,9 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         received_msg->deserialize_message(data);
         process((received_msg->get_message(1)).get(), c);
         process((received_msg->get_message(2)).get(), c);
-        c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+        if (c->get_state() == connection::state::connected) {
+          c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+        }
       } catch (std::exception& e) {
         std::stringstream msg;
         msg << e.what();
@@ -634,7 +640,7 @@ void node::process(msg* input_message, connection* sender) {
     if (top_block_hash != get_top()) {
       hashes.push_back(get_top());
     }
-    if (hashes.size() > 0) {
+    if (hashes.size() > 0 && sender->get_state() == connection::state::connected) {
     //  LOG(DEBUG) << "SENDING :: " << hashes;
       sender->async_send(add_header(create_send_blocks_message(hashes)));
     }
