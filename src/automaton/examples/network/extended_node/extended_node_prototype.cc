@@ -818,11 +818,12 @@ std::string node::add_header(const std::string& message) const {
   return new_message.append(message);
 }
 
-void node::print_node_info() const {
+std::string node::node_info() const {
   std::lock_guard<std::mutex> acct_lock(acceptors_mutex);
   std::lock_guard<std::mutex> peer_lock(peers_mutex);
   std::stringstream s;
-  s << "NODE ID: " << id << " \nacceptors: ";
+  s << "NODE ID: " << id << " hash: " << automaton::core::io::string_to_hex(get_top()) <<
+      " \nacceptors: ";
   for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
     s << it->first << " ";
   }
@@ -830,7 +831,8 @@ void node::print_node_info() const {
   for (auto it = peers.begin(); it != peers.end(); ++it) {
     s << it->first << " ";
   }
-  LOG(INFO) << s.str();
+  s << '\n';
+  return s.str();
 }
 
 }  // namespace examples

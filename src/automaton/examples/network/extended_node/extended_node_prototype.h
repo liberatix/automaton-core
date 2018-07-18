@@ -103,7 +103,7 @@ class node: public core::network::connection::connection_handler,
 
   void update();
 
-  void print_node_info() const;
+  std::string node_info() const;
 
  private:
   node_params params;

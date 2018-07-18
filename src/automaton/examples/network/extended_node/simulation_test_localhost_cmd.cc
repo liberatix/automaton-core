@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iomanip>
+#include <fstream>
 #include <mutex>
 #include <string>
 #include <sstream>
@@ -20,13 +21,13 @@ using automaton::examples::node;
 // Constants
 
 // static const uint32_t NUMBER_NODES = 64;
-static const uint32_t NUMBER_PEERS_IN_NODE = 4;
+static const uint32_t NUMBER_PEERS_IN_NODE = 8;
 static const uint32_t LOOP_STEP = 500;
-static const uint32_t SIMULATION_TIME = 60000;
+static const uint32_t SIMULATION_TIME = 600000;
 static const uint32_t MINER_PRECISION_BITS = 20;
-static const uint32_t NEW_NODES = 48;
 
 static const char* LOCALHOST = "192.168.0.101:";  // "127.0.0.1:";
+static const char* FILE_NAME = "simulation_output.txt";
 
 // Global variables
 
@@ -38,6 +39,7 @@ static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
 static uint32_t NUMBER_NODES = 0;
 static std::vector<std::string> KNOWN_IPS;
+// static std::ofstream output_file(FILE_NAME);
 
 // height -> how many connections have that height
 static std::map<std::string, uint32_t> hashes;
@@ -95,7 +97,11 @@ void update_thread_function() {
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->update();
-        n->print_node_info();
+        // if (output_file.is_open()) {
+        //   output_file << n->node_info();
+        // } else {
+        //   LOG(ERROR) << "Output file is closed";
+        // }
         std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
       }
     }
@@ -216,6 +222,9 @@ int main(int argc, const char * argv[]) {
   miner.join();
   updater.join();
   collect_stats();
+  // if (output_file.is_open()) {
+  //   output_file.close();
+  // }
   automaton::core::network::tcp_release();
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     delete nodes[i];
