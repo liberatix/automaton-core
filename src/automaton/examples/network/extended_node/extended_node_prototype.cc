@@ -771,17 +771,18 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
 
 void node::update() {
   acceptors_mutex.lock();
-  if (!acceptors.size()) {
+  uint32_t acceptors_number = acceptors.size();
+  acceptors_mutex.unlock();
+  if (!acceptors_number) {
     add_acceptor(params.connection_type, get_randon_acceptor_address(this, params));
   }
-  acceptors_mutex.unlock();
   peers_mutex.lock();
   // Check if there are disconnected peers
-  for (auto it = peers.begin(); it != peers.end();) {
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
     if (it->second->get_state() == connection::state::disconnected) {
+      delete it->second;
       peers.erase(it);
     }
-    it++;
   }
   int32_t new_peers = params.connected_peers_count - peers.size();
   peers_mutex.unlock();

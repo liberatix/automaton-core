@@ -79,7 +79,7 @@ void collect_stats() {
   hashes.clear();
   heights.clear();
   nodes_mutex.lock();
-  for (uint32_t i = 0; i < nodes.size(); ++i) {
+  for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     auto res = nodes[i]->get_height_and_top();
     std::string hash = automaton::core::io::string_to_hex(res.second);
     hashes[hash]++;
@@ -97,10 +97,7 @@ void collect_stats() {
 void update_thread_function() {
   try {
     while (!simulation_end) {
-      nodes_mutex.lock();
-      uint32_t n_number = nodes.size();
-      nodes_mutex.unlock();
-      for (uint32_t i = 0; i < n_number && !simulation_end; ++i) {
+      for (uint32_t i = 0; i < NUMBER_NODES && !simulation_end; ++i) {
         nodes_mutex.lock();
         node* n = nodes[i];
         nodes_mutex.unlock();
@@ -123,10 +120,7 @@ void update_thread_function() {
 void miner_thread_function() {
   try {
     while (!simulation_end) {
-      nodes_mutex.lock();
-      uint32_t n_number = nodes.size();
-      nodes_mutex.unlock();
-      for (uint32_t i = 0; i < n_number && !simulation_end; ++i) {
+      for (uint32_t i = 0; i < NUMBER_NODES && !simulation_end; ++i) {
         nodes_mutex.lock();
         node* n = nodes[i];
         nodes_mutex.unlock();
@@ -212,6 +206,7 @@ int main(int argc, const char * argv[]) {
         }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
       }
     }
+    CHECK(nodes.size() == NUMBER_NODES) << "Number of nodes is not correct!";
     LOG(INFO) << "Starting simulation...";
     updater = std::thread(update_thread_function);
     miner = std::thread(miner_thread_function);
