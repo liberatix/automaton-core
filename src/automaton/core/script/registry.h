@@ -26,7 +26,18 @@ class module {
  public:
   typedef std::unique_ptr<common::obj> (*object_factory_function)(const data::msg& m);
 
+  struct constructor_info {
+    object_factory_function func;
+    uint32_t input_schema_id;
+  };
+
   typedef common::status (*module_static_function)(const data::msg& m, data::msg* output);
+
+  struct static_function_info {
+    module_static_function func;
+    uint32_t input_schema_id;
+    uint32_t output_schema_id;
+  };
 
   virtual const std::string name() const { return name_; }
 
@@ -46,11 +57,13 @@ class module {
 
   virtual data::schema* schema() const = 0;
 
+  virtual void bind_schemas();
+
   virtual const std::vector<std::string> dependencies() const {
     return dependencies_;
   }
 
-  virtual const std::unordered_map<std::string, module_static_function> functions() const {
+  virtual const std::unordered_map<std::string, static_function_info> functions() const {
     return functions_;
   }
 
@@ -113,7 +126,7 @@ class module {
   std::vector<std::string> concepts_;
   std::unordered_map<std::string,
       std::pair<object_factory_function, std::vector<std::string>>> implementations_;
-  std::unordered_map<std::string, module_static_function> functions_;
+  std::unordered_map<std::string, static_function_info> functions_;
 };
 
 /**
@@ -161,6 +174,7 @@ class registry {
     // Import schema.
     LOG(INFO) << "Importing schema " << m.name_with_api_version();
     factory_->import_schema(m.schema(), m.name_with_api_version(), m.name_with_api_version());
+    m.bind_schemas();
 
     for (auto impl : m.implementations()) {
       m.check_implementation(impl.first);

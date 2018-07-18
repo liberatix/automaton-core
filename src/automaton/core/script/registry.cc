@@ -23,7 +23,26 @@ void module::add_function(const std::string function_name, module_static_functio
     LOG(ERROR) << ss.str();
     throw ss.str();
   }
-  functions_[function_name] = func;
+
+  functions_[function_name] = {func, 0, 0};
+}
+
+void module::bind_schemas() {
+  auto& factory = registry::instance().get_factory();
+
+  // Bind static functions
+  for (auto func : functions_) {
+    uint32_t input_id =
+        factory.get_schema_id(name_with_api_version() + "." + func.first + ".request");
+
+    uint32_t output_id =
+        factory.get_schema_id(name_with_api_version() + "." + func.first + ".response");
+
+    // LOG(DEBUG) << "Binding " << func.first <<  " IN: " << input_id << " OUT: " << output_id;
+  }
+
+  // TODO(asen): Bind object constructors
+  // TODO(asen): Bind object method calls
 }
 
 void module::add_implementation(const std::string implementation,
