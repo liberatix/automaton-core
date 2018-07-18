@@ -54,6 +54,7 @@ class node: public core::network::connection::connection_handler,
   };
 
   node(node_params params,
+      std::string (*get_randon_acceptor_address)(node* n, const node_params& params),
       std::string (*get_randon_peer_address)(node* n, const node_params& params));
 
   ~node();
@@ -61,6 +62,8 @@ class node: public core::network::connection::connection_handler,
   bool init();
 
   std::string id;
+
+  std::string (*get_randon_acceptor_address)(node* n, const node_params& params);
 
   std::string (*get_randon_peer_address)(node* n, const node_params& params);
 
@@ -78,6 +81,8 @@ class node: public core::network::connection::connection_handler,
   automaton::core::network::connection* get_peer(const std::string& address);
 
   bool add_acceptor(const std::string& connection_type, const std::string& address);
+
+  automaton::core::network::acceptor* get_acceptor(const std::string& address);
 
   void remove_acceptor(const std::string& id);
 

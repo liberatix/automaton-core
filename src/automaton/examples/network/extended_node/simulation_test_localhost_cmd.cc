@@ -61,9 +61,17 @@ std::string create_localhost_connection_address(node* n, const node::node_params
 }
 
 std::string create_remote_connection_address(node* n, const node::node_params& params) {
-  std::string address = KNOWN_IPS[std::rand() % KNOWN_IPS.size()] +
-        std::to_string(std::rand() % (MAX_PORT - MIN_PORT + 1) + MIN_PORT);
-  return address;
+  return KNOWN_IPS[std::rand() % KNOWN_IPS.size()] +
+      std::to_string(std::rand() % (MAX_PORT - MIN_PORT + 1) + MIN_PORT);
+}
+
+std::string create_localhost_acceptor_address(node* n, const node::node_params& params) {
+  return LOCALHOST + std::to_string(MY_MIN_PORT +
+      std::rand() % (MY_MAX_PORT - MY_MIN_PORT + 1));
+}
+
+std::string create_remote_acceptor_address(node* n, const node::node_params& params) {
+  return MY_IP + std::to_string(MIN_PORT + std::rand() % (MAX_PORT - MIN_PORT + 1));
 }
 
 // Function that collects and prints test results
@@ -182,26 +190,26 @@ int main(int argc, const char * argv[]) {
     LOG(INFO) << "Creating acceptors...";
     if (IS_LOCALHOST) {
       for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-        uint32_t tries = 5;
+        uint32_t tries = 25;
         std::string address;
-        nodes.push_back(new node(params, create_localhost_connection_address));
+        nodes.push_back(new node(params, create_localhost_acceptor_address,
+            create_localhost_connection_address));
         nodes[i]->init();
+        nodes[i]->id = std::to_string(i);
         do {
-          address = LOCALHOST + std::to_string(MY_MIN_PORT +
-              std::rand() % (MY_MAX_PORT - MY_MIN_PORT + 1));
-          nodes[i]->id = address;
+          address = create_localhost_acceptor_address(nodes[i], params);
         }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
       }
     } else {
       for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-        uint32_t tries = 5;
+        uint32_t tries = 25;
         std::string address;
-        nodes.push_back(new node(params, create_remote_connection_address));
+        nodes.push_back(new node(params, create_remote_acceptor_address,
+            create_remote_connection_address));
         nodes[i]->init();
+        nodes[i]->id = std::to_string(i);
         do {
-          address = MY_IP +
-              std::to_string(MIN_PORT + std::rand() % (MAX_PORT - MIN_PORT + 1));
-          nodes[i]->id = address;
+          address = create_remote_acceptor_address(nodes[i], params);
         }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
       }
     }
