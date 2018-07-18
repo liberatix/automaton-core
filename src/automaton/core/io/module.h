@@ -19,8 +19,7 @@ class module: public script::module {
   data::schema* schema() const;
 
   static common::status tohex(const data::msg& input, data::msg * output) {
-    CHECK_EQ(input.get_message_type(), "");
-    CHECK_EQ(output->get_message_type(), "");
+    // TODO(asen): Check message schema IDs for type safety
     output->set_blob(1, string_to_hex(input.get_blob(1)));
     return common::status(common::status::OK);
   }
