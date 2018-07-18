@@ -97,6 +97,7 @@ void update_thread_function() {
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->update();
+        LOG(DEBUG) << n->node_info();
         // if (output_file.is_open()) {
         //   output_file << n->node_info();
         // } else {

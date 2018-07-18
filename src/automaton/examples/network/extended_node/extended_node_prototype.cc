@@ -822,16 +822,35 @@ std::string node::node_info() const {
   std::lock_guard<std::mutex> acct_lock(acceptors_mutex);
   std::lock_guard<std::mutex> peer_lock(peers_mutex);
   std::stringstream s;
-  s << "NODE ID: " << id << " hash: " << automaton::core::io::string_to_hex(get_top()) <<
-      " \nacceptors: ";
-  for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
-    s << it->first << " ";
-  }
-  s << "\npeers: ";
+  // s << "NODE ID: " << id << " hash: " << automaton::core::io::string_to_hex(get_top()) <<
+  //     " \nacceptors: ";
+  // for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
+  //   s << it->first << " ";
+  // }
+  // s << "\npeers: ";
+  // for (auto it = peers.begin(); it != peers.end(); ++it) {
+  //   s << it->first << " ";
+  // }
+  // s << '\n';
+  uint32_t connected = 0, connecting = 0, disconnected = 0, invalid = 0;
+  connection::state state_;
   for (auto it = peers.begin(); it != peers.end(); ++it) {
-    s << it->first << " ";
+    state_ = it->second->get_state();
+    if (state_ == connection::state::connected) {
+      connected++;
+    } else if (state_ == connection::state::connecting) {
+      connecting++;
+    } else if (state_ == connection::state::disconnected) {
+      disconnected++;
+    } else {
+      invalid++;
+    }
   }
-  s << '\n';
+  s << "NODE ID: " << id << " @hash: ..." <<
+      automaton::core::io::string_to_hex(std::string(get_top(), HASH_SIZE - 5)) << " -> ";
+  s << "C: " << connected << " CING: " << connecting << " D: " << disconnected <<  " INV: " <<
+    invalid;
+
   return s.str();
 }
 
