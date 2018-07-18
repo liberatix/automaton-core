@@ -1,2 +1,11 @@
 syntax = "proto3";
 
+message tohex {
+  message request {
+    bytes input = 1;
+  }
+
+  message response {
+    bytes output = 1;
+  }
+}
