@@ -105,13 +105,12 @@ void update_thread_function() {
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->update();
-        LOG(DEBUG) << n->node_info();
         // if (output_file.is_open()) {
         //   output_file << n->node_info();
         // } else {
         //   LOG(ERROR) << "Output file is closed";
         // }
-        std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
       }
     }
   } catch (std::exception& e) {
@@ -220,6 +219,11 @@ int main(int argc, const char * argv[]) {
     for (uint32_t i = 0; i < SIMULATION_TIME; i += LOOP_STEP) {
       // LOG(INFO) << "PROCESSING: " + std::to_string(i);
       collect_stats();
+      nodes_mutex.lock();
+      for (uint32_t j = 0; j < nodes.size(); ++j) {
+        LOG(DEBUG) << nodes[j]->node_info();
+      }
+      nodes_mutex.unlock();
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
     }
   } catch (std::exception& e) {
