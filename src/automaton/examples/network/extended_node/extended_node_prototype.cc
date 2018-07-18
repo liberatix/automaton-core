@@ -50,7 +50,7 @@ core::data::factory* node::msg_factory = nullptr;
 // Node's connection handler
 
 void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id_) {
-  // LOG(DEBUG) << id << " RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read));
+  LOG(DEBUG) << id << " RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read));
   switch (id_) {
     case WAITING_HEADER_SIZE: {
       if (bytes_read != 1) {
@@ -115,7 +115,7 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
 
 void node::on_message_sent(connection* c, uint32_t id_, connection::error e) {
   if (e) {
-    LOG(ERROR) << "Message with id " << std::to_string(id_) << " was NOT sent to " <<
+    LOG(ERROR) << id << "Message with id " << std::to_string(id_) << " was NOT sent to " <<
         c->get_address() << " -> Error " << std::to_string(e) << " occurred";
   } else {
     // logging("Message with id " + std::to_string(id) + " was successfully sent to " +
@@ -124,13 +124,13 @@ void node::on_message_sent(connection* c, uint32_t id_, connection::error e) {
 }
 
 void node::on_connected(connection* c) {
-  // LOG(INFO) << id << " connected with: " + c->get_address();
+  LOG(INFO) << id << " connected with: " + c->get_address();
   c->async_send(add_header(create_request_blocks_message({})));
   c->async_read(add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
 }
 
 void node::on_disconnected(connection* c) {
-  // LOG(INFO) << id << " disconnected with: " + c->get_address();
+  LOG(INFO) << id << " disconnected with: " + c->get_address();
 }
 
 void node::on_error(connection* c, connection::error e) {
@@ -138,31 +138,32 @@ void node::on_error(connection* c, connection::error e) {
     return;
   }
   c->disconnect();
-  // LOG(ERROR) << "Error: " << std::to_string(e) << " (connection " << c->get_address() << ")";
 }
 
 // Node's acceptor handler
 
 bool node::on_requested(acceptor* a, const std::string& address) {
   // EXPECT_EQ(address, address_a);
-  // LOG(INFO) << id << " received connection request from : " + address;
+  LOG(INFO) << id << " received connection request from : " + address;
   return accept_connection(/*address*/);
 }
 
 void node::on_connected(acceptor* a, connection* c, const std::string& address) {
-  // LOG(INFO) << id << " accepted connection from " << address;
+  LOG(INFO) << id << " accepted connection from " << address;
   add_peer(c, address);
 }
 
 void node::on_error(acceptor* a, connection::error e) {
-  LOG(ERROR) << std::to_string(e);
+  LOG(ERROR) << id << " Removing acceptor" << a->get_address();
   remove_acceptor(a->get_address());
 }
 
 // Node
 
 node::node(node_params params,
+          std::string (*get_randon_acceptor_address)(node* n, const node_params& params),
           std::string (*get_randon_peer_address)(node* n, const node_params& params)):id(""),
+          get_randon_acceptor_address(get_randon_acceptor_address),
           get_randon_peer_address(get_randon_peer_address), params(params),
           first_block_hash(std::string(HASH_SIZE, 0)), chain_top(first_block_hash), height(0),
           initialized(false), peer_ids(0) {}
@@ -329,9 +330,19 @@ bool node::add_acceptor(const std::string& connection_type, const std::string& a
     return false;
   }
   acceptors[address] = new_acceptor;
-  this->id = address;
+  // this->id = address;
   new_acceptor->start_accepting();
   return true;
+}
+
+automaton::core::network::acceptor* node::get_acceptor(const std::string& address) {
+  CHECK(initialized == true) << "Node is not initialized! Call init() first!";
+  std::lock_guard<std::mutex> lock(acceptors_mutex);
+  auto it = acceptors.find(address);
+  if (it == acceptors.end()) {
+    return nullptr;
+  }
+  return it->second;
 }
 
 void node::remove_acceptor(const std::string& id_) {
@@ -761,7 +772,7 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
 void node::update() {
   acceptors_mutex.lock();
   if (!acceptors.size()) {
-    // LOG(ERROR) << "No acceptors in this node!";
+    add_acceptor(params.connection_type, get_randon_acceptor_address(this, params));
   }
   acceptors_mutex.unlock();
   peers_mutex.lock();
@@ -779,7 +790,7 @@ void node::update() {
       std::string address;
       do {
         address = get_randon_peer_address(this, params);
-      } while (address == id || get_peer(address));
+      } while (get_acceptor(address) || get_peer(address));
       add_peer(params.connection_type, address);
     }
   }
@@ -832,24 +843,33 @@ std::string node::node_info() const {
   //   s << it->first << " ";
   // }
   // s << '\n';
-  uint32_t connected = 0, connecting = 0, disconnected = 0, invalid = 0;
+  std::vector<std::string> connected, connecting, disconnected, invalid;
   connection::state state_;
   for (auto it = peers.begin(); it != peers.end(); ++it) {
     state_ = it->second->get_state();
     if (state_ == connection::state::connected) {
-      connected++;
+      connected.push_back(it->first);
     } else if (state_ == connection::state::connecting) {
-      connecting++;
+      connecting.push_back(it->first);
     } else if (state_ == connection::state::disconnected) {
-      disconnected++;
+      disconnected.push_back(it->first);
     } else {
-      invalid++;
+      invalid.push_back(it->first);
     }
   }
-  s << "NODE ID: " << id << " @hash: ..." <<
-      automaton::core::io::string_to_hex(std::string(get_top(), HASH_SIZE - 5)) << " -> ";
-  s << "C: " << connected << " CING: " << connecting << " D: " << disconnected <<  " INV: " <<
-    invalid;
+  s << "NODE ID: " << id << " acceptors: ";
+  for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
+    s << it->first << " ";
+  }
+  s << " @hash: ..." << automaton::core::io::string_to_hex(std::string(get_top(), HASH_SIZE - 5));
+  s << "\nC: " << connected.size() << " -> ";
+  for (uint32_t i = 0; i < connected.size(); ++i) s << " " << connected[i];
+  s << "\nCING: " << connecting.size() << " -> ";
+  for (uint32_t i = 0; i < connecting.size(); ++i) s << " " << connecting[i];
+  s << "\nD: " << disconnected.size() << " -> ";
+  for (uint32_t i = 0; i < disconnected.size(); ++i) s << " " << disconnected[i];
+  s << "\nINV: " << invalid.size() << " -> ";
+  for (uint32_t i = 0; i < invalid.size(); ++i) s << " " << invalid[i];
 
   return s.str();
 }
