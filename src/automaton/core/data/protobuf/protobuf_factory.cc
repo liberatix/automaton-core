@@ -382,13 +382,12 @@ bool protobuf_factory::is_repeated(uint32_t schema_id, uint32_t field_tag) const
   throw std::invalid_argument(msg.str());
 }
 
-schema::field_info protobuf_factory::get_field_info(uint32_t schema_id,
-    uint32_t index) const {
+schema::field_info protobuf_factory::get_field_info(uint32_t schema_id, uint32_t index) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
   const Descriptor* desc = schemas[schema_id]->GetDescriptor();
-  if (index < 0 || index >= static_cast<uint32_t>(desc->field_count())) {
+  if (index >= static_cast<uint32_t>(desc->field_count())) {
     std::stringstream msg;
     msg << "No field with such index: " << index;
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
