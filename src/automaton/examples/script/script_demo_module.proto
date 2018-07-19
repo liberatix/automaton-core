@@ -26,6 +26,7 @@ message log {
   message request {
     bytes msg = 1;
   }
+
   message response {
   }
 }
