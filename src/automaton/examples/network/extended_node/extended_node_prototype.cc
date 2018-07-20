@@ -248,8 +248,7 @@ char* node::add_buffer(uint32_t size) {
 }
 
 void node::add_to_log(const std::string& e) {
-  time_t now =
-      std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
+  time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   std::stringstream s;
   s << '[' << std::put_time(std::localtime(&now), TIME_FORMAT) << "] ";
   std::lock_guard<std::mutex> lock(log_mutex);
@@ -683,13 +682,13 @@ bool node::is_hash_valid(uint8_t* hash, uint8_t required_leading_zeros) {
 }
 
 void node::increase_nonce() {
-  uint32_t current = HASH_SIZE - 1;
+  uint32_t current = 0;
   while (nonce[current] == 255) {
     nonce[current] = 0;
-    current--;
-    if (current < 0) {
-      current = HASH_SIZE - 1;
+    if (current >= HASH_SIZE) {
+      current = 0;
     }
+    current++;
   }
   nonce[current]++;
 }
@@ -834,7 +833,7 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
     }
   }
   // LOG(DEBUG) << id << " mining: 1";
-  delete next_block_hash;
+  delete[] next_block_hash;
 }
 
 void node::update() {
