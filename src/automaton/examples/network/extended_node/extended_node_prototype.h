@@ -54,18 +54,16 @@ class node: public core::network::connection::connection_handler,
   };
 
   node(node_params params,
-      std::string (*get_randon_acceptor_address)(node* n, const node_params& params),
-      std::string (*get_randon_peer_address)(node* n, const node_params& params));
+      std::string (*get_random_acceptor_address)(node* n, const node_params& params),
+      std::string (*get_random_peer_address)(node* n, const node_params& params));
 
   ~node();
 
   bool init();
 
-  std::string id;
+  std::string (*get_random_acceptor_address)(node* n, const node_params& params);
 
-  std::string (*get_randon_acceptor_address)(node* n, const node_params& params);
-
-  std::string (*get_randon_peer_address)(node* n, const node_params& params);
+  std::string (*get_random_peer_address)(node* n, const node_params& params);
 
   std::vector<std::string> logger;
 
@@ -97,6 +95,10 @@ class node: public core::network::connection::connection_handler,
   void handle_block(const std::string& hash, const block& block_,
       const std::string& serialized_block);
 
+  std::string get_id() const;
+
+  void set_id(const std::string& new_id);
+
   std::pair<uint32_t, std::string> get_height_and_top() const;
 
   std::string get_top() const;
@@ -117,6 +119,7 @@ class node: public core::network::connection::connection_handler,
   std::string node_info() const;
 
  private:
+  std::string id;
   node_params params;
   std::string first_block_hash;
   std::string chain_top;
@@ -129,6 +132,7 @@ class node: public core::network::connection::connection_handler,
   std::mutex global_state_mutex;
   std::mutex orphan_blocks_mutex;
   std::mutex peer_ids_mutex;
+  mutable std::mutex id_mutex;
   mutable std::mutex peers_mutex;
   mutable std::mutex acceptors_mutex;
   mutable std::mutex chain_top_mutex;

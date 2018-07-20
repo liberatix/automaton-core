@@ -23,7 +23,7 @@ using automaton::examples::node;
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 8;
 static const uint32_t LOOP_STEP = 50;
-static const uint32_t SIMULATION_TIME = 10000;
+static const uint32_t SIMULATION_TIME = 60000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 
 static const char* LOCALHOST = "192.168.0.101:";  // "127.0.0.1:";
@@ -34,11 +34,12 @@ static const char* FILE_NAME = "simulation_output.txt";
 static bool IS_LOCALHOST;
 static char* MY_IP;
 static uint32_t MIN_PORT = 12000;
-static uint32_t MAX_PORT = 12010;
+static uint32_t MAX_PORT = 12020;
 static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
 static uint32_t NUMBER_NODES = 0;
 static std::vector<std::string> KNOWN_IPS;
+static std::ofstream output_file(FILE_NAME, std::fstream::out);
 
 // height -> how many connections have that height
 static std::map<std::string, uint32_t> hashes;
@@ -79,6 +80,8 @@ void collect_stats() {
   hashes.clear();
   heights.clear();
   nodes_mutex.lock();
+  CHECK(nodes.size() == NUMBER_NODES) << "Number of nodes is not as expected! Have " <<
+      nodes.size() << " expected " << NUMBER_NODES;
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     // LOG(INFO) << "STATS loop: " << i;
     auto res = nodes[i]->get_height_and_top();
@@ -104,6 +107,8 @@ void update_thread_function() {
       for (uint32_t i = 0; i < NUMBER_NODES && !simulation_end; ++i) {
         // LOG(INFO) << "UPDATE loop: " << i;
         nodes_mutex.lock();
+        CHECK(nodes.size() == NUMBER_NODES) << "Number of nodes is not as expected! Have " <<
+            nodes.size() << " expected " << NUMBER_NODES;
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->update();
@@ -131,6 +136,8 @@ void miner_thread_function() {
       for (uint32_t i = 0; i < NUMBER_NODES && !simulation_end; ++i) {
         // LOG(INFO) << "MINE loop " << i;
         nodes_mutex.lock();
+        CHECK(nodes.size() == NUMBER_NODES) << "Number of nodes is not as expected! Have " <<
+            nodes.size() << " expected " << NUMBER_NODES;
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->mine(128, MINER_PRECISION_BITS);
@@ -145,11 +152,26 @@ void miner_thread_function() {
   }
 }
 
+void crash_handler(int sig) {
+    LOG(ERROR) << "Woops! Crashed!";
+    if (output_file.is_open()) {
+      for (uint32_t i = 0; i < nodes.size(); ++i) {
+        nodes[i]->log_to_stream(output_file);
+      }
+    } else {
+      LOG(ERROR) << "File is not open!";
+    }
+    el::Helpers::logCrashReason(sig, true);
+    el::base::debug::StackTrace();
+    el::Helpers::crashAbort(sig);
+}
+
 // ARGS:
 // is_localhost -> 1 number_nodes my_min_port my_max_port
 // not_localhost-> 0 number_nodes my_ip [other_ips]
 
 int main(int argc, const char * argv[]) {
+  el::Helpers::setCrashHandler(crash_handler);
   if (argc < 1) {
     LOG(ERROR) << "Number of provided arguments is not as expected!";
     return 0;
@@ -206,7 +228,7 @@ int main(int argc, const char * argv[]) {
           LOG(ERROR) << s.str();
           throw std::runtime_error(s.str());
         }
-        nodes[i]->id = std::to_string(i);
+        nodes[i]->set_id(std::to_string(i));
         do {
           address = create_localhost_acceptor_address(nodes[i], params);
         }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
@@ -223,7 +245,7 @@ int main(int argc, const char * argv[]) {
           LOG(ERROR) << s.str();
           throw std::runtime_error(s.str());
         }
-        nodes[i]->id = std::to_string(i);
+        nodes[i]->set_id(std::to_string(i));
         do {
           address = create_remote_acceptor_address(nodes[i], params);
         }  while (!nodes[i]->add_acceptor("tcp", address) && tries--);
@@ -257,9 +279,12 @@ int main(int argc, const char * argv[]) {
   updater.join();
   collect_stats();
   automaton::core::network::tcp_release();
-  std::ofstream output_file(FILE_NAME, std::fstream::out);
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-    nodes[i]->log_to_stream(output_file);
+    if (output_file.is_open()) {
+      nodes[i]->log_to_stream(output_file);
+    } else {
+      LOG(ERROR) << "File is not open!";
+    }
     delete nodes[i];
   }
   if (output_file.is_open()) {
