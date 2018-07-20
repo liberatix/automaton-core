@@ -67,6 +67,12 @@ class node: public core::network::connection::connection_handler,
 
   std::string (*get_randon_peer_address)(node* n, const node_params& params);
 
+  std::vector<std::string> logger;
+
+  void add_to_log(const std::string& e);
+
+  void log_to_stream(std::ostream& os) const;
+
   // This function is created because the acceptor needs ids for the connections it accepts
   uint32_t get_next_peer_id();
 
@@ -127,6 +133,7 @@ class node: public core::network::connection::connection_handler,
   mutable std::mutex acceptors_mutex;
   mutable std::mutex chain_top_mutex;
   mutable std::mutex height_mutex;
+  mutable std::mutex log_mutex;
   std::map<std::string, block> orphan_blocks;
   std::map<std::string, core::network::acceptor*> acceptors;
   std::map<std::string, core::network::connection*> peers;
