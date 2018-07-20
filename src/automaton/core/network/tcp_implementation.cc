@@ -203,8 +203,8 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
 }
 
 void tcp_connection::disconnect() {
-  set_state(connection::state::disconnected);
   connection_mutex.lock();
+  set_state(connection::state::disconnected);
   if (asio_socket.is_open()) {
     boost::system::error_code boost_error_code_shut;
     asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
