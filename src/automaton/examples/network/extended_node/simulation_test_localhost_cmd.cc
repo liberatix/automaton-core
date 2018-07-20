@@ -22,8 +22,8 @@ using automaton::examples::node;
 
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 8;
-static const uint32_t LOOP_STEP = 500;
-static const uint32_t SIMULATION_TIME = 600000;
+static const uint32_t LOOP_STEP = 50;
+static const uint32_t SIMULATION_TIME = 10000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 
 static const char* LOCALHOST = "192.168.0.101:";  // "127.0.0.1:";
@@ -34,12 +34,11 @@ static const char* FILE_NAME = "simulation_output.txt";
 static bool IS_LOCALHOST;
 static char* MY_IP;
 static uint32_t MIN_PORT = 12000;
-static uint32_t MAX_PORT = 12500;
+static uint32_t MAX_PORT = 12010;
 static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
 static uint32_t NUMBER_NODES = 0;
 static std::vector<std::string> KNOWN_IPS;
-// static std::ofstream output_file(FILE_NAME);
 
 // height -> how many connections have that height
 static std::map<std::string, uint32_t> hashes;
@@ -76,32 +75,39 @@ std::string create_remote_acceptor_address(node* n, const node::node_params& par
 
 // Function that collects and prints test results
 void collect_stats() {
+  // LOG(INFO) << "STATS: 0";
   hashes.clear();
   heights.clear();
   nodes_mutex.lock();
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+    // LOG(INFO) << "STATS loop: " << i;
     auto res = nodes[i]->get_height_and_top();
     std::string hash = automaton::core::io::string_to_hex(res.second);
     hashes[hash]++;
     heights[hash] = res.first;
+    // LOG(INFO) << "STATS end loop: " << i;
   }
   LOG(INFO) << "==== Heights ====";
   for (auto it = hashes.begin(); it != hashes.end(); ++it) {
-    LOG(INFO) << "HASH: " << it->first << " AT HEIGHT: " << heights[it->first] << " #PEERS: "
+    LOG(INFO) << "HASH: " << it->first << " AT HEIGHT: " << heights[it->first] << " #NODES: "
         << std::to_string(it->second);
   }
   LOG(INFO) << "=================";
   nodes_mutex.unlock();
+  // LOG(INFO) << "STATS: 1";
 }
 
 void update_thread_function() {
   try {
     while (!simulation_end) {
+      // LOG(INFO) << "UPDATE: 0";
       for (uint32_t i = 0; i < NUMBER_NODES && !simulation_end; ++i) {
+        // LOG(INFO) << "UPDATE loop: " << i;
         nodes_mutex.lock();
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->update();
+        // LOG(INFO) << "UPDATE end loop: " << i;
         // if (output_file.is_open()) {
         //   output_file << n->node_info();
         // } else {
@@ -109,6 +115,7 @@ void update_thread_function() {
         // }
         // std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
       }
+      // LOG(INFO) << "UPDATE: 1";
     }
   } catch (std::exception& e) {
     LOG(ERROR) << "EXCEPTION " + std::string(e.what());
@@ -120,12 +127,16 @@ void update_thread_function() {
 void miner_thread_function() {
   try {
     while (!simulation_end) {
+      // LOG(INFO) << "MINE: 0";
       for (uint32_t i = 0; i < NUMBER_NODES && !simulation_end; ++i) {
+        // LOG(INFO) << "MINE loop " << i;
         nodes_mutex.lock();
         node* n = nodes[i];
         nodes_mutex.unlock();
         n->mine(128, MINER_PRECISION_BITS);
+        // LOG(INFO) << "MINE end loop " << i;
       }
+      // LOG(INFO) << "MINE: 0";
     }
   } catch (std::exception& e) {
     LOG(ERROR) << "EXCEPTION " + std::string(e.what());
@@ -144,6 +155,8 @@ int main(int argc, const char * argv[]) {
     return 0;
   }
   IS_LOCALHOST = std::stoi(argv[1]);
+
+  LOG(DEBUG) << "ADDRESS: " << &IS_LOCALHOST;
   try {
     if (IS_LOCALHOST) {
       if (argc != 5) {
@@ -183,11 +196,16 @@ int main(int argc, const char * argv[]) {
     LOG(INFO) << "Creating acceptors...";
     if (IS_LOCALHOST) {
       for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-        uint32_t tries = 25;
+        uint32_t tries = 5;
         std::string address;
         nodes.push_back(new node(params, create_localhost_acceptor_address,
             create_localhost_connection_address));
-        nodes[i]->init();
+        if (!nodes[i]->init()) {
+          std::stringstream s;
+          s << "Node init failed!";
+          LOG(ERROR) << s.str();
+          throw std::runtime_error(s.str());
+        }
         nodes[i]->id = std::to_string(i);
         do {
           address = create_localhost_acceptor_address(nodes[i], params);
@@ -195,11 +213,16 @@ int main(int argc, const char * argv[]) {
       }
     } else {
       for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
-        uint32_t tries = 25;
+        uint32_t tries = 5;
         std::string address;
         nodes.push_back(new node(params, create_remote_acceptor_address,
             create_remote_connection_address));
-        nodes[i]->init();
+        if (!nodes[i]->init()) {
+          std::stringstream s;
+          s << "Node init failed!";
+          LOG(ERROR) << s.str();
+          throw std::runtime_error(s.str());
+        }
         nodes[i]->id = std::to_string(i);
         do {
           address = create_remote_acceptor_address(nodes[i], params);
@@ -212,13 +235,16 @@ int main(int argc, const char * argv[]) {
     miner = std::thread(miner_thread_function);
     // ==============================================
     for (uint32_t i = 0; i < SIMULATION_TIME; i += LOOP_STEP) {
-      // LOG(INFO) << "PROCESSING: " + std::to_string(i);
+      LOG(INFO) << "PROCESSING: " + std::to_string(i);
       collect_stats();
       nodes_mutex.lock();
       for (uint32_t j = 0; j < nodes.size(); ++j) {
-        LOG(DEBUG) << nodes[j]->node_info();
+        std::string s = nodes[j]->node_info();
+        // LOG(DEBUG) << "NODE " << nodes[j]->id << " " << s;
+        nodes[j]->add_to_log(s);
       }
       nodes_mutex.unlock();
+      LOG(INFO) << "END OF PROCESSING: " + std::to_string(i);
       std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
     }
   } catch (std::exception& e) {
@@ -230,12 +256,14 @@ int main(int argc, const char * argv[]) {
   miner.join();
   updater.join();
   collect_stats();
-  // if (output_file.is_open()) {
-  //   output_file.close();
-  // }
   automaton::core::network::tcp_release();
+  std::ofstream output_file(FILE_NAME, std::fstream::out);
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+    nodes[i]->log_to_stream(output_file);
     delete nodes[i];
+  }
+  if (output_file.is_open()) {
+    output_file.close();
   }
   return 0;
 }
