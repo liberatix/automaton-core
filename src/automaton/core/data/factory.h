@@ -86,6 +86,16 @@ class factory : public common::obj {
   virtual uint32_t get_schemas_number() const = 0;
 
   /**
+    Returns the number of nested message types in the specified message schema.
+  */
+  virtual uint32_t get_nested_messages_number(uint32_t schema_id) const = 0;
+
+  /**
+    Returns the schema id of the corresponding nested message.
+  */
+  virtual uint32_t get_nested_message_schema_id(uint32_t schema_id, uint32_t index) const = 0;
+
+  /**
     Returns the number of fields in the schema with the given id. If no such
     schema exists, exception will be thrown.
   */

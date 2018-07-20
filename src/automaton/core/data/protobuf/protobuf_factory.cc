@@ -382,6 +382,23 @@ bool protobuf_factory::is_repeated(uint32_t schema_id, uint32_t field_tag) const
   throw std::invalid_argument(msg.str());
 }
 
+uint32_t protobuf_factory::get_nested_messages_number(uint32_t schema_id) const {
+  CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
+  CHECK_NOTNULL(schemas[schema_id]);
+  CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
+  const Descriptor* d = schemas[schema_id]->GetDescriptor();
+  return d->nested_type_count();
+}
+
+uint32_t protobuf_factory::get_nested_message_schema_id(uint32_t schema_id, uint32_t index) const {
+  CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
+  CHECK_NOTNULL(schemas[schema_id]);
+  CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
+  const Descriptor* d = schemas[schema_id]->GetDescriptor();
+  const Descriptor* desc = d->nested_type(index);
+  return get_schema_id(desc->full_name());
+}
+
 schema::field_info protobuf_factory::get_field_info(uint32_t schema_id, uint32_t index) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
