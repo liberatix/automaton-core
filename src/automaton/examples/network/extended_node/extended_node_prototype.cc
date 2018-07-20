@@ -685,10 +685,10 @@ void node::increase_nonce() {
   uint32_t current = 0;
   while (nonce[current] == 255) {
     nonce[current] = 0;
+    current++;
     if (current >= HASH_SIZE) {
       current = 0;
     }
-    current++;
   }
   nonce[current]++;
 }
