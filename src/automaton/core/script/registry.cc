@@ -31,11 +31,11 @@ void module::bind_schemas() {
   auto& factory = registry::instance().get_factory();
 
   // Bind static functions
-  for (auto func : functions_) {
-    uint32_t input_id =
+  for (auto& func : functions_) {
+    func.second.input_schema_id =
         factory.get_schema_id(name_with_api_version() + "." + func.first + ".request");
 
-    uint32_t output_id =
+    func.second.output_schema_id =
         factory.get_schema_id(name_with_api_version() + "." + func.first + ".response");
 
     // LOG(DEBUG) << "Binding " << func.first <<  " IN: " << input_id << " OUT: " << output_id;

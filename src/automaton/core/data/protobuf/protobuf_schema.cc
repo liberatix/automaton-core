@@ -149,7 +149,7 @@ uint32_t protobuf_schema::create_enum(const std::string& enum_name) {
 
 void protobuf_schema::add_enum_value(uint32_t enum_id, const std::string& value_name,
     int32_t value) {
-  if (enum_id < 0 || enum_id >= enums.size()) {
+  if (enum_id >= enums.size()) {
     std::stringstream msg;
     msg << "No enum with id: " << enum_id;
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
@@ -194,7 +194,7 @@ void protobuf_schema::add_message(int32_t message_id) {
 }
 
 void protobuf_schema::add_enum(uint32_t enum_id, int32_t message_id) {
-  if (enum_id < 0 || enum_id >= enums.size()) {
+  if (enum_id >= enums.size()) {
     std::stringstream msg;
     msg << "No enum with id: " << enum_id;
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();

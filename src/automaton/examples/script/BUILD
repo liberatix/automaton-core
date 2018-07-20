@@ -1,0 +1,30 @@
+# Automaton examples - Lua integration
+
+package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+  name = "demo_lua",
+  srcs = [
+    "demo_lua.cc",
+  ],
+  deps = [
+    "//automaton/core/crypto:module",
+    "//automaton/core/crypto",
+    "//automaton/core/crypto/cryptopp:module",
+    "//automaton/core/crypto/ed25519_orlp:module",
+    "//automaton/core/data:module",
+    "//automaton/core/data/protobuf:module",
+    "//automaton/core/io:module",
+    "//automaton/core/log:module",
+    "//automaton/core/log",
+    "//automaton/core/network:module",
+    "//automaton/core/script",
+    "//automaton/core/script/lua",
+    "//automaton/core/state:module",
+    "@lua//:liblua",
+  ],
+  data = [
+    "script_demo.lua",
+    "script_demo_module.proto",
+  ],
+)

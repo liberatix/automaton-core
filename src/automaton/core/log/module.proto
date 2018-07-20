@@ -1,2 +1,46 @@
 syntax = "proto3";
 
+message info {
+  message request {
+    bytes msg = 1;
+  }
+
+  message response {
+  }
+}
+
+message debug {
+  message request {
+    bytes msg = 1;
+  }
+
+  message response {
+  }
+}
+
+message warning {
+  message request {
+    bytes msg = 1;
+  }
+
+  message response {
+  }
+}
+
+message error {
+  message request {
+    bytes msg = 1;
+  }
+
+  message response {
+  }
+}
+
+message fatal {
+  message request {
+    bytes msg = 1;
+  }
+
+  message response {
+  }
+}
