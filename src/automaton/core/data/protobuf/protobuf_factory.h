@@ -141,6 +141,17 @@ class protobuf_factory: public factory {
   */
   uint32_t get_schemas_number() const;
 
+
+  /**
+    Returns the number of nested message types in the specified message schema.
+  */
+  uint32_t get_nested_messages_number(uint32_t schema_id) const;
+
+  /**
+    Returns the schema id of the corresponding nested message.
+  */
+  uint32_t get_nested_message_schema_id(uint32_t schema_id, uint32_t index) const;
+
   /*
     Returns the number of fields in the schema with the given id. If no such
     schema exists, exception will be thrown.
