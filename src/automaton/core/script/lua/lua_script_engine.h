@@ -13,6 +13,7 @@ namespace script {
 namespace lua {
 
 /**
+  Lua script engine wrapper and Autoamaton's module bridge.
 */
 class lua_script_engine {
  public:
@@ -29,11 +30,11 @@ class lua_script_engine {
   common::status execute(std::string script);
 
  private:
-  static int wrap_static_function(lua_State *L);
-
   void bind_static_function(module* m,
-                            std::string fname,
                             const module::static_function_info& func);
+
+  void bind_class(module* m,
+                  const module::implementation_info& info);
 
   void bind_registered_module(module* m);
 

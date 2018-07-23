@@ -34,13 +34,6 @@ uint32_t SHA3_256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
-bool SHA3_256_cryptopp::register_self() {
-  hash_transformation::register_factory("SHA3_256",
-  [] {return reinterpret_cast<hash_transformation*>
-      (new SHA3_256_cryptopp()); });
-  return true;
-}
-
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

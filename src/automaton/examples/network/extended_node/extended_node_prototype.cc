@@ -197,10 +197,9 @@ bool node::init() {
       protobuf_schema loaded_schema(core::io::get_file_contents(PROTO_FILE));
       LOG(DEBUG) << "SCHEMA::" << loaded_schema.dump_schema();
       msg_factory->import_schema(&loaded_schema, "proto", "");
-      SHA256_cryptopp::register_self();
     }
     nonce = new uint8_t[HASH_SIZE]();
-    hasher = hash_transformation::create("SHA256");
+    hasher = new SHA256_cryptopp;
     global_state = new state_impl(hasher);
     return initialized = true;
   } catch (std::exception& e) {
@@ -667,7 +666,7 @@ std::unique_ptr<msg> node::block_to_msg(const block& b) const {
 
 std::string node::hash_block(const block& block_) const {
   uint8_t hash[HASH_SIZE];
-  core::crypto::hash_transformation* hasher = hash_transformation::create("SHA256");
+  core::crypto::hash_transformation* hasher = new SHA256_cryptopp;
   hasher->restart();
   hasher->update(reinterpret_cast<const uint8_t*>(block_.prev_hash.c_str()), HASH_SIZE);
   hasher->update(reinterpret_cast<const uint8_t*>(&block_.height), 4);

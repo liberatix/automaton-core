@@ -118,12 +118,6 @@ protobuf_factory::~protobuf_factory() {
   delete pool;
 }
 
-void protobuf_factory::register_self() {
-  protobuf_factory::register_factory("protobuf", [] {
-      return reinterpret_cast<factory*>(new protobuf_factory());
-  });
-}
-
 void protobuf_factory::extract_nested_messages(const Descriptor* d) {
   CHECK_NOTNULL(d) << "Message descriptor is nullptr";
   uint32_t num_msg = d->nested_type_count();

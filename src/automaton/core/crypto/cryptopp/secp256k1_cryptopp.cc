@@ -29,12 +29,15 @@ SecByteBlock pubKey(domain.PublicKeyLength());
 size_t secp256k1_cryptopp::public_key_size() {
   return 33;
 }
+
 size_t secp256k1_cryptopp::private_key_size() {
   return 32;
 }
+
 size_t secp256k1_cryptopp::signature_size() {
   return 64;
 }
+
 // TODO(Samir): max input k size?
 size_t secp256k1_cryptopp::k_size() {
   return 0;
@@ -58,6 +61,7 @@ void secp256k1_cryptopp::gen_public_key(const uint8_t * private_key, uint8_t * p
   publicKey.GetGroupParameters().GetCurve().EncodePoint(public_key,
       publicKey.GetPublicElement(), true);
 }
+
 void secp256k1_cryptopp::sign(const uint8_t * private_key,
                         const uint8_t * message,
                         const size_t msg_len,
@@ -79,6 +83,7 @@ void secp256k1_cryptopp::sign(const uint8_t * private_key,
   // std::cout << "signature length: " << str_signature.length() << std::endl;
   // std::cout << "signature: " << str_signature << std::endl;
 }
+
 void secp256k1_cryptopp::sign_deterministic(
     const uint8_t * private_key,
     const uint8_t * message,
@@ -87,6 +92,7 @@ void secp256k1_cryptopp::sign_deterministic(
     uint8_t * signature) {
   throw;
 }
+
 bool secp256k1_cryptopp::verify(
     const uint8_t * public_key,
     const uint8_t * message,
@@ -106,12 +112,6 @@ bool secp256k1_cryptopp::verify(
       verifier(publicKey);
   return verifier.VerifyMessage(message, msg_len, signature,
       signature_size());
-}
-bool secp256k1_cryptopp::register_self() {
-  secp256k1_cryptopp::register_factory("secp256k1", [] {
-    return reinterpret_cast<digital_signature*>(new secp256k1_cryptopp());
-  });
-  return true;
 }
 
 }  // namespace crypto

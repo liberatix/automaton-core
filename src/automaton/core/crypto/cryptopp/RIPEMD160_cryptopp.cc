@@ -34,13 +34,6 @@ uint32_t RIPEMD160_cryptopp::digest_size() const {
   return _digest_size;
 }
 
-bool RIPEMD160_cryptopp::register_self() {
-  hash_transformation::register_factory("RIPEMD160",
-  [] {return reinterpret_cast<hash_transformation*>
-      (new RIPEMD160_cryptopp()); });
-  return true;
-}
-
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

@@ -38,8 +38,6 @@ class ed25519_orlp : public digital_signature {
               const uint8_t * message,
               const size_t msg_len,
               uint8_t * signature);
-
-  static bool register_self();
 };
 
 }  // namespace ed25519_orlp

@@ -18,5 +18,6 @@ cc_test(
     "//automaton/core/state:module",
     "@gtest//:gtest_main",
   ],
-  linkstatic=True,
+  linkstatic = True,
+  size = "small",
 )
