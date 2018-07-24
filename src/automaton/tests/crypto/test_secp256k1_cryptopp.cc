@@ -19,13 +19,14 @@ static std::string toHex(uint8_t * decoded, size_t size) {
   encoder.MessageEnd();
   return output;
 }
+
 void decode_from_hex(std::string &encoded, std::string &decoded) {   // NOLINT
   CryptoPP::StringSource ss(encoded, true,
     new CryptoPP::HexDecoder(new CryptoPP::StringSink(decoded)));
 }
+
 TEST(secp256k1_cryptopp, gen_public_key) {
-  secp256k1_cryptopp::register_self();
-  digital_signature* tester = digital_signature::create("secp256k1");
+  digital_signature* tester = new secp256k1_cryptopp();
   EXPECT_NE(tester, nullptr);
   uint8_t* public_key = new uint8_t[tester->public_key_size()];
   constexpr uint32_t test_cases = 4;
@@ -46,9 +47,9 @@ TEST(secp256k1_cryptopp, gen_public_key) {
     EXPECT_EQ(test[i][1], toHex(public_key, tester->public_key_size()));
   }
 }
+
 TEST(secp256k1_cryptopp, sign_and_verify) {
-  secp256k1_cryptopp::register_self();
-  digital_signature* tester = digital_signature::create("secp256k1");
+  digital_signature* tester = new secp256k1_cryptopp();
   EXPECT_NE(tester, nullptr);
   uint8_t* public_key = new uint8_t[tester->public_key_size()];
   uint8_t* signature = new uint8_t[tester->signature_size()];
@@ -80,7 +81,9 @@ TEST(secp256k1_cryptopp, sign_and_verify) {
     }
   }
 }
+
 TEST(secp256k1_cryptopp, verify) {
 }
+
 TEST(secp256k1_cryptopp, check_return_sizes) {
 }

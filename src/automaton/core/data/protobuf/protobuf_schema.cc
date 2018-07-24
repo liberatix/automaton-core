@@ -123,13 +123,6 @@ FileDescriptorProto* protobuf_schema::get_file_descriptor_proto() {
   return file_descriptor_proto.get();
 }
 
-void protobuf_schema::register_self() {
-  schema::register_factory("protobuf",
-      [] {
-        return reinterpret_cast<schema*>(new protobuf_schema());
-      });
-}
-
 void protobuf_schema::add_dependency(const std::string& schema_name) {
   LOG(INFO) << "Adding dependency on " << schema_name << " to " << file_descriptor_proto->name();
   file_descriptor_proto->add_dependency(schema_name);

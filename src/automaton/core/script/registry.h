@@ -24,19 +24,32 @@ namespace script {
 */
 class module {
  public:
-  typedef std::unique_ptr<common::obj> (*object_factory_function)(const data::msg& m);
-
-  struct constructor_info {
-    object_factory_function func;
-    uint32_t input_schema_id;
-  };
-
+  typedef std::unique_ptr<common::obj> (*constructor_function)(const data::msg& m);
   typedef common::status (*module_static_function)(const data::msg& m, data::msg* output);
 
   struct static_function_info {
+    std::string name;
     module_static_function func;
     uint32_t input_schema_id;
     uint32_t output_schema_id;
+  };
+
+  struct method_info {
+    std::string name;
+    uint32_t input_schema_id;
+    uint32_t output_schema_id;
+  };
+
+  struct concept_info {
+    std::string name;
+    std::vector<method_info> methods;
+  };
+
+  struct implementation_info {
+    std::string name;
+    constructor_function func;
+    uint32_t constructor_schema_id;
+    std::vector<concept_info> concepts;
   };
 
   virtual const std::string name() const { return name_; }
@@ -71,8 +84,7 @@ class module {
     return concepts_;
   }
 
-  virtual const std::unordered_map<std::string,
-      std::pair<object_factory_function, std::vector<std::string>>> implementations() const {
+  virtual const std::unordered_map<std::string, implementation_info> implementations() const {
     return implementations_;
   }
 
@@ -110,7 +122,7 @@ class module {
 
   void add_implementation(const std::string implementation,
                           const std::vector<std::string> concepts,
-                          object_factory_function f);
+                          constructor_function f);
 
  private:
   static const std::string name_with_api_version(const std::string name, uint32_t api_version) {
@@ -124,8 +136,7 @@ class module {
   std::string extra_version_;
   std::vector<std::string> dependencies_;
   std::vector<std::string> concepts_;
-  std::unordered_map<std::string,
-      std::pair<object_factory_function, std::vector<std::string>>> implementations_;
+  std::unordered_map<std::string, implementation_info> implementations_;
   std::unordered_map<std::string, static_function_info> functions_;
 };
 
@@ -176,7 +187,7 @@ class registry {
     factory_->import_schema(m.schema(), m.name_with_api_version(), m.name_with_api_version());
     m.bind_schemas();
 
-    for (auto impl : m.implementations()) {
+    for (auto& impl : m.implementations()) {
       m.check_implementation(impl.first);
     }
   }

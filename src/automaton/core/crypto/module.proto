@@ -1,10 +1,15 @@
 syntax = "proto3";
 
 message hash {
-  message getters {
-    uint32 digest_size = 1;
+  message size {
+    message request {
+    }
+    message response {
+      uint32 digest_size = 1;
+    }
   }
-  message calculate_digest {
+
+  message digest {
     message request {
       bytes input = 1;
     }
@@ -44,6 +49,41 @@ message dsig {
     uint32 signature_size = 3;
     uint32 k_size = 4;
     bool has_deterministic_signatures = 5;
+  }
+
+  message public_key_size {
+    message request {}
+    message response {
+      uint32 public_key_size = 1;
+    }
+  }
+
+  message private_key_size {
+    message request {}
+    message response {
+      uint32 private_key_size = 1;
+    }
+  }
+
+  message signature_size {
+    message request {}
+    message response {
+      uint32 signature_size = 1;
+    }
+  }
+
+  message k_size {
+    message request {}
+    message response {
+      uint32 k_size = 1;
+    }
+  }
+
+  message has_deterministic_signatures {
+    message request {}
+    message response {
+      bool has_deterministic_signatures = 1;
+    }
   }
 
   message gen_public_key {
@@ -89,13 +129,26 @@ message dsig {
 }
 
 message rand {
-  message getters {
-    bool bit = 1;
-    uint32 byte = 2;
+  message bit {
+    message request {
+    }
+    message response {
+      bool bit = 1;
+    }
   }
+
+  message byte {
+    message request {
+    }
+    message response {
+      // protobuf does not support single byte as a primitive.
+      uint32 byte = 1;
+    }
+  }
+
   message block {
     message request {
-      int32 size = 1;
+      uint32 size = 1;
     }
     message response {
       bytes result = 1;

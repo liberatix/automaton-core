@@ -18,7 +18,6 @@ class secure_random_cryptopp : public secure_random {
 
   uint8_t byte();
 
-  static bool register_self();
  private:
   CryptoPP::AutoSeededRandomPool prng;
 };

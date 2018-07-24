@@ -22,12 +22,6 @@ static std::string toHex(uint8_t * digest, size_t size) {
   return output;
 }
 
-TEST(SHA512_cryptopp, register_self) {
-  SHA512_cryptopp::register_self();
-  hash_transformation * hasher = hash_transformation::create("SHA512");
-  EXPECT_NE(hasher, nullptr);
-}
-
 TEST(SHA512_cryptopp, calculate_digest) {
   SHA512_cryptopp hasher;
   size_t digest_size = hasher.digest_size();

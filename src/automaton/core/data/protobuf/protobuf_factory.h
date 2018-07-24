@@ -74,7 +74,6 @@ class protobuf_factory: public factory {
   static const std::map<google::protobuf::FieldDescriptor::CppType,
       schema::field_type> protobuf_ccptype_to_type;
 
-  void register_self();
   /**
     TODO(kari): Decide to forbid move & copy constructors.
   **/

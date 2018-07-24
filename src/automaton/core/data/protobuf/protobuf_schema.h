@@ -29,8 +29,6 @@ class protobuf_schema: public schema {
 
   ~protobuf_schema();
 
-  void register_self();
-
   /**
     This function is used from protobuf_factory on import. (Instead of
     friend class)

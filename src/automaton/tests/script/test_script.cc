@@ -85,11 +85,11 @@ TEST_F(test_script, module_registration) {
   for (auto test : tests) {
     auto hash_obj = create_by_name("cryptopp.v0." + test[0]);
 
-    auto request_m_obj = create_msg("crypto.v0.hash.calculate_digest.request");
+    auto request_m_obj = create_msg("crypto.v0.hash.digest.request");
     data::msg* request_m = reinterpret_cast<data::msg*>(request_m_obj.get());
     request_m->set_blob(1, test[1]);
 
-    auto response_m_obj = create_msg("crypto.v0.hash.calculate_digest.response");
+    auto response_m_obj = create_msg("crypto.v0.hash.digest.response");
     data::msg* response_m = dynamic_cast<data::msg*>(response_m_obj.get());
 
     hash_obj.get()->process(*request_m_obj, response_m_obj.get());
