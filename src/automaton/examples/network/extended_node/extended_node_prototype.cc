@@ -50,14 +50,15 @@ static const char* TIME_FORMAT = "%H:%M:%S";
 
 core::data::factory* node::msg_factory = nullptr;
 
+// TODO(kari): Make buffer connected to the peer and free the memory on peer delete / disconnect ...
+// or handle differently.
+
 // Node's connection handler
 
 void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id_) {
-  // LOG(DEBUG) << get_id() << " RECEIVED: " <<
-  //    core::io::string_to_hex(std::string(buffer, bytes_read));
   std::stringstream stream;
   stream << "RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read)) <<
-      " from " << c->get_address();
+      " from " << get_peer_id(c);
   add_to_log(stream.str());
   switch (id_) {
     case WAITING_HEADER_SIZE: {
@@ -68,8 +69,14 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         throw std::runtime_error(msg.str());
       }
       uint32_t s = buffer[0];
-      if (c->get_state() == connection::state::connected) {
-        c->async_read(buffer, MAX_MESSAGE_SIZE, s, WAITING_HEADER);
+      std::lock_guard<std::mutex> lock(peers_mutex);
+      for (auto it = peers.begin(); it != peers.end(); ++it) {
+        if (it->second == c) {
+          if (c->get_state() == connection::state::connected) {
+            c->async_read(buffer, MAX_MESSAGE_SIZE, s, WAITING_HEADER);
+          }
+          break;
+        }
       }
     }
     break;
@@ -84,8 +91,13 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         LOG(ERROR) << msg.str();  // << '\n' << el::base::debug::StackTrace();
         throw std::runtime_error(msg.str());
       } else {
-        if (c->get_state() == connection::state::connected) {
-          c->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
+        std::lock_guard<std::mutex> lock(peers_mutex);
+        for (auto it = peers.begin(); it != peers.end(); ++it) {
+          if (it->second == c) {
+            if (c->get_state() == connection::state::connected) {
+              c->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
+            }
+          }
         }
       }
     }
@@ -105,8 +117,13 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         received_msg->deserialize_message(data);
         process((received_msg->get_message(1)).get(), c);
         process((received_msg->get_message(2)).get(), c);
-        if (c->get_state() == connection::state::connected) {
-          c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+        std::lock_guard<std::mutex> lock(peers_mutex);
+        for (auto it = peers.begin(); it != peers.end(); ++it) {
+          if (it->second == c) {
+            if (c->get_state() == connection::state::connected) {
+              c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+            }
+          }
         }
       } catch (std::exception& e) {
         std::stringstream msg;
@@ -125,26 +142,31 @@ void node::on_message_sent(connection* c, uint32_t id_, connection::error e) {
   std::stringstream stream;
   if (e) {
     LOG(ERROR) << get_id() << "Message with id " << std::to_string(id_) << " was NOT sent to " <<
-        c->get_address() << " -> Error " << std::to_string(e) << " occurred";
-    stream << "Message with id " << id_ << " was NOT sent to " << c->get_address() <<
+        get_peer_id(c) << " -> Error " << std::to_string(e) << " occurred";
+    stream << "Message with id " << id_ << " was NOT sent to " << get_peer_id(c) <<
         " -> Error " << e << " occurred";
     add_to_log(stream.str());
     LOG(ERROR) << get_id() << ": " << stream.str();
   } else {
-    stream << "Message with id " << id_  << " was successfully sent to " << c->get_address();
+    stream << "Message with id " << id_  << " was successfully sent to " << get_peer_id(c);
   }
 }
 
 void node::on_connected(connection* c) {
-  // LOG(INFO) << get_id() << " connected with: " + c->get_address();
-  add_to_log("Connected with: " + c->get_address() +
-      ". Async send(sending chain top) and read are called.");
-  c->async_send(add_header(create_request_blocks_message({})));
-  c->async_read(add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    if (it->second == c) {
+      add_to_log("Connected with: " + c->get_address() +
+          ". Async send(sending chain top) and read are called.");
+      c->async_send(add_header(create_request_blocks_message({})));
+      c->async_read(add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+      return;
+    }
+  }
+  add_to_log("Peer already disconnected! Initial async_send and async_read were not called!");
 }
 
 void node::on_disconnected(connection* c) {
-  // LOG(INFO) << get_id() << " disconnected with: " + c->get_address();
   add_to_log("Disconnected with: " + c->get_address());
 }
 
@@ -152,8 +174,13 @@ void node::on_error(connection* c, connection::error e) {
   if (e == connection::no_error) {
     return;
   }
-  add_to_log("Error with: " + c->get_address() + ", disconnect is called!");
-  c->disconnect();
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    if (it->second == c) {
+      c->disconnect();
+      return;
+    }
+  }
 }
 
 // Node's acceptor handler
@@ -173,8 +200,17 @@ void node::on_connected(acceptor* a, connection* c, const std::string& address) 
 
 void node::on_error(acceptor* a, connection::error e) {
   // LOG(ERROR) << get_id() << " Removing acceptor" << a->get_address();
-  add_to_log("Removing acceptor " + a->get_address());
-  remove_acceptor(a->get_address());
+  acceptors_mutex.lock();
+  for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
+    if (it->second == a) {
+      // LOG(ERROR) << get_id() << " Removing acceptor" << it->first;
+      add_to_log("Removing acceptor " + it->first);
+      acceptors_mutex.unlock();
+      remove_acceptor(it->first);
+      return;
+    }
+  }
+  acceptors_mutex.unlock();
 }
 
 // Node
@@ -215,10 +251,10 @@ bool node::init() {
 
 node::~node() {
   for (auto it = peers.begin(); it != peers.end(); ++it) {
-    // delete it->second;
+    delete it->second;
   }
   for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
-    // delete it->second;
+    delete it->second;
   }
   for (uint32_t i = 0; i < buffers.size(); ++i) {
     delete [] buffers[i];
@@ -253,6 +289,7 @@ void node::add_to_log(const std::string& e) {
   std::stringstream s;
   s << '[' << std::put_time(std::localtime(&now), TIME_FORMAT) << "] ";
   std::lock_guard<std::mutex> lock(log_mutex);
+  // LOG(DEBUG) << e;
   logger.push_back(s.str() + e);
 }
 
@@ -418,25 +455,41 @@ void node::remove_acceptor(const std::string& id_) {
   }
 }
 
-void node::send_message(const std::string& message, const std::string& connection_id) {
+std::string node::get_peer_id(connection* c) {
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    if (it->second == c) {
+      return it->first;
+    }
+  }
+  return "";
+}
+
+void node::send_message(const std::string& message, connection* connection_) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
-  add_to_log("Sending message " + core::io::string_to_hex(message) + " to " + connection_id);
   std::string new_message = add_header(message);
-  if (connection_id == "") {
+  std::string message_hex = core::io::string_to_hex(new_message);
+  if (!connection_) {
     std::lock_guard<std::mutex> lock(peers_mutex);
     for (auto it = peers.begin(); it != peers.end(); ++it) {
       if (it->second->get_state() == connection::state::connected) {
+        add_to_log("Sending message " + message_hex + " to " + it->first);
         it->second->async_send(new_message, 0);
       } else {
         add_to_log("Peer is not connected: " + it->first);
       }
     }
   } else {
-    connection* peer = get_peer(connection_id);
-    if (peer && peer->get_state() == connection::state::connected) {
-      peer->async_send(new_message, 0);
-    } else {
-      add_to_log("Peer is not connected or does not exist: " + connection_id);
+    std::lock_guard<std::mutex> lock(peers_mutex);
+    for (auto it = peers.begin(); it != peers.end(); ++it) {
+      if (it->second == connection_) {
+        if (connection_->get_state() == connection::state::connected) {
+          add_to_log("Sending message " + message_hex + " to " + it->first);
+          connection_->async_send(new_message, 0);
+        } else {
+          return;
+        }
+      }
     }
   }
 }
@@ -729,9 +782,16 @@ void node::process(msg* input_message, connection* sender) {
     if (top_block_hash != get_top()) {
       hashes.push_back(get_top());
     }
-    if (hashes.size() > 0 && sender->get_state() == connection::state::connected) {
-    //  LOG(DEBUG) << "SENDING :: " << hashes;
-      sender->async_send(add_header(create_send_blocks_message(hashes)));
+    if (hashes.size() > 0) {
+      std::lock_guard<std::mutex> lock(peers_mutex);
+      for (auto it = peers.begin(); it != peers.end(); ++it) {
+        if (it->second == sender) {
+          if (sender->get_state() == connection::state::connected) {
+            sender->async_send(add_header(create_send_blocks_message(hashes)));
+          }
+          break;
+        }
+      }
     }
   } else if (msg_type == "blocks_response") {
     // LOG(DEBUG) << "PROCESS 2: 1";
@@ -864,6 +924,7 @@ void node::update() {
       add_to_log("Peer is diconnected! Deleting peer " + it->first);
       // delete it->second;
       peers.erase(it);
+      break;
     }
   }
   int32_t new_peers = params.connected_peers_count - peers.size();
