@@ -7,8 +7,9 @@ cc_library(
   srcs = glob(["**/*.cc"]),
   hdrs = glob(["**/*.h"]),
   deps = [
-    "//automaton/core/data",
-    "//automaton/core/script",
     "@lua//:liblua",
+    "//automaton/core/data",
+    "//automaton/core/io",
+    "//automaton/core/script",
   ],
 )

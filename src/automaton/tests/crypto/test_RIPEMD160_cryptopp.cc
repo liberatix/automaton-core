@@ -22,12 +22,6 @@ static std::string toHex(uint8_t * digest, size_t size) {
   return output;
 }
 
-TEST(RIPEMD160_cryptopp, register_self) {
-  RIPEMD160_cryptopp::register_self();
-  hash_transformation * hasher = hash_transformation::create("RIPEMD160");
-  EXPECT_NE(hasher, nullptr);
-}
-
 TEST(RIPEMD160_cryptopp, calculate_digest) {
   RIPEMD160_cryptopp hasher;
   size_t digest_size = hasher.digest_size();

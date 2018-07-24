@@ -23,9 +23,7 @@ TEST(state_impl, set_and_get) {
   tests.push_back(std::make_pair("tram", "6"));
   tests.push_back(std::make_pair("tramva", "7"));
 
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   state_impl state(hasher);
 
   // For each node added, check if the previous nodes are still correct
@@ -50,9 +48,7 @@ TEST(state_impl, set_delete_and_get) {
   tests.push_back(std::make_pair("tram", "6"));
   tests.push_back(std::make_pair("tramva", "7"));
 
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   state_impl state(hasher);
   // add all nodes
   for (uint32_t i = 0; i < tests.size(); i++) {
@@ -78,8 +74,7 @@ static std::string tohex(std::string s) {
 
 std::string hash_key(int i) {
   uint8_t digest32[32];
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   std::string data = std::to_string(i);
   hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
       digest32);
@@ -91,9 +86,7 @@ TEST(state_impl, node_hash_add_erase) {
   std::stack<std::string> keys;
   int32_t key_count = 100000;
 
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   state_impl state(hasher);
 
   // Add keys/values to the state and add the root hash into a stack.
@@ -161,9 +154,7 @@ TEST(state_impl, node_hash_add_erase) {
 }
 
 TEST(state_impl, insert_and_delete_expect_blank) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   state_impl state(hasher);
 
   state.set("a", "1");
@@ -179,17 +170,13 @@ TEST(state_impl, insert_and_delete_expect_blank) {
 
 
 TEST(state_impl, get_node_hash) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   state_impl s(hasher);
   EXPECT_EQ(s.get_node_hash(""), "");
 }
 
 TEST(state_impl, commit_changes) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   state_impl s(hasher);
   s.set("a", "1");
   s.set("b", "2");
@@ -200,9 +187,7 @@ TEST(state_impl, commit_changes) {
 }
 
 TEST(state_impl, discard_changes) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   state_impl s(hasher);
   s.set("a", "1");
   s.set("b", "2");

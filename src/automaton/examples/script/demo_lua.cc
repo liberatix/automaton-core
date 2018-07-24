@@ -74,15 +74,15 @@ void register_modules() {
   r.import<test_module>();
 
   // import core module interfaces.
-  // r.import<automaton::core::crypto::module>();
+  r.import<automaton::core::crypto::module>();
   // r.import<automaton::core::data::module>();
-  // r.import<automaton::core::io::module>();
+  r.import<automaton::core::io::module>();
   // r.import<automaton::core::log::module>();
   // r.import<automaton::core::network::module>();
   // r.import<automaton::core::state::module>();
 
   // import core module implementations.
-  // r.import<automaton::core::crypto::cryptopp::module>();
+  r.import<automaton::core::crypto::cryptopp::module>();
   // r.import<automaton::core::crypto::ed25519_orlp::module>();
   // r.import<automaton::core::data::protobuf::module>();
 
@@ -106,14 +106,32 @@ int main() {
     LOG(ERROR) << "LUA ERROR: " << r.msg;
   }
 
+  // Create object from script.
+  r = engine.execute("s = secp256k1()");
+  if (r.code != status::OK) {
+    LOG(ERROR) << "LUA ERROR: " << r.msg;
+  }
+
+  // Test logging function defined in our module above.
   r = engine.execute("log('HELLO!')");
   if (r.code != status::OK) {
     LOG(ERROR) << "LUA ERROR: " << r.msg;
   }
 
+  // Load and run script.
   r = engine.execute(get_file_contents("automaton/examples/script/script_demo.lua"));
   if (r.code != status::OK) {
     LOG(ERROR) << "LUA ERROR: " << r.msg;
+  }
+
+  // Command line interface.
+  while (1) {
+    std::string cmd;
+    std::getline(std::cin, cmd);
+    r = engine.execute(cmd);
+    if (r.code != status::OK) {
+      LOG(ERROR) << "LUA ERROR: " << r.msg;
+    }
   }
 
   return 0;

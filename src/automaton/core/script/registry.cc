@@ -24,7 +24,7 @@ void module::add_function(const std::string function_name, module_static_functio
     throw ss.str();
   }
 
-  functions_[function_name] = {func, 0, 0};
+  functions_[function_name] = {function_name, func, 0, 0};
 }
 
 void module::bind_schemas() {
@@ -32,13 +32,22 @@ void module::bind_schemas() {
 
   // Bind static functions
   for (auto& func : functions_) {
-    func.second.input_schema_id =
+    auto input_id =
         factory.get_schema_id(name_with_api_version() + "." + func.first + ".request");
 
-    func.second.output_schema_id =
+    auto output_id =
         factory.get_schema_id(name_with_api_version() + "." + func.first + ".response");
 
-    // LOG(DEBUG) << "Binding " << func.first <<  " IN: " << input_id << " OUT: " << output_id;
+    LOG(DEBUG) << "Binding " << func.first << "<" << input_id << ", " << output_id << ">";
+    func.second.output_schema_id = output_id;
+    func.second.input_schema_id = input_id;
+  }
+
+  for (auto& impl : implementations_) {
+    auto full_scope_implementation = name_with_api_version() + "." + impl.first;
+    auto constructor_id = factory.get_schema_id(full_scope_implementation);
+    LOG(DEBUG) << "Binding " << impl.first <<  "<" << constructor_id << ">";
+    impl.second.constructor_schema_id = constructor_id;
   }
 
   // TODO(asen): Bind object constructors
@@ -47,28 +56,60 @@ void module::bind_schemas() {
 
 void module::add_implementation(const std::string implementation,
                                 const std::vector<std::string> concepts,
-                                object_factory_function f) {
+                                constructor_function f) {
   CHECK_GT(concepts.size(), 0) << implementation << " should have a concept!";
+  auto& factory = registry::instance().get_factory();
+
   if (implementations_.count(implementation) > 0) {
     std::stringstream ss;
     ss << "Module " << name() << " already has implementation for " << implementation;
     LOG(ERROR) << ss.str();
     throw ss.str();
   }
-  implementations_[implementation] = std::make_pair(f, concepts);
-
-  // Check whether concepts have already been imported.
-  auto& factory = registry::instance().get_factory();
+  implementation_info info;
+  info.name = implementation;
+  info.func = f;
+  info.constructor_schema_id = 0;
   for (auto& concept : concepts) {
+    LOG(DEBUG) << implementation << " : concept " << concept;
+    concept_info ci;
+    ci.name = concept;
+
+    // Import methods from concept.
     try {
-      factory.get_schema_id(concept);
+      auto concept_schema_id = factory.get_schema_id(concept);
+      // Extract methods from nested messages.
+      for (uint32_t i = 0; i < factory.get_nested_messages_number(concept_schema_id); i++) {
+        auto method_schema_id = factory.get_nested_message_schema_id(concept_schema_id, i);
+        auto method_schema_name = factory.get_schema_name(method_schema_id);
+        auto last = method_schema_name.rfind('.');
+        auto method_name = method_schema_name.substr(last+1);
+        if (method_name == "getters") {
+          // TODO(asen): Handle getters.
+          continue;
+        }
+        method_info mi;
+        mi.name = method_name;
+        mi.input_schema_id = factory.get_schema_id(method_schema_name + ".request");
+        mi.output_schema_id = factory.get_schema_id(method_schema_name + ".response");;
+        ci.methods.push_back(mi);
+        LOG(DEBUG) << implementation << "."
+            << method_name
+            << "<" << mi.input_schema_id
+            << ", " << mi.output_schema_id
+            << ">";
+      }
     } catch (...) {
       std::stringstream ss;
-      ss << "Could not locate concept interface for " << concept;
+      ss << "Could not locate concept schema for " << concept;
       LOG(ERROR) << ss.str();
       throw ss.str();
     }
+
+    info.concepts.push_back(ci);
   }
+
+  implementations_[implementation] = info;
 }
 
 void module::check_implementation(const std::string implementation) {
@@ -149,7 +190,7 @@ std::string registry::to_string() {
 
     // functions
     bool first_line = true;
-    for (auto function : m.functions()) {
+    for (auto& function : m.functions()) {
       ss << "| " << std::setw(w1) << (first_line ? "functions" : "")
          << "| " << std::setw(w2) << function.first
          << "|" << std::endl;
@@ -163,7 +204,7 @@ std::string registry::to_string() {
 
     // concepts
     first_line = true;
-    for (auto concept : m.concepts()) {
+    for (auto& concept : m.concepts()) {
       ss << "| " << std::setw(w1) << (first_line ? "concepts" : "")
          << "| " << std::setw(w2) << concept
          << "|" << std::endl;
@@ -183,14 +224,14 @@ std::string registry::to_string() {
       impl_info << implementation << " (";
 
       // List implemented concepts.
-      auto& concepts = kv.second.second;
+      auto& concepts = kv.second.concepts;
       auto num_fields = concepts.size();
       for (size_t i = 0; i < num_fields; ++i) {
         auto concept = concepts[i];
         if (i > 0) {
           impl_info << ", ";
         }
-        impl_info << concept;
+        impl_info << concept.name;
       }
       impl_info << ")";
 
@@ -243,7 +284,7 @@ std::unique_ptr<common::obj> registry::create(const data::msg& m) {
       LOG(ERROR) << msg.str();
       throw std::invalid_argument(msg.str());
     }
-    return impls.at(object_type).first(m);
+    return impls.at(object_type).func(m);
   } else {
     // TODO(asen): Trhow an actual exception.
     throw "Invalid creation message!";
