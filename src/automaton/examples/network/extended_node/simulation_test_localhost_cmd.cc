@@ -118,7 +118,7 @@ void update_thread_function() {
         // } else {
         //   LOG(ERROR) << "Output file is closed";
         // }
-        // std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
+        std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_STEP));
       }
       // LOG(INFO) << "UPDATE: 1";
     }
@@ -164,6 +164,21 @@ void crash_handler(int sig) {
     el::Helpers::logCrashReason(sig, true);
     el::base::debug::StackTrace();
     el::Helpers::crashAbort(sig);
+    simulation_end = true;
+    miner.join();
+    updater.join();
+    automaton::core::network::tcp_release();
+    for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
+      if (output_file.is_open()) {
+        nodes[i]->log_to_stream(output_file);
+      } else {
+        LOG(ERROR) << "File is not open!";
+      }
+      delete nodes[i];
+    }
+    if (output_file.is_open()) {
+      output_file.close();
+    }
 }
 
 // ARGS:
@@ -262,7 +277,7 @@ int main(int argc, const char * argv[]) {
       nodes_mutex.lock();
       for (uint32_t j = 0; j < nodes.size(); ++j) {
         std::string s = nodes[j]->node_info();
-        // LOG(DEBUG) << "NODE " << nodes[j]->id << " " << s;
+        // LOG(DEBUG) << "NODE " << nodes[j]->get_id() << " " << s;
         nodes[j]->add_to_log(s);
       }
       nodes_mutex.unlock();
