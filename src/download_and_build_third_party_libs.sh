@@ -69,7 +69,7 @@ cd ..
 
 # Build zmqpp
 cd zmqpp
-$sedi 's/CUSTOM_INCLUDE_PATH =/CUSTOM_INCLUDE_PATH = ..\/libzmq\/include/' Makefile
+$sedi 's/CUSTOM_INCLUDE_PATH =/CUSTOM_INCLUDE_PATH = -I..\/libzmq\/include/' Makefile
 $sedi 's/LIBRARY_LIBS =/LIBRARY_LIBS = -L..\/libzmq\/src\/.libs/' Makefile
 make
 cd ..
