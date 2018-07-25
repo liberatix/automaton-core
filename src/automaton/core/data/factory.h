@@ -26,10 +26,6 @@ class factory : public common::obj {
 
   virtual ~factory() = 0;
 
-  typedef factory* (*data_factory_function)();
-  static void register_factory(std::string name, data_factory_function func);
-  static factory* create(const std::string name);
-
   /**
     This function is used for include schema definitions that were created with
     schema. If the given schema has dependencies, they
@@ -179,9 +175,6 @@ class factory : public common::obj {
       be thrown.
   */
   virtual bool is_repeated(uint32_t schema_id, uint32_t tag) const = 0;
-
- private:
-  static std::map<std::string, data_factory_function> schema_factory;
 };
 
 }  // namespace data
