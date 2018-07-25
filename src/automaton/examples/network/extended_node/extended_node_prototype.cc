@@ -473,11 +473,6 @@ std::string node::get_peer_id(connection* c) {
   if (it != peers.end()) {
     return it->second.id;
   }
-  // for (auto it = peers.begin(); it != peers.end(); ++it) {
-  //   if (it->second == c) {
-  //     return it->first;
-  //   }
-  // }
   return "";
 }
 

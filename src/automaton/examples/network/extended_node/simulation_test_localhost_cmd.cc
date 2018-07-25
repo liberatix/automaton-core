@@ -24,7 +24,7 @@ using automaton::examples::node;
 static const uint32_t NUMBER_PEERS_IN_NODE = 8;
 static const uint32_t LOOP_STEP = 50;
 static const uint32_t SIMULATION_TIME = 180000;
-static const uint32_t MINER_PRECISION_BITS = 24;
+static const uint32_t MINER_PRECISION_BITS = 20;
 static const uint32_t TIMEOUT = 300;
 
 static const char* LOCALHOST = "192.168.0.101:";  // "127.0.0.1:";
