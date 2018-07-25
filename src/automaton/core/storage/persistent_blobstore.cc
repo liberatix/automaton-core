@@ -1,7 +1,7 @@
 #include "automaton/core/storage/persistent_blobstore.h"
+#include <string>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem.hpp>
-#include <string>
 
 namespace automaton {
 namespace core {
