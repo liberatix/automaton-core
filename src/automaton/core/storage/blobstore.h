@@ -14,7 +14,7 @@ There are no protections. The pointer points to the internal memory.
 */
 class blobstore{
  public:
-  explicit blobstore();
+  blobstore();
   ~blobstore();
 
   /**
