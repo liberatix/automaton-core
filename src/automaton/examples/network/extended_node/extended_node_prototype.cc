@@ -70,13 +70,9 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
       }
       uint32_t s = buffer[0];
       std::lock_guard<std::mutex> lock(peers_mutex);
-      for (auto it = peers.begin(); it != peers.end(); ++it) {
-        if (it->second == c) {
-          if (c->get_state() == connection::state::connected) {
-            c->async_read(buffer, MAX_MESSAGE_SIZE, s, WAITING_HEADER);
-          }
-          break;
-        }
+      auto it = peers.find(c);
+      if (it != peers.end() && c->get_state() == connection::state::connected) {
+        c->async_read(buffer, MAX_MESSAGE_SIZE, s, WAITING_HEADER);
       }
     }
     break;
@@ -92,12 +88,9 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         throw std::runtime_error(msg.str());
       } else {
         std::lock_guard<std::mutex> lock(peers_mutex);
-        for (auto it = peers.begin(); it != peers.end(); ++it) {
-          if (it->second == c) {
-            if (c->get_state() == connection::state::connected) {
-              c->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
-            }
-          }
+        auto it = peers.find(c);
+        if (it != peers.end() && c->get_state() == connection::state::connected) {
+          c->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
         }
       }
     }
@@ -118,12 +111,9 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
         process((received_msg->get_message(1)).get(), c);
         process((received_msg->get_message(2)).get(), c);
         std::lock_guard<std::mutex> lock(peers_mutex);
-        for (auto it = peers.begin(); it != peers.end(); ++it) {
-          if (it->second == c) {
-            if (c->get_state() == connection::state::connected) {
-              c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
-            }
-          }
+        auto it = peers.find(c);
+        if (it != peers.end() && c->get_state() == connection::state::connected) {
+          c->async_read(buffer, MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
         }
       } catch (std::exception& e) {
         std::stringstream msg;
@@ -154,14 +144,13 @@ void node::on_message_sent(connection* c, uint32_t id_, connection::error e) {
 
 void node::on_connected(connection* c) {
   std::lock_guard<std::mutex> lock(peers_mutex);
-  for (auto it = peers.begin(); it != peers.end(); ++it) {
-    if (it->second == c) {
-      add_to_log("Connected with: " + c->get_address() +
-          ". Async send(sending chain top) and read are called.");
-      c->async_send(add_header(create_request_blocks_message({})));
-      c->async_read(add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
-      return;
-    }
+  auto it = peers.find(c);
+  if (it != peers.end()) {
+    add_to_log("Connected with: " + c->get_address() +
+        ". Async send(sending chain top) and read are called.");
+    c->async_send(add_header(create_request_blocks_message({})));
+    c->async_read(add_buffer(MAX_MESSAGE_SIZE), MAX_MESSAGE_SIZE, 1, WAITING_HEADER_SIZE);
+    return;
   }
   add_to_log("Peer already disconnected! Initial async_send and async_read were not called!");
 }
@@ -175,11 +164,10 @@ void node::on_error(connection* c, connection::error e) {
     return;
   }
   std::lock_guard<std::mutex> lock(peers_mutex);
-  for (auto it = peers.begin(); it != peers.end(); ++it) {
-    if (it->second == c) {
-      c->disconnect();
-      return;
-    }
+  auto it = peers.find(c);
+  if (it != peers.end()) {
+    c->disconnect();
+    return;
   }
 }
 
@@ -251,7 +239,7 @@ bool node::init() {
 
 node::~node() {
   for (auto it = peers.begin(); it != peers.end(); ++it) {
-    delete it->second;
+    delete it->first;
   }
   for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
     delete it->second;
@@ -275,6 +263,18 @@ std::string node::block::to_string() const {
       automaton::core::io::bin2hex(prev_hash) << "\n\theight: " << height << "\n\tminer: " <<
       miner << "\n\tnonce: " << automaton::core::io::bin2hex(nonce) << "\n}";
   return stream.str();
+}
+
+node::node_params::node_params() {
+  connection_type = "";
+  connected_peers_count = 0;
+  bandwidth = 0;
+  timeout = 0;
+}
+
+node::peer_data::peer_data() {
+  id = "";
+  last_used = std::chrono::time_point<std::chrono::system_clock> ();
 }
 
 char* node::add_buffer(uint32_t size) {
@@ -318,11 +318,12 @@ bool node::add_peer(const std::string& connection_type, const std::string& addre
   CHECK(address != "") << "Invalid peer address!";
   add_to_log("Trying to add new peer: " + address);
   std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = peers.find(address);
-  if (it != peers.end()) {
-    // LOG(DEBUG) << "Peer with this address already exists!";
-    add_to_log("Peer with this address already exists: " + address);
-    return false;
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    if (it->second.id == address) {
+      // LOG(DEBUG) << "Peer with this address already exists!";
+      add_to_log("Peer with this address already exists: " + address);
+      return false;
+    }
   }
   connection* new_connection;
   try {
@@ -345,7 +346,10 @@ bool node::add_peer(const std::string& connection_type, const std::string& addre
     add_to_log("Adding peer failed!");  // Possible reason: tcp_init was never called
     return false;
   }
-  peers[address] = new_connection;
+  peer_data data;
+  data.id = address;
+  data.last_used = std::chrono::system_clock::now();
+  peers[new_connection] = data;
   add_to_log("New peer is added: " + address + ", connect is called");
   new_connection->connect();
   return true;
@@ -356,42 +360,50 @@ bool node::add_peer(automaton::core::network::connection* c, const std::string& 
   CHECK(address != "") << "Invalid peer address!";
   add_to_log("Trying to add new peer: " + address);
   std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = peers.find(address);
-  if (it != peers.end() && it->second == c) {
-    // LOG(DEBUG) << "Peer with this address already exists!";
-    add_to_log("This peer already exists!");
-    return false;
-  } else if (it != peers.end()) {
-    add_to_log("Peer with this address already exists and will be replaced! " + address);
-    // delete it->second;
-    peers.erase(it);
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    if (it->second.id == address) {
+      if (it->first == c) {
+        // LOG(DEBUG) << "Peer with this address already exists!";
+        add_to_log("This peer already exists!");
+        return false;
+      } else {
+        add_to_log("Peer with this address already exists and will be replaced! " + address);
+        // delete it->second;
+        peers.erase(it);
+      }
+      break;
+    }
   }
-  peers[address] = c;
+  peer_data data;
+  data.id = address;
+  data.last_used = std::chrono::system_clock::now();
+  peers[c] = data;
   add_to_log("Peer is added: " + address);
   return true;
 }
 
 void node::remove_peer(const std::string& id_) {
-  CHECK(initialized == true) << "Node is not initialized! Call init() first!";
-  add_to_log("Removing peer: " + id_);
-  std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = peers.find(id_);
-  if (it != peers.end()) {
-    // delete it->second;
-    peers.erase(it);
-  } else {
-    add_to_log("No such peer: " + id_);
-  }
+  // CHECK(initialized == true) << "Node is not initialized! Call init() first!";
+  // add_to_log("Removing peer: " + id_);
+  // std::lock_guard<std::mutex> lock(peers_mutex);
+  // auto it = peers.find(id_);
+  // if (it != peers.end()) {
+  //   // delete it->second;
+  //   peers.erase(it);
+  // } else {
+  //   add_to_log("No such peer: " + id_);
+  // }
 }
 
 automaton::core::network::connection* node::get_peer(const std::string& address) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = peers.find(address);
-  if (it == peers.end()) {
-    return nullptr;
+  for (auto it = peers.begin(); it != peers.end(); ++it) {
+    if (it->second.id == address) {
+      return it->first;
+    }
   }
-  return it->second;
+  return nullptr;
 }
 
 bool node::add_acceptor(const std::string& connection_type, const std::string& address) {
@@ -457,10 +469,9 @@ void node::remove_acceptor(const std::string& id_) {
 
 std::string node::get_peer_id(connection* c) {
   std::lock_guard<std::mutex> lock(peers_mutex);
-  for (auto it = peers.begin(); it != peers.end(); ++it) {
-    if (it->second == c) {
-      return it->first;
-    }
+  auto it = peers.find(c);
+  if (it != peers.end()) {
+    return it->second.id;
   }
   return "";
 }
@@ -472,24 +483,19 @@ void node::send_message(const std::string& message, connection* connection_) {
   if (!connection_) {
     std::lock_guard<std::mutex> lock(peers_mutex);
     for (auto it = peers.begin(); it != peers.end(); ++it) {
-      if (it->second->get_state() == connection::state::connected) {
-        add_to_log("Sending message " + message_hex + " to " + it->first);
-        it->second->async_send(new_message, 0);
+      if (it->first->get_state() == connection::state::connected) {
+        add_to_log("Sending message " + message_hex + " to " + it->second.id);
+        it->first->async_send(new_message, 0);
       } else {
-        add_to_log("Peer is not connected: " + it->first);
+        add_to_log("Peer is not connected: " + it->second.id);
       }
     }
   } else {
     std::lock_guard<std::mutex> lock(peers_mutex);
-    for (auto it = peers.begin(); it != peers.end(); ++it) {
-      if (it->second == connection_) {
-        if (connection_->get_state() == connection::state::connected) {
-          add_to_log("Sending message " + message_hex + " to " + it->first);
-          connection_->async_send(new_message, 0);
-        } else {
-          return;
-        }
-      }
+    auto it = peers.find(connection_);
+    if (it != peers.end() && connection_->get_state() == connection::state::connected) {
+      add_to_log("Sending message " + message_hex + " to " + it->second.id);
+      connection_->async_send(new_message, 0);
     }
   }
 }
@@ -784,13 +790,9 @@ void node::process(msg* input_message, connection* sender) {
     }
     if (hashes.size() > 0) {
       std::lock_guard<std::mutex> lock(peers_mutex);
-      for (auto it = peers.begin(); it != peers.end(); ++it) {
-        if (it->second == sender) {
-          if (sender->get_state() == connection::state::connected) {
-            sender->async_send(add_header(create_send_blocks_message(hashes)));
-          }
-          break;
-        }
+      auto it = peers.find(sender);
+      if (it != peers.end() && sender->get_state() == connection::state::connected) {
+        sender->async_send(add_header(create_send_blocks_message(hashes)));
       }
     }
   } else if (msg_type == "blocks_response") {
@@ -910,6 +912,7 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
 }
 
 void node::update() {
+  std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
   acceptors_mutex.lock();
   uint32_t acceptors_number = acceptors.size();
   acceptors_mutex.unlock();
@@ -920,11 +923,18 @@ void node::update() {
   peers_mutex.lock();
   // Check if there are disconnected peers
   for (auto it = peers.begin(); it != peers.end(); ++it) {
-    if (it->second->get_state() == connection::state::disconnected) {
-      add_to_log("Peer is diconnected! Deleting peer " + it->first);
+    if (it->first->get_state() == connection::state::disconnected) {
+      add_to_log("Peer is diconnected! Deleting peer " + it->second.id);
       // delete it->second;
       peers.erase(it);
-      break;
+    } else if (it->first->get_state() == connection::state::connecting) {
+      std::chrono::milliseconds ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(now - it->second.last_used);
+          if (ms.count() >= params.timeout) {
+            add_to_log("Connection time out: " + it->second.id);
+            it->first->disconnect();
+            peers.erase(it);
+          }
     }
   }
   int32_t new_peers = params.connected_peers_count - peers.size();
@@ -985,21 +995,21 @@ std::string node::node_info() const {
   // }
   // s << "\npeers: ";
   // for (auto it = peers.begin(); it != peers.end(); ++it) {
-  //   s << it->first << " ";
+  //   s << it->second.id << " ";
   // }
   // s << '\n';
   std::vector<std::string> connected, connecting, disconnected, invalid;
   connection::state state_;
   for (auto it = peers.begin(); it != peers.end(); ++it) {
-    state_ = it->second->get_state();
+    state_ = it->first->get_state();
     if (state_ == connection::state::connected) {
-      connected.push_back(it->first);
+      connected.push_back(it->second.id);
     } else if (state_ == connection::state::connecting) {
-      connecting.push_back(it->first);
+      connecting.push_back(it->second.id);
     } else if (state_ == connection::state::disconnected) {
-      disconnected.push_back(it->first);
+      disconnected.push_back(it->second.id);
     } else {
-      invalid.push_back(it->first);
+      invalid.push_back(it->second.id);
     }
   }
   s << "acceptors: ";

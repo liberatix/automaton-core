@@ -46,11 +46,18 @@ class node: public core::network::connection::connection_handler,
     std::string connection_type;  // "tcp" or "sim"
     uint32_t connected_peers_count;
     uint32_t bandwidth;  // simulated connection
+    uint32_t timeout;
+
+    node_params();
   };
 
-  struct peer_stats {
+  struct peer_data {
     std::string id;
+    std::chrono::time_point<std::chrono::system_clock> last_used;
+    // char* buffer;
     // other data
+
+    peer_data();
   };
 
   node(node_params params,
@@ -142,7 +149,8 @@ class node: public core::network::connection::connection_handler,
   mutable std::mutex log_mutex;
   std::map<std::string, block> orphan_blocks;
   std::map<std::string, core::network::acceptor*> acceptors;
-  std::map<std::string, core::network::connection*> peers;
+  // std::map<std::string, core::network::connection*> peers;
+  std::map<core::network::connection*, peer_data> peers;
   core::crypto::hash_transformation* hasher;
   core::state::state* global_state;  // map block_hash -> serialized msg, containing the block
 
