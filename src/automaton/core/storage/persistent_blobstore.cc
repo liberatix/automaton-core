@@ -3,14 +3,16 @@
 #include <iostream>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem.hpp>
-
+#include <iostream>
+using namespace std;
 namespace automaton {
 namespace core {
 namespace storage {
 
 persistent_blobstore::persistent_blobstore()
     : next_free(0)
-    , capacity(0) {
+    , capacity(0)
+{
   // TODO(Samir): Remove from constructor and do it when creating blob
   // storage = new uint32_t[1ULL << 28];
   // capacity = 1ULL << 28;
@@ -24,7 +26,6 @@ persistent_blobstore::~persistent_blobstore() {
 uint8_t* persistent_blobstore::create_blob(const uint32_t size, uint64_t* id) {
   uint32_t size_in_int32 =  size % 4 ? size / 4 + 1 : size / 4;
   *id = next_free;
-
   // When the capacity is not large enough to store the required blob,
   // allocate a new memory block with double the size and copy the data.
   if (next_free + size_in_int32 >= capacity) {
@@ -69,6 +70,8 @@ bool persistent_blobstore::free(const uint32_t id) {
 bool persistent_blobstore::map_file(std::string path) {
   if (boost::filesystem::exists(path)) {
     mmf.open(path, boost::iostreams::mapped_file::mapmode::readwrite);
+    storage = reinterpret_cast<uint32_t*>(mmf.data());
+    capacity = mmf.size();
   } else {
     boost::iostreams::mapped_file_params new_mmf(path);
     new_mmf.flags = boost::iostreams::mapped_file::mapmode::readwrite;
