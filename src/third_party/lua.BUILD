@@ -40,8 +40,11 @@ cc_library(
         "src/loadlib.c",
         "src/linit.c",
     ],
-    hdrs = glob(["src/*.h"]),
-    defines = ["LUA_COMPAT_5_2"],
+    hdrs = glob(["src/*.h", "src/*.hpp"]),
+    defines = [
+      "LUA_COMPAT_5_2",
+      "LUA_COMPAT_MODULE",
+    ],
     includes = ["src"],
 )
 
