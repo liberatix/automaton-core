@@ -18,15 +18,22 @@ class module: public script::module {
 
   data::schema* schema() const;
 
-  static common::status tohex(const data::msg& input, data::msg * output) {
+  static common::status wrap_bin2hex(const data::msg& input, data::msg * output) {
     // TODO(asen): Check message schema IDs for type safety
-    output->set_blob(1, string_to_hex(input.get_blob(1)));
-    return common::status(common::status::OK);
+    output->set_blob(1, bin2hex(input.get_blob(1)));
+    return common::status::ok();
+  }
+
+  static common::status wrap_hex2bin(const data::msg& input, data::msg * output) {
+    // TODO(asen): Check message schema IDs for type safety
+    output->set_blob(1, hex2bin(input.get_blob(1)));
+    return common::status::ok();
   }
 
  private:
   module() : script::module("io", "0.0.1.a") {
-    add_function("tohex", &tohex);
+    add_function("bin2hex", &wrap_bin2hex);
+    add_function("hex2bin", &wrap_hex2bin);
   }
 };
 

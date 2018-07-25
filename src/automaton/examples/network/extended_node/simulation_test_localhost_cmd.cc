@@ -86,7 +86,7 @@ void collect_stats() {
   for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
     // LOG(INFO) << "STATS loop: " << i;
     auto res = nodes[i]->get_height_and_top();
-    std::string hash = automaton::core::io::string_to_hex(res.second);
+    std::string hash = automaton::core::io::bin2hex(res.second);
     hashes[hash]++;
     heights[hash] = res.first;
     // LOG(INFO) << "STATS end loop: " << i;

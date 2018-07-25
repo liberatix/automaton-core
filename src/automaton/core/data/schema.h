@@ -76,10 +76,6 @@ class schema : public common::obj {
     }
   };
 
-  typedef schema* (*factory_function_schema_def)();
-  static void register_factory(std::string name, factory_function_schema_def func);
-  static schema* create(const std::string name);
-
   /**
     Handles process requests from script and routing to corresponding method.
   */
@@ -163,9 +159,6 @@ class schema : public common::obj {
   virtual void add_scalar_field(field_info field, int32_t message_id) = 0;
   virtual void add_enum_field(field_info field, int32_t message_id) = 0;
   virtual void add_message_field(field_info field, int32_t message_id) = 0;
-
- private:
-  static std::map<std::string, factory_function_schema_def> schema_definition_factory;
 };
 
 }  // namespace data
