@@ -63,7 +63,7 @@ tcp_connection::~tcp_connection() {
   boost::system::error_code boost_error_code;
   asio_socket.release(boost_error_code);
   if (boost_error_code) {
-    LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
+    // LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
   }
 }
 
@@ -272,7 +272,7 @@ tcp_acceptor::~tcp_acceptor() {
     boost::system::error_code boost_error_code_release;
     asio_acceptor.release(boost_error_code_release);
     if (boost_error_code_release) {
-      LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
   }
 }

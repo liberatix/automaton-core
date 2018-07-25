@@ -23,8 +23,9 @@ using automaton::examples::node;
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 8;
 static const uint32_t LOOP_STEP = 50;
-static const uint32_t SIMULATION_TIME = 1200000;
+static const uint32_t SIMULATION_TIME = 180000;
 static const uint32_t MINER_PRECISION_BITS = 24;
+static const uint32_t TIMEOUT = 300;
 
 static const char* LOCALHOST = "192.168.0.101:";  // "127.0.0.1:";
 static const char* FILE_NAME = "simulation_output.txt";
@@ -230,6 +231,7 @@ int main(int argc, const char * argv[]) {
     node::node_params params;
     params.connection_type = "tcp";
     params.connected_peers_count = NUMBER_PEERS_IN_NODE;
+    params.timeout = TIMEOUT;
     LOG(INFO) << "Creating acceptors...";
     if (IS_LOCALHOST) {
       for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
