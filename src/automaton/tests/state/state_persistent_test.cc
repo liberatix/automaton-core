@@ -163,7 +163,6 @@ TEST(state_persistent, node_hash_add_erase) {
 }
 
 TEST(state_persistent, insert_and_delete_expect_blank) {
-
   hash_transformation* hasher = new SHA256_cryptopp();
   blobstore bs;
   state_persistent state(hasher, &bs);
@@ -181,7 +180,6 @@ TEST(state_persistent, insert_and_delete_expect_blank) {
 
 
 TEST(state_persistent, get_node_hash) {
-
   hash_transformation* hasher = new SHA256_cryptopp();
   blobstore bs;
   state_persistent s(hasher, &bs);
@@ -189,7 +187,6 @@ TEST(state_persistent, get_node_hash) {
 }
 
 TEST(state_persistent, commit_changes) {
-
   hash_transformation* hasher = new SHA256_cryptopp();
   blobstore bs;
   state_persistent s(hasher, &bs);
@@ -202,7 +199,6 @@ TEST(state_persistent, commit_changes) {
 }
 
 TEST(state_persistent, discard_changes) {
-
   hash_transformation* hasher = new SHA256_cryptopp();
   blobstore bs;
   state_persistent s(hasher, &bs);
@@ -231,7 +227,6 @@ TEST(state_persistent, delete_node_tree) {
 // Deleted nodes should be backed up only when we create new node at
 // their location.
 TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node) {
-
   hash_transformation* hasher = new SHA256_cryptopp();
   blobstore bs;
   state_persistent s(hasher, &bs);
@@ -276,7 +271,6 @@ TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node
 
 
 TEST(dummy_state, using_deleted_locations) {
-
   hash_transformation* hasher = new SHA256_cryptopp();
   blobstore bs;
   state_persistent s(hasher, &bs);
