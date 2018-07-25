@@ -74,12 +74,12 @@ bool tcp_connection::init() {
       boost::asio::ip::tcp::resolver resolver{asio_io_service};
       std::string ip, port;
       parse_address(address, &ip, &port);
-      boost::asio::ip::tcp::resolver::query q{ip, port};
-      asio_endpoint = *resolver.resolve(q, boost_error_code);
+      boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(ip, port, boost_error_code);
       if (boost_error_code) {
         LOG(ERROR) << address << " -> " <<  boost_error_code.message();
         return false;
       } else {
+        asio_endpoint = *it;
         set_state(connection::state::disconnected);
         return true;
       }
@@ -283,8 +283,7 @@ bool tcp_acceptor::init() {
     boost::system::error_code boost_error_code;
     std::string ip, port;
     parse_address(address, &ip, &port);
-    boost::asio::ip::tcp::resolver::query q{ip, port};
-    boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(q, boost_error_code);
+    boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(ip, port, boost_error_code);
     if (boost_error_code) {
       LOG(ERROR) << address << " -> " <<  boost_error_code.message();
       return false;
