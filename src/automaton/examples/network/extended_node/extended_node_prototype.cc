@@ -468,7 +468,7 @@ std::string node::get_peer_id(connection* c) {
 void node::send_message(const std::string& message, connection* connection_) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
   std::string new_message = add_header(message);
-  std::string message_hex = core::io::string_to_hex(new_message);
+  std::string message_hex = core::io::bin2hex(new_message);
   if (!connection_) {
     std::lock_guard<std::mutex> lock(peers_mutex);
     for (auto it = peers.begin(); it != peers.end(); ++it) {
