@@ -90,7 +90,9 @@ class node: public core::network::connection::connection_handler,
 
   void remove_acceptor(const std::string& id);
 
-  void send_message(const std::string& message, const std::string& connection_id = "");
+  std::string get_peer_id(automaton::core::network::connection* c);
+
+  void send_message(const std::string& message, automaton::core::network::connection* = nullptr);
 
   void handle_block(const std::string& hash, const block& block_,
       const std::string& serialized_block);
