@@ -1,18 +1,14 @@
 #include "automaton/core/storage/persistent_blobstore.h"
-#include <cstring>
-#include <iostream>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem.hpp>
-#include <iostream>
-using namespace std;
+#include <cstring>
 namespace automaton {
 namespace core {
 namespace storage {
 
 persistent_blobstore::persistent_blobstore()
     : next_free(0)
-    , capacity(0)
-{
+    , capacity(0) {
   // TODO(Samir): Remove from constructor and do it when creating blob
   // storage = new uint32_t[1ULL << 28];
   // capacity = 1ULL << 28;
