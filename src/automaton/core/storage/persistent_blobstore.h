@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_STORAGE_PERSISTENT_BLOBSTORE_H__
 
 #include <boost/iostreams/device/mapped_file.hpp>
+#include <string>
 
 namespace automaton {
 namespace core {
