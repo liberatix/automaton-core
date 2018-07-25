@@ -63,9 +63,9 @@ std::string hex2bin(const std::string& input) {
   }
 
   // The rest of the input consists of pair of nibbles.
-  for (size_t i = (len & 1); i < len-1; i+=2) {
+  for (size_t i = (len & 1); i < len - 1; i += 2) {
     uint8_t n1 = hex2nibble(input[i]);
-    uint8_t n2 = hex2nibble(input[i+1]);
+    uint8_t n2 = hex2nibble(input[i + 1]);
     output.push_back(n1 << 4 | n2);
   }
 
