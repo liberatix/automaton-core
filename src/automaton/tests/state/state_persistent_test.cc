@@ -38,7 +38,7 @@ TEST(state_persistent, set_and_get) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent state(hasher, &bs);
 
   // For each node added, check if the previous nodes are still correct
@@ -68,7 +68,7 @@ TEST(state_persistent, set_delete_and_get) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent state(hasher, &bs);
   // add all nodes
   for (unsigned int i = 0; i < tests.size(); i++) {
@@ -101,7 +101,7 @@ TEST(state_persistent, node_hash_add_erase) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent state(hasher, &bs);
 
   // Add keys/values to the state and add the root hash into a stack.
@@ -171,7 +171,7 @@ TEST(state_persistent, insert_and_delete_expect_blank) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent state(hasher, &bs);
 
   state.set("a", "1");
@@ -190,7 +190,7 @@ TEST(state_persistent, get_node_hash) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent s(hasher, &bs);
   EXPECT_EQ(s.get_node_hash(""), "");
 }
@@ -199,7 +199,7 @@ TEST(state_persistent, commit_changes) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("a", "1");
   s.set("b", "2");
@@ -213,7 +213,7 @@ TEST(state_persistent, discard_changes) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("a", "1");
   s.set("b", "2");
@@ -227,7 +227,7 @@ TEST(state_persistent, delete_node_tree) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("aa", "1");
   s.set("aaa", "2");
@@ -245,7 +245,7 @@ TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("aa", "1");
   s.set("aaa", "2");
@@ -291,7 +291,7 @@ TEST(dummy_state, using_deleted_locations) {
   SHA256_cryptopp::register_self();
   hash_transformation* hasher;
   hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  blobstore bs;
   state_persistent s(hasher, &bs);
 
   s.set("a", "1");
