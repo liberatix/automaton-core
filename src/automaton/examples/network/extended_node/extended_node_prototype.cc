@@ -54,9 +54,9 @@ core::data::factory* node::msg_factory = nullptr;
 
 void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read, uint32_t id_) {
   // LOG(DEBUG) << get_id() << " RECEIVED: " <<
-  //    core::io::string_to_hex(std::string(buffer, bytes_read));
+  //    core::io::bin2hex(std::string(buffer, bytes_read));
   std::stringstream stream;
-  stream << "RECEIVED: " << core::io::string_to_hex(std::string(buffer, bytes_read)) <<
+  stream << "RECEIVED: " << core::io::bin2hex(std::string(buffer, bytes_read)) <<
       " from " << c->get_address();
   add_to_log(stream.str());
   switch (id_) {
@@ -94,7 +94,7 @@ void node::on_message_received(connection* c, char* buffer, uint32_t bytes_read,
       try {
         std::string data = std::string(buffer, bytes_read);
         // LOG(DEBUG) << get_id() << " RECEIVED " << data.size() << " bytes: ";
-            // << core::io::string_to_hex(data);
+            // << core::io::bin2hex(data);
         if (data == "") {
           std::stringstream msg;
           msg << get_id() << " Reading message was not successful!";
@@ -235,9 +235,9 @@ node::block::block(std::string hash, std::string prev_hash, uint32_t height,
 
 std::string node::block::to_string() const {
   std::stringstream stream;
-  stream << "block {\n\thash :" << automaton::core::io::string_to_hex(hash) << "\n\tprev_hash: " <<
-      automaton::core::io::string_to_hex(prev_hash) << "\n\theight: " << height << "\n\tminer: " <<
-      miner << "\n\tnonce: " << automaton::core::io::string_to_hex(nonce) << "\n}";
+  stream << "block {\n\thash :" << automaton::core::io::bin2hex(hash) << "\n\tprev_hash: " <<
+      automaton::core::io::bin2hex(prev_hash) << "\n\theight: " << height << "\n\tminer: " <<
+      miner << "\n\tnonce: " << automaton::core::io::bin2hex(nonce) << "\n}";
   return stream.str();
 }
 
@@ -420,7 +420,7 @@ void node::remove_acceptor(const std::string& id_) {
 
 void node::send_message(const std::string& message, const std::string& connection_id) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
-  add_to_log("Sending message " + core::io::string_to_hex(message) + " to " + connection_id);
+  add_to_log("Sending message " + core::io::bin2hex(message) + " to " + connection_id);
   std::string new_message = add_header(message);
   if (connection_id == "") {
     std::lock_guard<std::mutex> lock(peers_mutex);
@@ -444,7 +444,7 @@ void node::send_message(const std::string& message, const std::string& connectio
 void node::handle_block(const std::string& hash, const block& block_,
     const std::string& serialized_block) {
   CHECK(initialized == true) << "Node is not initialized! Call init() first!";
-  // LOG(DEBUG) << get_id() << " handling block " << core::io::string_to_hex(hash) << '\n' <<
+  // LOG(DEBUG) << get_id() << " handling block " << core::io::bin2hex(hash) << '\n' <<
   //    block_.to_string();
   global_state_mutex.lock();
   orphan_blocks_mutex.lock();
@@ -487,7 +487,7 @@ void node::handle_block(const std::string& hash, const block& block_,
       return;
     }
   }
-  // LOG(DEBUG) << get_id() << " ADDING BLOCK: " << core::io::string_to_hex(hash);
+  // LOG(DEBUG) << get_id() << " ADDING BLOCK: " << core::io::bin2hex(hash);
   global_state->set(hash, serialized_block);
   std::string old_chain_top = chain_top;
   // If the new block is extending the main chain
@@ -611,7 +611,7 @@ std::string node::create_send_blocks_message(std::vector<std::string> hashes) {
           " -> " << hashes;
     }
     // LOG(DEBUG) << get_id() << " SENDING " << data.size() << "bytes: " <<
-    //    core::io::string_to_hex(data);
+    //    core::io::bin2hex(data);
     return data;
   } catch (std::exception& e) {
     std::stringstream msg;
@@ -744,7 +744,7 @@ void node::process(msg* input_message, connection* sender) {
       // LOG(DEBUG) << "Blocks:: ";
       // for (int i = 0; i < blocks_number; ++i) {
       //   LOG(DEBUG) << "block: " <<
-      //       core::io::string_to_hex(msg_type_response->get_repeated_blob(2, i));
+      //       core::io::bin2hex(msg_type_response->get_repeated_blob(2, i));
       // }
       return;
     }
@@ -800,9 +800,9 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
     hasher->update(nonce, HASH_SIZE);
     hasher->final(next_block_hash);
     // LOG(DEBUG) << id_ << " mining loop: " << i << " FOUND " <<
-    //     core::io::string_to_hex(std::string(reinterpret_cast<char*>(next_block_hash), HASH_SIZE))
+    //     core::io::bin2hex(std::string(reinterpret_cast<char*>(next_block_hash), HASH_SIZE))
     //     << " with NONCE " <<
-    //     core::io::string_to_hex(std::string(reinterpret_cast<char*>(nonce), HASH_SIZE));
+    //     core::io::bin2hex(std::string(reinterpret_cast<char*>(nonce), HASH_SIZE));
     // LOG(DEBUG) << id_ << " is mining " << i;
     if (is_hash_valid(next_block_hash, required_leading_zeros)) {
       std::string new_hash(reinterpret_cast<char*>(next_block_hash), HASH_SIZE);
@@ -836,7 +836,7 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
       std::unique_ptr<msg> block_msg = block_to_msg(b);
       // LOG(DEBUG) << "Block msg: " << block_msg->to_string();
       block_msg->serialize_message(&serialized_block);
-      // LOG(DEBUG) << id_ << " ADDING BLOCK: " << automaton::core::io::string_to_hex(hash);
+      // LOG(DEBUG) << id_ << " ADDING BLOCK: " << automaton::core::io::bin2hex(hash);
       global_state->set(hash, serialized_block);
       chain_top = hash;
       chain_top_mutex.unlock();
@@ -917,7 +917,7 @@ std::string node::node_info() const {
   std::lock_guard<std::mutex> acct_lock(acceptors_mutex);
   std::lock_guard<std::mutex> peer_lock(peers_mutex);
   std::stringstream s;
-  // s << "NODE ID: " << get_id() << " hash: " << automaton::core::io::string_to_hex(get_top()) <<
+  // s << "NODE ID: " << get_id() << " hash: " << automaton::core::io::bin2hex(get_top()) <<
   //     " \nacceptors: ";
   // for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
   //   s << it->first << " ";
@@ -945,7 +945,7 @@ std::string node::node_info() const {
   for (auto it = acceptors.begin(); it != acceptors.end(); ++it) {
     s << it->first << " ";
   }
-  s << " @hash: ..." << automaton::core::io::string_to_hex(std::string(get_top(), HASH_SIZE - 5));
+  s << " @hash: ..." << automaton::core::io::bin2hex(std::string(get_top(), HASH_SIZE - 5));
   s << "\nC: " << connected.size() << " -> ";
   for (uint32_t i = 0; i < connected.size(); ++i) s << " " << connected[i];
   s << "\nCING: " << connecting.size() << " -> ";
