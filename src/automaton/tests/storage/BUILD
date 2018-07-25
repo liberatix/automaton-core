@@ -4,7 +4,20 @@ cc_test(
     srcs = ["blobstore_test.cc"],
     size = "small",
     deps = [
-      "//automaton/core/storage",
+      "//automaton/core/storage:blobstore",
       "@gtest//:gtest_main",
     ],
+)
+
+cc_test(
+    name = "persistent_blobstore",
+    srcs = ["persistent_blobstore_test.cc"],
+    size = "small",
+    deps = [
+      "//automaton/core/storage:persistent_blobstore",
+      "//automaton/core/log",
+      "@gtest//:gtest_main",
+    ],
+    #linkstatic = True,
+    #copts = ["-MT"],
 )

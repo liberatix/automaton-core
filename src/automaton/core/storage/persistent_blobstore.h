@@ -21,9 +21,9 @@ class persistent_blobstore {
   /**
     Stores the byte array pointed by data
 
-    @returns    uint64_t  returns the ID used to access it.
-    @param[in]  size      The size of the data pointed by data in bytes
-    @param[out] data      Pointer to the data
+    @returns   uint64_t  returns the ID used to access it.
+    @param[in] size      The size of the data pointed by data in bytes
+    @param[in] data      Pointer to the data
   */
   uint64_t store(const uint32_t size, const uint8_t* data);
 
@@ -31,7 +31,7 @@ class persistent_blobstore {
     Used to get access to previously allocated blob.
 
     @returns    uint8_t*  pointer to the blob or nullptr if id>=capacity
-    @param[in]  id        The ID returned by create_blob
+    @param[in]  id        The ID returned by store
     @param[out] size      The size of the data pointed by the returned
                           pointer in bytes
   */
@@ -54,7 +54,7 @@ class persistent_blobstore {
   boost::iostreams::mapped_file mmf;
 
   std::string file_path;
-  uint64_t next_free;
+  uint64_t next_free = 0;
   // capacity of storage in 4byte chunks (size in bytes/4)
   uint64_t capacity;
   // TODO(Samir): Handle free locations.

@@ -10,14 +10,14 @@ cc_library (
     "boost/**/*.hpp"
   ]),
   includes = ["."],
-  linkstatic = True,
+  #linkstatic = True,
   defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
   name = "system",
   srcs = glob([
-    "libboost_system-vc141-mt-s-x64-1_67.lib"
+    "libboost_system-vc141-mt-x64-1_67.lib"
   ]),
   hdrs = glob([
     "boost/**/*.hpp"
@@ -26,14 +26,14 @@ cc_library (
   deps = [
     ":config",
   ],
-  linkstatic = True,
+  #linkstatic = True,
   defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
   name = "filesystem",
   srcs = glob([
-    "libboost_filesystem-vc141-mt-s-x64-1_67.lib"
+    "libboost_filesystem-vc141-mt-x64-1_67.lib"
   ]),
   hdrs = glob([
     "boost/**/*.hpp"
@@ -43,14 +43,14 @@ cc_library (
     ":config",
     ":system",
   ],
-  linkstatic = True,
+  #linkstatic = True,
   defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
   name = "iostreams",
   srcs = [
-    "libboost_iostreams-vc141-mt-s-x64-1_67.lib",
+    "libboost_iostreams-vc141-mt-x64-1_67.lib",
   ],
   hdrs = glob([
     "boost/**/*.hpp",
@@ -59,6 +59,6 @@ cc_library (
   deps = [
     ":config",
   ],
-  linkstatic = True,
+  #linkstatic = True,
   defines = ["BOOST_ALL_NO_LIB"],
 )

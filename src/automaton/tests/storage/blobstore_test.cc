@@ -8,7 +8,7 @@
 using automaton::core::storage::blobstore;
 
 TEST(blobstore, basic_test) {
-  blobstore storage("filepath.txt");
+  blobstore storage;
   uint32_t blob_size = 16;
   uint64_t access_id;
   std::string data_to_save = "0123456789ABCDEF";
@@ -23,7 +23,7 @@ TEST(blobstore, basic_test) {
 
 
 TEST(blobstore, store_get) {
-  blobstore storage("test");
+  blobstore storage;
   std::vector<std::string> tests;
   std::vector<uint64_t> access_id;
   std::random_device rnd;
