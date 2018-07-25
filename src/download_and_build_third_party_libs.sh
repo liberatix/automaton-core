@@ -1,5 +1,16 @@
 #!/bin/bash
 
+darwin=false;
+case "`uname`" in
+  Darwin*) darwin=true ;;
+esac
+
+if $darwin; then
+  sedi="sed -i ''"
+else
+  sedi="sed -i "
+fi
+
 print_separator() {
  str=$1
  num=$2
@@ -58,7 +69,7 @@ cd ..
 
 # Build zmqpp
 cd zmqpp
-sed -i '' 's/CUSTOM_INCLUDE_PATH =/CUSTOM_INCLUDE_PATH = ..\/libzmq\/include' Makefile
-sed -i '' 's/LIBRARY_LIBS =/LIBRARY_LIBS = -L..\/libzmq\/src\/.libs/' Makefile
+$sedi 's/CUSTOM_INCLUDE_PATH =/CUSTOM_INCLUDE_PATH = ..\/libzmq\/include/' Makefile
+$sedi 's/LIBRARY_LIBS =/LIBRARY_LIBS = -L..\/libzmq\/src\/.libs/' Makefile
 make
 cd ..
