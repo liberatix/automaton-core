@@ -58,8 +58,6 @@ cd ..
 
 # Build zmqpp
 cd zmqpp
-CUSTOM_INCLUDE_PATH = ../libzmq/include
-LIBRARY_LIBS = -L../libzmq/src/.libs
 sed -i '' 's/CUSTOM_INCLUDE_PATH =/CUSTOM_INCLUDE_PATH = ..\/libzmq\/include' Makefile
 sed -i '' 's/LIBRARY_LIBS =/LIBRARY_LIBS = -L..\/libzmq\/src\/.libs/' Makefile
 make
