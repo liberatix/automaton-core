@@ -27,3 +27,6 @@
 # Visual Studio
 .vs
 .vscode
+
+# Locally built third_party libraries
+src/local_third_party
