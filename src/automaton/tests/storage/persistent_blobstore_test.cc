@@ -9,7 +9,6 @@
 using automaton::core::storage::persistent_blobstore;
 
 TEST(persistent_blobstore, create_mapped_file) {
-
   persistent_blobstore bs1;
   bs1.map_file("mapped_file.txt");
 
