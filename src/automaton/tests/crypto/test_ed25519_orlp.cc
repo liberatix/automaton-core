@@ -19,16 +19,17 @@ static std::string toHex(uint8_t * decoded, size_t size) {
   encoder.MessageEnd();
   return output;
 }
+
 void decode_from_hex(std::string &encoded, std::string &decoded) {   // NOLINT
   CryptoPP::StringSource ss(encoded, true,
     new CryptoPP::HexDecoder(new CryptoPP::StringSink(decoded)));
 }
+
 TEST(secp256k1_cryptopp, gen_public_key) {
 }
-TEST(secp256k1_cryptopp, sign_and_verify) {
-  ed25519_orlp::register_self();
 
-  digital_signature * tester = digital_signature::create("ed25519_orlp");
+TEST(secp256k1_cryptopp, sign_and_verify) {
+  digital_signature * tester = new ed25519_orlp;
   EXPECT_NE(tester, nullptr);
   uint8_t* public_key = new uint8_t[tester->public_key_size()];
   uint8_t* signature = new uint8_t[tester->signature_size()];

@@ -46,23 +46,37 @@ class node: public core::network::connection::connection_handler,
     std::string connection_type;  // "tcp" or "sim"
     uint32_t connected_peers_count;
     uint32_t bandwidth;  // simulated connection
+    uint32_t timeout;
+
+    node_params();
   };
 
-  struct peer_stats {
+  struct peer_data {
     std::string id;
+    std::chrono::time_point<std::chrono::system_clock> last_used;
+    // char* buffer;
     // other data
+
+    peer_data();
   };
 
   node(node_params params,
-      std::string (*get_randon_peer_address)(node* n, const node_params& params));
+      std::string (*get_random_acceptor_address)(node* n, const node_params& params),
+      std::string (*get_random_peer_address)(node* n, const node_params& params));
 
   ~node();
 
   bool init();
 
-  std::string id;
+  std::string (*get_random_acceptor_address)(node* n, const node_params& params);
 
-  std::string (*get_randon_peer_address)(node* n, const node_params& params);
+  std::string (*get_random_peer_address)(node* n, const node_params& params);
+
+  std::vector<std::string> logger;
+
+  void add_to_log(const std::string& e);
+
+  void log_to_stream(std::ostream& os) const;
 
   // This function is created because the acceptor needs ids for the connections it accepts
   uint32_t get_next_peer_id();
@@ -79,12 +93,20 @@ class node: public core::network::connection::connection_handler,
 
   bool add_acceptor(const std::string& connection_type, const std::string& address);
 
+  automaton::core::network::acceptor* get_acceptor(const std::string& address);
+
   void remove_acceptor(const std::string& id);
 
-  void send_message(const std::string& message, const std::string& connection_id = "");
+  std::string get_peer_id(automaton::core::network::connection* c);
+
+  void send_message(const std::string& message, automaton::core::network::connection* = nullptr);
 
   void handle_block(const std::string& hash, const block& block_,
       const std::string& serialized_block);
+
+  std::string get_id() const;
+
+  void set_id(const std::string& new_id);
 
   std::pair<uint32_t, std::string> get_height_and_top() const;
 
@@ -103,9 +125,10 @@ class node: public core::network::connection::connection_handler,
 
   void update();
 
-  void print_node_info() const;
+  std::string node_info() const;
 
  private:
+  std::string id;
   node_params params;
   std::string first_block_hash;
   std::string chain_top;
@@ -118,13 +141,16 @@ class node: public core::network::connection::connection_handler,
   std::mutex global_state_mutex;
   std::mutex orphan_blocks_mutex;
   std::mutex peer_ids_mutex;
+  mutable std::mutex id_mutex;
   mutable std::mutex peers_mutex;
   mutable std::mutex acceptors_mutex;
   mutable std::mutex chain_top_mutex;
   mutable std::mutex height_mutex;
+  mutable std::mutex log_mutex;
   std::map<std::string, block> orphan_blocks;
   std::map<std::string, core::network::acceptor*> acceptors;
-  std::map<std::string, core::network::connection*> peers;
+  // std::map<std::string, core::network::connection*> peers;
+  std::map<core::network::connection*, peer_data> peers;
   core::crypto::hash_transformation* hasher;
   core::state::state* global_state;  // map block_hash -> serialized msg, containing the block
 

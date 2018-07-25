@@ -19,12 +19,12 @@ class module: public script::module {
   data::schema* schema() const;
 
  private:
-  module() : script::module("data.protobuf", "0.0.1.a") {
+  module() : script::module("protobuf", "0.0.1.a") {
     add_dependency("data", 0);
 
-    add_implementation("protobuf_factory", nullptr);
-    add_implementation("protobuf_msg", nullptr);
-    add_implementation("protobuf_schema", nullptr);
+    add_implementation("pb_factory", {"data.v0.factory"}, nullptr);
+    add_implementation("pb_msg", {"data.v0.msg"}, nullptr);
+    add_implementation("pb_schema", {"data.v0.schema"}, nullptr);
   }
 };
 

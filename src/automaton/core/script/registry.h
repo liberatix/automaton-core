@@ -24,28 +24,73 @@ namespace script {
 */
 class module {
  public:
-  typedef std::unique_ptr<common::obj> (*object_factory_function)(const data::msg& m);
+  typedef std::unique_ptr<common::obj> (*constructor_function)(const data::msg& m);
+  typedef common::status (*module_static_function)(const data::msg& m, data::msg* output);
+
+  struct static_function_info {
+    std::string name;
+    module_static_function func;
+    uint32_t input_schema_id;
+    uint32_t output_schema_id;
+  };
+
+  struct method_info {
+    std::string name;
+    uint32_t input_schema_id;
+    uint32_t output_schema_id;
+  };
+
+  struct concept_info {
+    std::string name;
+    std::vector<method_info> methods;
+  };
+
+  struct implementation_info {
+    std::string name;
+    constructor_function func;
+    uint32_t constructor_schema_id;
+    std::vector<concept_info> concepts;
+  };
 
   virtual const std::string name() const { return name_; }
+
   virtual const std::string name_with_api_version() const {
     return name_with_api_version(name_, api_version_);
   }
+
   virtual const std::string full_version() const { return version_; }
+
   virtual const uint32_t api_version() const { return api_version_; }
+
   virtual const uint32_t minor_version() const { return minor_version_; }
+
   virtual const uint32_t patch_version() const { return patch_version_; }
+
   virtual const std::string extra_version() const { return extra_version_; }
 
   virtual data::schema* schema() const = 0;
 
-  virtual const std::vector<std::string> dependencies() const { return dependencies_; }
-  virtual const std::vector<std::string> functions() const { return functions_; }
-  virtual const std::vector<std::string> concepts() const { return concepts_; }
-  virtual const std::unordered_map<std::string, object_factory_function> implementations() const {
+  virtual void bind_schemas();
+
+  virtual const std::vector<std::string> dependencies() const {
+    return dependencies_;
+  }
+
+  virtual const std::unordered_map<std::string, static_function_info> functions() const {
+    return functions_;
+  }
+
+  virtual const std::vector<std::string> concepts() const {
+    return concepts_;
+  }
+
+  virtual const std::unordered_map<std::string, implementation_info> implementations() const {
     return implementations_;
   }
 
   // virtual void process(const data::msg& input, data::msg* output) = 0;
+
+  void check_implementation(const std::string implementation);
 
  protected:
   module(const std::string name, const std::string version) : name_(name), version_(version) {
@@ -69,24 +114,15 @@ class module {
     dependencies_.push_back(name_with_api_version(dependency, api_version));
   }
 
-  void add_function(const std::string function) {
-    functions_.push_back(function);
-  }
-
   void add_concept(const std::string concept) {
     concepts_.push_back(concept);
   }
 
-  void add_implementation(const std::string implementation, object_factory_function f) {
-    if (implementations_.count(implementation) > 0) {
-      std::stringstream ss;
-      ss << "Module " << name() << " already has implementation for " << implementation;
-      LOG(ERROR) << ss.str();
-      throw ss.str();
-    }
-    implementations_[implementation] = f;
-    // implementations_.push_back(implementation);
-  }
+  void add_function(const std::string function_name, module_static_function func);
+
+  void add_implementation(const std::string implementation,
+                          const std::vector<std::string> concepts,
+                          constructor_function f);
 
  private:
   static const std::string name_with_api_version(const std::string name, uint32_t api_version) {
@@ -99,10 +135,9 @@ class module {
   uint32_t patch_version_;
   std::string extra_version_;
   std::vector<std::string> dependencies_;
-  std::vector<std::string> functions_;
   std::vector<std::string> concepts_;
-  // std::vector<std::string> implementations_;
-  std::unordered_map<std::string, object_factory_function> implementations_;
+  std::unordered_map<std::string, implementation_info> implementations_;
+  std::unordered_map<std::string, static_function_info> functions_;
 };
 
 /**
@@ -150,6 +185,11 @@ class registry {
     // Import schema.
     LOG(INFO) << "Importing schema " << m.name_with_api_version();
     factory_->import_schema(m.schema(), m.name_with_api_version(), m.name_with_api_version());
+    m.bind_schemas();
+
+    for (auto& impl : m.implementations()) {
+      m.check_implementation(impl.first);
+    }
   }
 
   /**
@@ -163,15 +203,33 @@ class registry {
     Creates the instance when called for the first time.
   */
   static registry& instance() {
-    LOG(INFO) << "Creating registry.";
-    static registry inst;
-    return inst;
+    static registry* inst = nullptr;
+    if (inst == nullptr) {
+      LOG(INFO) << "Creating registry.";
+      inst = new registry();
+    }
+    return *inst;
   }
 
   data::factory& get_factory() { return *factory_.get() ; }
   std::unique_ptr<common::obj> create(const data::msg& m);
 
   void process(const data::msg& request, data::msg* response);
+
+  std::vector<std::string> module_names() {
+    std::vector<std::string> names;
+    for (const auto& m : modules_) {
+      names.push_back(m.first);
+    }
+    return names;
+  }
+
+  module* get_module(std::string name) {
+    if (modules_.count(name) == 0) {
+      return nullptr;
+    }
+    return modules_[name];
+  }
 
  private:
   registry();

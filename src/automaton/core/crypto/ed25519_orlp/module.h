@@ -30,7 +30,7 @@ class module: public script::module {
   module() : script::module("ed25519_orlp", "0.0.1.a") {
     add_dependency("crypto", 0);
 
-    add_implementation("ed25519", &create_ed25519_orlp);
+    add_implementation("ed25519", {"crypto.v0.dsig"}, &create_ed25519_orlp);
   }
 };
 

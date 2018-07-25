@@ -74,7 +74,6 @@ class protobuf_factory: public factory {
   static const std::map<google::protobuf::FieldDescriptor::CppType,
       schema::field_type> protobuf_ccptype_to_type;
 
-  void register_self();
   /**
     TODO(kari): Decide to forbid move & copy constructors.
   **/
@@ -140,6 +139,17 @@ class protobuf_factory: public factory {
     top-level and nested).
   */
   uint32_t get_schemas_number() const;
+
+
+  /**
+    Returns the number of nested message types in the specified message schema.
+  */
+  uint32_t get_nested_messages_number(uint32_t schema_id) const;
+
+  /**
+    Returns the schema id of the corresponding nested message.
+  */
+  uint32_t get_nested_message_schema_id(uint32_t schema_id, uint32_t index) const;
 
   /*
     Returns the number of fields in the schema with the given id. If no such

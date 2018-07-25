@@ -13,7 +13,10 @@ namespace io {
   Exception is thrown when error occurs.
 */
 std::string get_file_contents(const char* filename);
-std::string string_to_hex(const std::string& input);
+
+std::string bin2hex(const std::string& input);
+
+std::string hex2bin(const std::string& input);
 
 }  // namespace io
 }  // namespace core

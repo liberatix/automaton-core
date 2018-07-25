@@ -1,23 +1,30 @@
-# Automaton scripting library tests
+# Automaton examples - Lua integration
 
 package(default_visibility = ["//visibility:public"])
 
-cc_test(
-  name = "test_script",
-  srcs = ["test_script.cc",],
+cc_binary(
+  name = "demo_lua",
+  srcs = [
+    "demo_lua.cc",
+  ],
   deps = [
     "//automaton/core/crypto:module",
+    "//automaton/core/crypto",
     "//automaton/core/crypto/cryptopp:module",
     "//automaton/core/crypto/ed25519_orlp:module",
     "//automaton/core/data:module",
     "//automaton/core/data/protobuf:module",
     "//automaton/core/io:module",
-    "//automaton/core/network:module",
     "//automaton/core/log:module",
+    "//automaton/core/log",
+    "//automaton/core/network:module",
     "//automaton/core/script",
+    "//automaton/core/script/lua",
     "//automaton/core/state:module",
-    "@gtest//:gtest_main",
+    "@lua//:liblua",
   ],
-  linkstatic = True,
-  size = "small",
+  data = [
+    "script_demo.lua",
+    "script_demo_module.proto",
+  ],
 )

@@ -60,6 +60,11 @@ tcp_connection::tcp_connection(const std::string& addr, const boost::asio::ip::t
 
 tcp_connection::~tcp_connection() {
   disconnect();
+  boost::system::error_code boost_error_code;
+  asio_socket.release(boost_error_code);
+  if (boost_error_code) {
+    // LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
+  }
 }
 
 bool tcp_connection::init() {
@@ -69,12 +74,12 @@ bool tcp_connection::init() {
       boost::asio::ip::tcp::resolver resolver{asio_io_service};
       std::string ip, port;
       parse_address(address, &ip, &port);
-      boost::asio::ip::tcp::resolver::query q{ip, port};
-      asio_endpoint = *resolver.resolve(q, boost_error_code);
+      boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(ip, port, boost_error_code);
       if (boost_error_code) {
         LOG(ERROR) << address << " -> " <<  boost_error_code.message();
         return false;
       } else {
+        asio_endpoint = *it;
         set_state(connection::state::disconnected);
         return true;
       }
@@ -95,14 +100,14 @@ void tcp_connection::connect() {
       asio_socket.async_connect(asio_endpoint,
           [this](const boost::system::error_code& boost_error_code) {
             if (boost_error_code) {
-              set_state(connection::state::disconnected);
+              disconnect();
+              // set_state(connection::state::disconnected);
               LOG(ERROR) << address << " -> " <<  boost_error_code.message();
               if (boost_error_code == boost::asio::error::connection_refused) {
                 handler->on_error(this, connection::error::connection_refused);
               } else {
                 handler->on_error(this, connection::error::unknown);
               }
-              disconnect();
             } else {
               set_state(connection::state::connected);
               handler->on_connected(this);
@@ -203,8 +208,8 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
 }
 
 void tcp_connection::disconnect() {
-  set_state(connection::state::disconnected);
   connection_mutex.lock();
+  set_state(connection::state::disconnected);
   if (asio_socket.is_open()) {
     boost::system::error_code boost_error_code_shut;
     asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
@@ -258,7 +263,18 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
 }
 
 tcp_acceptor::~tcp_acceptor() {
-  asio_acceptor.close();
+  if (asio_acceptor.is_open()) {
+    boost::system::error_code boost_error_code_close;
+    asio_acceptor.close(boost_error_code_close);
+    if (boost_error_code_close) {
+      LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+    }
+    boost::system::error_code boost_error_code_release;
+    asio_acceptor.release(boost_error_code_release);
+    if (boost_error_code_release) {
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+    }
+  }
 }
 
 bool tcp_acceptor::init() {
@@ -267,8 +283,7 @@ bool tcp_acceptor::init() {
     boost::system::error_code boost_error_code;
     std::string ip, port;
     parse_address(address, &ip, &port);
-    boost::asio::ip::tcp::resolver::query q{ip, port};
-    boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(q, boost_error_code);
+    boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(ip, port, boost_error_code);
     if (boost_error_code) {
       LOG(ERROR) << address << " -> " <<  boost_error_code.message();
       return false;

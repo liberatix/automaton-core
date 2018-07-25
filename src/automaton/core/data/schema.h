@@ -60,11 +60,21 @@ class schema : public common::obj {
     bool is_repeated;
     field_info(uint32_t tag, field_type type, const std::string& name,
         const std::string& fully_qualified_type, bool is_repeated);
+    std::string type_name() {
+      switch (type) {
+        case unknown: return "unknown";
+        case message_type: return "message";
+        case enum_type: return "enum";
+        case blob: return "blob";
+        case int32: return "int32";
+        case int64: return "int64";
+        case uint32: return "uint32";
+        case uint64: return "uint64";
+        case boolean: return "bool";
+        default: return "N/A";
+      }
+    }
   };
-
-  typedef schema* (*factory_function_schema_def)();
-  static void register_factory(std::string name, factory_function_schema_def func);
-  static schema* create(const std::string name);
 
   /**
     Handles process requests from script and routing to corresponding method.
@@ -149,9 +159,6 @@ class schema : public common::obj {
   virtual void add_scalar_field(field_info field, int32_t message_id) = 0;
   virtual void add_enum_field(field_info field, int32_t message_id) = 0;
   virtual void add_message_field(field_info field, int32_t message_id) = 0;
-
- private:
-  static std::map<std::string, factory_function_schema_def> schema_definition_factory;
 };
 
 }  // namespace data
