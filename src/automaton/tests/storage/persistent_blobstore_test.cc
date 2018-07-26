@@ -9,7 +9,7 @@
 using automaton::core::storage::persistent_blobstore;
 
 TEST(persistent_blobstore, create_mapped_file) {
-  //uint64_t ids[10];
+
   std::vector<uint64_t> ids;
   std::vector<std::string> data;
   data.push_back("data 1");
@@ -24,7 +24,7 @@ TEST(persistent_blobstore, create_mapped_file) {
   {
     persistent_blobstore bs1;
     bs1.map_file("mapped_file.txt");
-    for(int i = 0; i < data.size(); i++) {
+    for (int i = 0; i < data.size(); i++) {
       ids.push_back(bs1.store(data[i].size(), reinterpret_cast<const uint8_t*>(data[i].c_str())));
     }
   }
@@ -36,7 +36,6 @@ TEST(persistent_blobstore, create_mapped_file) {
     pData = bs1.get(ids[i], &sz);
     std::cout << std::string(reinterpret_cast<char*>(pData), sz) << std::endl;
     EXPECT_FALSE(std::memcmp(pData, &data[i][0], sz));
-
   }
   // for (int i = 0; i < 6; i++) {
   //   pData = bs1.get(ids[i], &sz);
