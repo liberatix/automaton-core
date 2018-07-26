@@ -9,7 +9,6 @@
 using automaton::core::storage::persistent_blobstore;
 
 TEST(persistent_blobstore, create_mapped_file) {
-
   std::vector<uint64_t> ids;
   std::vector<std::string> data;
   data.push_back("data 1");
