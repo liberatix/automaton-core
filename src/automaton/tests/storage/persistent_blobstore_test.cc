@@ -9,23 +9,37 @@
 using automaton::core::storage::persistent_blobstore;
 
 TEST(persistent_blobstore, create_mapped_file) {
-  persistent_blobstore bs1;
-  bs1.map_file("mapped_file.txt");
-
-  std::string data1 = "data1";
-  std::string data20 = "data20";
-  std::string much_longer_string = "much_longer_string";
-  uint64_t ids[10];
-  ids[0] = bs1.store(data1.size(), reinterpret_cast<const uint8_t*>(data1.c_str()));
-  ids[1] = bs1.store(data20.size(), reinterpret_cast<const uint8_t*>(data20.c_str()));
-  ids[2] = bs1.store(data20.size(), reinterpret_cast<const uint8_t*>(data20.c_str()));
-  ids[3] = bs1.store(much_longer_string.size(), reinterpret_cast<const uint8_t*>(much_longer_string.c_str()));
-  ids[4] = bs1.store(data1.size(), reinterpret_cast<const uint8_t*>(data1.c_str()));
-  ids[5] = bs1.store(data20.size(), reinterpret_cast<const uint8_t*>(data20.c_str()));
+  //uint64_t ids[10];
+  std::vector<uint64_t> ids;
+  std::vector<std::string> data;
+  data.push_back("data 1");
+  data.push_back("data 2, data 2");
+  data.push_back("data 3, data 3, data 3");
+  data.push_back("data 4, data 4, data 4, data 4");
+  data.push_back("data 5, data 5, data 5, data 5, data 5");
+  data.push_back("data 6, data 6, data 6, data 6, data 6, data 6");
+  data.push_back("data 7, data 7, data 7, data 7, data 7, data 7, data 7");
+  data.push_back("data 8, data 8, data 8, data 8, data 8, data 8, data 8, data 8");
+  data.push_back("data 9, data 9, data 9, data 9, data 9, data 9, data 9, data 9, data 9");
+  {
+    persistent_blobstore bs1;
+    bs1.map_file("mapped_file.txt");
+    for(int i = 0; i < data.size(); i++) {
+      ids.push_back(bs1.store(data[i].size(), reinterpret_cast<const uint8_t*>(data[i].c_str())));
+    }
+  }
   uint32_t sz;
   uint8_t* pData;
-  for (int i = 0; i < 6; i++) {
+  persistent_blobstore bs1;
+  bs1.map_file("mapped_file.txt");
+  for (int i = 0; i < data.size(); i++) {
     pData = bs1.get(ids[i], &sz);
     std::cout << std::string(reinterpret_cast<char*>(pData), sz) << std::endl;
+    EXPECT_FALSE(std::memcmp(pData, &data[i][0], sz));
+
   }
+  // for (int i = 0; i < 6; i++) {
+  //   pData = bs1.get(ids[i], &sz);
+  //   std::cout << std::string(reinterpret_cast<char*>(pData), sz) << std::endl;
+  // }
 }
