@@ -26,12 +26,14 @@ static void lua_to_msg(lua_State* L, int start_param, int params_num, data::msg*
   uint32_t input_schema_id = input_msg->get_schema_id();
   uint32_t fields_number = factory.get_fields_number(input_schema_id);
   if (fields_number < params_num) {
+    LOG(ERROR) << factory.get_schema_name(input_schema_id);
+    LOG(ERROR) << "Expecting " << fields_number << " got " << params_num;
     lua_pushstring(L, "Too many arguments!");
     lua_error(L);
   }
   for (uint32_t i = 0; i < params_num; i++) {
     auto param = start_param + i;
-    LOG(DEBUG) << input_msg->get_message_type() << " Param " << param;
+    // VLOG(9) << input_msg->get_message_type() << " Param " << param;
     auto field = factory.get_field_info(input_schema_id, i);
     auto tag = field.tag;
     size_t buf_len = 0;
@@ -156,7 +158,7 @@ static int wrap_static_function(lua_State *L) {
   CHECK_NOTNULL(func);
   uint32_t input_schema_id = lua_tonumber(L, lua_upvalueindex(2));
   uint32_t output_schema_id = lua_tonumber(L, lua_upvalueindex(3));
-  auto fname = lua_tostring(L, lua_upvalueindex(4));
+  // auto fname = lua_tostring(L, lua_upvalueindex(4));
 
   auto& factory = automaton::core::script::registry::instance().get_factory();
 
@@ -166,11 +168,7 @@ static int wrap_static_function(lua_State *L) {
   lua_to_msg(L, 1, params_num, input_msg.get());
 
   // Call static module function.
-  std::string in_json, out_json;
-  input_msg->to_json(&in_json);
   auto status = func(*input_msg.get(), output_msg.get());
-  output_msg->to_json(&out_json);
-  LOG(DEBUG) << "LUA CALL " << fname << in_json << " -> " << out_json;
 
   if (status.code != status::OK) {
     LOG(ERROR) << "Scripting error: " << status.msg;
@@ -198,10 +196,7 @@ static int wrap_object_constructor(lua_State *L) {
   lua_to_msg(L, 1, params_num, constructor_msg.get());
 
   // Call static module function.
-  std::string create_json;
-  constructor_msg->to_json(&create_json);
   common::obj* result = constructor(*constructor_msg.get()).release();
-  LOG(DEBUG) << "LUA CREATE OBJECT " << type_name << "<" << result << "> " << create_json;
   void* userdata = lua_newuserdata(L, sizeof(result));
   memcpy(userdata, &result, sizeof(void*));
 
@@ -232,14 +227,7 @@ static int wrap_object_method_call(lua_State *L) {
   lua_to_msg(L, 2, params_num - 1, input_msg.get());
 
   // Call object method.
-  std::string in_json, out_json;
-  input_msg->to_json(&in_json);
-
-  LOG(DEBUG) << "LUA METHOD CALL " << object << " " << class_name << "." << input_msg->get_message_type() << in_json;
   auto status = object->process(*input_msg.get(), output_msg.get());
-
-  output_msg->to_json(&out_json);
-  LOG(DEBUG) << "RESULT: " << out_json;
 
   if (status.code != status::OK) {
     LOG(ERROR) << "Scripting error: " << status.msg;
@@ -259,8 +247,8 @@ lua_script_engine::lua_script_engine() {
 
 void lua_script_engine::bind_static_function(module* m,
                                              const module::static_function_info& info) {
-  LOG(INFO) << "Binding " << m->name() << "." << info.name
-      << "<" << info.input_schema_id << ", " << info.output_schema_id << ">";
+  // VLOG(9) << "Binding " << m->name() << "." << info.name
+  //     << "<" << info.input_schema_id << ", " << info.output_schema_id << ">";
   lua_pushlightuserdata(L, reinterpret_cast<void*>(info.func));
   lua_pushnumber(L, info.input_schema_id);
   lua_pushnumber(L, info.output_schema_id);
@@ -272,8 +260,8 @@ void lua_script_engine::bind_static_function(module* m,
 
 void lua_script_engine::bind_class(module* m,
                                    const module::implementation_info& info) {
-  LOG(INFO) << "Binding " << m->name() << "." << info.name
-      << "<" << info.constructor_schema_id << ">";
+  // VLOG(9) << "Binding " << m->name() << "." << info.name
+  //     << "<" << info.constructor_schema_id << ">";
 
   // Create class constructor.
   lua_pushlightuserdata(L, reinterpret_cast<void*>(info.func));
@@ -290,7 +278,7 @@ void lua_script_engine::bind_class(module* m,
   lua_newtable(L);
   for (auto& concept : info.concepts) {
     for (auto& method : concept.methods) {
-      LOG(DEBUG) << method.name
+      VLOG(9) << method.name
           << "<" << method.input_schema_id
           << ", " << method.output_schema_id << ">";
       // Method name
@@ -314,11 +302,12 @@ void lua_script_engine::bind_class(module* m,
 }
 
 void lua_script_engine::bind_registered_module(module* m) {
-  LOG(INFO) << "Binding module " << m->name();
+  // VLOG(9) << "Binding module " << m->name();
   for (auto& func : m->functions()) {
     bind_static_function(m, func.second);
   }
   for (auto& impl : m->implementations()) {
+    // VLOG(9) << "Binding class " << impl.first;
     bind_class(m, impl.second);
   }
 }
