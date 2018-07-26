@@ -7,9 +7,21 @@ new_local_repository(
 )
 
 new_local_repository(
+  name = "luajit",
+  path = "local_third_party/LuaJIT/src",
+  build_file = "third_party/LuaJIT.BUILD",
+)
+
+new_local_repository(
   name = "cppzmq",
   path = "local_third_party/cppzmq",
   build_file = "third_party/cppzmq.BUILD",
+)
+
+new_local_repository(
+  name = "sol",
+  path = "local_third_party/sol2/single/sol",
+  build_file = "third_party/sol2.BUILD",
 )
 
 # LOCAL REPOSITORIES
