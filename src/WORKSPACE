@@ -1,3 +1,29 @@
+# LOCALLY BUILD THIRD PARTY LIBRARIES
+
+new_local_repository(
+  name = "libzmq",
+  path = "local_third_party/libzmq",
+  build_file = "third_party/libzmq.BUILD",
+)
+
+new_local_repository(
+  name = "luajit",
+  path = "local_third_party/LuaJIT/src",
+  build_file = "third_party/LuaJIT.BUILD",
+)
+
+new_local_repository(
+  name = "cppzmq",
+  path = "local_third_party/cppzmq",
+  build_file = "third_party/cppzmq.BUILD",
+)
+
+new_local_repository(
+  name = "sol",
+  path = "local_third_party/sol2/single/sol",
+  build_file = "third_party/sol2.BUILD",
+)
+
 # LOCAL REPOSITORIES
 
 new_local_repository(
@@ -89,10 +115,14 @@ new_local_repository(
 # BOOST
 local_repository(
   name = "com_github_nelhage_rules_boost",
-  # commit = "675f1bdca5e2aab241b5d4e51597d6610e2f3d3e",
-  # remote = "https://github.com/nelhage/rules_boost",
   path = "third_party/com_github_nelhage_rules_boost",
 )
+
+#git_repository(
+#  name = "com_github_nelhage_rules_boost",
+#  commit = "69e96e724cbe746f63d993fa8f6bf772e1ebc5cc",
+#  remote = "https://github.com/nelhage/rules_boost",
+#)
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()

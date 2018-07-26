@@ -1,5 +1,16 @@
 #!/bin/bash
 
+darwin=false;
+case "`uname`" in
+  Darwin*) darwin=true ;;
+esac
+
+if $darwin; then
+  sedi="sed -i ''"
+else
+  sedi="sed -i "
+fi
+
 print_separator() {
  str=$1
  num=$2
@@ -41,7 +52,9 @@ function git_repo() {
 # Download all libraries
 git_repo "https://github.com/LuaJIT/LuaJIT.git" "LuaJIT" "0bf80b07b0672ce874feedcc777afe1b791ccb5a"
 git_repo "https://github.com/zeromq/libzmq.git" "libzmq" "d062edd8c142384792955796329baf1e5a3377cd"
+git_repo "https://github.com/zeromq/cppzmq.git" "cppzmq" "d9f0f016c07046742738c65e1eb84722ae32d7d4"
 git_repo "https://github.com/zeromq/zmqpp.git" "zmqpp" "f8ff127683dc555aa004c0e6e2b18d2354a375be"
+git_repo "https://github.com/ThePhD/sol2.git" "sol2" "254466eb4b3ae630c731a557987f3adb1a8f86b0"
 
 # Build LuaJIT
 cd LuaJIT
@@ -58,7 +71,7 @@ cd ..
 
 # Build zmqpp
 cd zmqpp
-sed -i '' 's/CUSTOM_INCLUDE_PATH =/CUSTOM_INCLUDE_PATH = ..\/libzmq\/include' Makefile
-sed -i '' 's/LIBRARY_LIBS =/LIBRARY_LIBS = -L..\/libzmq\/src\/.libs/' Makefile
+$sedi 's/CUSTOM_INCLUDE_PATH =/CUSTOM_INCLUDE_PATH = -I..\/libzmq\/include/' Makefile
+$sedi 's/LIBRARY_LIBS =/LIBRARY_LIBS = -L..\/libzmq\/src\/.libs/' Makefile
 make
 cd ..
