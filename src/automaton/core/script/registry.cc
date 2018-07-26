@@ -48,6 +48,39 @@ void module::bind_schemas() {
     auto constructor_id = factory.get_schema_id(full_scope_implementation);
     LOG(DEBUG) << "Binding " << impl.first <<  "<" << constructor_id << ">";
     impl.second.constructor_schema_id = constructor_id;
+
+    for (auto& concept : impl.second.concepts) {
+      // Import methods from concept.
+      try {
+        auto concept_schema_id = factory.get_schema_id(concept.name);
+        // Extract methods from nested messages.
+        for (uint32_t i = 0; i < factory.get_nested_messages_number(concept_schema_id); i++) {
+          auto method_schema_id = factory.get_nested_message_schema_id(concept_schema_id, i);
+          auto method_schema_name = factory.get_schema_name(method_schema_id);
+          auto last = method_schema_name.rfind('.');
+          auto method_name = method_schema_name.substr(last+1);
+          if (method_name == "getters") {
+            // TODO(asen): Handle getters.
+            continue;
+          }
+          method_info mi;
+          mi.name = method_name;
+          mi.input_schema_id = factory.get_schema_id(method_schema_name + ".request");
+          mi.output_schema_id = factory.get_schema_id(method_schema_name + ".response");;
+          concept.methods.push_back(mi);
+          LOG(DEBUG) << impl.first << "."
+              << method_name
+              << "<" << mi.input_schema_id
+              << ", " << mi.output_schema_id
+              << ">";
+        }
+      } catch (...) {
+        std::stringstream ss;
+        ss << "Could not locate concept schema for " << concept.name;
+        LOG(ERROR) << ss.str();
+        throw ss.str();
+      }
+    }
   }
 
   // TODO(asen): Bind object constructors
@@ -74,37 +107,6 @@ void module::add_implementation(const std::string implementation,
     LOG(DEBUG) << implementation << " : concept " << concept;
     concept_info ci;
     ci.name = concept;
-
-    // Import methods from concept.
-    try {
-      auto concept_schema_id = factory.get_schema_id(concept);
-      // Extract methods from nested messages.
-      for (uint32_t i = 0; i < factory.get_nested_messages_number(concept_schema_id); i++) {
-        auto method_schema_id = factory.get_nested_message_schema_id(concept_schema_id, i);
-        auto method_schema_name = factory.get_schema_name(method_schema_id);
-        auto last = method_schema_name.rfind('.');
-        auto method_name = method_schema_name.substr(last+1);
-        if (method_name == "getters") {
-          // TODO(asen): Handle getters.
-          continue;
-        }
-        method_info mi;
-        mi.name = method_name;
-        mi.input_schema_id = factory.get_schema_id(method_schema_name + ".request");
-        mi.output_schema_id = factory.get_schema_id(method_schema_name + ".response");;
-        ci.methods.push_back(mi);
-        LOG(DEBUG) << implementation << "."
-            << method_name
-            << "<" << mi.input_schema_id
-            << ", " << mi.output_schema_id
-            << ">";
-      }
-    } catch (...) {
-      std::stringstream ss;
-      ss << "Could not locate concept schema for " << concept;
-      LOG(ERROR) << ss.str();
-      throw ss.str();
-    }
 
     info.concepts.push_back(ci);
   }
