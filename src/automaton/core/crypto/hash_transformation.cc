@@ -53,7 +53,6 @@ common::status hash_transformation::process(const obj& request, obj* response) {
   }
 
   if (request_msg_id == msg_id_digest) {
-    LOG(DEBUG) << "digest";
     std::string input = request_msg->get_blob(1);
     uint8_t* digest = new uint8_t[digest_size()];
     calculate_digest(reinterpret_cast<const uint8_t*>(input.c_str()), input.size(), digest);
@@ -64,19 +63,16 @@ common::status hash_transformation::process(const obj& request, obj* response) {
     delete[] digest;
     return common::status::ok();
   } else if (request_msg_id == msg_id_size) {
-    LOG(DEBUG) << "size";
     if (response != nullptr) {
       msg* response_msg = dynamic_cast<msg*>(response);
       response_msg->set_uint32(1, digest_size());
     }
     return common::status::ok();
   } else if (request_msg_id == msg_id_update) {
-    LOG(DEBUG) << "update";
     std::string input = request_msg->get_blob(1);
     update(reinterpret_cast<const uint8_t*>(input.c_str()), input.size());
     return common::status::ok();
   } else if (request_msg_id == msg_id_final) {
-    LOG(DEBUG) << "final";
     uint8_t* digest = new uint8_t[digest_size()];
     final(digest);
     if (response != nullptr) {
@@ -86,7 +82,6 @@ common::status hash_transformation::process(const obj& request, obj* response) {
     delete[] digest;
     return common::status::ok();
   } else if (request_msg_id == msg_id_restart) {
-    LOG(DEBUG) << "restart";
     restart();
     return common::status::ok();
   }
