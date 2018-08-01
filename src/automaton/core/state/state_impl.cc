@@ -441,13 +441,13 @@ void state_impl::calculate_hash(uint32_t cur_node) {
 
   // Hash the value
   value =
-      reinterpret_cast<const uint8_t*>(nodes[cur_node].value.c_str());
+      reinterpret_cast<const uint8_t*>(nodes[cur_node].value.data());
   uint32_t len = nodes[cur_node].value.length();
   hasher->update(value, len);
 
   // Hash the prefix
   prefix =
-      reinterpret_cast<const uint8_t*>(nodes[cur_node].prefix.c_str());
+      reinterpret_cast<const uint8_t*>(nodes[cur_node].prefix.data());
   len = nodes[cur_node].prefix.length();
   hasher->update(prefix, len);
 
@@ -456,7 +456,7 @@ void state_impl::calculate_hash(uint32_t cur_node) {
     if (nodes[cur_node].children[i]) {
       uint32_t child = nodes[cur_node].children[i];
       child_hash =
-          reinterpret_cast<const uint8_t*>(nodes[child].hash.c_str());
+          reinterpret_cast<const uint8_t*>(nodes[child].hash.data());
       len = nodes[child].hash.length();
       hasher->update(child_hash, len);
     }

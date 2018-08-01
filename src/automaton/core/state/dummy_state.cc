@@ -31,8 +31,8 @@ std::string dummy_state::get_node_hash(std::string path) {
 
   hash->restart();
   for (auto kv : data) {
-    hash->update((const uint8_t *)kv.first.c_str(), kv.first.size());
-    hash->update((const uint8_t *)kv.second.c_str(), kv.second.size());
+    hash->update((const uint8_t *)kv.first.data(), kv.first.size());
+    hash->update((const uint8_t *)kv.second.data(), kv.second.size());
   }
 
   uint8_t * digest = new uint8_t[hash->digest_size()];

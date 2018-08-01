@@ -450,14 +450,14 @@ void state_persistent::calculate_hash(uint32_t cur_node) {
   // Hash the value
   std::string str_value = nodes[cur_node].get_value(bs);
   value =
-      reinterpret_cast<const uint8_t*>(str_value.c_str());
+      reinterpret_cast<const uint8_t*>(str_value.data());
   len = nodes[cur_node].get_value(bs).length();
   hasher->update(value, len);
 
   // Hash the prefix
   std::string str_prefix = nodes[cur_node].get_prefix(bs);
   prefix =
-      reinterpret_cast<const uint8_t*>(str_prefix.c_str());
+      reinterpret_cast<const uint8_t*>(str_prefix.data());
   len = nodes[cur_node].get_prefix(bs).length();
   hasher->update(prefix, len);
   // Hash the children hashes
@@ -466,7 +466,7 @@ void state_persistent::calculate_hash(uint32_t cur_node) {
       uint32_t child = nodes[cur_node].get_child(i, bs);
 
       std::string str_child_hash = nodes[child].get_hash(bs);
-      child_hash = reinterpret_cast<const uint8_t*>(str_child_hash.c_str());
+      child_hash = reinterpret_cast<const uint8_t*>(str_child_hash.data());
       len = nodes[child].get_hash(bs).length();
       hasher->update(child_hash, len);
     }
@@ -537,16 +537,16 @@ void state_persistent::node::set_parent(uint32_t parent, storage::blobstore * bs
 }
 
 void state_persistent::node::set_prefix(const std::string prefix, storage::blobstore * bs) {
-  prefix_ = bs->store(prefix.length(), reinterpret_cast<const uint8_t*>(prefix.c_str()));
+  prefix_ = bs->store(prefix.length(), reinterpret_cast<const uint8_t*>(prefix.data()));
 }
 
 void state_persistent::node::set_hash(const std::string hash, storage::blobstore * bs) {
-  hash_ = bs->store(hash.length(), reinterpret_cast<const uint8_t*>(hash.c_str()));
+  hash_ = bs->store(hash.length(), reinterpret_cast<const uint8_t*>(hash.data()));
 }
 
 void state_persistent::node::set_value(const std::string value, storage::blobstore * bs) {
   value_ = bs->store(value.length(),
-    reinterpret_cast<const uint8_t*>(value.c_str()));
+    reinterpret_cast<const uint8_t*>(value.data()));
 }
 
 void state_persistent::node::set_child(const uint8_t child, const uint32_t value, storage::blobstore * bs) {

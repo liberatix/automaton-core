@@ -45,7 +45,7 @@ TEST(keccak_256_cryptopp, calculate_digest) {
   };
 
   for (uint32_t i = 0; i < test_cases; i++) {
-    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].c_str()),
+    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -61,7 +61,7 @@ TEST(keccak_256_cryptopp, update_and_finish) {
       "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
   const std::string EXP1 =
       "C8A625720D2C6221C09DB8A33A63FB936E628A0C10195768A206E7AD8D1E54DE";
-  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.c_str());
+  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.data());
   size_t len = test_input.length();
 
   for (uint32_t i = 0; i < 10; i++) {

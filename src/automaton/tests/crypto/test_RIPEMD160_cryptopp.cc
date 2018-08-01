@@ -46,7 +46,7 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
   };
 
   for (uint32_t i = 0; i < test_cases; i++) {
-    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].c_str()),
+    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -59,7 +59,7 @@ TEST(SHA256_cryptopp, update_and_finish) {
   size_t digest_size = hasher.digest_size();
   uint8_t* digest = new uint8_t[digest_size];
   std::string test_input("a");
-  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.c_str());
+  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.data());
   size_t len = test_input.length();
 
   for (uint32_t i = 0; i <  1000000; i++) {
