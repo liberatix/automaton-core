@@ -1,4 +1,4 @@
-#include "automaton/core/storage/persistent_blobstore.h"
+#include "automaton/core/storage/persistent_storage.h"
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem.hpp>
 #include <string>
@@ -7,23 +7,20 @@ namespace automaton {
 namespace core {
 namespace storage {
 
-persistent_blobstore::persistent_blobstore()
+persistent_storage::persistent_storage(size_t object_size)
     : next_free(0)
+    , object_size(object_size)
     , capacity(0)
     , is_mapped(false) {
-  // TODO(Samir): Remove from constructor and do it when creating blob
-  // storage = new uint32_t[1ULL << 28];
-  // capacity = 1ULL << 28;
 }
 
-persistent_blobstore::~persistent_blobstore() {
+persistent_storage::~persistent_storage() {
   mmf.close();
-  // delete[] storage;
 }
 
-uint8_t* persistent_blobstore::create_blob(const uint32_t size, uint64_t* id) {
+uint8_t* persistent_storage::create_blob(const uint32_t size, uint64_t* id) {
   if (is_mapped == false) {
-    throw std::logic_error("not mapped");;
+    throw std::logic_error("not mapped");
   }
 
   uint32_t size_in_int32 =  size % 4 ? size / 4 + 1 : size / 4;
@@ -47,18 +44,28 @@ uint8_t* persistent_blobstore::create_blob(const uint32_t size, uint64_t* id) {
   return out_blob_pointer;
 }
 
-uint64_t persistent_blobstore::store(const uint32_t size, const uint8_t* data) {
+bool persistent_storage::store(const uint64_t at, const uint8_t* data) {
   if (is_mapped == false) {
     throw std::logic_error("not mapped");;
   }
+  // uint8_t* blob = create_blob(size, &id);
 
-  uint64_t id = 0;
-  uint8_t* blob = create_blob(size, &id);
-  std::memcpy(blob, data, size);
-  return id;
+  // convert at to internal location
+  // TODO(Samir): Consider just creating multiple files instead of keeping the data in one
+  uint64_t location = at * object_size;
+  if (location + object_size > capacity) {
+    capacity *= 2;
+    uint8_t * new_storage = new uint8_t[capacity];
+    std::memcpy(new_storage, storage, capacity*sizeof(int32_t)*2);
+    delete[] storage;
+    storage = new_storage;
+  }
+
+  //std::memcpy(blob, data, size);
+  return true;
 }
 
-uint8_t* persistent_blobstore::get(const uint64_t id, uint32_t* size) {
+uint8_t* persistent_storage::get(const uint64_t id) {
   if (is_mapped == false) {
     throw std::logic_error("not mapped");;
   }
@@ -71,13 +78,13 @@ uint8_t* persistent_blobstore::get(const uint64_t id, uint32_t* size) {
   return reinterpret_cast<uint8_t*>(&storage[id + 1]);
 }
 
-bool persistent_blobstore::free(const uint32_t id) {
+bool persistent_storage::free(const uint32_t id) {
   // TODO(Samir): Change storage to unt8_t. Mark deleted nodes with *= -1
   storage[id] = 0;
   return 1;
 }
 
-bool persistent_blobstore::map_file(std::string path) {
+bool persistent_storage::map_file(std::string path) {
   if (mmf.is_open()) {
     return false;
   }

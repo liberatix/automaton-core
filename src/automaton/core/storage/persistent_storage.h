@@ -1,40 +1,37 @@
-#ifndef AUTOMATON_CORE_STORAGE_PERSISTENT_BLOBSTORE_H__
-#define AUTOMATON_CORE_STORAGE_PERSISTENT_BLOBSTORE_H__
+#ifndef AUTOMATON_CORE_STORAGE_PERSISTENT_STORAGE_H__
+#define AUTOMATON_CORE_STORAGE_PERSISTENT_STORAGE_H__
 
-#include <string>
 #include <boost/iostreams/device/mapped_file.hpp>
+#include <string>
 
 namespace automaton {
 namespace core {
 namespace storage {
 
 /**
-  persistent_blobstore interface.
-  Can store and delete arbitrary length data in a memory mapped file.
+  Storage interface for fixed size data using memory mapped file.
 */
-class persistent_blobstore {
+class persistent_storage {
  public:
-  persistent_blobstore();
-  ~persistent_blobstore();
+  explicit persistent_storage(size_t object_size);
+  ~persistent_storage();
 
   /**
-    Stores the byte array pointed by data
-
-    @returns   uint64_t  returns the ID used to access it.
-    @param[in] size      The size of the data pointed by data in bytes
+    Stores the object pointed by data
+    
+    @returns   bool      false if the operation was not successful 
+    @param[in] at        The location at which to store the object, should be less than capacity
     @param[in] data      Pointer to the data
   */
-  uint64_t store(const uint32_t size, const uint8_t* data);
+  bool store(const uint64_t at, const uint8_t* data);
 
   /**
-    Used to get access to previously allocated blob.
+    Used to get access to previously allocated object.
 
-    @returns    uint8_t*  pointer to the blob or nullptr if id>=capacity
-    @param[in]  id        The ID returned by store
-    @param[out] size      The size of the data pointed by the returned
-                          pointer in bytes
+    @returns    uint8_t*  pointer to the object or nullptr if id>=capacity
+    @param[in]  at        The ID returned by store
   */
-  uint8_t* get(const uint64_t id, uint32_t* size);
+  uint8_t* get(const uint64_t at);
 
   /**
     Frees allocated blob.
@@ -49,13 +46,14 @@ class persistent_blobstore {
   bool map_file(std::string path);
 
  private:
-  uint32_t* storage;
+  uint8_t* storage;
   boost::iostreams::mapped_file mmf;
   bool is_mapped = false;
+  size_t object_size;
 
   std::string file_path;
   uint64_t next_free = 0;
-  // capacity of storage in 4byte chunks (size in bytes/4)
+  
   uint64_t capacity;
   // TODO(Samir): Handle free locations.
   // One option is to use heap with the free locations stored by size
@@ -78,4 +76,4 @@ class persistent_blobstore {
 }  // namespace core
 }  // namespace automaton
 
-#endif  // AUTOMATON_CORE_STORAGE_PERSISTENT_BLOBSTORE_H__
+#endif  // AUTOMATON_CORE_STORAGE_PERSISTENT_STORAGE_H__
