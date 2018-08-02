@@ -55,7 +55,7 @@ common::status hash_transformation::process(const obj& request, obj* response) {
   if (request_msg_id == msg_id_digest) {
     std::string input = request_msg->get_blob(1);
     uint8_t* digest = new uint8_t[digest_size()];
-    calculate_digest(reinterpret_cast<const uint8_t*>(input.c_str()), input.size(), digest);
+    calculate_digest(reinterpret_cast<const uint8_t*>(input.data()), input.size(), digest);
     if (response != nullptr) {
       msg* response_msg = dynamic_cast<msg*>(response);
       response_msg->set_blob(1, std::string(reinterpret_cast<const char*>(digest), digest_size()));
@@ -70,7 +70,7 @@ common::status hash_transformation::process(const obj& request, obj* response) {
     return common::status::ok();
   } else if (request_msg_id == msg_id_update) {
     std::string input = request_msg->get_blob(1);
-    update(reinterpret_cast<const uint8_t*>(input.c_str()), input.size());
+    update(reinterpret_cast<const uint8_t*>(input.data()), input.size());
     return common::status::ok();
   } else if (request_msg_id == msg_id_final) {
     uint8_t* digest = new uint8_t[digest_size()];
