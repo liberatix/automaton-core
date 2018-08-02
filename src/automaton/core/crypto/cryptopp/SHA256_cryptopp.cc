@@ -6,6 +6,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 SHA256_cryptopp::SHA256_cryptopp() {
   hash = new CryptoPP::SHA256;
@@ -34,6 +35,7 @@ uint32_t SHA256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

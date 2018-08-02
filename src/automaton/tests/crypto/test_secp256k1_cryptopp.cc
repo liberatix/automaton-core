@@ -7,7 +7,7 @@
 #include "filters.h"  // NOLINT
 
 using automaton::core::crypto::digital_signature;
-using automaton::core::crypto::secp256k1_cryptopp;
+using automaton::core::crypto::cryptopp::secp256k1_cryptopp;
 
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and

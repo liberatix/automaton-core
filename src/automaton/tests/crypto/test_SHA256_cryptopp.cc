@@ -7,7 +7,7 @@
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
 
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 
 // Helper function to convert bytes to hex values

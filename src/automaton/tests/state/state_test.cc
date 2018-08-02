@@ -6,7 +6,7 @@
 #include "automaton/core/state/state_impl.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::state::state_impl;
 

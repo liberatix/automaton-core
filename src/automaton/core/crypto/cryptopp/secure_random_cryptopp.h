@@ -8,6 +8,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 // Class used for getting cryptographically secure random
 class secure_random_cryptopp : public secure_random {
@@ -22,6 +23,7 @@ class secure_random_cryptopp : public secure_random {
   CryptoPP::AutoSeededRandomPool prng;
 };
 
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

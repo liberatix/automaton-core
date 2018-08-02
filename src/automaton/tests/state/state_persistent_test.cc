@@ -8,7 +8,7 @@
 #include "automaton/core/storage/blobstore.h"
 #include "automaton/core/log/log.h"
 
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::state::state_persistent;
 using automaton::core::storage::blobstore;

@@ -8,6 +8,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 class SHA512_cryptopp : public hash_transformation {
  private:
@@ -31,6 +32,7 @@ class SHA512_cryptopp : public hash_transformation {
   static const int _digest_size = 64;
 };
 
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton
