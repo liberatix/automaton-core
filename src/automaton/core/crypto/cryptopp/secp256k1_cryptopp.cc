@@ -12,6 +12,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 /*
 TODO(Samir): set domain params from the following example
@@ -114,6 +115,7 @@ bool secp256k1_cryptopp::verify(
       signature_size());
 }
 
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

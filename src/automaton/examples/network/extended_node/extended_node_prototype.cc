@@ -23,7 +23,7 @@ using automaton::core::data::msg;
 using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_msg;
 using automaton::core::data::protobuf::protobuf_schema;
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;

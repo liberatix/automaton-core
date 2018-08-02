@@ -7,6 +7,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 class secp256k1_cryptopp : public digital_signature {
  public:
@@ -39,6 +40,7 @@ class secp256k1_cryptopp : public digital_signature {
               uint8_t * signature);
 };
 
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton
