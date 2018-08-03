@@ -45,17 +45,17 @@ class io_error_collector : public google::protobuf::io::ErrorCollector {
 
   void AddError(int line, int column, const std::string& message) {
     std::cerr << "*Error: line: " << line << " col: " << column << "->"
-        << message.c_str() << std::endl;
+        << message << std::endl;
     errors_number++;
     errors_list += "Error: line: " + std::to_string(line) + " col: " +
-        std::to_string(column) + "->" + message.c_str() + "\n";
+        std::to_string(column) + "->" + message + "\n";
   }
 
   void AddWarning(int line, int column, const std::string& message) {
     std::cerr << "*Warning: line: " << line << " col: " << column << "->"
-        << message.c_str() << std::endl;
+        << message << std::endl;
     errors_list += "Warning: line: " + std::to_string(line) + " col: " +
-        std::to_string(column) + "->" + message.c_str() + "\n";
+        std::to_string(column) + "->" + message + "\n";
   }
 
   void clear_errors() {
