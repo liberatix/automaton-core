@@ -111,7 +111,6 @@ bool persistent_blobstore::map_file(std::string path) {
     uint64_t* header = reinterpret_cast<uint64_t*>(storage);
     header_version = cur_version;
     *header = header_version;
-
   }
   is_mapped = true;
   return true;
