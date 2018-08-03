@@ -3,14 +3,17 @@
 #include <boost/filesystem.hpp>
 #include <string>
 
+#include <iostream>
+
 namespace automaton {
 namespace core {
 namespace storage {
 
-persistent_storage::persistent_storage(size_t object_size)
+  persistent_storage::persistent_storage()
     : next_free(0)
-    , object_size(object_size)
     , capacity(0)
+    , header_size(1024)
+    , cur_version(10000)
     , is_mapped(false) {
 }
 
@@ -18,64 +21,37 @@ persistent_storage::~persistent_storage() {
   mmf.close();
 }
 
-uint8_t* persistent_storage::create_blob(const uint32_t size, uint64_t* id) {
-  if (is_mapped == false) {
-    throw std::logic_error("not mapped");
-  }
 
-  uint32_t size_in_int32 =  size % 4 ? size / 4 + 1 : size / 4;
-  *id = next_free;
-  // When the capacity is not large enough to store the required blob,
-  // allocate a new memory block with double the size and copy the data.
-  if (next_free + size_in_int32 >= capacity) {
-    capacity *= 2;
-    uint32_t * new_storage = new uint32_t[capacity];
-    std::memcpy(new_storage, storage, capacity*sizeof(int32_t)*2);
-    delete[] storage;
-    storage = new_storage;
-  }
-  // Save the size of the blob
-  storage[next_free] = size;
-  // set the pointer to point to the blob
-  uint8_t* out_blob_pointer = reinterpret_cast<uint8_t*>(&storage[next_free+1]);
-  // next free equal to byte after the end of the blob
-  next_free += size_in_int32 + 1;
-
-  return out_blob_pointer;
-}
 
 bool persistent_storage::store(const uint64_t at, const uint8_t* data) {
   if (is_mapped == false) {
     throw std::logic_error("not mapped");;
   }
-  // uint8_t* blob = create_blob(size, &id);
-
-  // convert at to internal location
-  // TODO(Samir): Consider just creating multiple files instead of keeping the data in one
-  uint64_t location = at * object_size;
-  if (location + object_size > capacity) {
+  uint64_t location = at * object_size + header_size;
+  // Increase capacity if necessary 
+  while (location + object_size > capacity) {
+    close_mapped_file();
     capacity *= 2;
-    uint8_t * new_storage = new uint8_t[capacity];
-    std::memcpy(new_storage, storage, capacity*sizeof(int32_t)*2);
-    delete[] storage;
-    storage = new_storage;
+    boost::filesystem::path boost_path(file_path);
+    boost::filesystem::resize_file(boost_path, capacity);
+    open_mapped_file();
   }
-
-  //std::memcpy(blob, data, size);
+  memcpy(storage + location, data, object_size);
   return true;
 }
 
-uint8_t* persistent_storage::get(const uint64_t id) {
+uint8_t* persistent_storage::get(const uint64_t at) {
   if (is_mapped == false) {
     throw std::logic_error("not mapped");;
   }
 
   // check if id is out of range
-  if (id+1 >= capacity) {
-    return 0;
+  uint64_t location = at * object_size + header_size;
+  if (location >= capacity) {
+    throw std::out_of_range("index out of range");
   }
-  *size = storage[id];
-  return reinterpret_cast<uint8_t*>(&storage[id + 1]);
+  //-- *size = storage[id];
+  return reinterpret_cast<uint8_t*>(&storage[location]);
 }
 
 bool persistent_storage::free(const uint32_t id) {
@@ -84,25 +60,47 @@ bool persistent_storage::free(const uint32_t id) {
   return 1;
 }
 
-bool persistent_storage::map_file(std::string path) {
-  if (mmf.is_open()) {
+bool persistent_storage::map_file(std::string path, size_t object_sz) {
+  if (mmf.is_open() || is_mapped) {
     return false;
   }
-  if (boost::filesystem::exists(path)) {
-    mmf.open(path, boost::iostreams::mapped_file::mapmode::readwrite);
-    storage = reinterpret_cast<uint32_t*>(mmf.data());
-    capacity = mmf.size() / 4;
+  file_path = path;
+  object_size = object_sz;
+
+  if (boost::filesystem::exists(file_path)) {
+    mmf.open(file_path, boost::iostreams::mapped_file::mapmode::readwrite);
+    storage = reinterpret_cast<uint8_t*>(mmf.data());
+    capacity = mmf.size();
+
+    //header_version = ((uint64_t*)storage)[0];
+    memcpy(&header_version, storage, sizeof(uint64_t));
   } else {
-    boost::iostreams::mapped_file_params new_mmf(path);
+    boost::iostreams::mapped_file_params new_mmf(file_path);
     new_mmf.flags = boost::iostreams::mapped_file::mapmode::readwrite;
-    // The starting size is 1gb by default, we should add a option set the starting size
+    // The starting size is MB by default, we should add a option set the starting size
     new_mmf.new_file_size = 1ULL << 10;
-    capacity = new_mmf.new_file_size / 4;
+    capacity = new_mmf.new_file_size;
     mmf.open(new_mmf);
-    storage = reinterpret_cast<uint32_t*>(mmf.data());
+    // write the version to the header of the new file
+    storage = reinterpret_cast<uint8_t*>(mmf.data());
+    uint64_t* header = reinterpret_cast<uint64_t*>(storage);
+    header_version = cur_version;
+    *header = header_version;
   }
   is_mapped = true;
   return true;
+}
+
+void persistent_storage::close_mapped_file() {
+  mmf.close();
+  is_mapped = false;
+}
+
+void persistent_storage::open_mapped_file() {
+  mmf.open(file_path, boost::iostreams::mapped_file::mapmode::readwrite);
+  storage = reinterpret_cast<uint8_t*>(mmf.data());
+  capacity = mmf.size();
+  is_mapped = true;
 }
 
 }  //  namespace storage

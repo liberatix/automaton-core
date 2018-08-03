@@ -13,7 +13,8 @@ namespace storage {
 */
 class persistent_storage {
  public:
-  explicit persistent_storage(size_t object_size);
+  persistent_storage();
+  //persistent_storage(size_t object_size, header_size, path);
   ~persistent_storage();
 
   /**
@@ -43,13 +44,16 @@ class persistent_storage {
   /**
     TODO(Samir): document
   */
-  bool map_file(std::string path);
+  bool map_file(std::string path, size_t object_sz);
 
  private:
   uint8_t* storage;
   boost::iostreams::mapped_file mmf;
   bool is_mapped = false;
   size_t object_size;
+  size_t header_size;
+  uint64_t cur_version;
+  uint64_t header_version;
 
   std::string file_path;
   uint64_t next_free = 0;
@@ -62,14 +66,8 @@ class persistent_storage {
   //    this.location.length += next.location.length
   //  while
 
-  /**
-  Creates a blob with a given size
-
-  @returns    uint8_t*  the pointer to the created blob
-  @param[in]  size      The size in bytes to be allocated
-  @param[out] id        id used to get access to the blob.
-  */
-  uint8_t* create_blob(uint32_t const size, uint64_t* id);
+  void close_mapped_file();
+  void open_mapped_file();
 };
 
 }  // namespace storage
