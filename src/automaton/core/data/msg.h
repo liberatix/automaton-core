@@ -5,6 +5,7 @@
 #include <string>
 
 #include "automaton/core/common/obj.h"
+#include "automaton/core/data/schema.h"
 
 namespace automaton {
 namespace core {
@@ -176,6 +177,8 @@ class msg : public common::obj {
   virtual int32_t get_repeated_enum(uint32_t field_tag, int32_t index) const = 0;
 
   virtual uint32_t get_field_tag(const std::string& name) const = 0;
+
+  virtual schema::field_info get_field_info_by_tag(uint32_t field_tag) const = 0;
 };
 
 }  // namespace data
