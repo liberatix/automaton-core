@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_STORAGE_PERSISTENT_BLOBSTORE_H__
 
 #include <string>
+#include "automaton/core/storage/blobstore.h"
 #include <boost/iostreams/device/mapped_file.hpp>
 
 namespace automaton {
@@ -12,7 +13,7 @@ namespace storage {
   persistent_blobstore interface.
   Can store and delete arbitrary length data in a memory mapped file.
 */
-class persistent_blobstore {
+class persistent_blobstore : public blobstore{
  public:
   persistent_blobstore();
   ~persistent_blobstore();

@@ -8,7 +8,7 @@
 #include <set>
 #include "automaton/core/state/state.h"
 #include "automaton/core/crypto/hash_transformation.h"
-#include "automaton/core/storage/blobstore.h"
+#include "automaton/core/storage/persistent_blobstore.h"
 
 namespace automaton {
 namespace core {

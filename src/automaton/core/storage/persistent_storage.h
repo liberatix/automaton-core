@@ -1,8 +1,8 @@
 #ifndef AUTOMATON_CORE_STORAGE_PERSISTENT_STORAGE_H__
 #define AUTOMATON_CORE_STORAGE_PERSISTENT_STORAGE_H__
 
-#include <boost/iostreams/device/mapped_file.hpp>
 #include <string>
+#include <boost/iostreams/device/mapped_file.hpp>
 
 namespace automaton {
 namespace core {
@@ -14,7 +14,6 @@ namespace storage {
 class persistent_storage {
  public:
   persistent_storage();
-  //persistent_storage(size_t object_size, header_size, path);
   ~persistent_storage();
 
   /**
@@ -50,7 +49,7 @@ class persistent_storage {
 
   std::string file_path;
   uint64_t next_free = 0;
-  
+
   uint64_t capacity;
   // TODO(Samir): Handle free locations.
   // One option is to use heap with the free locations stored by size

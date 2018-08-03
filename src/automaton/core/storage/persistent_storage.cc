@@ -1,9 +1,8 @@
 #include "automaton/core/storage/persistent_storage.h"
+#include <string>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem.hpp>
-#include <string>
 
-#include <iostream>
 
 namespace automaton {
 namespace core {
@@ -26,7 +25,7 @@ bool persistent_storage::store(const uint64_t at, const uint8_t* data) {
     throw std::logic_error("not mapped");;
   }
   uint64_t location = at * object_size + header_size;
-  // Increase capacity if necessary 
+  // Increase capacity if necessary
   while (location + object_size > capacity) {
     close_mapped_file();
     capacity *= 2;
@@ -65,7 +64,6 @@ bool persistent_storage::map_file(std::string path, size_t object_sz) {
     storage = reinterpret_cast<uint8_t*>(mmf.data());
     capacity = mmf.size();
 
-    //header_version = ((uint64_t*)storage)[0];
     memcpy(&header_version, storage, sizeof(uint64_t));
   } else {
     boost::iostreams::mapped_file_params new_mmf(file_path);
