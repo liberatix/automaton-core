@@ -1,6 +1,12 @@
 # LOCALLY BUILD THIRD PARTY LIBRARIES
 
 new_local_repository(
+  name = "replxx",
+  path = "local_third_party/replxx",
+  build_file = "third_party/replxx.BUILD",
+)
+
+new_local_repository(
   name = "libzmq",
   path = "local_third_party/libzmq",
   build_file = "third_party/libzmq.BUILD",
