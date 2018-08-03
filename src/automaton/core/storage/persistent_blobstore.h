@@ -52,6 +52,9 @@ class persistent_blobstore {
   uint32_t* storage;
   boost::iostreams::mapped_file mmf;
   bool is_mapped = false;
+  size_t header_size;
+  uint64_t cur_version = 10000;
+  uint64_t header_version;
 
   std::string file_path;
   uint64_t next_free = 0;
@@ -63,6 +66,9 @@ class persistent_blobstore {
   //  if next.location.ID == this.location.ID + length:
   //    this.location.length += next.location.length
   //  while
+
+  void close_mapped_file();
+  void open_mapped_file();
 
   /**
   Creates a blob with a given size

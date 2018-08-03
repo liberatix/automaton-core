@@ -35,13 +35,6 @@ class persistent_storage {
   uint8_t* get(const uint64_t at);
 
   /**
-    Frees allocated blob.
-
-    @returns    bool      False if there is no allocated blob with the given id
-    @param[in]  id        The ID returned by create_blob
-  */
-  bool free(const uint32_t id);
-  /**
     TODO(Samir): document
   */
   bool map_file(std::string path, size_t object_sz);

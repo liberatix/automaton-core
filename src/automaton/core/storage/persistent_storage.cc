@@ -21,8 +21,6 @@ persistent_storage::~persistent_storage() {
   mmf.close();
 }
 
-
-
 bool persistent_storage::store(const uint64_t at, const uint8_t* data) {
   if (is_mapped == false) {
     throw std::logic_error("not mapped");;
@@ -54,16 +52,11 @@ uint8_t* persistent_storage::get(const uint64_t at) {
   return reinterpret_cast<uint8_t*>(&storage[location]);
 }
 
-bool persistent_storage::free(const uint32_t id) {
-  // TODO(Samir): Change storage to unt8_t. Mark deleted nodes with *= -1
-  storage[id] = 0;
-  return 1;
-}
-
 bool persistent_storage::map_file(std::string path, size_t object_sz) {
   if (mmf.is_open() || is_mapped) {
     return false;
   }
+
   file_path = path;
   object_size = object_sz;
 
