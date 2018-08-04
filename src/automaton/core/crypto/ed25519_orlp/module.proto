@@ -1,5 +1,4 @@
 syntax = "proto3";
 
 message ed25519 {
-  crypto.v0.dsig c1 = 1;
 }

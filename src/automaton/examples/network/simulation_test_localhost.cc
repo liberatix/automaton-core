@@ -3,9 +3,9 @@
 #include <string>
 #include <sstream>
 
-#include "automaton/core/log/log.h"
 #include "automaton/core/network/tcp_implementation.h"
 #include "automaton/examples/network/node_prototype.h"
+#include "automaton/core/log/log.h"
 
 namespace acn = automaton::core::network;
 
@@ -52,7 +52,6 @@ void collect_stats() {
 int main() {
   try {
     acn::tcp_init();
-    acn::simulation* sim = acn::simulation::get_simulator();
     LOG(INFO) << "Creating acceptors...";
     for (uint32_t i = 0; i < NUMBER_NODES; ++i) {
       nodes[i] = new node();

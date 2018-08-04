@@ -2,6 +2,9 @@
 
 #include <google/protobuf/util/json_util.h>
 
+#include <map>
+
+#include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/log/log.h"
 
 #ifdef GetMessage
@@ -24,11 +27,15 @@ namespace core {
 namespace data {
 namespace protobuf {
 
-protobuf_msg::protobuf_msg(google::protobuf::Message * m, uint32_t schema_id): m(m),
-    schema_id(schema_id) {}
+protobuf_msg::protobuf_msg(google::protobuf::Message * m, factory* msg_factory,
+    uint32_t schema_id): m(m), msg_factory(msg_factory), schema_id(schema_id) {}
 
 uint32_t protobuf_msg::get_schema_id() const {
   return schema_id;
+}
+
+factory* protobuf_msg::get_factory() const {
+  return msg_factory;
 }
 
 string protobuf_msg::get_message_type() const {
@@ -145,8 +152,7 @@ string protobuf_msg::get_blob(uint32_t field_tag) const {
 void protobuf_msg::set_repeated_blob(uint32_t field_tag, const string& value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -176,8 +182,7 @@ void protobuf_msg::set_repeated_blob(uint32_t field_tag, const string& value, in
 string protobuf_msg::get_repeated_blob(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -293,8 +298,7 @@ void protobuf_msg::set_repeated_int32(uint32_t field_tag, int32_t value, int32_t
 int32_t protobuf_msg::get_repeated_int32(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -410,8 +414,7 @@ void protobuf_msg::set_repeated_uint32(uint32_t field_tag, uint32_t value, int32
 uint32_t protobuf_msg::get_repeated_uint32(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -527,8 +530,7 @@ void protobuf_msg::set_repeated_int64(uint32_t field_tag, int64_t value, int32_t
 int64_t protobuf_msg::get_repeated_int64(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -613,8 +615,7 @@ uint64_t protobuf_msg::get_uint64(uint32_t field_tag) const {
 void protobuf_msg::set_repeated_uint64(uint32_t field_tag, uint64_t value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc = m->GetDescriptor()
-     ->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -644,8 +645,7 @@ void protobuf_msg::set_repeated_uint64(uint32_t field_tag, uint64_t value, int32
 uint64_t protobuf_msg::get_repeated_uint64(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -761,8 +761,7 @@ void protobuf_msg::set_repeated_boolean(uint32_t field_tag, bool value, int32_t 
 bool protobuf_msg::get_repeated_boolean(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -839,8 +838,7 @@ void protobuf_msg::set_message(uint32_t field_tag, const msg& sub_message) {
 std::unique_ptr<msg> protobuf_msg::get_message(uint32_t field_tag) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -860,19 +858,22 @@ std::unique_ptr<msg> protobuf_msg::get_message(uint32_t field_tag) const {
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::invalid_argument(msg.str());
   }
+  if (!(reflect->HasField(*m, fdesc))) {
+    return nullptr;
+  }
   // name resolution need to be done
   // to get Dynamic Message Factory of the class containing the sub message
   const Message* original = &reflect->GetMessage(*m, fdesc);
   Message* copy = original->New();
   copy->CopyFrom(*original);
-  return std::unique_ptr<msg>(new protobuf_msg(copy, schema_id));
+  return std::unique_ptr<msg>(new protobuf_msg(copy, msg_factory,
+      msg_factory->get_schema_id(copy->GetTypeName())));
 }
 
 void protobuf_msg::set_repeated_message(uint32_t field_tag, const msg& sub_message, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -945,7 +946,8 @@ std::unique_ptr<msg> protobuf_msg::get_repeated_message(uint32_t field_tag, int3
     const Message* original = &reflect->GetRepeatedMessage(*m, fdesc, index);
     Message* copy = original->New();
     copy->CopyFrom(*original);
-    return std::unique_ptr<msg>(new protobuf_msg(copy, schema_id));
+    return std::unique_ptr<msg>(new protobuf_msg(copy, msg_factory,
+        msg_factory->get_schema_id(copy->GetTypeName())));
   } else {
     std::stringstream msg;
     msg << "Index out of range: " << index;
@@ -957,8 +959,7 @@ std::unique_ptr<msg> protobuf_msg::get_repeated_message(uint32_t field_tag, int3
 void protobuf_msg::set_enum(uint32_t field_tag, int32_t value) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -1015,8 +1016,7 @@ int32_t protobuf_msg::get_enum(uint32_t field_tag) const {
 void protobuf_msg::set_repeated_enum(uint32_t field_tag, int32_t value, int32_t index) {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -1053,8 +1053,7 @@ void protobuf_msg::set_repeated_enum(uint32_t field_tag, int32_t value, int32_t 
 int32_t protobuf_msg::get_repeated_enum(uint32_t field_tag, int32_t index) const {
   CHECK_NOTNULL(m);
   CHECK_NOTNULL(m->GetDescriptor());
-  const FieldDescriptor* fdesc =
-      m->GetDescriptor()->FindFieldByNumber(field_tag);
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
   if (fdesc == nullptr) {
     std::stringstream msg;
     msg << "No field with tag: " << field_tag;
@@ -1082,6 +1081,42 @@ int32_t protobuf_msg::get_repeated_enum(uint32_t field_tag, int32_t index) const
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
+}
+
+uint32_t protobuf_msg::get_field_tag(const std::string& name) const {
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByName(name);
+  if (fdesc) {
+    return fdesc->number();
+  }
+  std::stringstream msg;
+  msg << "No field with name: " << name;
+  LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
+  throw std::invalid_argument(msg.str());
+}
+
+schema::field_info protobuf_msg::get_field_info_by_tag(uint32_t field_tag) const {
+  CHECK_NOTNULL(m);
+  CHECK_NOTNULL(m->GetDescriptor());
+  const FieldDescriptor* fdesc = m->GetDescriptor()->FindFieldByNumber(field_tag);
+  schema::field_type type;
+  string full_type = "";
+  if (fdesc->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
+    full_type = fdesc->message_type()->full_name();
+    type = schema::message_type;
+  } else if (fdesc->cpp_type() == FieldDescriptor::CPPTYPE_ENUM) {
+    full_type = fdesc->enum_type()->full_name();
+    type = schema::enum_type;
+  } else {
+    type = protobuf_factory::protobuf_ccptype_to_type.at(fdesc->cpp_type());
+  }
+  return schema::field_info(
+      fdesc->number(),
+      type,
+      fdesc->name(),
+      full_type,
+      fdesc->is_repeated());
 }
 
 }  // namespace protobuf

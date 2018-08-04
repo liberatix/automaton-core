@@ -17,6 +17,7 @@ cc_library(
     "//automaton/core/log",
     "@com_google_protobuf//:protobuf",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -29,4 +30,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

@@ -14,6 +14,7 @@ cc_library(
   deps = [
     "@easyloggingpp//:easyloggingpp",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -25,4 +26,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

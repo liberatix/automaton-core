@@ -60,6 +60,7 @@ class connection {
   */
   class connection_handler {
    public:
+    virtual ~connection_handler() {}
     virtual void on_message_received(connection* c, char* buffer,
         uint32_t bytes_read, uint32_t id) = 0;
     virtual void on_message_sent(connection* c, uint32_t id,
@@ -68,6 +69,9 @@ class connection {
     virtual void on_disconnected(connection* c) = 0;
     virtual void on_error(connection* c, connection::error e) = 0;
   };
+  virtual ~connection() {}
+
+  virtual bool init() = 0;
 
   /**
     Function that is used to send message to the remote peer. Id shows the
@@ -92,8 +96,7 @@ class connection {
   static connection* create(const std::string& type, const std::string& address,
       connection_handler* handler);
 
-  typedef connection* (*factory_function)(const std::string& address,
-      connection_handler* handler);
+  typedef connection* (*factory_function)(const std::string& address, connection_handler* handler);
 
   /**
     Function that is used to register how an object from child class will be
@@ -103,8 +106,7 @@ class connection {
     arguments should this function accept. If such type name exists in the
     registry, the factory_function pointer will be overriden.
   */
-  static void register_connection_type(const std::string& type,
-      factory_function func);
+  static void register_connection_type(const std::string& type, factory_function func);
 
  protected:
   /**

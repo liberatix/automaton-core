@@ -12,9 +12,7 @@ cc_library(
     "acceptor.h",
     "connection.h",
   ],
-  deps = [
-    "@boost//:asio",
-  ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -24,9 +22,16 @@ cc_library(
     "tcp_implementation.cc",
   ],
   deps = [
+    "@boost//:asio",
     ":network",
     "//automaton/core/log",
   ],
+  linkstatic=True,
+  defines = select({
+      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
+      "//conditions:default": [],
+  }),
+
 )
 
 cc_library(
@@ -39,6 +44,7 @@ cc_library(
     ":network",
     "//automaton/core/log",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -50,4 +56,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

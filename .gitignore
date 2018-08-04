@@ -2,7 +2,8 @@
 # based on the name of the directory bazel is cloned into.
 /bazel-*
 /src/bazel-*
-
+/src/=*
+/src/third_party/localboost-s-x64-1_67*
 # Mac OS
 .DS_Store
 
@@ -27,3 +28,6 @@
 # Visual Studio
 .vs
 .vscode
+
+# Locally built third_party libraries
+src/local_third_party

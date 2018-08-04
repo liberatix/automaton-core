@@ -5,10 +5,10 @@
 #include "gtest/gtest.h"
 #include "automaton/core/state/state_persistent.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
-#include "automaton/core/storage/blobstore.h"
+#include "automaton/core/storage/persistent_blobstore.h"
 #include "automaton/core/log/log.h"
 
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::state::state_persistent;
 using automaton::core::storage::blobstore;
@@ -35,10 +35,8 @@ TEST(state_persistent, set_and_get) {
   tests.push_back(std::make_pair("tram", "6"));
   tests.push_back(std::make_pair("tramva", "7"));
 
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent state(hasher, &bs);
 
   // For each node added, check if the previous nodes are still correct
@@ -65,10 +63,9 @@ TEST(state_persistent, set_delete_and_get) {
   tests.push_back(std::make_pair("tram", "6"));
   tests.push_back(std::make_pair("tramva", "7"));
 
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
+
   state_persistent state(hasher, &bs);
   // add all nodes
   for (unsigned int i = 0; i < tests.size(); i++) {
@@ -85,10 +82,9 @@ TEST(state_persistent, set_delete_and_get) {
 
 std::string hash_key(int i) {
   uint8_t digest32[32];
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
+  hash_transformation* hasher = new SHA256_cryptopp();
   std::string data = std::to_string(i);
-  hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
+  hasher->calculate_digest((const uint8_t*) data.data(), data.length(),
       digest32);
   return std::string(reinterpret_cast<char*>(digest32), 16 + i % 16);
 }
@@ -96,12 +92,11 @@ std::string hash_key(int i) {
 TEST(state_persistent, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 100000;
+  int32_t key_count = 1000;
 
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent state(hasher, &bs);
 
   // Add keys/values to the state and add the root hash into a stack.
@@ -168,10 +163,8 @@ TEST(state_persistent, node_hash_add_erase) {
 }
 
 TEST(state_persistent, insert_and_delete_expect_blank) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent state(hasher, &bs);
 
   state.set("a", "1");
@@ -187,19 +180,15 @@ TEST(state_persistent, insert_and_delete_expect_blank) {
 
 
 TEST(state_persistent, get_node_hash) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent s(hasher, &bs);
   EXPECT_EQ(s.get_node_hash(""), "");
 }
 
 TEST(state_persistent, commit_changes) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("a", "1");
   s.set("b", "2");
@@ -210,10 +199,8 @@ TEST(state_persistent, commit_changes) {
 }
 
 TEST(state_persistent, discard_changes) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("a", "1");
   s.set("b", "2");
@@ -224,10 +211,8 @@ TEST(state_persistent, discard_changes) {
 
 
 TEST(state_persistent, delete_node_tree) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("aa", "1");
   s.set("aaa", "2");
@@ -242,10 +227,8 @@ TEST(state_persistent, delete_node_tree) {
 // Deleted nodes should be backed up only when we create new node at
 // their location.
 TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("aa", "1");
   s.set("aaa", "2");
@@ -288,10 +271,8 @@ TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node
 
 
 TEST(dummy_state, using_deleted_locations) {
-  SHA256_cryptopp::register_self();
-  hash_transformation* hasher;
-  hasher = hash_transformation::create("SHA256");
-  blobstore bs("test");
+  hash_transformation* hasher = new SHA256_cryptopp();
+  blobstore bs;
   state_persistent s(hasher, &bs);
 
   s.set("a", "1");

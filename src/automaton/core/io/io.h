@@ -9,10 +9,14 @@ namespace io {
 
 /**
   Gets the file contents and returns them as a string.
-  
+
   Exception is thrown when error occurs.
 */
 std::string get_file_contents(const char* filename);
+
+std::string bin2hex(const std::string& input);
+
+std::string hex2bin(const std::string& input);
 
 }  // namespace io
 }  // namespace core

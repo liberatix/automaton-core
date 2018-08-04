@@ -8,7 +8,7 @@
 #include "filters.h"  // NOLINT
 
 using automaton::core::crypto::hash_transformation;
-using automaton::core::crypto::SHA512_cryptopp;
+using automaton::core::crypto::cryptopp::SHA512_cryptopp;
 
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and
@@ -20,12 +20,6 @@ static std::string toHex(uint8_t * digest, size_t size) {
   encoder.Put(digest, size);
   encoder.MessageEnd();
   return output;
-}
-
-TEST(SHA512_cryptopp, register_self) {
-  SHA512_cryptopp::register_self();
-  hash_transformation * hasher = hash_transformation::create("SHA512");
-  EXPECT_NE(hasher, nullptr);
 }
 
 TEST(SHA512_cryptopp, calculate_digest) {
@@ -58,7 +52,7 @@ TEST(SHA512_cryptopp, calculate_digest) {
   };
 
   for (uint32_t i = 0; i < test_cases; i++) {
-    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].c_str()),
+    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -75,7 +69,7 @@ TEST(SHA512_cryptopp, update_and_finish) {
   const std::string EXP1 =
       "B47C933421EA2DB149AD6E10FCE6C7F93D0752380180FFD7F4629A712134831D"
       "77BE6091B819ED352C2967A2E2D4FA5050723C9630691F1A05A7281DBE6C1086";
-  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.c_str());
+  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.data());
   size_t len = test_input.length();
 
   for (uint32_t i = 0; i <  16777216; i++) {

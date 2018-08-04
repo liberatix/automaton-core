@@ -6,8 +6,8 @@
 #include "automaton/core/data/module.h"
 #include "automaton/core/data/protobuf/module.h"
 #include "automaton/core/io/module.h"
-#include "automaton/core/log/module.h"
 #include "automaton/core/network/module.h"
+#include "automaton/core/log/module.h"
 #include "automaton/core/script/registry.h"
 #include "automaton/core/state/module.h"
 #include "gtest/gtest.h"
@@ -20,7 +20,7 @@ namespace core {
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and
 // right 4 bits of each byte.
-static std::string toHex(uint8_t * digest, size_t size) {
+static std::string toHex(const uint8_t * digest, size_t size) {
   CryptoPP::HexEncoder encoder;
   std::string output;
   encoder.Attach(new CryptoPP::StringSink(output));
@@ -39,7 +39,14 @@ class test_script : public ::testing::Test {
   }
 };
 
-common::obj* create_by_name(std::string name) {
+std::unique_ptr<common::obj> create_msg(std::string name) {
+  auto& r = script::registry::instance();
+  auto& f = r.get_factory();
+  auto id = f.get_schema_id(name);
+  return f.new_message_by_id(id);
+}
+
+std::unique_ptr<common::obj> create_by_name(std::string name) {
   auto& r = script::registry::instance();
   auto& f = r.get_factory();
   auto id = f.get_schema_id(name);
@@ -76,24 +83,51 @@ TEST_F(test_script, module_registration) {
 
   // Test instantiation and correctness of dynamically created hash_transformation objects.
   for (auto test : tests) {
-    auto hash =
-        dynamic_cast<crypto::hash_transformation*>(create_by_name("cryptopp.v0." + test[0]));
+    auto hash_obj = create_by_name("cryptopp.v0." + test[0]);
 
-    uint8_t* digest = new uint8_t[hash->digest_size()];
-    hash->calculate_digest(
-        reinterpret_cast<const uint8_t*>(test[1].c_str()), test[1].length(), &digest[0]);
-    EXPECT_EQ(toHex(digest, hash->digest_size()), test[2]);
-    delete[] digest;
+    auto request_m_obj = create_msg("crypto.v0.hash.digest.request");
+    data::msg* request_m = reinterpret_cast<data::msg*>(request_m_obj.get());
+    request_m->set_blob(1, test[1]);
+
+    auto response_m_obj = create_msg("crypto.v0.hash.digest.response");
+    data::msg* response_m = dynamic_cast<data::msg*>(response_m_obj.get());
+
+    hash_obj.get()->process(*request_m_obj, response_m_obj.get());
+    std::string response_digest = response_m->get_blob(1);
+    auto hex = toHex(reinterpret_cast<const uint8_t*>(response_digest.data()),
+                     response_digest.size());
+    EXPECT_EQ(hex, test[2]);
+
+    request_m_obj = create_msg("crypto.v0.hash.restart.request");
+    request_m = reinterpret_cast<data::msg*>(request_m_obj.get());
+    response_m_obj = create_msg("crypto.v0.hash.restart.response");
+    response_m = dynamic_cast<data::msg*>(response_m_obj.get());
+    hash_obj.get()->process(*request_m_obj, response_m_obj.get());
+
+    request_m_obj = create_msg("crypto.v0.hash.update.request");
+    request_m = reinterpret_cast<data::msg*>(request_m_obj.get());
+    request_m->set_blob(1, test[1]);
+    response_m_obj = create_msg("crypto.v0.hash.update.response");
+    response_m = dynamic_cast<data::msg*>(response_m_obj.get());
+    hash_obj.get()->process(*request_m_obj, response_m_obj.get());
+
+    request_m_obj = create_msg("crypto.v0.hash.final.request");
+    request_m = reinterpret_cast<data::msg*>(request_m_obj.get());
+    response_m_obj = create_msg("crypto.v0.hash.final.response");
+    response_m = dynamic_cast<data::msg*>(response_m_obj.get());
+    hash_obj.get()->process(*request_m_obj, response_m_obj.get());
+    response_digest = response_m->get_blob(1);
+    hex = toHex(reinterpret_cast<const uint8_t*>(response_digest.data()),
+                response_digest.size());
+    EXPECT_EQ(hex, test[2]);
   }
 
   // Test instantiation of random object.
-  auto random = dynamic_cast<crypto::secure_random*>(create_by_name("cryptopp.v0.random"));
+  auto random = create_by_name("cryptopp.v0.random");
 
   // Test instantiation of digital signatures object.
-  auto secp256k1 =
-     dynamic_cast<crypto::digital_signature*>(create_by_name("cryptopp.v0.secp256k1"));
-  auto ed25519 =
-     dynamic_cast<crypto::digital_signature*>(create_by_name("ed25519_orlp.v0.ed25519"));
+  auto secp256k1 = create_by_name("cryptopp.v0.secp256k1");
+  auto ed25519 = create_by_name("ed25519_orlp.v0.ed25519");
 
   std::cout << r.to_string() << std::endl;
 }

@@ -6,6 +6,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 SHA512_cryptopp::SHA512_cryptopp() {
   hash = new CryptoPP::SHA512;
@@ -34,12 +35,7 @@ uint32_t SHA512_cryptopp::digest_size() const {
   return _digest_size;
 }
 
-bool SHA512_cryptopp::register_self() {
-  hash_transformation::register_factory("SHA512",
-  [] {return reinterpret_cast<hash_transformation*>(new SHA512_cryptopp()); });
-  return true;
-}
-
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

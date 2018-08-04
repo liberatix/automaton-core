@@ -18,7 +18,7 @@ class digital_signature : public common::obj {
   /**
     Handles process requests from script and routing to corresponding method.
   */
-  common::status process(const obj& request, obj** response);
+  common::status process(const obj& request, obj* response);
 
   /** The size of the public key in bytes */
   virtual size_t public_key_size() = 0;
@@ -31,13 +31,6 @@ class digital_signature : public common::obj {
 
   /** The size of the random k in bytes; */
   virtual size_t k_size() = 0;
-
-  /**
-    A function pointer given to the register_factory to register.
-    The function will be used by create() to instantiate a derived class
-    implementing this interface
-  */
-  typedef digital_signature * (*digital_signature_factory_function)();
 
   /**
     Returns true of this implementation can sign deterministic
@@ -105,37 +98,7 @@ class digital_signature : public common::obj {
                       const size_t msg_len,
                       uint8_t * signature) = 0;
 
-  /**
-    Instantiates a class using the registered function in the factory.
-
-    @returns Pointer to digital_signature derived class implementing the
-        interface or nullptr if there is no registered function with this name.
-
-    @param[in] name The registered name of the function used to
-        instantiate an implementation of this interface.
-  */
-  static digital_signature * create(std::string name);
-
-  /**
-    Registers the create function for a given implementation, will overwrite
-    already registered functions.
-
-    @param[in] name a string that will be used to call this function.
-    @param[in] func function pointers used to instantiate classes
-        implementing the interface.
-  */
-  static void register_factory(std::string name,
-                               digital_signature_factory_function func);
-
   virtual ~digital_signature() {}
-
- private:
-  /**
-    Map holding the function pointers used to instantiate classes implementing
-    this interface.
-  */
-  static std::map<std::string,
-      digital_signature_factory_function> digital_signature_factory;
 };
 
 }  // namespace crypto

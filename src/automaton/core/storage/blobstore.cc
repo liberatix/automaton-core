@@ -5,9 +5,8 @@ namespace automaton {
 namespace core {
 namespace storage {
 
-blobstore::blobstore(std::string file_path)
-    : file_path(file_path)
-    , next_free(0)
+blobstore::blobstore()
+    : next_free(0)
     , capacity(0) {
   // TODO(Samir): Remove from constructor and do it when creating blob
   storage = new uint32_t[1ULL << 28];

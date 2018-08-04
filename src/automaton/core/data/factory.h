@@ -7,8 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include "automaton/core/data/schema.h"
+#include "automaton/core/common/obj.h"
 #include "automaton/core/data/msg.h"
+#include "automaton/core/data/schema.h"
 
 namespace automaton {
 namespace core {
@@ -16,13 +17,14 @@ namespace data {
 
 /** Schema data structure interface.
 */
-class factory {
+class factory : public common::obj {
  public:
-  virtual ~factory() = 0;
+  /**
+    Handles process requests from script and routing to corresponding method.
+  */
+  common::status process(const obj& request, obj* response);
 
-  typedef factory* (*data_factory_function)();
-  static void register_factory(std::string name, data_factory_function func);
-  static factory* create(const std::string name);
+  virtual ~factory() = 0;
 
   /**
     This function is used for include schema definitions that were created with
@@ -78,6 +80,16 @@ class factory {
     top-level and nested).
   */
   virtual uint32_t get_schemas_number() const = 0;
+
+  /**
+    Returns the number of nested message types in the specified message schema.
+  */
+  virtual uint32_t get_nested_messages_number(uint32_t schema_id) const = 0;
+
+  /**
+    Returns the schema id of the corresponding nested message.
+  */
+  virtual uint32_t get_nested_message_schema_id(uint32_t schema_id, uint32_t index) const = 0;
 
   /**
     Returns the number of fields in the schema with the given id. If no such
@@ -163,9 +175,6 @@ class factory {
       be thrown.
   */
   virtual bool is_repeated(uint32_t schema_id, uint32_t tag) const = 0;
-
- private:
-  static std::map<std::string, data_factory_function> schema_factory;
 };
 
 }  // namespace data

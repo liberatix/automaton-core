@@ -6,6 +6,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 Keccak_256_cryptopp::Keccak_256_cryptopp() {
   hash = new CryptoPP::Keccak_256;
@@ -34,13 +35,7 @@ uint32_t Keccak_256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
-bool Keccak_256_cryptopp::register_self() {
-  hash_transformation::register_factory("Keccak_256",
-    [] {return reinterpret_cast<hash_transformation*>
-        (new Keccak_256_cryptopp()); });
-  return true;
-}
-
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

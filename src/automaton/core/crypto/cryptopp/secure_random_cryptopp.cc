@@ -5,6 +5,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 bool secure_random_cryptopp::bit() {
   return prng.GenerateBit();
@@ -18,12 +19,7 @@ uint8_t secure_random_cryptopp::byte() {
   return prng.GenerateByte();
 }
 
-bool secure_random_cryptopp::register_self() {
-  secure_random_cryptopp::register_factory("cryptopp", [] {return
-      reinterpret_cast<secure_random*>(new secure_random_cryptopp()); });
-  return true;
-}
-
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

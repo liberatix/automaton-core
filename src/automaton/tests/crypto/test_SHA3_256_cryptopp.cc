@@ -7,7 +7,7 @@
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
 
-using automaton::core::crypto::SHA3_256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA3_256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 
 // Helper function to convert bytes to hex values
@@ -20,12 +20,6 @@ static std::string toHex(uint8_t * digest, size_t size) {
   encoder.Put(digest, size);
   encoder.MessageEnd();
   return output;
-}
-
-TEST(SHA3_256_cryptopp, register_self) {
-  SHA3_256_cryptopp::register_self();
-  hash_transformation * hasher = hash_transformation::create("SHA3_256");
-  EXPECT_NE(hasher, nullptr);
 }
 
 TEST(SHA3_256_cryptopp, calculate_digest) {
@@ -52,7 +46,7 @@ TEST(SHA3_256_cryptopp, calculate_digest) {
   };
 
   for (uint32_t i = 0; i < test_cases; i++) {
-    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].c_str()),
+    hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
     EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
   }
@@ -68,7 +62,7 @@ TEST(SHA3_256_cryptopp, update_and_finish) {
       "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
   const std::string EXP1 =
       "ECBBC42CBF296603ACB2C6BC0410EF4378BAFB24B710357F12DF607758B33E2B";
-  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.c_str());
+  const uint8_t* p_test_input = reinterpret_cast<const uint8_t*>(test_input.data());
   size_t len = test_input.length();
 
   for (uint32_t i = 0; i <  16777216; i++) {

@@ -9,8 +9,8 @@
 #include "automaton/examples/crypto/basic_hash_miner.h"
 
 using automaton::core::crypto::hash_transformation;
-using automaton::core::crypto::SHA256_cryptopp;
-using automaton::core::examples::basic_hash_miner;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
+using automaton::examples::basic_hash_miner;
 
 const char DEMO_HASH[] = "some block hash";
 const int MINER_PRECISION_BITS = 14;
@@ -33,8 +33,7 @@ std::string to_hex_string(uint8_t *data, int len) {
 int main() {
     const uint8_t* block_hash = reinterpret_cast<const uint8_t*>(DEMO_HASH);
 
-    SHA256_cryptopp::register_self();
-    auto hash_transformation = hash_transformation::create("SHA256");
+    auto hash_transformation = new SHA256_cryptopp();
     basic_hash_miner miner(hash_transformation);
 
     uint8_t* nonce = miner.mine(

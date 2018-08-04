@@ -118,12 +118,6 @@ protobuf_factory::~protobuf_factory() {
   delete pool;
 }
 
-void protobuf_factory::register_self() {
-  protobuf_factory::register_factory("protobuf", [] {
-      return reinterpret_cast<factory*>(new protobuf_factory());
-  });
-}
-
 void protobuf_factory::extract_nested_messages(const Descriptor* d) {
   CHECK_NOTNULL(d) << "Message descriptor is nullptr";
   uint32_t num_msg = d->nested_type_count();
@@ -292,7 +286,7 @@ std::unique_ptr<msg> protobuf_factory::new_message_by_id(uint32_t schema_id) {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   Message* m = schemas[schema_id]->New();
-  return std::unique_ptr<msg>(new protobuf_msg(m, schema_id));
+  return std::unique_ptr<msg>(new protobuf_msg(m, this, schema_id));
 }
 
 std::unique_ptr<msg> protobuf_factory::new_message_by_name(const char* schema_name) {
@@ -382,13 +376,29 @@ bool protobuf_factory::is_repeated(uint32_t schema_id, uint32_t field_tag) const
   throw std::invalid_argument(msg.str());
 }
 
-schema::field_info protobuf_factory::get_field_info(uint32_t schema_id,
-    uint32_t index) const {
+uint32_t protobuf_factory::get_nested_messages_number(uint32_t schema_id) const {
+  CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
+  CHECK_NOTNULL(schemas[schema_id]);
+  CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
+  const Descriptor* d = schemas[schema_id]->GetDescriptor();
+  return d->nested_type_count();
+}
+
+uint32_t protobuf_factory::get_nested_message_schema_id(uint32_t schema_id, uint32_t index) const {
+  CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
+  CHECK_NOTNULL(schemas[schema_id]);
+  CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
+  const Descriptor* d = schemas[schema_id]->GetDescriptor();
+  const Descriptor* desc = d->nested_type(index);
+  return get_schema_id(desc->full_name());
+}
+
+schema::field_info protobuf_factory::get_field_info(uint32_t schema_id, uint32_t index) const {
   CHECK_BOUNDS(schema_id, 0, schemas.size() - 1);
   CHECK_NOTNULL(schemas[schema_id]);
   CHECK_NOTNULL(schemas[schema_id]->GetDescriptor());
   const Descriptor* desc = schemas[schema_id]->GetDescriptor();
-  if (index < 0 || index >= static_cast<uint32_t>(desc->field_count())) {
+  if (index >= static_cast<uint32_t>(desc->field_count())) {
     std::stringstream msg;
     msg << "No field with such index: " << index;
     LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();

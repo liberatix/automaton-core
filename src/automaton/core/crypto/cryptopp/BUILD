@@ -27,6 +27,7 @@ cc_library(
     "//automaton/core/crypto",
     "@cryptopp//:cryptopp",
   ],
+  linkstatic=True,
 )
 
 cc_library(
@@ -41,4 +42,5 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/script",
   ],
+  linkstatic=True,
 )

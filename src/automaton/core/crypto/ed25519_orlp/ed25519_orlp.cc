@@ -60,12 +60,6 @@ bool ed25519_orlp::verify(const uint8_t * public_key,
   return ed25519_verify(signature, message, msg_len, public_key);
 }
 
-bool ed25519_orlp::register_self() {
-  ed25519_orlp::register_factory("ed25519_orlp", [] {
-      return reinterpret_cast<digital_signature*>(new ed25519_orlp()); });
-  return true;
-}
-
 }  // namespace ed25519_orlp
 }  // namespace crypto
 }  // namespace core

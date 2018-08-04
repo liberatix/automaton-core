@@ -44,18 +44,18 @@ void node::handler::on_error(acn::connection* c,
 /// Node's acceptor handler
 
 node::lis_handler::lis_handler(node* n):node_(n) {}
-bool node::lis_handler::on_requested(const std::string& address) {
+bool node::lis_handler::on_requested(acn::acceptor* a, const std::string& address) {
   // EXPECT_EQ(address, address_a);
   // logging("Connection request from: " + address + ". Accepting...");
   return node_->accept_connection(/*address*/);
 }
-void node::lis_handler::on_connected(acn::connection* c,
+void node::lis_handler::on_connected(acn::acceptor* a, acn::connection* c,
     const std::string& address) {
   // logging("Accepted connection from: " + address);
   node_->peers[node_->get_next_peer_id()] = c;
   c->async_read(node_->add_buffer(16), 16, 0, 0);
 }
-void node::lis_handler::on_error(acn::connection::error e) {
+void node::lis_handler::on_error(acn::acceptor* a, acn::connection::error e) {
   LOG(ERROR) << std::to_string(e);
 }
 

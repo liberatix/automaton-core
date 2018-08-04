@@ -17,7 +17,7 @@ class secure_random : public common::obj {
   /**
     Handles process requests from script and routing to corresponding method.
   */
-  common::status process(const obj& request, obj** response);
+  common::status process(const obj& request, obj* response);
 
   // Generate random bit
   virtual bool bit() = 0;
@@ -31,35 +31,7 @@ class secure_random : public common::obj {
   // Generate random array of byte
   virtual uint8_t byte() = 0;
 
-
-  // A function pointer given to register_factory.
-  // The function will be used by create() to instantiate a secure_random
-  // derived class implementing this interface
-  typedef secure_random * (*secure_random_factory_function)();
-
-  // Instantiate a class using the registered function in the factory.
-  // Returns:    Pointer to secure_random derived class implementing the
-  //             interface or nullptr if there is no registered function
-  //             with this name.
-  // IN:  name:  The registered name of the function used to instantiate
-  //             an implementation of this interface.
-  static secure_random * create(std::string name);
-
-  // Register the create function for a given implementation, will overwrite
-  // already registered functions.
-  // IN:  name:   a string that will be used to call this function.
-  //      func:   function pointers used to instantiate classes
-  //              implementing the interface.
-  static void register_factory(std::string name,
-      secure_random_factory_function func);
-
   virtual ~secure_random() {}
-
- private:
-  // Map holding the function pointers used to instantiate classes implementing
-  // the interface.
-  static std::map<std::string, secure_random_factory_function>
-     secure_random_factory;
 };
 
 }  // namespace crypto
