@@ -32,7 +32,7 @@ class module: public script::module {
 
  private:
   module() : script::module("io", "0.0.1.a") {
-    add_function("bin2hex", &wrap_bin2hex);
+    add_function("hex", &wrap_bin2hex);
     add_function("hex2bin", &wrap_hex2bin);
   }
 };
