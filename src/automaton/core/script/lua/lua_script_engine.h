@@ -1,11 +1,13 @@
 #ifndef AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
 #define AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
 
+#include <memory>
 #include <string>
 
+#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/script/registry.h"
 
-#include "lua.hpp"
+#include "sol.hpp"
 
 namespace automaton {
 namespace core {
@@ -21,6 +23,27 @@ class lua_script_engine {
   */
   lua_script_engine();
 
+  void bind_core() {
+    bind_crypto();
+    bind_data();
+    bind_io();
+    bind_log();
+    bind_network();
+    bind_state();
+  }
+
+  void bind_crypto();
+
+  void bind_data();
+
+  void bind_io();
+
+  void bind_log();
+
+  void bind_network();
+
+  void bind_state();
+
   /**
   */
   void bind_registered_modules();
@@ -28,6 +51,8 @@ class lua_script_engine {
   /**
   */
   common::status execute(std::string script);
+
+  auto get_lua_state() { return L; }
 
  private:
   void bind_static_function(module* m,
@@ -39,6 +64,14 @@ class lua_script_engine {
   void bind_registered_module(module* m);
 
   lua_State* L;
+  sol::state lua;
+
+  // Crypto hash functions
+  std::unique_ptr<crypto::hash_transformation> ripemd160;
+  std::unique_ptr<crypto::hash_transformation> sha512;
+  std::unique_ptr<crypto::hash_transformation> sha256;
+  std::unique_ptr<crypto::hash_transformation> sha3;
+  std::unique_ptr<crypto::hash_transformation> keccak256;
 };
 
 }  // namespace lua
