@@ -8,6 +8,7 @@ cc_binary(
     "demo_lua.cc",
   ],
   deps = [
+    "@replxx//:replxx",
     "//automaton/core/crypto:module",
     "//automaton/core/crypto",
     "//automaton/core/crypto/cryptopp:module",
@@ -21,10 +22,12 @@ cc_binary(
     "//automaton/core/script",
     "//automaton/core/script/lua",
     "//automaton/core/state:module",
-    "@lua//:liblua",
   ],
   data = [
+    "benchmark.lua",
+    "blockchain.lua",
+    "blockchain.proto",
+    "data.lua",
     "script_demo.lua",
-    "script_demo_module.proto",
   ],
 )
