@@ -131,7 +131,7 @@ static int msg_to_lua(lua_State* L, data::msg* output_msg) {
       }
       case schema::blob: {
         auto blob = output_msg->get_blob(tag);
-        lua_pushlstring(L, blob.c_str(), blob.size());
+        lua_pushlstring(L, blob.data(), blob.size());
         break;
       }
       default: {
@@ -240,9 +240,10 @@ static int wrap_object_method_call(lua_State *L) {
 }
 
 lua_script_engine::lua_script_engine() {
-  L = luaL_newstate();
-  luaL_openlibs(L);
-  bind_registered_modules();
+  lua.open_libraries();
+  L = lua.lua_state();
+  // luaL_openlibs(L);
+  // bind_registered_modules();
 }
 
 void lua_script_engine::bind_static_function(module* m,
@@ -252,8 +253,8 @@ void lua_script_engine::bind_static_function(module* m,
   lua_pushlightuserdata(L, reinterpret_cast<void*>(info.func));
   lua_pushnumber(L, info.input_schema_id);
   lua_pushnumber(L, info.output_schema_id);
-  lua_pushstring(L, info.name.c_str());
-  lua_pushcclosure(L, &wrap_static_function, 4);
+  // lua_pushstring(L, info.name.c_str());
+  lua_pushcclosure(L, &wrap_static_function, 3);
 
   lua_setglobal(L, info.name.c_str());
 }
@@ -318,6 +319,21 @@ void lua_script_engine::bind_registered_modules() {
     auto m = r.get_module(name);
     bind_registered_module(m);
   }
+}
+
+void lua_script_engine::bind_io() {
+  lua.set_function("hex", [](const std::string& s) {
+    return io::bin2hex(s);
+  });
+}
+
+void lua_script_engine::bind_log() {
+}
+
+void lua_script_engine::bind_network() {
+}
+
+void lua_script_engine::bind_state() {
 }
 
 }  // namespace lua

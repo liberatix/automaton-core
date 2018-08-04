@@ -165,7 +165,6 @@ class registry {
     modules_[m.name_with_api_version()] = &m;
     std::string json;
     m.schema()->to_json(&json);
-    VLOG(9) << json;
 
     // Ensure dependencies are already imported.
     for (const auto& dep : m.dependencies()) {
