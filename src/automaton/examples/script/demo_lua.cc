@@ -75,7 +75,7 @@ Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& 
   // only show hint if prefix is at least 'n' chars long
   // or if prefix begins with a specific character
   std::string prefix {context.substr(index)};
-  if (prefix.size() >= 2 || (!prefix.empty() && prefix.at(0) == '.')) {
+  if (prefix.size() >= 1 || (!prefix.empty() && prefix.at(0) == '.')) {
     for (auto const& e : *examples) {
       if (e.compare(0, prefix.size(), prefix) == 0) {
         hints.emplace_back(e.substr(prefix.size()).c_str());
@@ -115,6 +115,16 @@ void hook_color(std::string const& context, Replxx::colors_t& colors, void* user
 }
 
 void register_messages(sol::state_view* lua) {
+}
+
+void string_replace(std::string* str,
+                    const std::string& oldStr,
+                    const std::string& newStr) {
+  std::string::size_type pos = 0u;
+  while ((pos = str->find(oldStr, pos)) != std::string::npos) {
+     str->replace(pos, oldStr.length(), newStr);
+     pos += newStr.length();
+  }
 }
 
 struct byte_array {
@@ -224,22 +234,6 @@ int main() {
     if (h == "RIPEMD-160") {
       f = sha512;
       size = 20;
-    }
-
-    if (h == "blank") {
-      auto req_id = factory.get_schema_id("test.v0.my_concept.add.request");
-      auto rep_id = factory.get_schema_id("test.v0.my_concept.add.response");
-      for (uint32_t i = 0; i < n; i++) {
-        auto req = factory.new_message_by_id(req_id);
-        req->set_int32(1, i);
-        req->set_int32(2, i);
-        std::string s;
-        req->serialize_message(&s);
-        auto rep = factory.new_message_by_id(rep_id);
-        rep->deserialize_message(s);
-        rep->set_int32(1, req->get_int32(1) + req->get_int32(2));
-      }
-      return "";
     }
 
     if (size > 0) {
@@ -352,13 +346,13 @@ int main() {
     {"\\.prompt", cl::BRIGHTMAGENTA},
 
     // numbers
-    {"[\\-|+]{0,1}[0-9]+", cl::YELLOW}, // integers
-    {"[\\-|+]{0,1}[0-9]*\\.[0-9]+", cl::YELLOW}, // decimals
-    {"[\\-|+]{0,1}[0-9]+e[\\-|+]{0,1}[0-9]+", cl::YELLOW}, // scientific notation
+    {"[\\-|+]{0,1}[0-9]+", cl::YELLOW},  // integers
+    {"[\\-|+]{0,1}[0-9]*\\.[0-9]+", cl::YELLOW},  // decimals
+    {"[\\-|+]{0,1}[0-9]+e[\\-|+]{0,1}[0-9]+", cl::YELLOW},  // scientific notation
 
     // strings
-    {"\".*?\"", cl::BRIGHTGREEN}, // double quotes
-    {"\'.*?\'", cl::BRIGHTGREEN}, // single quotes
+    {"\".*?\"", cl::BRIGHTGREEN},  // double quotes
+    {"\'.*?\'", cl::BRIGHTGREEN},  // single quotes
   };
 
   // init the repl
@@ -372,10 +366,10 @@ int main() {
   // rx.history_load(history_file);
 
   // set the max history size
-  rx.set_max_history_size(12);
+  rx.set_max_history_size(100);
 
   // set the max input line size
-  rx.set_max_line_size(128);
+  rx.set_max_line_size(1024);
 
   // set the max number of hint rows to show
   rx.set_max_hint_rows(8);
@@ -385,40 +379,57 @@ int main() {
   rx.set_highlighter_callback(hook_color, static_cast<void*>(&regex_color));
   rx.set_hint_callback(hook_hint, static_cast<void*>(&examples));
 
+  static std::string automaton_ascii_logo =
+    "\n\x1b[40m\x1b[1m"
+    "                                                                   "
+    "\x1b[0m\n\x1b[40m\x1b[1m"
+    "                                                                   "
+    "\x1b[0m\n\x1b[40m\x1b[1m"
+    "   @197m█▀▀▀█ @39m█ █ █ @11m▀▀█▀▀ @129m█▀▀▀█ @47m█▀█▀█ @9m█▀▀▀█ @27m▀▀█▀▀ @154m█▀▀▀█ @13m█▀█ █           " // NOLINT
+    "\x1b[0m\n\x1b[40m\x1b[1m"
+    "   @197m█▀▀▀█ @39m█ ▀ █ @11m█ █ █ @129m█ ▀ █ @47m█ ▀ █ @9m█▀▀▀█ @27m█ █ █ @154m█ ▀ █ @13m█ █ █  @15mCORE     " // NOLINT
+    "\x1b[0m\n\x1b[40m\x1b[1m"
+    "   @197m▀ ▀ ▀ @39m▀▀▀▀▀ @11m▀ ▀ ▀ @129m▀▀▀▀▀ @47m▀ ▀ ▀ @9m▀ ▀ ▀ @27m▀ ▀ ▀ @154m▀▀▀▀▀ @13m▀ ▀▀▀  @15mv0.0.1   " // NOLINT
+    "\x1b[0m\n\x1b[40m\x1b[1m"
+    "                                                                   "
+    "\x1b[0m\n\n"
+    "  @7mThese are common Automaton commands used in various situations:\n"
+    "\n"
+    "     \x1b[1m@15m.modules    \x1b[0m@7mShow list of registered modules\n"
+    "     \x1b[1m@15m.protos     \x1b[0m@7mShow list of registered smart protocol definitions\n"
+    "     \x1b[1m@15m.nodes      \x1b[0m@7mShow list of node instances running on this client\n"
+    "     \x1b[1m@15m.launch     \x1b[0m@7mLaunch a smart protocol node instance from a definiition\n"
+    "     \x1b[1m@15m.use        \x1b[0m@7mSet the current smart protocol node\n"
+    "     \x1b[1m@15m.msg        \x1b[0m@7mConstruct and send a message to the current smart protocol\n\n";
+
+/*
+  #FF0055 - 197
+  #00AAFF - 39
+  #FFFF00 - 11, 226
+  #AA00FF - 129
+  #00FF55 - 47
+  #FF0000 - 9, 196
+  #0055FF - 27
+  #AAFF00 - 154
+  #FF00FF - 13, 201
+*/
+
+
+  string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
+
   // display initial welcome message
   std::cout
-  << "Welcome to "
-  <<
-    "\x1b[40m"
-    "\x1b[1m "
-    "\x1b[38;5;9mA"
-    "\x1b[38;5;27mU"
-    "\x1b[38;5;11mT"
-    "\x1b[38;5;10mO"
-    "\x1b[38;5;14mM"
-    "\x1b[38;5;13mA"
-    "\x1b[38;5;27mT"
-    "\x1b[38;5;11mO"
-    "\x1b[38;5;10mN "
-    "\x1b[0m\n"
-  << "Press 'tab' to view autocompletions\n"
-  << "Type '.help' for help\n"
-  << "Type '.quit' or '.exit' to exit\n\n";
+  << automaton_ascii_logo;
 
   // set the repl prompt
   std::string prompt {
     // "\x1b[1m\x1b[38;5;15m[A] \x1b[0m"
-    "\x1b[40m"
-    "\x1b[1m"
-    "|A|"
+    "\x1b[38;5;15m"
+    "\x1b[48;5;0m"
+    // "\x1b[1m"
+    "🄰 "
     "\x1b[0m "
   };
-
-  std::thread test_thread([&rx]() {
-    for (int i = 0; i < 1000; i++) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-  });
 
   // main repl loop
   for (;;) {
@@ -427,8 +438,6 @@ int main() {
 
     do {
       cinput = rx.input(prompt);
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      LOG(DEBUG) << "test";
     } while ((cinput == nullptr) && (errno == EAGAIN));
 
     if (cinput == nullptr) {
