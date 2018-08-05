@@ -69,17 +69,29 @@ Replxx::completions_t hook_completion(std::string const& context, int index, voi
 }
 
 Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& color, void* user_data) { // NOLINT
-  auto* examples = static_cast<std::vector<std::string>*>(user_data);
+  auto* lua = static_cast<sol::state_view*>(user_data);
+  std::vector<std::string> examples;
   Replxx::hints_t hints;
+
+  auto& factory = automaton::core::script::registry::instance().get_factory();
+
+  for (auto i = 0; i < factory.get_schemas_number(); i++) {
+    auto name = factory.get_schema_name(i);
+    examples.push_back(name);
+  }
 
   // only show hint if prefix is at least 'n' chars long
   // or if prefix begins with a specific character
   std::string prefix {context.substr(index)};
   if (prefix.size() >= 1 || (!prefix.empty() && prefix.at(0) == '.')) {
-    for (auto const& e : *examples) {
+    for (auto const& e : examples) {
       if (e.compare(0, prefix.size(), prefix) == 0) {
         hints.emplace_back(e.substr(prefix.size()).c_str());
       }
+    }
+
+    if (hints.size() == 0) {
+      hints.push_back("\nThis is a \x1b[38;5;208mtest\x1b[38;5;15m!!!");
     }
   }
 
@@ -292,7 +304,8 @@ int main() {
 
   // words to be completed
   std::vector<std::string> examples {
-    "Point", "Blocks", "BlockHeader"
+    "Point", "Blocks", "BlockHeader",
+    "sha3", "sha256", "keccak256", "sha512", "ripemd160"
   };
 
   // highlight specific words
@@ -353,6 +366,13 @@ int main() {
     // strings
     {"\".*?\"", cl::BRIGHTGREEN},  // double quotes
     {"\'.*?\'", cl::BRIGHTGREEN},  // single quotes
+
+    // crypto
+    {"sha3", cl::CYAN},
+    {"sha256", cl::CYAN},
+    {"sha512", cl::CYAN},
+    {"keccak256", cl::CYAN},
+    {"ripemd160", cl::CYAN},
   };
 
   // init the repl
@@ -372,12 +392,12 @@ int main() {
   rx.set_max_line_size(1024);
 
   // set the max number of hint rows to show
-  rx.set_max_hint_rows(8);
+  rx.set_max_hint_rows(12);
 
   // set the callbacks
   rx.set_completion_callback(hook_completion, static_cast<void*>(&examples));
   rx.set_highlighter_callback(hook_color, static_cast<void*>(&regex_color));
-  rx.set_hint_callback(hook_hint, static_cast<void*>(&examples));
+  rx.set_hint_callback(hook_hint, static_cast<void*>(&lua));
 
   static std::string automaton_ascii_logo =
     "\n\x1b[40m\x1b[1m"
@@ -430,6 +450,15 @@ int main() {
     "🄰 "
     "\x1b[0m "
   };
+
+/*
+  std::thread logger([&]() {
+    for (auto i = 0; i < 1000; i++) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      rx.print("Test %d...", i);
+    }
+  });
+*/
 
   // main repl loop
   for (;;) {
