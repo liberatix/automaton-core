@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "replxx.hxx"
+
 namespace automaton {
 namespace core {
 namespace cli {
@@ -10,6 +12,12 @@ namespace cli {
 class cli {
  public:
   // virtual set_prompt(std::string prompt) = 0;
+  cli();
+
+  char const* input(const char * prompt);
+
+ private:
+  replxx::Replxx rx;
 };
 
 }  // namespace cli
