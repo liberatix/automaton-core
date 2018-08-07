@@ -23,8 +23,9 @@ void lua_script_engine::bind_data() {
     });
   }
 
-  lua.new_simple_usertype<msg>("msg",
-    sol::meta_function::index,
+  auto msg_type = lua.new_simple_usertype<msg>("msg");
+
+  msg_type.set(sol::meta_function::index,
     [](sol::this_state L, msg& m, std::string key) -> sol::object {
       auto schema_id = m.get_schema_id();
       auto tag_id = m.get_field_tag(key);
@@ -51,9 +52,9 @@ void lua_script_engine::bind_data() {
         }
       }
       return sol::make_object(L, sol::lua_nil);
-    },
+    });
 
-    sol::meta_function::new_index,
+  msg_type.set(sol::meta_function::new_index,
     [](sol::this_state L, msg& m, std::string key, sol::object value) {
       auto schema_id = m.get_schema_id();
       auto tag_id = m.get_field_tag(key);
@@ -91,62 +92,61 @@ void lua_script_engine::bind_data() {
           LOG(ERROR) << "WAT?";
         }
       }
-    },
+    });
 
-    "set_blob", &msg::set_blob,
-    "get_blob", &msg::get_blob,
-    "set_repeated_blob", &msg::set_repeated_blob,
-    "get_repeated_blob", &msg::get_repeated_blob,
+  msg_type.set("set_blob", &msg::set_blob);
+  msg_type.set("get_blob", &msg::get_blob);
+  msg_type.set("set_repeated_blob", &msg::set_repeated_blob);
+  msg_type.set("get_repeated_blob", &msg::get_repeated_blob);
 
-    "get_int32", &msg::get_int32,
-    "set_int32", &msg::set_int32,
-    "get_repeated_int64", &msg::get_repeated_int32,
-    "set_repeated_int64", &msg::set_repeated_int32,
+  msg_type.set("get_int32", &msg::get_int32);
+  msg_type.set("set_int32", &msg::set_int32);
+  msg_type.set("get_repeated_int64", &msg::get_repeated_int32);
+  msg_type.set("set_repeated_int64", &msg::set_repeated_int32);
 
-    "get_uint32", &msg::get_uint32,
-    "set_uint32", &msg::set_uint32,
-    "get_repeated_uint64", &msg::get_repeated_uint32,
-    "set_repeated_uint64", &msg::set_repeated_uint32,
+  msg_type.set("get_uint32", &msg::get_uint32);
+  msg_type.set("set_uint32", &msg::set_uint32);
+  msg_type.set("get_repeated_uint64", &msg::get_repeated_uint32);
+  msg_type.set("set_repeated_uint64", &msg::set_repeated_uint32);
 
-    "get_int64", &msg::get_int64,
-    "set_int64", &msg::set_int64,
-    "get_repeated_int64", &msg::get_repeated_int64,
-    "set_repeated_int64", &msg::set_repeated_int64,
+  msg_type.set("get_int64", &msg::get_int64);
+  msg_type.set("set_int64", &msg::set_int64);
+  msg_type.set("get_repeated_int64", &msg::get_repeated_int64);
+  msg_type.set("set_repeated_int64", &msg::set_repeated_int64);
 
-    "get_uint64", &msg::get_uint64,
-    "set_uint64", &msg::set_uint64,
-    "get_repeated_uint64", &msg::get_repeated_uint64,
-    "set_repeated_uint64", &msg::set_repeated_uint64,
+  msg_type.set("get_uint64", &msg::get_uint64);
+  msg_type.set("set_uint64", &msg::set_uint64);
+  msg_type.set("get_repeated_uint64", &msg::get_repeated_uint64);
+  msg_type.set("set_repeated_uint64", &msg::set_repeated_uint64);
 
-    "get_bool", &msg::get_boolean,
-    "set_bool", &msg::set_boolean,
-    "get_repeated_bool", &msg::get_repeated_boolean,
-    "set_repeated_bool", &msg::set_repeated_boolean,
+  msg_type.set("get_bool", &msg::get_boolean);
+  msg_type.set("set_bool", &msg::set_boolean);
+  msg_type.set("get_repeated_bool", &msg::get_repeated_boolean);
+  msg_type.set("set_repeated_bool", &msg::set_repeated_boolean);
 
-    "get_enum", &msg::get_enum,
-    "set_enum", &msg::set_enum,
-    "get_repeated_enum", &msg::get_repeated_enum,
-    "set_repeated_enum", &msg::set_repeated_enum,
+  msg_type.set("get_enum", &msg::get_enum);
+  msg_type.set("set_enum", &msg::set_enum);
+  msg_type.set("get_repeated_enum", &msg::get_repeated_enum);
+  msg_type.set("set_repeated_enum", &msg::set_repeated_enum);
 
-    "get_msg", &msg::get_message,
-    "set_msg", &msg::set_message,
-    "get_repeated_msg", &msg::get_repeated_message,
-    "set_repeated_msg", &msg::set_repeated_message,
+  msg_type.set("get_msg", &msg::get_message);
+  msg_type.set("set_msg", &msg::set_message);
+  msg_type.set("get_repeated_msg", &msg::get_repeated_message);
+  msg_type.set("set_repeated_msg", &msg::set_repeated_message);
 
-    "serialize", [](msg& m) {
+  msg_type.set("serialize", [](msg& m) {
       std::string s;
       m.serialize_message(&s);
       return s;
-    },
+    });
 
-    "deserialize", &msg::deserialize_message,
+  msg_type.set("deserialize", &msg::deserialize_message);
 
-    "to_json", [](msg& m) {
+  msg_type.set("to_json", [](msg& m) {
       std::string json;
       m.to_json(&json);
       return json;
-    }
-  );  // NOLINT
+    });
 }
 
 }  // namespace lua
