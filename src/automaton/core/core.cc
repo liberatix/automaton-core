@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
       )");
 
   automaton::core::cli::cli cli;
-  std::cout << automaton_ascii_logo;
+  cli.print(automaton_ascii_logo.c_str());
   while (1) {
     // auto cmd = cli.input("\x1b[38;5;15m\x1b[1m|A|\x1b[0m ");
     auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");

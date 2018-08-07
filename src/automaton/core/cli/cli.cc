@@ -49,7 +49,7 @@ cli::cli() {
   rx.set_hint_callback(hook_hint, static_cast<void*>(this));
 }
 
-char const* cli::input(const char * prompt) {
+char const* cli::input(const char* prompt) {
   char const* cinput{ nullptr };
 
   do {
@@ -59,8 +59,12 @@ char const* cli::input(const char * prompt) {
   return cinput;
 }
 
-void cli::history_add(const char * cmd) {
+void cli::history_add(const char* cmd) {
   rx.history_add(cmd);
+}
+
+void cli::print(const char * msg) {
+  rx.print("%s", msg);
 }
 
 }  // namespace cli

@@ -14,8 +14,9 @@ class cli {
   // virtual set_prompt(std::string prompt) = 0;
   cli();
 
-  char const* input(const char * prompt);
-  void history_add(const char * cmd);
+  char const* input(const char* prompt);
+  void history_add(const char* cmd);
+  void print(const char* msg)
 
  private:
   replxx::Replxx rx;
