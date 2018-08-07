@@ -23,7 +23,7 @@ using automaton::examples::node;
 // static const uint32_t NUMBER_NODES = 64;
 static const uint32_t NUMBER_PEERS_IN_NODE = 8;
 static const uint32_t LOOP_STEP = 50;
-static const uint32_t SIMULATION_TIME = 180000;
+static const uint32_t SIMULATION_TIME = 6000;
 static const uint32_t MINER_PRECISION_BITS = 20;
 static const uint32_t TIMEOUT = 300;
 
@@ -35,14 +35,14 @@ static const char* FILE_NAME = "simulation_output.txt";
 static bool IS_LOCALHOST;
 static char* MY_IP;
 static uint32_t MIN_PORT = 12000;
-static uint32_t MAX_PORT = 12100;
+static uint32_t MAX_PORT = 12030;
 static uint32_t MY_MIN_PORT = 0;
 static uint32_t MY_MAX_PORT = 0;
 static uint32_t NUMBER_NODES = 0;
 static std::vector<std::string> KNOWN_IPS;
 static std::ofstream output_file(FILE_NAME, std::fstream::out);
 
-// height -> how many connections have that height
+// height->how many connections have that height
 static std::map<std::string, uint32_t> hashes;
 static std::map<std::string, uint32_t> heights;
 static std::vector<node*> nodes;
@@ -183,7 +183,7 @@ void crash_handler(int sig) {
 }
 
 // ARGS:
-// is_localhost -> 1 number_nodes my_min_port my_max_port
+// is_localhost->1 number_nodes my_min_port my_max_port
 // not_localhost-> 0 number_nodes my_ip [other_ips]
 
 int main(int argc, const char * argv[]) {
