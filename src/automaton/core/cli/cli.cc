@@ -24,14 +24,6 @@ Replxx::completions_t hook_completion(std::string const& context, int index, voi
 // NOLINTNEXTLINE
 Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& c, void* data) {
   Replxx::hints_t hints;
-  if (context.size() > 0) {
-    std::stringstream str;
-    str << "\n";
-    for (auto i = 0; i < 8; i++) {
-      str << "\n    Hint line " << i;
-    }
-    hints.push_back(str.str());
-  }
   return hints;
 }
 
@@ -65,6 +57,10 @@ char const* cli::input(const char * prompt) {
   } while ((cinput == nullptr) && (errno == EAGAIN));
 
   return cinput;
+}
+
+void cli::history_add(const char * cmd) {
+  rx.history_add(cmd);
 }
 
 }  // namespace cli

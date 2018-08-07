@@ -146,7 +146,7 @@ void lua_script_engine::bind_data() {
       m.to_json(&json);
       return json;
     }
-  );
+  );  // NOLINT
 }
 
 }  // namespace lua

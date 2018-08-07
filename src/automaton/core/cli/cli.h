@@ -15,6 +15,7 @@ class cli {
   cli();
 
   char const* input(const char * prompt);
+  void history_add(const char * cmd);
 
  private:
   replxx::Replxx rx;
