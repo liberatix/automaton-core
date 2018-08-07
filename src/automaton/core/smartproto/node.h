@@ -22,6 +22,7 @@ namespace smartproto {
 struct peer_info {
   peer_id id;
   std::string address;
+  core::network::connection::state status;
 
   peer_info();
 };
@@ -32,19 +33,17 @@ class node: public core::network::connection::connection_handler,
   node(std::unique_ptr<data::schema> schema,
        const std::string& lua_script);
 
-  bool is_peer_connected(peer_id id);
-
   peer_info get_peer_info(peer_id id);
 
-  void send_message(core::data::msg* message, peer_id id);
+  void send_message(peer_id id, const core::data::msg& message);
 
   bool connect(peer_id id);
 
   bool disconnect(peer_id id);
 
-  bool set_acceptor(const std::string& address);
+  bool set_acceptor(const char* address);
 
-  peer_id add_peer(const std::string& address);
+  peer_id add_peer(const char* address);
 
   void remove_peer(peer_id id);
 
