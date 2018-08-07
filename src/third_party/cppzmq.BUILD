@@ -16,6 +16,12 @@ cc_library (
     "**/*.hpp",
   ]),
   includes = ["."],
+  linkopts = select({
+    "//conditions:linux": [
+      "-lpthread",
+    ],
+    "//conditions:default": [],
+  }),
   deps = [
     "@libzmq//:libzmq",
   ],
