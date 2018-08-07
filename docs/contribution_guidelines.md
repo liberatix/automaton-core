@@ -19,6 +19,18 @@ Few simple rules when making commits:
 
 https://gist.github.com/hofmannsven/6814451
 
+### Always use squash and merge
+
+When you do squash and merge, your repo will hang onto the commits that have already been squashed and merged into the master.
+
+Whenever you want to reset a branch to the head of the master you can do the following:
+
+**WARNING! THIS WILL WIPE ALL LOCAL CHANGES IN YOUR BRANCH!**
+
+```
+git fetch origin master && git reset --hard origin/HEAD && git push --force
+```
+
 ## Lint
 
 Check your code using the following lint command:
