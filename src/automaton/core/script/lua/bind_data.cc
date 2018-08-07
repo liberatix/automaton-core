@@ -13,17 +13,7 @@ namespace script {
 namespace lua {
 
 void lua_script_engine::bind_data() {
-  auto& factory = automaton::core::script::registry::instance().get_factory();
-
-  for (auto id = 0; id < factory.get_schemas_number(); id++) {
-    auto name = factory.get_schema_name(id);
-
-    lua.set(name, [&factory, id]() {
-      return factory.new_message_by_id(id);
-    });
-  }
-
-  auto msg_type = lua.new_simple_usertype<msg>("msg");
+  auto msg_type = lua.create_simple_usertype<msg>();
 
   msg_type.set(sol::meta_function::index,
     [](sol::this_state L, msg& m, std::string key) -> sol::object {
@@ -147,6 +137,8 @@ void lua_script_engine::bind_data() {
       m.to_json(&json);
       return json;
     });
+
+  lua.set_usertype("msg", msg_type);
 }
 
 }  // namespace lua

@@ -2,6 +2,7 @@
 
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 
+using automaton::core::data::msg;
 using automaton::core::data::protobuf::protobuf_factory;
 
 using std::make_unique;
@@ -17,8 +18,26 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
   msg_factory->import_schema(schema.get(), "", "");
   script_engine.bind_core();
   auto& lua = script_engine.get_sol();
+
+  // Bind schema messages.
+  for (auto id = 0; id < msg_factory->get_schemas_number(); id++) {
+    auto name = msg_factory->get_schema_name(id);
+    LOG(DEBUG) << "Binding message " << name;
+
+    lua.set(name, [this, name, id]() -> std::unique_ptr<msg> {
+      return this->msg_factory->new_message_by_id(id);
+    });
+  }
+
+  // Bind this node to its own Lua state.
+  lua["send"] = [this](peer_id peer, const core::data::msg& msg) {
+    this->send_message(peer, msg);
+  };
+
   sol::protected_function_result pfr =
       lua.safe_script(lua_script, &sol::script_pass_on_error);
+  std::string output = pfr;
+  std::cout << output << std::endl;
 }
 
 peer_info::peer_info() {}
