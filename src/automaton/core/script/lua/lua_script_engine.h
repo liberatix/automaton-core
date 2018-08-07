@@ -53,6 +53,7 @@ class lua_script_engine {
   common::status execute(std::string script);
 
   auto get_lua_state() { return L; }
+  auto& get_sol() { return lua; }
 
  private:
   void bind_static_function(module* m,
