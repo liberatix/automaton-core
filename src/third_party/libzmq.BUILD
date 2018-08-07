@@ -14,6 +14,12 @@ cc_library (
     "include/**/*.hpp",
   ]),
   includes = ["include"],
+  linkopts = select({
+    "//conditions:linux": [
+      "-lpthread",
+    ],
+    "//conditions:default": [],
+  }),
   deps = [
   ],
   linkstatic = True,
