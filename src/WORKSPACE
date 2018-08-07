@@ -112,17 +112,19 @@ new_local_repository(
 
 # REMOTE REPOSITORIES
 
-# BOOST
-# local_repository(
-#   name = "com_github_nelhage_rules_boost",
-#   path = "third_party/com_github_nelhage_rules_boost",
-# )
 
-git_repository(
+# BOOST
+local_repository(
   name = "com_github_nelhage_rules_boost",
-  commit = "4dd04bb69f3a66fa99710b96d156468b7e337f1f",
-  remote = "https://github.com/nelhage/rules_boost",
+  path = "third_party/com_github_nelhage_rules_boost",
 )
+
+#git_repository(
+#  name = "com_github_nelhage_rules_boost",
+#  # commit = "4dd04bb69f3a66fa99710b96d156468b7e337f1f",
+#  commit = "88b750b352860ed7d277bba1ecc97ffc30788bf3",
+#  remote = "https://github.com/nelhage/rules_boost",
+#)
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
