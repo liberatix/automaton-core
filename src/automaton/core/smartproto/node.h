@@ -25,7 +25,8 @@ struct peer_info {
   peer_info();
 };
 
-class node: public acceptor, public connection {
+class node: public core::network::connection::connection_handler,
+    public core::network::acceptor::acceptor_handler {
  public:
   node(std::unique_ptr<data::schema> schema,
        const std::string& lua_script);
@@ -34,7 +35,7 @@ class node: public acceptor, public connection {
 
   peer_info get_peer_info(peer_id id);
 
-  send_message(message* msg, peer_id id);
+  void send_message(core::data::msg* message, peer_id id);
 
   bool connect(peer_id id);
 
@@ -52,14 +53,12 @@ class node: public acceptor, public connection {
 
  private:
   script::lua::lua_script_engine script_engine;
-  std::vector<peer> connected_peers;
-  std::vector<peer_info> known_peers;
   std::unique_ptr<data::factory> msg_factory;
   std::unique_ptr<data::schema> schema;
-  acceptor* acceptor_;
+  core::network::acceptor* acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
-  std::unordered_map<peer_id, connection*> connected_peers;
+  std::unordered_map<peer_id, core::network::connection*> connected_peers;
 
   // Inherited handlers' functions
 
