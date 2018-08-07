@@ -23,8 +23,7 @@ void lua_script_engine::bind_data() {
     });
   }
 
-  /*
-  lua.new_usertype<msg>("msg",
+  lua.new_simple_usertype<msg>("msg",
     sol::meta_function::index,
     [](sol::this_state L, msg& m, std::string key) -> sol::object {
       auto schema_id = m.get_schema_id();
@@ -82,7 +81,7 @@ void lua_script_engine::bind_data() {
           m.set_uint64(tag_id, blob);
           break;
         }
-        * /
+        */
         case schema::blob: {
           auto blob = value.as<const char *>();
           m.set_blob(tag_id, blob);
@@ -148,7 +147,6 @@ void lua_script_engine::bind_data() {
       return json;
     }
   );  // NOLINT
-*/
 }
 
 }  // namespace lua
