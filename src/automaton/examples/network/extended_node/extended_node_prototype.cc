@@ -23,7 +23,7 @@ using automaton::core::data::msg;
 using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_msg;
 using automaton::core::data::protobuf::protobuf_schema;
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;
@@ -727,10 +727,10 @@ std::string node::hash_block(const block& block_) const {
   uint8_t hash[HASH_SIZE];
   core::crypto::hash_transformation* hasher = new SHA256_cryptopp;
   hasher->restart();
-  hasher->update(reinterpret_cast<const uint8_t*>(block_.prev_hash.c_str()), HASH_SIZE);
+  hasher->update(reinterpret_cast<const uint8_t*>(block_.prev_hash.data()), HASH_SIZE);
   hasher->update(reinterpret_cast<const uint8_t*>(&block_.height), 4);
-  hasher->update(reinterpret_cast<const uint8_t*>(block_.miner.c_str()), block_.miner.size());
-  hasher->update(reinterpret_cast<const uint8_t*>(block_.nonce.c_str()), HASH_SIZE);
+  hasher->update(reinterpret_cast<const uint8_t*>(block_.miner.data()), block_.miner.size());
+  hasher->update(reinterpret_cast<const uint8_t*>(block_.nonce.data()), HASH_SIZE);
   hasher->final(hash);
   // delete hasher
   return std::string(hash, hash + HASH_SIZE);
@@ -856,9 +856,9 @@ void node::mine(uint32_t number_tries, uint32_t required_leading_zeros) {
     increase_nonce();
     std::memset(next_block_hash, 255, HASH_SIZE);
     hasher->restart();
-    hasher->update(reinterpret_cast<const uint8_t*>(previous_hash.c_str()), HASH_SIZE);
+    hasher->update(reinterpret_cast<const uint8_t*>(previous_hash.data()), HASH_SIZE);
     hasher->update(reinterpret_cast<const uint8_t*>(&current_height), 4);
-    hasher->update(reinterpret_cast<const uint8_t*>(id_.c_str()), id_.size());
+    hasher->update(reinterpret_cast<const uint8_t*>(id_.data()), id_.size());
     hasher->update(nonce, HASH_SIZE);
     hasher->final(next_block_hash);
     // LOG(DEBUG) << id_ << " mining loop: " << i << " FOUND " <<

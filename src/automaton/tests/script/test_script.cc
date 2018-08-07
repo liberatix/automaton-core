@@ -94,7 +94,7 @@ TEST_F(test_script, module_registration) {
 
     hash_obj.get()->process(*request_m_obj, response_m_obj.get());
     std::string response_digest = response_m->get_blob(1);
-    auto hex = toHex(reinterpret_cast<const uint8_t*>(response_digest.c_str()),
+    auto hex = toHex(reinterpret_cast<const uint8_t*>(response_digest.data()),
                      response_digest.size());
     EXPECT_EQ(hex, test[2]);
 
@@ -117,7 +117,7 @@ TEST_F(test_script, module_registration) {
     response_m = dynamic_cast<data::msg*>(response_m_obj.get());
     hash_obj.get()->process(*request_m_obj, response_m_obj.get());
     response_digest = response_m->get_blob(1);
-    hex = toHex(reinterpret_cast<const uint8_t*>(response_digest.c_str()),
+    hex = toHex(reinterpret_cast<const uint8_t*>(response_digest.data()),
                 response_digest.size());
     EXPECT_EQ(hex, test[2]);
   }

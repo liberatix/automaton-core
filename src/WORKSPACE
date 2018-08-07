@@ -1,6 +1,12 @@
 # LOCALLY BUILD THIRD PARTY LIBRARIES
 
 new_local_repository(
+  name = "replxx",
+  path = "local_third_party/replxx",
+  build_file = "third_party/replxx.BUILD",
+)
+
+new_local_repository(
   name = "libzmq",
   path = "local_third_party/libzmq",
   build_file = "third_party/libzmq.BUILD",
@@ -85,11 +91,11 @@ new_local_repository(
   build_file = "third_party/di.BUILD",
 )
 
-# new_local_repository(
-#   name = "nlohmann_json",
-#   path = "third_party/json-3.1.2",
-#   build_file = "json.BUILD",
-# )
+new_local_repository(
+  name = "json",
+  path = "third_party/json-3.1.2",
+  build_file = "third_party/json.BUILD",
+)
 
 # Local Bazel ready builds
 
@@ -113,16 +119,16 @@ new_local_repository(
 # REMOTE REPOSITORIES
 
 # BOOST
-local_repository(
-  name = "com_github_nelhage_rules_boost",
-  path = "third_party/com_github_nelhage_rules_boost",
-)
+# local_repository(
+#   name = "com_github_nelhage_rules_boost",
+#   path = "third_party/com_github_nelhage_rules_boost",
+# )
 
-#git_repository(
-#  name = "com_github_nelhage_rules_boost",
-#  commit = "69e96e724cbe746f63d993fa8f6bf772e1ebc5cc",
-#  remote = "https://github.com/nelhage/rules_boost",
-#)
+git_repository(
+  name = "com_github_nelhage_rules_boost",
+  commit = "4dd04bb69f3a66fa99710b96d156468b7e337f1f",
+  remote = "https://github.com/nelhage/rules_boost",
+)
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()

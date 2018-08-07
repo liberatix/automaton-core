@@ -13,7 +13,7 @@
 #include "automaton/examples/network/extended_node/extended_node_prototype.h"
 
 using automaton::core::crypto::hash_transformation;
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::examples::node;

@@ -6,6 +6,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 RIPEMD160_cryptopp::RIPEMD160_cryptopp() {
   hash = new CryptoPP::RIPEMD160;
@@ -34,6 +35,7 @@ uint32_t RIPEMD160_cryptopp::digest_size() const {
   return _digest_size;
 }
 
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

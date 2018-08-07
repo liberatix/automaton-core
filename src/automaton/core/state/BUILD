@@ -35,7 +35,7 @@ cc_library(
   ],
   deps = [
     "//automaton/core/crypto",
-    "//automaton/core/storage:blobstore",
+    "//automaton/core/storage:persistent_blobstore",
     "//automaton/core/log",
   ],
   linkstatic=True,

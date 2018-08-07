@@ -9,7 +9,7 @@
 #include "automaton/examples/crypto/basic_hash_miner.h"
 
 using automaton::core::crypto::hash_transformation;
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::examples::basic_hash_miner;
 
 const char DEMO_HASH[] = "some block hash";

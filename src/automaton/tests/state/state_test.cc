@@ -6,7 +6,7 @@
 #include "automaton/core/state/state_impl.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::state::state_impl;
 
@@ -76,7 +76,7 @@ std::string hash_key(int i) {
   uint8_t digest32[32];
   hash_transformation* hasher = new SHA256_cryptopp();
   std::string data = std::to_string(i);
-  hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
+  hasher->calculate_digest((const uint8_t*) data.data(), data.length(),
       digest32);
   return std::string(reinterpret_cast<char*>(digest32), 16 + i % 16);
 }

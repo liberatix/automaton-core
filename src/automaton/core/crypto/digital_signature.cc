@@ -20,8 +20,8 @@ common::status digital_signature::process(const obj& request, obj* response) {
     uint8_t * signature = new uint8_t[signature_size()];
     if (response != nullptr) {
       msg* response_msg = dynamic_cast<msg*>(response);
-      sign(reinterpret_cast<const uint8_t*>(private_key.c_str()),
-           reinterpret_cast<const uint8_t*>(message.c_str()),
+      sign(reinterpret_cast<const uint8_t*>(private_key.data()),
+           reinterpret_cast<const uint8_t*>(message.data()),
            message.size(),
            signature);
       response_msg->set_blob(1, std::string(reinterpret_cast<char*>(signature), signature_size()));

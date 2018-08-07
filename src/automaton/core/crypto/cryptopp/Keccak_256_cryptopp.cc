@@ -6,6 +6,7 @@
 namespace automaton {
 namespace core {
 namespace crypto {
+namespace cryptopp {
 
 Keccak_256_cryptopp::Keccak_256_cryptopp() {
   hash = new CryptoPP::Keccak_256;
@@ -34,6 +35,7 @@ uint32_t Keccak_256_cryptopp::digest_size() const {
   return _digest_size;
 }
 
+}  // namespace cryptopp
 }  // namespace crypto
 }  // namespace core
 }  // namespace automaton

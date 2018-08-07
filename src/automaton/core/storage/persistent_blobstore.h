@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_STORAGE_PERSISTENT_BLOBSTORE_H__
 
 #include <string>
+#include "automaton/core/storage/blobstore.h"
 #include <boost/iostreams/device/mapped_file.hpp>
 
 namespace automaton {
@@ -11,9 +12,8 @@ namespace storage {
 /**
   persistent_blobstore interface.
   Can store and delete arbitrary length data in a memory mapped file.
-  There are no protections. The pointer points to the internal memory.
 */
-class persistent_blobstore {
+class persistent_blobstore : public blobstore{
  public:
   persistent_blobstore();
   ~persistent_blobstore();
@@ -52,6 +52,10 @@ class persistent_blobstore {
  private:
   uint32_t* storage;
   boost::iostreams::mapped_file mmf;
+  bool is_mapped = false;
+  size_t header_size;
+  uint64_t cur_version = 10000;
+  uint64_t header_version;
 
   std::string file_path;
   uint64_t next_free = 0;
@@ -63,6 +67,9 @@ class persistent_blobstore {
   //  if next.location.ID == this.location.ID + length:
   //    this.location.length += next.location.length
   //  while
+
+  void close_mapped_file();
+  void open_mapped_file();
 
   /**
   Creates a blob with a given size

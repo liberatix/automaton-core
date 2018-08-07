@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-message bin2hex {
+message hex {
   message request {
     bytes input = 1;
   }

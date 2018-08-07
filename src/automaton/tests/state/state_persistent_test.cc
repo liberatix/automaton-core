@@ -5,10 +5,10 @@
 #include "gtest/gtest.h"
 #include "automaton/core/state/state_persistent.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
-#include "automaton/core/storage/blobstore.h"
+#include "automaton/core/storage/persistent_blobstore.h"
 #include "automaton/core/log/log.h"
 
-using automaton::core::crypto::SHA256_cryptopp;
+using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::state::state_persistent;
 using automaton::core::storage::blobstore;
@@ -84,7 +84,7 @@ std::string hash_key(int i) {
   uint8_t digest32[32];
   hash_transformation* hasher = new SHA256_cryptopp();
   std::string data = std::to_string(i);
-  hasher->calculate_digest((const uint8_t*) data.c_str(), data.length(),
+  hasher->calculate_digest((const uint8_t*) data.data(), data.length(),
       digest32);
   return std::string(reinterpret_cast<char*>(digest32), 16 + i % 16);
 }
@@ -92,7 +92,7 @@ std::string hash_key(int i) {
 TEST(state_persistent, node_hash_add_erase) {
   std::stack<std::string> root_hashes;
   std::stack<std::string> keys;
-  int32_t key_count = 100000;
+  int32_t key_count = 1000;
 
 
   hash_transformation* hasher = new SHA256_cryptopp();

@@ -24,7 +24,7 @@ TEST(persistent_blobstore, create_mapped_file) {
     persistent_blobstore bs1;
     bs1.map_file("mapped_file.txt");
     for (int i = 0; i < data.size(); i++) {
-      ids.push_back(bs1.store(data[i].size(), reinterpret_cast<const uint8_t*>(data[i].c_str())));
+      ids.push_back(bs1.store(data[i].size(), reinterpret_cast<const uint8_t*>(data[i].data())));
     }
   }
   uint32_t sz;
