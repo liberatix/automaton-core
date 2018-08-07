@@ -28,8 +28,7 @@ Whenever you want to reset a branch to the head of the master you can do the fol
 **WARNING! THIS WILL WIPE ALL LOCAL CHANGES IN YOUR BRANCH!**
 
 ```
-git reset --hard origin/HEAD
-git push --force
+git reset --hard origin/HEAD && git push --force
 ```
 
 ## Lint
