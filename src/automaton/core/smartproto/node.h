@@ -30,8 +30,7 @@ struct peer_info {
 class node: public core::network::connection::connection_handler,
     public core::network::acceptor::acceptor_handler {
  public:
-  node(std::unique_ptr<data::schema> schema,
-       const std::string& lua_script);
+  node(std::unique_ptr<data::schema> schema, const std::string& lua_script);
 
   peer_info get_peer_info(peer_id id);
 
