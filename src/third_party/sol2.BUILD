@@ -3,7 +3,7 @@ package(default_visibility = ["//visibility:public"])
 genrule(
   name = "empty_cc",
   outs = ["empty.cc"],
-  cmd = "echo '' > $@",
+  cmd = "echo '#include <sol.hpp>' > $@",
 )
 
 cc_library(
@@ -13,4 +13,6 @@ cc_library(
   ],
   hdrs = ["sol.hpp"],
   includes = ["."],
+  #deps = ["@luajit//:luajit",],
+  deps = ["@lua//:liblua"]
 )
