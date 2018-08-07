@@ -103,6 +103,7 @@ Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& 
   return hints;
 }
 
+// NOLINTNEXTLINE
 void hook_color(std::string const& context, Replxx::colors_t& colors, void* user_data) {
   auto* regex_color = static_cast<std::vector<std::pair<std::string, Replxx::Color>>*>(user_data);
 
@@ -112,7 +113,7 @@ void hook_color(std::string const& context, Replxx::colors_t& colors, void* user
     std::string str = context;
     std::smatch match;
 
-    while(std::regex_search(str, match, std::regex(e.first))) {
+    while (std::regex_search(str, match, std::regex(e.first))) {
       std::string c {match[0]};
       pos += std::string(match.prefix()).size();
 
@@ -177,8 +178,7 @@ int main() {
   factory.import_schema(proto_schema, "", "");
 
   lua_script_engine engine;
-
-  sol::state_view lua(engine.get_lua_state());
+  sol::state_view& lua = engine.get_sol();
 
   auto add_req_id = factory.get_schema_id("AddRequest");
   auto add_rep_id = factory.get_schema_id("AddResponse");
@@ -412,15 +412,9 @@ int main() {
     "   @197m▀ ▀ ▀ @39m▀▀▀▀▀ @11m▀ ▀ ▀ @129m▀▀▀▀▀ @47m▀ ▀ ▀ @9m▀ ▀ ▀ @27m▀ ▀ ▀ @154m▀▀▀▀▀ @13m▀ ▀▀▀  @15mv0.0.1   " // NOLINT
     "\x1b[0m\n\x1b[40m\x1b[1m"
     "                                                                   "
-    "\x1b[0m\n\n"
-    "  @7mThese are common Automaton commands used in various situations:\n"
-    "\n"
-    "     \x1b[1m@15m.modules    \x1b[0m@7mShow list of registered modules\n"
-    "     \x1b[1m@15m.protos     \x1b[0m@7mShow list of registered smart protocol definitions\n"
-    "     \x1b[1m@15m.nodes      \x1b[0m@7mShow list of node instances running on this client\n"
-    "     \x1b[1m@15m.launch     \x1b[0m@7mLaunch a smart protocol node instance from a definiition\n"
-    "     \x1b[1m@15m.use        \x1b[0m@7mSet the current smart protocol node\n"
-    "     \x1b[1m@15m.msg        \x1b[0m@7mConstruct and send a message to the current smart protocol\n\n";
+    "\x1b[0m\n\n";
+
+  string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
 /*
   #FF0055 - 197
@@ -433,9 +427,6 @@ int main() {
   #AAFF00 - 154
   #FF00FF - 13, 201
 */
-
-
-  string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
   // display initial welcome message
   std::cout
