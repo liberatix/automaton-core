@@ -1,4 +1,4 @@
-ITERATIONS = 10000
+ITERATIONS = 20000
 
 function benchmark_msg()
   t = os.clock()
@@ -45,6 +45,15 @@ function benchmark_msg2()
   t = os.clock()
   for i = 1,ITERATIONS do s = b.hash end
   print(string.format("s = b.hash [%.3f M/s]", ITERATIONS / t / 1000000))
+
+  t = os.clock()
+  bh = BlockHeader()
+  bh.hash = "test"
+  for i = 1,ITERATIONS do
+    b=Blocks()
+    b.set_repeated_msg(1, bh, -1)
+  end
+  print(string.format("b=Blocks() [%.3f M/s]", ITERATIONS / t / 1000000))
 
   b = nil
   collectgarbage()
