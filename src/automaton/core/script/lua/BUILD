@@ -7,8 +7,10 @@ cc_library(
   srcs = glob(["**/*.cc"]),
   hdrs = glob(["**/*.h"]),
   deps = [
-    "@luajit//:luajit",
-    # "@lua//:liblua",
+    select({
+      "//conditions:osx": "@luajit//:luajit",
+      "//conditions:default": "@lua//:liblua",
+    }),
     "@sol//:sol",
     "//automaton/core/crypto",
     "//automaton/core/crypto/cryptopp",
