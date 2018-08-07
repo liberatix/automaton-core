@@ -59,7 +59,24 @@ tcp_connection::tcp_connection(const std::string& addr, const boost::asio::ip::t
 }
 
 tcp_connection::~tcp_connection() {
-  disconnect();
+  // LOG(DEBUG) << "Connection destructor";
+  connection_mutex.lock();
+  set_state(connection::state::disconnected);
+  if (asio_socket.is_open()) {
+    boost::system::error_code boost_error_code_shut;
+    asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
+    if (boost_error_code_shut) {
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
+    }
+    boost::system::error_code boost_error_code_close;
+    asio_socket.close(boost_error_code_close);
+    if (boost_error_code_close) {
+      // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+    }
+    connection_mutex.unlock();
+  } else {
+    connection_mutex.unlock();
+  }
   boost::system::error_code boost_error_code;
   asio_socket.release(boost_error_code);
   if (boost_error_code) {
