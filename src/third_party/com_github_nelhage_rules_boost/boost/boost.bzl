@@ -77,7 +77,7 @@ def boost_deps():
         build_file = "@com_github_nelhage_rules_boost//:BUILD.zlib",
         sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
         strip_prefix = "zlib-1.2.11",
-        url = "https://zlib.net/zlib-1.2.11.tar.gz",
+        url = "http://zlib.net/zlib-1.2.11.tar.gz",
     )
 
   if "org_bzip_bzip2" not in native.existing_rules():
@@ -96,24 +96,24 @@ def boost_deps():
         sha256 = "71928b357d0a09a12a4b4c5fafca8c31c19b0e7d3b8ebb19622e96f26dbf28cb",
         strip_prefix = "xz-5.2.3",
         urls = [
-          "https://phoenixnap.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://newcontinuum.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://phoenixnap.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://newcontinuum.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
           "http://cfhcable.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://superb-sea2.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://cytranet.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://iweb.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://gigenet.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://ayera.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://astuteinternet.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://pilotfiber.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
-          "https://svwh.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://superb-sea2.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://cytranet.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://iweb.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://gigenet.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://ayera.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://astuteinternet.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://pilotfiber.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+          "http://svwh.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
         ]
     )
 
   if "boost" not in native.existing_rules():
     native.new_http_archive(
       name = "boost",
-      url = "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz",
+      url = "http://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz",
       build_file = "@com_github_nelhage_rules_boost//:BUILD.boost",
       strip_prefix = "boost_1_67_0",
       sha256 = "8aa4e330c870ef50a896634c931adf468b21f8a69b77007e45c444151229f665",
