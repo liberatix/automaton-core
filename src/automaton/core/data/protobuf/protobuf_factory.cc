@@ -4,7 +4,7 @@
 
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/data/protobuf/protobuf_msg.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 using std::string;
 

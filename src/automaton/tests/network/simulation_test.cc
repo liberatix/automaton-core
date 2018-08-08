@@ -2,7 +2,7 @@
 #include <mutex>
 #include <string>
 #include <sstream>
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 #include "automaton/core/network/simulated_connection.h"
 
 using automaton::core::network::acceptor;

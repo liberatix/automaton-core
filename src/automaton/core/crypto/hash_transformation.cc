@@ -3,7 +3,7 @@
 #include <string>
 
 #include "automaton/core/data/msg.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 using automaton::core::data::msg;
 

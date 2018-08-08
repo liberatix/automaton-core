@@ -3,7 +3,7 @@
 #include <thread>
 
 #include "automaton/core/network/tcp_implementation.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;

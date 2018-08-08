@@ -8,7 +8,7 @@
 #include <set>
 #include <utility>
 #include "automaton/core/crypto/hash_transformation.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 namespace automaton {
 namespace core {

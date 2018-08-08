@@ -24,7 +24,7 @@ cc_library(
   deps = [
     "@boost//:asio",
     ":network",
-    "//automaton/core/log",
+    "//automaton/core/io",
   ],
   linkstatic=True,
   defines = select({
@@ -42,7 +42,7 @@ cc_library(
   ],
   deps = [
     ":network",
-    "//automaton/core/log",
+    "//automaton/core/io",
   ],
   linkstatic=True,
 )

@@ -9,7 +9,6 @@
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/network/tcp_implementation.h"
-#include "automaton/core/log/log.h"
 #include "automaton/examples/network/extended_node/extended_node_prototype.h"
 
 using automaton::core::crypto::hash_transformation;

@@ -16,7 +16,6 @@ cc_library(
       "//automaton/core/crypto/cryptopp",
       "//automaton/core/data/protobuf",
       "//automaton/core/io",
-      "//automaton/core/log",
       "//automaton/core/state:state",
       "//automaton/core/network:network",
       "//automaton/examples/crypto:basic_hash_miner",
@@ -28,7 +27,6 @@ cc_library(
 # 	srcs = ["simulation_test_final.cc",],
 # 	deps = [
 #     "//automaton/core/io",
-#     "//automaton/core/log",
 #     "//automaton/core/network:simulated_connection",
 #     "//automaton/examples/network/extended_node:extended_node_prototype",
 #   ],
@@ -39,7 +37,6 @@ cc_library(
 # 	srcs = ["simulation_test_localhost.cc",],
 # 	deps = [
 #     "//automaton/core/io",
-#     "//automaton/core/log",
 #     "//automaton/core/network:network_tcp",
 #     "//automaton/examples/network/extended_node:extended_node_prototype",
 #   ],
@@ -50,7 +47,6 @@ cc_binary (
 	srcs = ["simulation_test_localhost_cmd.cc",],
 	deps = [
     "//automaton/core/io",
-    "//automaton/core/log",
     "//automaton/core/network:network_tcp",
     "//automaton/examples/network/extended_node:extended_node_prototype",
   ],
