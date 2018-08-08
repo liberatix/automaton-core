@@ -19,14 +19,3 @@ cc_binary(
     "@json//:json",
   ],
 )
-
-
-cc_binary(
-  name = "repl",
-  srcs = [
-    "cxx-api.cxx",
-  ],
-  deps = [
-    "@replxx//:replxx"
-  ],
-)
