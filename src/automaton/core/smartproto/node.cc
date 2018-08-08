@@ -20,7 +20,7 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
   script_engine.bind_core();
 
   // Bind schema messages.
-  for (auto id = 0; id < msg_factory->get_schemas_number(); id++) {
+  for (uint32_t id = 0; id < msg_factory->get_schemas_number(); id++) {
     auto name = msg_factory->get_schema_name(id);
     LOG(DEBUG) << "Binding proto message " << name;
 
@@ -43,35 +43,140 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
 peer_info::peer_info() {}
 
 peer_info node::get_peer_info(peer_id id) {
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  auto it = known_peers.find(id);
+  if (it != known_peers.end()) {
+    return it->second;
+  }
   return peer_info();
+}
+
+bool node::set_peer_info(peer_id id, const peer_info& info) {
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  auto it = known_peers.find(id);
+  if (it != known_peers.end()) {
+    it->second = info;
+    return true;
+  }
+  return false;
 }
 
 void node::send_message(peer_id id, const core::data::msg& message) {}
 
 bool node::connect(peer_id id) {
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  if (connected_peers.find(id) != connected_peers.end()) {
+    return false;
+  }
+  auto it = known_peers.find(id);
+  if (it != known_peers.end() &&
+      it->second.status == core::network::connection::state::disconnected) {
+    core::network::connection* new_connection = nullptr;
+    try {
+      // parse address
+      new_connection = core::network::connection::create("tcp", it->second.address, this);
+      if (new_connection && !new_connection->init()) {
+        // LOG(DEBUG) << "Connection initialization failed! Connection was not created!";
+        delete new_connection;
+        return false;
+      }
+    } catch (std::exception& e) {
+      // LOG(ERROR) << e.what();
+      if (new_connection) {
+        delete new_connection;
+      }
+      return false;
+    }
+    if (!new_connection) {
+      return false;
+    }
+    new_connection->connect();
+    return true;
+  }
   return false;
 }
 
 bool node::disconnect(peer_id id) {
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  auto it = connected_peers.find(id);
+  if (it != connected_peers.end()) {
+    it->second->disconnect();
+    return true;
+  }
   return false;
 }
 
 bool node::set_acceptor(const char* address) {
-  return false;
+  if (acceptor_) {
+    delete acceptor_;
+  }
+  core::network::acceptor* new_acceptor;
+  try {
+    // parse address
+    new_acceptor = core::network::acceptor::create("tcp", std::string(address), this, this);
+    if (new_acceptor && !new_acceptor->init()) {
+      // LOG(DEBUG) << "Acceptor initialization failed! Acceptor was not created!" << address;
+      delete new_acceptor;
+      return false;
+    }
+  } catch (std::exception& e) {
+    // LOG(ERROR) << "Adding acceptor failed! " << address << " Error: " << e.what();
+    if (new_acceptor) {
+      delete new_acceptor;
+    }
+    return false;
+  }
+  if (!new_acceptor) {
+    // LOG(ERROR) << "Acceptor was not created!";
+    return false;
+  }
+  acceptor_ = new_acceptor;
+  new_acceptor->start_accepting();
+  return true;
 }
 
 peer_id node::add_peer(const char* address) {
-  return 0;
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  auto id = get_next_peer_id();
+  // known_peers[id] = peer_info();
+  known_peers[id].address = address;
+  return id;
 }
 
-void node::remove_peer(peer_id id) {}
+void node::remove_peer(peer_id id) {
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  auto it1 = known_peers.find(id);
+  if (it1 != known_peers.end()) {
+    known_peers.erase(it1);
+  }
+  auto it2 = connected_peers.find(id);
+  if (it2 != connected_peers.end()) {
+    it2->second->disconnect();
+    connected_peers.erase(it2);
+  }
+}
 
 std::vector<peer_id> node::list_known_peers() {
-  return std::vector<peer_id> ();
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  std::vector<peer_id> res;
+  for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
+    res.push_back(it->first);
+  }
+  return res;
 }
 
 std::vector<peer_id> node::list_connected_peers() {
-  return std::vector<peer_id> ();
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  std::vector<peer_id> res;
+  for (auto it = connected_peers.begin(); it != connected_peers.end(); ++it) {
+    res.push_back(it->first);
+  }
+  return res;
+}
+
+uint32_t node::get_next_peer_id() {
+  std::lock_guard<std::mutex> lock(peer_ids_mutex);
+  return ++next_peer_id;
 }
 
 void node::on_message_received(core::network::connection* c, char* buffer,
