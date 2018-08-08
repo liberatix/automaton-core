@@ -7,7 +7,6 @@ cc_library(
   srcs = glob(["**/*.cc"]),
   hdrs = glob(["**/*.h"]),
   deps = select({
-
       "//conditions:windows": ["@lua//:liblua"],
       "//conditions:default": ["@luajit//:luajit"],
     }) +

@@ -8,6 +8,7 @@
 .DS_Store
 
 # Ignore intermediate files.
+*.log
 *.[oa]
 *.so
 *.obj
