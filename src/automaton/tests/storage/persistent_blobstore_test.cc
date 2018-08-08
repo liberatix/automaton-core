@@ -3,7 +3,7 @@
 #include <random>
 #include <vector>
 #include <iostream>
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 #include "gtest/gtest.h"
 
 using automaton::core::storage::persistent_blobstore;

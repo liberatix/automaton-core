@@ -14,7 +14,7 @@ cc_library(
   ],
   deps = [
     "//automaton/core/data",
-    "//automaton/core/log",
+    "//automaton/core/io",
     "@com_google_protobuf//:protobuf",
   ],
   linkstatic=True,

@@ -8,7 +8,7 @@
 #include <sstream>
 #include <utility>
 
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 namespace automaton {
 namespace core {

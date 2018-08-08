@@ -5,7 +5,7 @@
 
 #include "automaton/core/network/tcp_implementation.h"
 #include "automaton/examples/network/node_prototype.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 namespace acn = automaton::core::network;
 

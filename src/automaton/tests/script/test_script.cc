@@ -5,9 +5,7 @@
 #include "automaton/core/crypto/ed25519_orlp/module.h"
 #include "automaton/core/data/module.h"
 #include "automaton/core/data/protobuf/module.h"
-#include "automaton/core/io/module.h"
 #include "automaton/core/network/module.h"
-#include "automaton/core/log/module.h"
 #include "automaton/core/script/registry.h"
 #include "automaton/core/state/module.h"
 #include "gtest/gtest.h"
@@ -60,8 +58,6 @@ TEST_F(test_script, module_registration) {
   // import core module interfaces.
   r.import<crypto::module>();
   r.import<data::module>();
-  r.import<io::module>();
-  r.import<log::module>();
   r.import<network::module>();
   r.import<state::module>();
 

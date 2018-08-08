@@ -15,7 +15,7 @@
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 #include "automaton/core/state/state_impl.h"
 
 
