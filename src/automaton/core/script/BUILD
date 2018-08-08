@@ -14,7 +14,7 @@ cc_library(
     "//automaton/core/common",
     "//automaton/core/data",
     "//automaton/core/data/protobuf",
-    "//automaton/core/log",
+    "//automaton/core/io",
     "@boost//:regex",
   ],
   linkstatic=True,

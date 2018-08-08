@@ -8,6 +8,6 @@ cc_binary(
     "demo_log.cc",
   ],
   deps = [
-    "//automaton/core/log",
+    "//automaton/core/io",
   ],
 )

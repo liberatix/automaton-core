@@ -15,7 +15,7 @@ cc_test(
     size = "small",
     deps = [
       "//automaton/core/storage:persistent_blobstore",
-      "//automaton/core/log",
+      "//automaton/core/io",
       "@gtest//:gtest_main",
     ],
     #linkstatic = True,

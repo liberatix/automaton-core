@@ -1,14 +1,22 @@
 #include "automaton/core/io/io.h"
 
+#include <sys/stat.h>
+
+#include <algorithm>
+#include <cerrno>
 #include <fstream>
 #include <string>
-#include <cerrno>
 
-#include "automaton/core/log/log.h"
+INITIALIZE_EASYLOGGINGPP
 
 namespace automaton {
 namespace core {
 namespace io {
+
+bool file_exists(const char* filename) {
+  struct stat buffer;
+  return (stat(filename, &buffer) == 0);
+}
 
 std::string get_file_contents(const char* filename) {
   std::ifstream in(filename, std::ios::in | std::ios::binary);
@@ -72,6 +80,36 @@ std::string hex2bin(const std::string& input) {
   return output;
 }
 
+// *** LOGGING ***
+
+
+const char* DEFAULT_LOG_CONFIG_FILENAME = "log.cfg";
+const char* DEFAILT_LOG_OUTPUT_FILENAME = "automaton-core.log";
+
+bool init_logger() {
+  // Load configuration from file
+  if (automaton::core::io::file_exists(DEFAULT_LOG_CONFIG_FILENAME)) {
+    el::Configurations conf(DEFAULT_LOG_CONFIG_FILENAME);
+  } else {
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format,
+        std::string("%datetime %levshort [%fbase:%line]: %msg"));
+
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "true");
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+    el::Loggers::reconfigureAllLoggers(
+        el::ConfigurationType::Filename, DEFAILT_LOG_OUTPUT_FILENAME);
+
+    el::Loggers::setLoggingLevel(el::Level::Global);
+    // el::Loggers::setVerboseLevel(9);
+  }
+
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+  el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
+
+  return true;
+}
+
+bool _init_logger = init_logger();
 
 }  // namespace io
 }  // namespace core
