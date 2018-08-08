@@ -14,7 +14,7 @@ cc_library(
       "-image_base 100000000",
     ],
     "//conditions:default": [
-    
+
     ],
   }),
 )
