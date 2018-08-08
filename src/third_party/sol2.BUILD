@@ -13,6 +13,8 @@ cc_library(
   ],
   hdrs = ["sol.hpp"],
   includes = ["."],
-  #deps = ["@luajit//:luajit",],
-  deps = ["@lua//:liblua"]
+  deps = select ({
+    "//conditions:windows": ["@lua//:liblua"],
+    "//conditions:default": ["@luajit//:luajit"],
+  }),
 )
