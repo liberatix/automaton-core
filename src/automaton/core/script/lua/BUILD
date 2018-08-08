@@ -7,8 +7,8 @@ cc_library(
   srcs = glob(["**/*.cc"]),
   hdrs = glob(["**/*.h"]),
   deps = select({
-      "//conditions:windows": ["@lua//:liblua"],
-      "//conditions:default": ["@luajit//:luajit"],
+      "//conditions:osx": ["@luajit//:luajit"],
+      "//conditions:default": ["@lua//:liblua"],
     }) +
     [
       "@sol//:sol",
@@ -19,4 +19,5 @@ cc_library(
       "//automaton/core/io",
       "//automaton/core/script",
     ],
+    linkstatic=True,
 )

@@ -3,8 +3,8 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
   name = "luajit",
   srcs = select({
-    "//conditions:windows": ["luajit.lib"],
-    "//conditions:default": ["libluajit.a"],
+    "//conditions:osx": ["libluajit.a"],
+    "//conditions:default": ["luajit.lib"],
   }),
   hdrs = glob(["*.h", "*.hpp"]),
   includes = ["."],

@@ -17,6 +17,7 @@ cc_library(
     "//automaton/core/io",
     "@boost//:regex",
   ],
+  linkstatic=True,
   defines = select({
       "//conditions:windows": ["BOOST_ALL_NO_LIB"],
       "//conditions:default": [],
