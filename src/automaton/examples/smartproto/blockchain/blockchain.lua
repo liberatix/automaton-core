@@ -2,11 +2,6 @@
 function init()
 end
 
-function onConnect(peer)
-  peer.state = 0
-  
-end
-
 function onBlockHeader(sender, msg)
   hash = msg.hash
   sender.blocks[msg.hash] = msg
@@ -28,17 +23,25 @@ end
 
 print("Loading Blockchain Smart Protocol...")
 
+ITERATIONS = 1000000
 blocks = {}
-ITERATIONS = 100000
+
+m = Block()
 t = os.clock()
 for i = 1, ITERATIONS do
-  m = Block()
-  m.miner = tostring(i)
-  blocks[#blocks + 1] = m:serialize()
+  m.miner = i
+--  blocks[#blocks + 1] = m:serialize()
 end
-print("GC")
-collectgarbage()
 t = os.clock() - t
-print(string.format("create/set/serialize [%.3f M/s]", ITERATIONS / t / 1000000))
+print(string.format("create/set_name/serialize [%.3f M/s]", ITERATIONS / t / 1000000))
 
+t = os.clock()
+for i = 1, ITERATIONS do
+  m:set_blob(1, i)
+--  blocks[#blocks + 1] = m:serialize()
+end
+t = os.clock() - t
+print(string.format("create/set_id/serialize [%.3f M/s]", ITERATIONS / t / 1000000))
+
+print(m.miner)
 print(#blocks)
