@@ -14,15 +14,15 @@ namespace core {
 namespace smartproto {
 
 node::node(unique_ptr<data::schema> schema, const string& lua_script)
-    : msg_factory(make_unique<protobuf_factory>()) {
+    : msg_factory(make_unique<protobuf_factory>())
+    , lua(script_engine.get_sol()) {
   msg_factory->import_schema(schema.get(), "", "");
   script_engine.bind_core();
-  auto& lua = script_engine.get_sol();
 
   // Bind schema messages.
   for (auto id = 0; id < msg_factory->get_schemas_number(); id++) {
     auto name = msg_factory->get_schema_name(id);
-    LOG(DEBUG) << "Binding message " << name;
+    LOG(DEBUG) << "Binding proto message " << name;
 
     lua.set(name, [this, name, id]() -> std::unique_ptr<msg> {
       return this->msg_factory->new_message_by_id(id);
@@ -80,14 +80,17 @@ void node::on_message_received(core::network::connection* c, char* buffer,
 void node::on_message_sent(core::network::connection* c, uint32_t id,
     core::network::connection::error e) {}
 
-void node::on_connected(core::network::connection* c) {}
+void node::on_connected(core::network::connection* c) {
+}
 
-void node::on_disconnected(core::network::connection* c) {}
+void node::on_disconnected(core::network::connection* c) {
+}
 
-void node::on_error(core::network::connection* c, core::network::connection::error e) {}
+void node::on_error(core::network::connection* c, core::network::connection::error e) {
+}
 
 bool node::on_requested(core::network::acceptor* a, const std::string& address) {
-  return false;
+  return true;
 }
 
 void node::on_connected(core::network::acceptor* a, core::network::connection* c,

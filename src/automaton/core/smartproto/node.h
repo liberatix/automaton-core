@@ -52,6 +52,7 @@ class node: public core::network::connection::connection_handler,
 
  private:
   script::lua::lua_script_engine script_engine;
+  sol::state_view lua;
   std::unique_ptr<data::factory> msg_factory;
   std::unique_ptr<data::schema> schema;
   core::network::acceptor* acceptor_;
@@ -79,6 +80,16 @@ class node: public core::network::connection::connection_handler,
       const std::string& address);
 
   void on_error(core::network::acceptor* a, core::network::connection::error e);
+
+  // Script handler functions.
+  void on_message_received(peer_id id, const core::data::msg& message) {}
+  void on_connected(peer_id id) {}
+  void on_disconnected(peer_id id) {}
+
+  // Cached script handler functions.
+  sol::function script_on_msg_received;
+  sol::function script_on_connected;
+  sol::function script_on_disconnected;
 };
 
 }  // namespace smartproto
