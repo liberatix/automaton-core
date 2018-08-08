@@ -1,5 +1,54 @@
 -- mining helper
 
+-- states
+HANDSHAKE = 1
+BEHIND = 2
+AHEAD = 3
+-- ...
+
+peer_states = {}
+blocks = {}
+
+function blockHash(block)
+  blockdata = block.miner .. block.prev_hash .. tostring(block.height) .. block.nonce;
+  return sha3(blockdata)
+end
+
+function validateBlock(block)
+  -- ...
+  hash = blockHash(block)
+  -- block is valid let's add it
+  blocks[hash] = block
+  return true -- or false if not valid
+end
+
+function onConnect(peer_id)
+  peer_states[peer_id] = { state=HANDSHAKE }
+  -- set peer state
+  -- send initial block
+  -- request getblock
+end
+
+function onUpdate()
+  -- for each peer check to see if we need to send more info, close connection, etc.
+end
+
+function onBlock(peer_id, msg)
+  -- validate block
+end
+
+function onBlocks(peer_id, msg)
+end
+
+function onGetBlocks(peer_id, msg)
+end
+
+while true
+  -- run 1000 miner iterations
+  -- if a block is mined call broadcast to all peers
+end
+
+
 ITERATIONS = 1000000
 
 nonce = {0}
