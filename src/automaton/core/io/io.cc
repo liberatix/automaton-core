@@ -7,10 +7,7 @@
 #include <fstream>
 #include <string>
 
-#include "automaton/core/io/io.h"
-
 INITIALIZE_EASYLOGGINGPP
-
 
 namespace automaton {
 namespace core {
