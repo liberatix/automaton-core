@@ -6,7 +6,7 @@
 #include "automaton/core/state/state_persistent.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/storage/persistent_blobstore.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;

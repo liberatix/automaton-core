@@ -3,7 +3,7 @@
 
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 using google::protobuf::Descriptor;
 using google::protobuf::EnumDescriptor;

@@ -11,7 +11,6 @@ cc_binary(
     "//automaton/core/cli",
     "//automaton/core/data",
     "//automaton/core/io",
-    "//automaton/core/log",
     "//automaton/core/network",
     "//automaton/core/script",
     "//automaton/core/smartproto",

@@ -13,7 +13,7 @@
 #include "automaton/core/data/factory.h"
 #include "automaton/core/data/msg.h"
 #include "automaton/core/data/schema.h"
-#include "automaton/core/log/log.h"
+#include "automaton/core/io/io.h"
 
 namespace automaton {
 namespace core {

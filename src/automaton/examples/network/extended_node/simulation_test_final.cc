@@ -5,7 +5,6 @@
 #include <sstream>
 
 #include "automaton/core/io/io.h"
-#include "automaton/core/log/log.h"
 #include "automaton/core/network/simulated_connection.h"
 #include "automaton/examples/network/extended_node/extended_node_prototype.h"
 

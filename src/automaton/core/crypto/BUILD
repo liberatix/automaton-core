@@ -17,7 +17,7 @@ cc_library(
   deps = [
     "//automaton/core/common",
     "//automaton/core/data",
-    "//automaton/core/log",
+    "//automaton/core/io",
   ],
   linkstatic=True,
 )
