@@ -1,14 +1,21 @@
 #include "automaton/core/io/io.h"
 
+#include <sys/stat.h>
+
+#include <cerrno>
 #include <fstream>
 #include <string>
-#include <cerrno>
 
 #include "automaton/core/log/log.h"
 
 namespace automaton {
 namespace core {
 namespace io {
+
+bool file_exists(const char* filename) {
+  struct stat buffer;
+  return (stat(filename, &buffer) == 0);
+}
 
 std::string get_file_contents(const char* filename) {
   std::ifstream in(filename, std::ios::in | std::ios::binary);

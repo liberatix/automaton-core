@@ -8,14 +8,27 @@ namespace core {
 namespace io {
 
 /**
+  Checks whether the specified file exist.
+
+  Returns true if it does.
+*/
+bool file_exists(const char* filename);
+
+/**
   Gets the file contents and returns them as a string.
 
   Exception is thrown when error occurs.
 */
 std::string get_file_contents(const char* filename);
 
+/**
+  Converts binary byte buffer to hex string representation.
+*/
 std::string bin2hex(const std::string& input);
 
+/**
+  Creates a binary byte buffer from hex string representation.
+*/
 std::string hex2bin(const std::string& input);
 
 }  // namespace io
