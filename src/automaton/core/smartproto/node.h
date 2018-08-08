@@ -34,6 +34,8 @@ class node: public core::network::connection::connection_handler,
 
   peer_info get_peer_info(peer_id id);
 
+  bool set_peer_info(peer_id id, const peer_info& info);
+
   void send_message(peer_id id, const core::data::msg& message);
 
   bool connect(peer_id id);
@@ -58,6 +60,10 @@ class node: public core::network::connection::connection_handler,
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
   std::unordered_map<peer_id, core::network::connection*> connected_peers;
+  peer_id next_peer_id;
+  std::mutex peer_ids_mutex;
+
+  peer_id get_next_peer_id();
 
   // Inherited handlers' functions
 
