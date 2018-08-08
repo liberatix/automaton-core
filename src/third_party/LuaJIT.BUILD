@@ -2,7 +2,10 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
   name = "luajit",
-  srcs = ["libluajit.a"],
+  srcs = select({
+    "//conditions:osx": ["libluajit.a"],
+    "//conditions:default": ["luajit.lib"],
+  }),
   hdrs = glob(["*.h", "*.hpp"]),
   includes = ["."],
   linkopts = select({
@@ -10,6 +13,8 @@ cc_library(
       "-pagezero_size 10000",
       "-image_base 100000000",
     ],
-    "//conditions:default": [],
+    "//conditions:default": [
+
+    ],
   }),
 )

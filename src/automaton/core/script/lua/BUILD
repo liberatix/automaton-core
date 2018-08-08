@@ -19,5 +19,5 @@ cc_library(
       "//automaton/core/io",
       "//automaton/core/script",
     ],
-  linkstatic = True,
+    linkstatic=True,
 )
