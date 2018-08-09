@@ -49,6 +49,24 @@ function git_repo() {
   cd ..
 }
 
+function get_archive() {
+  url=$1
+  filename=$2
+  sha=$3
+
+  print_separator "=" 80
+  echo  Downloading $url
+  print_separator "=" 80
+
+  [ ! -f $2 ] && wget $1
+
+  filesha=$(shasum -a 256 $filename | cut -d' ' -f1)
+  [ $filesha == $sha ] || \
+    echo "Error: Wrong hash [$filesha] Expected [$sha]" && \
+    exit 1
+  # tar xzvf $2
+}
+
 # Download all libraries
 git_repo "https://github.com/LuaJIT/LuaJIT.git" "LuaJIT" "0bf80b07b0672ce874feedcc777afe1b791ccb5a"
 git_repo "https://github.com/zeromq/libzmq.git" "libzmq" "d062edd8c142384792955796329baf1e5a3377cd"
@@ -56,6 +74,11 @@ git_repo "https://github.com/zeromq/cppzmq.git" "cppzmq" "d9f0f016c07046742738c6
 git_repo "https://github.com/zeromq/zmqpp.git" "zmqpp" "f8ff127683dc555aa004c0e6e2b18d2354a375be"
 git_repo "https://github.com/ThePhD/sol2.git" "sol2" "254466eb4b3ae630c731a557987f3adb1a8f86b0"
 git_repo "https://github.com/AmokHuginnsson/replxx.git" "replxx" "3cb884e3fb4b1a28efeb716fac75f77eecc7ea3d"
+
+get_archive "https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz" \
+  "boost_1_68_0.tar.gz" "da3411ea45622579d419bfda66f45cd0f8c32a181d84adfa936f5688388995cf"
+
+# git_repo "https://github.com/boostorg/boost.git" "boost" "1a9dda41fbfb0dfbec17ab6afeba8138265395f7"
 
 # Build LuaJIT
 print_separator "=" 80
@@ -99,3 +122,9 @@ mkdir -p build && cd build
 [ ! -f CMakeCache.txt ] && cmake -DCMAKE_BUILD_TYPE=Release ..
 make replxx
 cd ../..
+
+# Build boost
+print_separator "=" 80
+echo "  BUILDING boost"
+print_separator "=" 80
+
