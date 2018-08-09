@@ -325,7 +325,11 @@ void lua_script_engine::bind_io() {
   lua.set_function("hex", [](const std::string& s) {
     return io::bin2hex(s);
   });
+  lua.set_function("bin", [](const std::string& s) {
+    return io::hex2bin(s);
+  });
 }
+
 
 void lua_script_engine::bind_log() {
 }
