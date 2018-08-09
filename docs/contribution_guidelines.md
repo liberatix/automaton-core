@@ -26,7 +26,17 @@ When you do squash and merge, your repo will hang onto the commits that have alr
 You can sync with the master and uncommit all of your changes by doing the following:
 
 ```
-git fetch origin master && git reset --mixed origin/HEAD
+git reset --soft HEAD~$(git rev-list --count HEAD ^master)
+```
+
+On Windows run these separately
+```
+git rev-list --count HEAD ^master
+
+# and then use that number after HEAD~ in place of ###
+
+git reset --soft HEAD~###
+
 ```
 
 ## Lint
