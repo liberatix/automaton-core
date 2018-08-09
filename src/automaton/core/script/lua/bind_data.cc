@@ -61,7 +61,7 @@ void lua_script_engine::bind_data() {
           m.set_int64(tag_id, blob);
           break;
         }
-/*
+
         case schema::uint32: {
           auto blob = value.as<uint32_t>();
           m.set_uint32(tag_id, blob);
@@ -72,7 +72,7 @@ void lua_script_engine::bind_data() {
           m.set_uint64(tag_id, blob);
           break;
         }
-        */
+
         case schema::blob: {
           auto blob = value.as<const char *>();
           m.set_blob(tag_id, blob);
