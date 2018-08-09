@@ -17,7 +17,8 @@ namespace smartproto {
 
 node::node(unique_ptr<data::schema> schema, const string& lua_script)
     : msg_factory(make_unique<protobuf_factory>())
-    , lua(script_engine.get_sol()) {
+    , lua(script_engine.get_sol())
+    , acceptor_(nullptr) {
   msg_factory->import_schema(schema.get(), "", "");
   script_engine.bind_core();
 
@@ -31,18 +32,19 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
     });
   }
 
-  // Bind this node to its own Lua state.
-  lua["send"] = [this](peer_id peer, const core::data::msg& msg) {
-    this->send_message(peer, msg);
-  };
-
   sol::protected_function_result pfr =
       lua.safe_script(lua_script, &sol::script_pass_on_error);
   std::string output = pfr;
   std::cout << output << std::endl;
 }
 
-peer_info::peer_info() {}
+void node::script(const char* input) {
+  LOG(DEBUG) << "Calling script from node " << input;
+  std::string cmd{input};
+  sol::protected_function_result pfr = lua.safe_script(cmd, &sol::script_pass_on_error);
+  std::string output = pfr;
+  std::cout << output << std::endl;
+}
 
 peer_info node::get_peer_info(const peer_id& id) {
   std::lock_guard<std::mutex> lock(peers_mutex);
@@ -50,7 +52,7 @@ peer_info node::get_peer_info(const peer_id& id) {
   if (it != known_peers.end()) {
     return it->second;
   }
-  return peer_info();
+  return peer_info{DEFAULT_ID};
 }
 
 bool node::set_peer_info(const peer_id& id, const peer_info& info) {
@@ -68,6 +70,7 @@ void node::send_message(const peer_id& id, const core::data::msg& message) {}
 bool node::connect(const peer_id& id) {
   std::lock_guard<std::mutex> lock(peers_mutex);
   if (connected_peers.find(id) != connected_peers.end()) {
+    LOG(DEBUG) << "Peer id not found " << id;
     return false;
   }
   auto it = known_peers.find(id);
@@ -78,18 +81,19 @@ bool node::connect(const peer_id& id) {
         // parse address
         new_connection = core::network::connection::create("tcp", it->second.address, this);
         if (new_connection && !new_connection->init()) {
-        // LOG(DEBUG) << "Connection initialization failed! Connection was not created!";
+        LOG(DEBUG) << "Connection initialization failed! Connection was not created!";
         delete new_connection;
         return false;
         }
       } catch (std::exception& e) {
-      // LOG(ERROR) << e.what();
+        LOG(ERROR) << e.what();
         if (new_connection) {
           delete new_connection;
         }
         return false;
       }
       if (!new_connection) {
+        LOG(DEBUG) << "No new connection";
         return false;
       }
       it->second.connection = new_connection;
@@ -99,6 +103,7 @@ bool node::connect(const peer_id& id) {
       return true;
     }
   }
+  LOG(DEBUG) << "Connection N/A";
   return false;
 }
 
@@ -114,6 +119,7 @@ bool node::disconnect(const peer_id& id) {
 
 bool node::set_acceptor(const char* address) {
   if (acceptor_) {
+    LOG(DEBUG) << "Removing old acceptor";
     delete acceptor_;
   }
   core::network::acceptor* new_acceptor;
@@ -121,19 +127,19 @@ bool node::set_acceptor(const char* address) {
     // parse address
     new_acceptor = core::network::acceptor::create("tcp", std::string(address), this, this);
     if (new_acceptor && !new_acceptor->init()) {
-      // LOG(DEBUG) << "Acceptor initialization failed! Acceptor was not created!" << address;
+      LOG(DEBUG) << "Acceptor initialization failed! Acceptor was not created!" << address;
       delete new_acceptor;
       return false;
     }
   } catch (std::exception& e) {
-    // LOG(ERROR) << "Adding acceptor failed! " << address << " Error: " << e.what();
+    LOG(ERROR) << "Adding acceptor failed! " << address << " Error: " << e.what();
     if (new_acceptor) {
       delete new_acceptor;
     }
     return false;
   }
   if (!new_acceptor) {
-    // LOG(ERROR) << "Acceptor was not created!";
+    LOG(ERROR) << "Acceptor was not created!";
     return false;
   }
   acceptor_ = new_acceptor;
@@ -145,7 +151,10 @@ bool node::add_peer(const peer_id& id) {
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = known_peers.find(id);
   if (it == known_peers.end()) {
-    known_peers[id] = peer_info();
+    peer_info info;
+    info.id = info.address = id;
+    info.connection = nullptr;
+    known_peers[id] = info;
     return true;
   }
   return false;
@@ -200,6 +209,7 @@ void node::on_connected(core::network::connection* c) {
         id = it->first;
       }
     }
+
     // If the accepted peer is not in known_peers
     if (id == DEFAULT_ID) {
       id = c->get_address();

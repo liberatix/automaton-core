@@ -399,8 +399,11 @@ void tcp_init() {
 }
 
 void tcp_release() {
+  LOG(DEBUG) << "Stopping io_service";
   asio_io_service.stop();
+  LOG(DEBUG) << "joining worker_thread..";
   worker_thread->join();
+  LOG(DEBUG) << "tcp_release done.";
   tcp_initialized = false;
 }
 

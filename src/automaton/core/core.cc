@@ -7,6 +7,7 @@
 #include "automaton/core/cli/cli.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
+#include "automaton/core/network/tcp_implementation.h"
 #include "automaton/core/script/lua/lua_script_engine.h"
 #include "automaton/core/smartproto/node.h"
 
@@ -35,8 +36,8 @@ static const char* automaton_ascii_logo_cstr =
   "\n\x1b[40m\x1b[1m"
   "                                                                     " "\x1b[0m\n\x1b[40m\x1b[1m"
   "                                                                     " "\x1b[0m\n\x1b[40m\x1b[1m"
-  "    @197m█▀▀▀█ @39m█ █ █ @11m▀▀█▀▀ @129m█▀▀▀█ @47m█▀█▀█ @9m█▀▀▀█ @27m▀▀█▀▀ @154m█▀▀▀█ @13m█▀█ █            " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
-  "    @197m█▀▀▀█ @39m█ ▀ █ @11m█ █ █ @129m█ ▀ █ @47m█ ▀ █ @9m█▀▀▀█ @27m█ █ █ @154m█ ▀ █ @13m█ █ █   @15mCORE     " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
+  "    @197m█▀▀▀█ @39m█ ▀ █ @11m▀▀█▀▀ @129m█▀▀▀█ @47m█▀█▀█ @9m█▀▀▀█ @27m▀▀█▀▀ @154m█▀▀▀█ @13m█▀█ █            " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
+  "    @197m█▀▀▀█ @39m█ ▀ █ @11m▀ █ ▀ @129m█ ▀ █ @47m█ ▀ █ @9m█▀▀▀█ @27m▀ █ ▀ @154m█ ▀ █ @13m█ █ █   @15mCORE     " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
   "    @197m▀ ▀ ▀ @39m▀▀▀▀▀ @11m▀ ▀ ▀ @129m▀▀▀▀▀ @47m▀ ▀ ▀ @9m▀ ▀ ▀ @27m▀ ▀ ▀ @154m▀▀▀▀▀ @13m▀ ▀▀▀   @15mv0.0.1   " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
   "                                                                     " "\x1b[0m\n@0m"
   "▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀" "\x1b[0m\n";
@@ -48,45 +49,84 @@ int main(int argc, char* argv[]) {
   lua_script_engine engine;
   engine.bind_core();
   sol::state_view& lua = engine.get_sol();
+
 /*
-  // Bind smartproto::node constructor
-  lua.set_function("SPNode", [](const char* schema_file_name, const char* proto_file_name) {
-    auto schema_contents = get_file_contents(schema_file_name);
-    auto script_contents = get_file_contents(proto_file_name);
-    unique_ptr<schema> pb_schema(new protobuf_schema(schema_contents));
-    return new node(std::move(pb_schema), script_contents);
-  });
+  auto peer_type = lua.create_simple_usertype<peer_info>("peer");
+  lua.set_usertype("peer", peer_type);
 */
 
   // Bind smartproto::node class
-  lua.new_usertype<node>("SPNode",
-    sol::call_constructor,
+  auto node_type = lua.create_simple_usertype<node>("node");
+
+  node_type.set(sol::call_constructor,
+    sol::factories(
     [](const char* schema_file_name, const char* proto_file_name) {
       auto schema_contents = get_file_contents(schema_file_name);
       auto script_contents = get_file_contents(proto_file_name);
       unique_ptr<schema> pb_schema(new protobuf_schema(schema_contents));
       return new node(std::move(pb_schema), script_contents);
-    }
-  );  // NOLINT
+    }));
+
+  // Bind this node to its own Lua state.
+  node_type.set("add_peer", &node::add_peer);
+  node_type.set("connect", &node::connect);
+  node_type.set("disconnect", &node::disconnect);
+  node_type.set("send", &node::send_message);
+  node_type.set("listen", &node::set_acceptor);
+  node_type.set("msg_id", &node::find_message_id);
+  node_type.set("new_msg", &node::create_msg_by_id);
+
+  node_type.set("known_peers", [](node& n) {
+    LOG(DEBUG) << "getting known peers... " << &n;
+    LOG(DEBUG) << n.list_known_peers();
+    return sol::as_table(n.list_known_peers());
+  });
+
+  node_type.set("peers", [](node& n) {
+    LOG(DEBUG) << "getting peers... " << &n;
+    LOG(DEBUG) << n.list_connected_peers();
+    return sol::as_table(n.list_connected_peers());
+  });
+
+  lua.set_usertype("node", node_type);
 
   lua.script(
       R"(
-      function BCNode()
-        return SPNode(
+      function anode()
+        return node(
           "automaton/examples/smartproto/blockchain/blockchain.proto",
-          "automaton/examples/smartproto/blockchain/blockchain.lua"
+          "automaton/examples/smartproto/blockchain/test.lua"
         )
       end
       )");
 
+  automaton::core::network::tcp_init();
+
   automaton::core::cli::cli cli;
-  cli.history_add("b = BCNode()");
+  lua.script(R"(
+      a1 = "127.0.0.1:5001"
+      a2 = "127.0.0.1:5002"
+
+      n1 = anode()
+      n1:listen(a1)
+
+      n2 = anode()
+      n2:listen(a2)
+
+      n1:add_peer(a2)
+      n1:connect(a2)
+
+      n2:add_peer(a1)
+      n2:connect(a1)
+  )");
+
   cli.print(automaton_ascii_logo.c_str());
+
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
     auto input = cli.input("\x1b[38;5;15m\x1b[1m|A|\x1b[0m ");
     if (input == nullptr) {
-      cli.print("\n");
+      cli.print("\nLeaving\n");
       break;
     }
 
@@ -97,5 +137,12 @@ int main(int argc, char* argv[]) {
     std::string output = pfr;
     std::cout << output << std::endl;
   }
+
+  cli.print("tcp_release");
+
+  automaton::core::network::tcp_release();
+
+  LOG(DEBUG) << "tcp_release done.";
+
   return 0;
 }
