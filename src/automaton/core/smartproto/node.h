@@ -23,8 +23,6 @@ struct peer_info {
   peer_id id;
   std::string address;
   core::network::connection* connection;
-
-  peer_info();
 };
 
 class node: public core::network::connection::connection_handler,
@@ -51,6 +49,16 @@ class node: public core::network::connection::connection_handler,
   std::vector<peer_id> list_known_peers();
 
   std::vector<peer_id> list_connected_peers();
+
+  void script(const char* input);
+
+  uint32_t find_message_id(const char * name) {
+    return msg_factory->get_schema_id(name);
+  }
+
+  std::unique_ptr<data::msg> create_msg_by_id(uint32_t id) {
+    return this->msg_factory->new_message_by_id(id);
+  }
 
  private:
   std::unique_ptr<data::factory> msg_factory;
