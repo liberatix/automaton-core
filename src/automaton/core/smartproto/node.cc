@@ -19,6 +19,7 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
     : msg_factory(make_unique<protobuf_factory>())
     , lua(script_engine.get_sol())
     , acceptor_(nullptr) {
+  LOG(DEBUG) << "Node constructor called";
   msg_factory->import_schema(schema.get(), "", "");
   script_engine.bind_core();
 
@@ -27,7 +28,7 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
     auto name = msg_factory->get_schema_name(id);
     LOG(DEBUG) << "Binding proto message " << name;
 
-    lua.set(name, [this, name, id]() -> std::unique_ptr<msg> {
+    lua.set(name, [this, name, id]() -> unique_ptr<msg> {
       return this->msg_factory->new_message_by_id(id);
     });
   }
@@ -36,6 +37,10 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
       lua.safe_script(lua_script, &sol::script_pass_on_error);
   std::string output = pfr;
   std::cout << output << std::endl;
+}
+
+node::~node() {
+  LOG(DEBUG) << "Node destructor called";
 }
 
 void node::script(const char* input) {
@@ -198,6 +203,8 @@ void node::on_message_sent(core::network::connection* c, uint32_t id,
     core::network::connection::error e) {}
 
 void node::on_connected(core::network::connection* c) {
+  LOG(DEBUG) << "Connected in " << acceptor_->get_address()
+      << " to " << c->get_address();
   peers_mutex.lock();
   peer_id id = DEFAULT_ID;
   if (known_peers.find(c->get_address()) != known_peers.end()) {
@@ -252,11 +259,15 @@ void node::on_error(core::network::connection* c, core::network::connection::err
 }
 
 bool node::on_requested(core::network::acceptor* a, const std::string& address) {
+  LOG(DEBUG) << "Requested connection to " << acceptor_->get_address()
+      << " from " << address;
   return true;
 }
 
 void node::on_connected(core::network::acceptor* a, core::network::connection* c,
-    const std::string& address) {}
+    const std::string& address) {
+  LOG(DEBUG) << "Connected in acceptor " << a->get_address() << " " << address;
+}
 
 void node::on_error(core::network::acceptor* a, core::network::connection::error e) {}
 

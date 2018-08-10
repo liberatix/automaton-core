@@ -240,10 +240,15 @@ static int wrap_object_method_call(lua_State *L) {
 }
 
 lua_script_engine::lua_script_engine() {
+  LOG(DEBUG) << "Creating script engine";
   lua.open_libraries();
   L = lua.lua_state();
   // luaL_openlibs(L);
   // bind_registered_modules();
+}
+
+lua_script_engine::~lua_script_engine() {
+  LOG(DEBUG) << "Destroying script engine";
 }
 
 void lua_script_engine::bind_static_function(module* m,
