@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_SMARTPROTO_NODE_H_
 
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -22,7 +23,7 @@ namespace smartproto {
 struct peer_info {
   peer_id id;
   std::string address;
-  core::network::connection* connection;
+  std::shared_ptr<core::network::connection> connection;
 };
 
 class node: public core::network::connection::connection_handler,
@@ -49,7 +50,7 @@ class node: public core::network::connection::connection_handler,
 
   std::vector<peer_id> list_known_peers();
 
-  std::vector<peer_id> list_connected_peers();
+  std::set<peer_id> list_connected_peers();
 
   void script(const char* input);
 
@@ -66,10 +67,10 @@ class node: public core::network::connection::connection_handler,
   script::lua::lua_script_engine script_engine;
   sol::state_view lua;
   std::unique_ptr<data::schema> schema;
-  core::network::acceptor* acceptor_;
+  std::shared_ptr<core::network::acceptor> acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
-  std::unordered_map<peer_id, core::network::connection*> connected_peers;
+  std::set<peer_id> connected_peers;
 
   // Inherited handlers' functions
 
