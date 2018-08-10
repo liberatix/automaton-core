@@ -43,6 +43,7 @@ static bool tcp_initialized = false;
 tcp_connection::tcp_connection(const std::string& address_, connection_handler*
     handler_):connection(handler_), asio_socket{asio_io_service},
     connection_state(connection::state::invalid_state), address(address_) {
+  LOG(DEBUG) << "Connection constructor " << address;
   if (!tcp_initialized) {
     std::stringstream msg;
     msg << "TCP is not initialized! Call tcp_init() first!";
@@ -51,7 +52,7 @@ tcp_connection::tcp_connection(const std::string& address_, connection_handler*
   }
 }
 
-/// This is called only from acceptor
+// This is called only from acceptor
 tcp_connection::tcp_connection(const std::string& addr, const boost::asio::ip::tcp::socket& sock,
     connection_handler* handler_):connection(handler_),
     asio_socket(std::move(const_cast<boost::asio::ip::tcp::socket&>(sock))),
@@ -59,19 +60,19 @@ tcp_connection::tcp_connection(const std::string& addr, const boost::asio::ip::t
 }
 
 tcp_connection::~tcp_connection() {
-  // LOG(DEBUG) << "Connection destructor";
+  LOG(DEBUG) << "Connection destructor";
   connection_mutex.lock();
   set_state(connection::state::disconnected);
   if (asio_socket.is_open()) {
     boost::system::error_code boost_error_code_shut;
     asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
     if (boost_error_code_shut) {
-      // LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
+      LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
     }
     boost::system::error_code boost_error_code_close;
     asio_socket.close(boost_error_code_close);
     if (boost_error_code_close) {
-      // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+      LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
     connection_mutex.unlock();
   } else {
@@ -80,7 +81,7 @@ tcp_connection::~tcp_connection() {
   boost::system::error_code boost_error_code;
   asio_socket.release(boost_error_code);
   if (boost_error_code) {
-    // LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
+    LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
   }
 }
 
@@ -280,6 +281,7 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
 }
 
 tcp_acceptor::~tcp_acceptor() {
+  LOG(DEBUG) << "Acceptor destructor";
   if (asio_acceptor.is_open()) {
     boost::system::error_code boost_error_code_close;
     asio_acceptor.close(boost_error_code_close);
@@ -289,7 +291,7 @@ tcp_acceptor::~tcp_acceptor() {
     boost::system::error_code boost_error_code_release;
     asio_acceptor.release(boost_error_code_release);
     if (boost_error_code_release) {
-      // LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+      LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
   }
 }
@@ -383,17 +385,19 @@ void tcp_init() {
   if (tcp_initialized) {
     return;
   }
-  connection::register_connection_type("tcp", [](const std::string& address,
-    connection::connection_handler* handler) {
-    return reinterpret_cast<connection*>(new tcp_connection(address, handler));
-  });
-  acceptor::register_acceptor_type("tcp", [](const std::string& address,
-      acceptor::acceptor_handler* handler_, connection::connection_handler* connections_handler_) {
-    return reinterpret_cast<acceptor*>(new tcp_acceptor(address, handler_,
-      connections_handler_));
-  });
+  connection::register_connection_type("tcp",
+    [](const std::string& address, connection::connection_handler* handler) -> connection* {
+      return new tcp_connection(address, handler);
+    });
+  acceptor::register_acceptor_type("tcp",
+    [](const std::string& address, acceptor::acceptor_handler* handler_,
+    connection::connection_handler* connections_handler_) -> acceptor* {
+      return new tcp_acceptor(address, handler_, connections_handler_);
+    });
   worker_thread = new std::thread([]() {
-      asio_io_service.run();
+    LOG(DEBUG) << "asio_io_service starting...";
+    asio_io_service.run();
+    LOG(DEBUG) << "asio_io_service stopped.";
   });
   tcp_initialized = true;
 }

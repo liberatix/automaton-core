@@ -29,6 +29,7 @@ class node: public core::network::connection::connection_handler,
     public core::network::acceptor::acceptor_handler {
  public:
   node(std::unique_ptr<data::schema> schema, const std::string& lua_script);
+  ~node();
 
   peer_info get_peer_info(const peer_id& id);
 

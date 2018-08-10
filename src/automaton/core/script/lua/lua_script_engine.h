@@ -22,6 +22,7 @@ class lua_script_engine {
   /**
   */
   lua_script_engine();
+  ~lua_script_engine();
 
   void bind_core() {
     bind_crypto();

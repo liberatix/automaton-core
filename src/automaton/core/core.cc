@@ -46,25 +46,52 @@ int main(int argc, char* argv[]) {
   std::string automaton_ascii_logo(automaton_ascii_logo_cstr);
   string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
+  {
+    sol::state lua;
+    lua.open_libraries();
+
+    struct ttt {
+      int x;
+      int y;
+      ttt() {
+        x = 1;
+        y = 2;
+      }
+      ~ttt() {
+        std::cout << "Destroying ttt\n";
+      }
+    };
+
+    auto ttt_type = lua.create_simple_usertype<ttt>();
+    ttt_type.set(sol::call_constructor,
+      sol::factories([]() -> unique_ptr<ttt> {
+        return make_unique<ttt>();
+      }));
+
+    ttt_type.set("x", &ttt::x);
+    ttt_type.set("y", &ttt::y);
+    lua.set_usertype("ttt", ttt_type);
+    lua.script("a = ttt.new(); print(a.x, a.y); a.x = 5; a.y = 5; print(a.x, a.y)");
+    // lua.script("a = nil; collectgarbage()");
+    std::cout << "Destroying lua engine\n";
+  }
+
+{
   lua_script_engine engine;
   engine.bind_core();
   sol::state_view& lua = engine.get_sol();
 
-/*
-  auto peer_type = lua.create_simple_usertype<peer_info>("peer");
-  lua.set_usertype("peer", peer_type);
-*/
-
   // Bind smartproto::node class
-  auto node_type = lua.create_simple_usertype<node>("node");
+  auto node_type = lua.create_simple_usertype<node>();
 
   node_type.set(sol::call_constructor,
     sol::factories(
-    [](const char* schema_file_name, const char* proto_file_name) {
+    [](const char* schema_file_name, const char* proto_file_name)
+    -> unique_ptr<node> {
       auto schema_contents = get_file_contents(schema_file_name);
       auto script_contents = get_file_contents(proto_file_name);
       unique_ptr<schema> pb_schema(new protobuf_schema(schema_contents));
-      return new node(std::move(pb_schema), script_contents);
+      return make_unique<node>(std::move(pb_schema), script_contents);
     }));
 
   // Bind this node to its own Lua state.
@@ -103,22 +130,7 @@ int main(int argc, char* argv[]) {
   automaton::core::network::tcp_init();
 
   automaton::core::cli::cli cli;
-  lua.script(R"(
-      a1 = "127.0.0.1:5001"
-      a2 = "127.0.0.1:5002"
-
-      n1 = anode()
-      n1:listen(a1)
-
-      n2 = anode()
-      n2:listen(a2)
-
-      n1:add_peer(a2)
-      n1:connect(a2)
-
-      n2:add_peer(a1)
-      n2:connect(a1)
-  )");
+  lua.script(get_file_contents("automaton/core/coreinit.lua"));
 
   cli.print(automaton_ascii_logo.c_str());
 
@@ -126,7 +138,7 @@ int main(int argc, char* argv[]) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
     auto input = cli.input("\x1b[38;5;15m\x1b[1m|A|\x1b[0m ");
     if (input == nullptr) {
-      cli.print("\nLeaving\n");
+      cli.print("\n");
       break;
     }
 
@@ -138,7 +150,11 @@ int main(int argc, char* argv[]) {
     std::cout << output << std::endl;
   }
 
-  cli.print("tcp_release");
+  // lua.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);
+  LOG(DEBUG) << "Destroying lua state & objects";
+}
+
+  LOG(DEBUG) << "tcp_release";
 
   automaton::core::network::tcp_release();
 

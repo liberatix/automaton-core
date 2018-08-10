@@ -13,7 +13,6 @@ cc_binary(
     "//automaton/core/io",
     "//automaton/core/network",
     "//automaton/core/network:network_tcp",
-    "//automaton/core/script",
     "//automaton/core/smartproto",
     "//automaton/core/state",
     "@json//:json",

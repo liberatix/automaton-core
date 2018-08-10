@@ -24,5 +24,10 @@ message GetBlocks {
 
 message Blocks {
   // List of block headers from the peer's current blockchain
-  repeated Block header = 1;
+  repeated Block block = 1;
+}
+
+message R {
+  repeated uint64 f1 = 1;
+  repeated bytes f2 = 2;
 }
