@@ -55,16 +55,16 @@ function get_archive() {
   sha=$3
 
   print_separator "=" 80
-  echo  Downloading $url
+  echo "  Downloading $filename"
   print_separator "=" 80
 
   [ ! -f $2 ] && wget $1
 
   filesha=$(shasum -a 256 $filename | cut -d' ' -f1)
-  [ $filesha == $sha ] || \
-    echo "Error: Wrong hash [$filesha] Expected [$sha]" && \
-    exit 1
-  # tar xzvf $2
+  [ $filesha == $sha ] || ( echo "Error: Wrong hash [$filesha] Expected [$sha]" && exit 1 )
+
+  echo "Extracting $filename"
+  tar -xzf $filename
 }
 
 # Download all libraries
@@ -128,3 +128,6 @@ print_separator "=" 80
 echo "  BUILDING boost"
 print_separator "=" 80
 
+cd boost_1_68_0
+./bootstrap.sh
+./b2 link=static runtime-link=static stage
