@@ -7,6 +7,9 @@ using automaton::core::data::msg;
 using automaton::core::data::factory;
 using automaton::core::data::schema;
 
+using std::shared_ptr;
+using std::unique_ptr;
+
 namespace automaton {
 namespace core {
 namespace script {
@@ -17,25 +20,84 @@ void lua_script_engine::bind_data() {
 
   msg_type.set(sol::meta_function::index,
     [](sol::this_state L, msg& m, std::string key) -> sol::object {
+      LOG(DEBUG) << "Getting key: " << key;
+      sol::state_view lua(L);
       auto schema_id = m.get_schema_id();
       auto tag_id = m.get_field_tag(key);
       auto fi = m.get_field_info_by_tag(tag_id);
       auto ftype = fi.type;
       switch (ftype) {
         case schema::int32: {
-          return sol::object(L, sol::in_place, m.get_int32(tag_id));
+          if (fi.is_repeated) {
+            auto n = m.get_repeated_field_size(tag_id);
+            sol::table result = lua.create_table();
+            for (auto i = 0; i < n; i++) {
+              result.add(m.get_repeated_int32(tag_id, i));
+            }
+            return sol::make_object(L, result);
+          } else {
+            return sol::make_object(L, m.get_int32(tag_id));
+          }
         }
         case schema::int64: {
-          return sol::object(L, sol::in_place, m.get_int64(tag_id));
+          if (fi.is_repeated) {
+            auto n = m.get_repeated_field_size(tag_id);
+            sol::table result = lua.create_table();
+            for (auto i = 0; i < n; i++) {
+              result.add(m.get_repeated_int64(tag_id, i));
+            }
+            return sol::make_object(L, result);
+          } else {
+            return sol::make_object(L, m.get_int64(tag_id));
+          }
         }
         case schema::uint32: {
-          return sol::object(L, sol::in_place, m.get_uint32(tag_id));
+          if (fi.is_repeated) {
+            auto n = m.get_repeated_field_size(tag_id);
+            sol::table result = lua.create_table();
+            for (auto i = 0; i < n; i++) {
+              result.add(m.get_repeated_uint32(tag_id, i));
+            }
+            return sol::make_object(L, result);
+          } else {
+            return sol::make_object(L, m.get_uint32(tag_id));
+          }
         }
         case schema::uint64: {
-          return sol::object(L, sol::in_place, m.get_uint64(tag_id));
+          if (fi.is_repeated) {
+            auto n = m.get_repeated_field_size(tag_id);
+            sol::table result = lua.create_table();
+            for (auto i = 0; i < n; i++) {
+              result.add(m.get_repeated_uint64(tag_id, i));
+            }
+            return result;
+          } else {
+            return sol::make_object(L, m.get_uint64(tag_id));
+          }
         }
         case schema::blob: {
-          return sol::object(L, sol::in_place, m.get_blob(tag_id));
+          if (fi.is_repeated) {
+            auto n = m.get_repeated_field_size(tag_id);
+            sol::table result = lua.create_table();
+            for (auto i = 0; i < n; i++) {
+              result.add(m.get_repeated_blob(tag_id, i));
+            }
+            return sol::make_object(L, result);
+          } else {
+            return sol::make_object(L, m.get_blob(tag_id));
+          }
+        }
+        case schema::message_type: {
+          if (fi.is_repeated) {
+            auto n = m.get_repeated_field_size(tag_id);
+            sol::table result = lua.create_table();
+            for (auto i = 0; i < n; i++) {
+              result.add(m.get_repeated_message(tag_id, i));
+            }
+            return sol::make_object(L, result);
+          } else {
+            return sol::make_object(L, m.get_message(tag_id));
+          }
         }
         default: {
           return sol::make_object(L, sol::lua_nil);
@@ -46,36 +108,64 @@ void lua_script_engine::bind_data() {
 
   msg_type.set(sol::meta_function::new_index,
     [](sol::this_state L, msg& m, std::string key, sol::object value) {
+      LOG(DEBUG) << "Setting key:" << key << " value: " << value.as<std::string>();
       auto schema_id = m.get_schema_id();
       auto tag_id = m.get_field_tag(key);
       auto fi = m.get_field_info_by_tag(tag_id);
       auto ftype = fi.type;
       switch (ftype) {
         case schema::int32: {
-          int blob = value.as<int>();
-          m.set_int32(tag_id, blob);
+          int n = value.as<int>();
+          if (fi.is_repeated) {
+            m.set_repeated_int32(tag_id, n, -1);
+          } else {
+            m.set_int32(tag_id, n);
+          }
           break;
         }
         case schema::int64: {
-          auto blob = value.as<int64_t>();
-          m.set_int64(tag_id, blob);
+          auto n = value.as<int64_t>();
+          if (fi.is_repeated) {
+            m.set_repeated_int64(tag_id, n, -1);
+          } else {
+            m.set_int64(tag_id, n);
+          }
           break;
         }
-
         case schema::uint32: {
-          auto blob = value.as<uint32_t>();
-          m.set_uint32(tag_id, blob);
+          auto n = value.as<uint32_t>();
+          if (fi.is_repeated) {
+            m.set_repeated_uint32(tag_id, n, -1);
+          } else {
+            m.set_uint32(tag_id, n);
+          }
           break;
         }
         case schema::uint64: {
-          auto blob = value.as<uint64_t>();
-          m.set_uint64(tag_id, blob);
+          auto n = value.as<uint64_t>();
+          if (fi.is_repeated) {
+            m.set_repeated_uint64(tag_id, n, -1);
+          } else {
+            m.set_uint64(tag_id, n);
+          }
           break;
         }
-
         case schema::blob: {
           auto blob = value.as<const char *>();
-          m.set_blob(tag_id, blob);
+          if (fi.is_repeated) {
+            m.set_repeated_blob(tag_id, blob, -1);
+          } else {
+            m.set_blob(tag_id, blob);
+          }
+          break;
+        }
+        case schema::message_type: {
+          auto message = value.as<msg*>();
+          if (fi.is_repeated) {
+            m.set_repeated_message(tag_id, *message, -1);
+          } else {
+            m.set_message(tag_id, *message);
+          }
           break;
         }
         default: {
