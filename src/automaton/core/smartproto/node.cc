@@ -234,9 +234,11 @@ void node::on_message_sent(core::network::connection* c, uint32_t id,
 void node::on_connected(core::network::connection* c) {
   LOG(DEBUG) << "Connected in " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A")
       << " to " << c->get_address();
-  LOG(DEBUG) << "BEFORE LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << c->get_address();
+  LOG(DEBUG) << "BEFORE LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A")
+      << " " << c->get_address();
   peers_mutex.lock();
-  LOG(DEBUG) << "AFTER LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << c->get_address();
+  LOG(DEBUG) << "AFTER LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A")
+      << " " << c->get_address();
   peer_id id = DEFAULT_ID;
   if (known_peers.find(c->get_address()) != known_peers.end()) {
     id = c->get_address();
