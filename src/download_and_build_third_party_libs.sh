@@ -75,10 +75,18 @@ git_repo "https://github.com/zeromq/zmqpp.git" "zmqpp" "f8ff127683dc555aa004c0e6
 git_repo "https://github.com/ThePhD/sol2.git" "sol2" "254466eb4b3ae630c731a557987f3adb1a8f86b0"
 git_repo "https://github.com/AmokHuginnsson/replxx.git" "replxx" "3cb884e3fb4b1a28efeb716fac75f77eecc7ea3d"
 
-get_archive "https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz" \
+[ ! -d boost_1_68_0 ] && \
+  get_archive "https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz" \
   "boost_1_68_0.tar.gz" "da3411ea45622579d419bfda66f45cd0f8c32a181d84adfa936f5688388995cf"
 
-# git_repo "https://github.com/boostorg/boost.git" "boost" "1a9dda41fbfb0dfbec17ab6afeba8138265395f7"
+[ ! -d zlib-1.2.11 ] && get_archive "https://zlib.net/zlib-1.2.11.tar.gz" \
+  "zlib-1.2.11.tar.gz" "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1"
+
+[ ! -d bzip2-1.0.6 ] && get_archive "https://fossies.org/linux/misc/bzip2-1.0.6.tar.gz" \
+  "bzip2-1.0.6.tar.gz" "a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd"
+
+[ ! -d xz-5.2.3 ] && get_archive "http://phoenixnap.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz" \
+  "xz-5.2.3.tar.gz" "71928b357d0a09a12a4b4c5fafca8c31c19b0e7d3b8ebb19622e96f26dbf28cb"
 
 # Build LuaJIT
 print_separator "=" 80
@@ -129,5 +137,6 @@ echo "  BUILDING boost"
 print_separator "=" 80
 
 cd boost_1_68_0
-./bootstrap.sh
-./b2 link=static runtime-link=static stage
+[ ! -f b2 ] && ./bootstrap.sh
+[ ! -d stage ] && ./b2 link=static runtime-link=static stage
+cd ..
