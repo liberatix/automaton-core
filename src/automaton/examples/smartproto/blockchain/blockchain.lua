@@ -112,7 +112,7 @@ function onBlock(peer_id, block)
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
   print("Block Validity: " .. block_validity)
-  
+
   if block_validity == BLOCK.VALID  then
     print "Valid block added to blocks"
     blocks[hash] = block
@@ -200,15 +200,3 @@ end
 
 
 init()
-function tests()
-  -- FOR TESTING ONLY, REMOVE AFTER
-  nonce = {0}
-  genesis = Block()
-  genesis.miner = sha3("automaton")
-  genesis.prev_hash = ""
-  genesis.height = 123
-  inc_nonce(nonce)
-  genesis.nonce = nonce_str(nonce)
-  --blocks[blockHash(genesis)] = genesis
-  validateBlock(genesis)
-end
