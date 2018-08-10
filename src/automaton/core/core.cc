@@ -100,8 +100,10 @@ int main(int argc, char* argv[]) {
   node_type.set("disconnect", &node::disconnect);
   node_type.set("send", &node::send_message);
   node_type.set("listen", &node::set_acceptor);
+
   node_type.set("msg_id", &node::find_message_id);
   node_type.set("new_msg", &node::create_msg_by_id);
+  node_type.set("send", &node::send_message);
 
   node_type.set("known_peers", [](node& n) {
     LOG(DEBUG) << "getting known peers... " << &n;

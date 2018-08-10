@@ -36,7 +36,7 @@ class node: public core::network::connection::connection_handler,
 
   bool set_peer_info(const peer_id& id, const peer_info& info);
 
-  void send_message(const peer_id& id, const core::data::msg& message);
+  void send_message(const peer_id& id, const std::string& msg);
 
   bool connect(const peer_id& id);
 
