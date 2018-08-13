@@ -35,7 +35,7 @@ git rev-list --count HEAD ^master
 
 # and then use that number after HEAD~ in place of ###
 
-git reset --soft HEAD~###
+git reset --mixed HEAD~###
 
 ```
 
