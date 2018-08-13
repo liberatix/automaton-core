@@ -127,14 +127,22 @@ int main(int argc, char* argv[]) {
           "automaton/examples/smartproto/blockchain/test.lua"
         )
       end
+
+      function BCNode()
+        return node(
+          "automaton/examples/smartproto/blockchain/blockchain.proto",
+          "automaton/examples/smartproto/blockchain/blockchain.lua"
+        )
+      end
       )");
 
   automaton::core::network::tcp_init();
 
   automaton::core::cli::cli cli;
-  lua.script(get_file_contents("automaton/core/coreinit.lua"));
+  // lua.script(get_file_contents("automaton/core/coreinit.lua"));
 
   cli.print(automaton_ascii_logo.c_str());
+  cli.history_add("b = BCNode()");
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
