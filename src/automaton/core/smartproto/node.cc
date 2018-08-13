@@ -197,7 +197,7 @@ void node::remove_peer(const peer_id& id) {
   }
   auto it2 = connected_peers.find(id);
   if (it2 != connected_peers.end()) {
-    it2->second->disconnect();
+    known_peers.at(*it2).connection->disconnect();
     connected_peers.erase(it2);
   }
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
