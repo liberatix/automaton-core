@@ -4,10 +4,10 @@
 
 #include <json.hpp>
 
+#include "automaton/core/network/tcp_implementation.h"
 #include "automaton/core/cli/cli.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/network/tcp_implementation.h"
 #include "automaton/core/script/lua/lua_script_engine.h"
 #include "automaton/core/smartproto/node.h"
 
