@@ -151,7 +151,8 @@ void lua_script_engine::bind_data() {
           break;
         }
         case schema::blob: {
-          auto blob = value.as<const char *>();
+          // TOD(asen): Check whether string_view is faster.
+          auto blob = value.as<std::string>();
           if (fi.is_repeated) {
             m.set_repeated_blob(tag_id, blob, -1);
           } else {
