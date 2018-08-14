@@ -50,12 +50,12 @@ class tcp_connection: public connection {
   /**
     Constructor that will be used when this class is registered.
   */
-  tcp_connection(const std::string& address_, connection_handler* handler_);
+  tcp_connection(connection_id id, const std::string& address_, connection_handler* handler_);
 
   /**
     Constructor that will be used from the acceptor.
   */
-  tcp_connection(const std::string& address_,
+  tcp_connection(connection_id id, const std::string& address_,
       const boost::asio::ip::tcp::socket& socket_,
       connection_handler* handler_);
 

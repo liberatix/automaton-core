@@ -34,18 +34,18 @@ cc_library(
 
 )
 
-cc_library(
-  name = "simulated_connection",
-  srcs = [
-    "simulated_connection.h",
-    "simulated_connection.cc",
-  ],
-  deps = [
-    ":network",
-    "//automaton/core/io",
-  ],
-  linkstatic=True,
-)
+# cc_library(
+#   name = "simulated_connection",
+#   srcs = [
+#     "simulated_connection.h",
+#     "simulated_connection.cc",
+#   ],
+#   deps = [
+#     ":network",
+#     "//automaton/core/io",
+#   ],
+#   linkstatic=True,
+# )
 
 cc_library(
   name = "module",
