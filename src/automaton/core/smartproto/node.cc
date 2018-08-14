@@ -1,8 +1,8 @@
 #include "automaton/core/smartproto/node.h"
 
 #include <chrono>
-#include <thread>
 #include <regex>
+#include <thread>
 
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 
@@ -43,6 +43,8 @@ node::node(unique_ptr<data::schema> schema,
   std::string output = pfr;
   std::cout << output << std::endl;
 
+  script_on_update = lua["update"];
+
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = false;
   updater = new std::thread([this]() {
@@ -50,8 +52,7 @@ node::node(unique_ptr<data::schema> schema,
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
-      LOG(DEBUG) << "Time update " << this << " " << current_time;
-      // this->script_on_update(current_time);
+      sol::protected_function_result result = script_on_update(current_time);
     }
   });
 }

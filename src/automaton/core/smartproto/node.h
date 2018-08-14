@@ -115,10 +115,10 @@ class node: public core::network::connection::connection_handler,
   void s_on_disconnected(peer_id id) {}
 
   // Cached script handler functions.
-  sol::function script_on_msg_received;
-  sol::function script_on_connected;
-  sol::function script_on_disconnected;
-  sol::function script_on_update;
+  sol::protected_function script_on_msg_received;
+  sol::protected_function script_on_connected;
+  sol::protected_function script_on_disconnected;
+  sol::protected_function script_on_update;
 };
 
 }  // namespace smartproto
