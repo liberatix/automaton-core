@@ -29,7 +29,9 @@ struct peer_info {
 class node: public core::network::connection::connection_handler,
     public core::network::acceptor::acceptor_handler {
  public:
-  node(std::unique_ptr<data::schema> schema, const std::string& lua_script);
+  node(std::unique_ptr<data::schema> schema,
+       const std::string& lua_script,
+       std::vector<std::string> wire_msgs);
   ~node();
 
   peer_info get_peer_info(const peer_id& id);
@@ -72,6 +74,14 @@ class node: public core::network::connection::connection_handler,
   std::unordered_map<peer_id, peer_info> known_peers;
   std::set<peer_id> connected_peers;
 
+  // Protocol message id map
+  std::unordered_map<uint32_t, uint32_t> msg_ids;
+
+  // Time based update.
+  std::mutex updater_mutex;
+  bool updater_stop_signal;
+  std::thread* updater;
+
   // Inherited handlers' functions
 
   void on_message_received(core::network::connection* c, char* buffer,
@@ -102,6 +112,7 @@ class node: public core::network::connection::connection_handler,
   sol::function script_on_msg_received;
   sol::function script_on_connected;
   sol::function script_on_disconnected;
+  sol::function script_on_update;
 };
 
 }  // namespace smartproto
