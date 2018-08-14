@@ -14,11 +14,11 @@
 #include "automaton/core/network/connection.h"
 #include "automaton/core/script/lua/lua_script_engine.h"
 
-typedef std::string peer_id;
-
 namespace automaton {
 namespace core {
 namespace smartproto {
+
+typedef core::network::connection_id peer_id;
 
 struct peer_info {
   peer_id id;
@@ -34,21 +34,21 @@ class node: public core::network::connection::connection_handler,
        std::vector<std::string> wire_msgs);
   ~node();
 
-  peer_info get_peer_info(const peer_id& id);
+  peer_info get_peer_info(peer_id id);
 
-  bool set_peer_info(const peer_id& id, const peer_info& info);
+  bool set_peer_info(peer_id id, const peer_info& info);
 
-  void send_message(const peer_id& id, const std::string& msg);
+  void send_message(peer_id id, const core::data::msg& message);
 
-  bool connect(const peer_id& id);
+  bool connect(peer_id id);
 
-  bool disconnect(const peer_id& id);
+  bool disconnect(peer_id id);
 
   bool set_acceptor(const char* address);
 
-  bool add_peer(const peer_id& id);
+  peer_id add_peer(const std::string& address);
 
-  void remove_peer(const peer_id& id);
+  void remove_peer(peer_id id);
 
   std::vector<peer_id> list_known_peers();
 
@@ -65,6 +65,7 @@ class node: public core::network::connection::connection_handler,
   }
 
  private:
+  peer_id peer_ids;
   std::unique_ptr<data::factory> msg_factory;
   script::lua::lua_script_engine script_engine;
   sol::state_view lua;
@@ -73,6 +74,11 @@ class node: public core::network::connection::connection_handler,
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
   std::set<peer_id> connected_peers;
+  std::mutex peer_ids_mutex;
+
+  peer_id get_next_peer_id();
+
+  bool address_parser(const std::string& s, std::string* protocol, std::string* address);
 
   // Protocol message id map
   std::unordered_map<uint32_t, uint32_t> msg_ids;
@@ -84,19 +90,19 @@ class node: public core::network::connection::connection_handler,
 
   // Inherited handlers' functions
 
-  void on_message_received(core::network::connection* c, char* buffer,
+  void on_message_received(peer_id c, char* buffer,
       uint32_t bytes_read, uint32_t id);
 
-  void on_message_sent(core::network::connection* c, uint32_t id,
+  void on_message_sent(peer_id c, uint32_t id,
       core::network::connection::error e);
 
-  void on_connected(core::network::connection* c);
+  void on_connected(peer_id c);
 
-  void on_disconnected(core::network::connection* c);
+  void on_disconnected(peer_id c);
 
-  void on_error(core::network::connection* c, core::network::connection::error e);
+  void on_error(peer_id c, core::network::connection::error e);
 
-  bool on_requested(core::network::acceptor* a, const std::string& address);
+  bool on_requested(core::network::acceptor* a, const std::string& address, peer_id* id);
 
   void on_connected(core::network::acceptor* a, core::network::connection* c,
       const std::string& address);
@@ -104,9 +110,9 @@ class node: public core::network::connection::connection_handler,
   void on_error(core::network::acceptor* a, core::network::connection::error e);
 
   // Script handler functions.
-  void on_message_received(const peer_id& id, const core::data::msg& message) {}
-  void on_connected(const peer_id& id) {}
-  void on_disconnected(const peer_id& id) {}
+  void s_on_message_received(peer_id id, const core::data::msg& message) {}
+  void s_on_connected(peer_id id) {}
+  void s_on_disconnected(peer_id id) {}
 
   // Cached script handler functions.
   sol::function script_on_msg_received;
