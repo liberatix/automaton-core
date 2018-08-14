@@ -1,9 +1,28 @@
 -- node callback functions
+local inspect = require('inspect')
 
 function update(time)
   -- print("Update called at", time)
   -- for each peer check to see if we need to send more info, close connection, etc.
+  print("initial peer state: ")
+  print(inspect(peers))
+  -- for k, v in pairs(peers) do
+  --   print()
+  -- print(initial_peer_states[1].STATE)
+  -- print(initial_peer_states[2].STATE)
+
+  -- For each peer with state HANDSHAKE:
+    -- Start the HANDSHAKE to find out if we are
 end
+
+function test()
+  print "hey"
+  x = 5
+  print(x)
+  x = x+1
+  pritn(x)
+end
+
 
 -- states
 STATE = {}
@@ -12,6 +31,7 @@ STATE.HANDSHAKE = 2
 STATE.BEHIND = 3
 STATE.AHEAD = 4
 STATE.DISCONECTED = 5
+
 -- block state after validation
 BLOCK = {}
 BLOCK.VALID = 1
@@ -21,7 +41,15 @@ BLOCK.NO_PARENT = 4
 
 GENESIS_HASH = sha3("automaton")
 
-peer_states = {}
+-- Initial peer list
+initial_peers = {
+  {IP = "0.0.0.0", STATE = "NOT_CONNECTED"},
+  {IP = "1.1.1.1", STATE = "NOT_CONNECTED"},
+  {IP = "2.2.2.2", STATE = "NOT_CONNECTED"},
+  {IP = "3.3.3.1", STATE = "NOT_CONNECTED"},
+}
+
+peers = {}
 blocks = {}
 blockchain = {}
 
@@ -61,7 +89,8 @@ end
 
 function init()
   -- Add initial peer list to peer_states
-  -- Create the initial state of the blockchain if it is not avalible
+  peers = initial_peers
+  -- Load the blockchain if avalible
 end
 
 
@@ -198,25 +227,23 @@ end
 
 --================================== MAIN =========================================
 i = 0
-while i < 3 do
+while i < 2 do
   local nonce = {0}
   target = get_target(difficulty)
-  print(target)
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   --TODO(Samir): put miner, perv_hash, #blockchain+1 and nonce in a struct
   --             and just previous BLOCK hash instead
   local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
   if found then
-    print(block)
     onBlock(-1, block)
     --local block_validity = validateBlock(block)
   end
   i = i+1
 end
 
-
 init()
+
 function tests()
   -- FOR TESTING ONLY, REMOVE AFTER
   nonce = {0}

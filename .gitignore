@@ -32,3 +32,4 @@
 
 # Locally built third_party libraries
 src/local_third_party
+src/automaton/examples/smartproto/blockchain/inspect.lua
