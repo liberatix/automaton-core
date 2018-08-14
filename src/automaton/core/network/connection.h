@@ -12,6 +12,8 @@ namespace network {
 // TODO(kari): add state as a member and get_state
 // TODO(kari): think about `send and disconnect`
 
+typedef uint32_t connection_id;
+
 /**
   Class that represents a connection between two peers. It is used to connect to
   remote peer or is used by the acceptor class when accepts an incoming
@@ -61,13 +63,13 @@ class connection {
   class connection_handler {
    public:
     virtual ~connection_handler() {}
-    virtual void on_message_received(connection* c, char* buffer,
+    virtual void on_message_received(connection_id c, char* buffer,
         uint32_t bytes_read, uint32_t id) = 0;
-    virtual void on_message_sent(connection* c, uint32_t id,
+    virtual void on_message_sent(connection_id c, uint32_t id,
         connection::error e) = 0;
-    virtual void on_connected(connection* c) = 0;
-    virtual void on_disconnected(connection* c) = 0;
-    virtual void on_error(connection* c, connection::error e) = 0;
+    virtual void on_connected(connection_id c) = 0;
+    virtual void on_disconnected(connection_id c) = 0;
+    virtual void on_error(connection_id c, connection::error e) = 0;
   };
   virtual ~connection() {}
 
@@ -82,6 +84,7 @@ class connection {
   virtual void async_read(char* buffer, uint32_t buffer_size,
       uint32_t num_bytes = 0, uint32_t id = 0) = 0;
 
+  uint32_t get_id();
   virtual state get_state() const = 0;
   virtual std::string get_address() const = 0;
   virtual void connect() = 0;
@@ -93,10 +96,11 @@ class connection {
     function. The function returns object from the specified class. If no such
     class type was registered, NULL will be returned.
   */
-  static connection* create(const std::string& type, const std::string& address,
+  static connection* create(const std::string& type, connection_id id, const std::string& address,
       connection_handler* handler);
 
-  typedef connection* (*factory_function)(const std::string& address, connection_handler* handler);
+  typedef connection* (*factory_function)(connection_id id, const std::string& address,
+      connection_handler* handler);
 
   /**
     Function that is used to register how an object from child class will be
@@ -112,7 +116,7 @@ class connection {
   /**
   Class constructor.
   */
-  explicit connection(connection_handler* handler_);
+  connection(connection_id id, connection_handler* handler_);
 
   /**
     Handler object that must be set so the client could be informed for events.
@@ -121,6 +125,7 @@ class connection {
     received messages or an error that happend.
   */
   connection_handler* handler;
+  uint32_t id;
 
  private:
   /**

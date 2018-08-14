@@ -1,15 +1,15 @@
-a1 = "127.0.0.1:5001"
-a2 = "127.0.0.1:5002"
+a1 = "tcp://127.0.0.1:5001"
+a2 = "tcp://127.0.0.1:5002"
 
 -- Google address
 -- a1 = "69.172.200.235:80"
 
 n = {}
 N = 50
-M = 8;
+M = 8
 
 function addr(i)
-  return "127.0.0.1:" .. tostring(i)
+  return "tcp://127.0.0.1:" .. tostring(i)
 end
 
 for i = 5000,5000 + N do
@@ -20,11 +20,10 @@ end
 
 for i = 5000,5000 + N do
   for j = 1, M do
-    a = 5000 + ((i + M) - 5000) % N
+    a = 5000 + ((i + j) - 5000) % N
     print(i, a)
-    n[i]:add_peer(addr(a))
-    n[i]:connect(addr(a))
-  end 
+    n[i]:connect(n[i]:add_peer(addr(a)))
+  end
 end
 
 p = n[5000]:peers()

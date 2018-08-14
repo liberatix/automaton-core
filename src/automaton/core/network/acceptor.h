@@ -33,7 +33,7 @@ class acceptor {
     virtual ~acceptor_handler() {}
     // IDEA(kari): return string (schema message with connection params) instead
     // of bool
-    virtual bool on_requested(acceptor* a, const std::string& address) = 0;
+    virtual bool on_requested(acceptor* a, const std::string& address, connection_id* id) = 0;
     virtual void on_connected(acceptor* a, connection* c, const std::string& address) = 0;
     virtual void on_error(acceptor* a, connection::error e) = 0;
   };
