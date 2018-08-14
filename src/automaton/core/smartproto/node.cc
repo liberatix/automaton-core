@@ -58,6 +58,13 @@ node::node(unique_ptr<data::schema> schema,
 
 node::~node() {
   LOG(DEBUG) << "Node destructor called";
+
+  std::vector<peer_id> res = list_known_peers();
+  LOG(DEBUG) << "Known peers " << res.size();
+  for (uint32_t i = 0; i < res.size(); ++i) {
+    LOG(DEBUG) << "known_peer: " << res[i];
+  }
+
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = true;
   updater->join();
