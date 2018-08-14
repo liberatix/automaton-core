@@ -18,7 +18,7 @@ namespace core {
 namespace smartproto {
 
 node::node(unique_ptr<data::schema> schema,
-           const string& lua_script,
+           std::vector<std::string> lua_scripts,
            std::vector<std::string> wire_msgs)
     : peer_ids(0)
     , msg_factory(make_unique<protobuf_factory>())
@@ -38,10 +38,11 @@ node::node(unique_ptr<data::schema> schema,
     });
   }
 
-  sol::protected_function_result pfr =
-      lua.safe_script(lua_script, &sol::script_pass_on_error);
-  std::string output = pfr;
-  std::cout << output << std::endl;
+  for (std::string lua_script : lua_scripts) {
+    sol::protected_function_result pfr = lua.safe_script(lua_script, &sol::script_pass_on_error);
+    std::string output = pfr;
+    std::cout << output << std::endl;
+  }
 
   script_on_update = lua["update"];
 
