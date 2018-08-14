@@ -4,8 +4,8 @@ namespace automaton {
 namespace core {
 namespace network {
 
-connection::connection(connection_id id, connection::connection_handler* handler_):
-    handler(handler_), id(id) {}
+connection::connection(connection_id id_, connection::connection_handler* handler_):
+    handler(handler_), id(id_) {}
 
 connection* connection::create(const std::string& type, connection_id id, const std::string&
     address, connection::connection_handler* handler) {

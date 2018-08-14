@@ -62,10 +62,11 @@ peer_info node::get_peer_info(peer_id id) {
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = known_peers.find(id);
   if (it != known_peers.end()) {
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
     return it->second;
   }
-  return peer_info{0};
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+  return peer_info{0};
 }
 
 bool node::set_peer_info(peer_id id, const peer_info& info) {
