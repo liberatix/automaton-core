@@ -132,7 +132,8 @@ int main(int argc, char* argv[]) {
       function BCNode()
         return node(
           "automaton/examples/smartproto/blockchain/blockchain.proto",
-          "automaton/examples/smartproto/blockchain/blockchain.lua"
+          {"automaton/examples/smartproto/blockchain/blockchain.lua"},
+          {"Block", "GetBlocks", "Blocks"},
         )
       end
       )");
