@@ -30,7 +30,7 @@ class node: public core::network::connection::connection_handler,
     public core::network::acceptor::acceptor_handler {
  public:
   node(std::unique_ptr<data::schema> schema,
-       const std::string& lua_script,
+       std::vector<std::string> lua_scripts,
        std::vector<std::string> wire_msgs);
   ~node();
 
