@@ -111,11 +111,21 @@ end
 function onBlock(peer_id, block)
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
+  -- TODO(Samir): Instead of checking block validity handle the cases
   print("Block Validity: " .. block_validity)
-
+  -- Valid block is a block that:
+  -- 1. Is a new block, with valid hash and height >= 1
+  -- 2. Either prev_hash is in blocks or the block is with height #1 and prev_hash is GENESIS_HASH
+  -- 3. Has height difference of one with the blocks[prev_hash].height
+  --    or it is block#1 with prev_hash equal to GENESIS_HASH
+  -- If it is VALID
   if block_validity == BLOCK.VALID  then
     print "Valid block added to blocks"
     blocks[hash] = block
+    --Add the block to the head of the blockchain if possobile
+    --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then
+    --!   print "block added to the longest chain"
+    --!   blockchain[#blockchain+1] = hash
     -- Check if we get a longer chain. Does not matter if it is the main or alternative.
     if block.height == #blockchain+1 then
       -- We are sure that this is the head of the longest chain
@@ -152,6 +162,7 @@ function onGetBlocks(peer_id, msg)
 end
 
 -- Takes in block with miner, prev_hash, height
+--
 function mine(miner, prev_hash, height, nonce, attempts)
   print "Mining block"
   local target = get_target(difficulty)
@@ -181,7 +192,7 @@ end
 
 --================================== MAIN =========================================
 i = 0
-while i < 1 do
+while i < 3 do
   local nonce = {0}
   target = get_target(difficulty)
   print(target)
@@ -200,3 +211,15 @@ end
 
 
 init()
+function tests()
+  -- FOR TESTING ONLY, REMOVE AFTER
+  nonce = {0}
+  genesis = Block()
+  genesis.miner = sha3("automaton")
+  genesis.prev_hash = ""
+  genesis.height = 123
+  inc_nonce(nonce)
+  genesis.nonce = nonce_str(nonce)
+  --blocks[blockHash(genesis)] = genesis
+  validateBlock(genesis)
+end
