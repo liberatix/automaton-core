@@ -2,9 +2,8 @@
 
 function update(time)
   -- print("Update called at", time)
+  -- for each peer check to see if we need to send more info, close connection, etc.
 end
-
--- mining helper
 
 -- states
 STATE = {}
@@ -31,6 +30,7 @@ difficulty.leadingZeros = 1
 difficulty.prefix = "FFFFFF"
 
 
+-- mining helper
 function inc_nonce(n)
   for i = 1, #n do
     if n[i] < 255 then
