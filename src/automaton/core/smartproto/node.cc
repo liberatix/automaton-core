@@ -57,38 +57,38 @@ void node::script(const char* input) {
   std::cout << output << std::endl;
 }
 
-peer_info node::get_peer_info(const peer_id& id) {
-  // VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+peer_info node::get_peer_info(peer_id id) {
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = known_peers.find(id);
   if (it != known_peers.end()) {
     return it->second;
   }
   return peer_info{0};
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
 }
 
-bool node::set_peer_info(const peer_id& id, const peer_info& info) {
-  // VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+bool node::set_peer_info(peer_id id, const peer_info& info) {
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it = known_peers.find(id);
   if (it != known_peers.end()) {
     it->second = info;
-    // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
     return true;
   }
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   return false;
 }
 
-void node::send_message(const peer_id& id, const core::data::msg& message) {
+void node::send_message(peer_id id, const core::data::msg& message) {
 }
 
-bool node::connect(const peer_id& id) {
-  // VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+bool node::connect(peer_id id) {
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   std::lock_guard<std::mutex> lock(peers_mutex);
   if (connected_peers.find(id) != connected_peers.end()) {
-    // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
     LOG(DEBUG) << "Peer " << id << " is already connected!";
     return false;
   }
@@ -96,23 +96,23 @@ bool node::connect(const peer_id& id) {
   if (it != known_peers.end()) {
     if (!it->second.connection) {
       LOG(ERROR) << "Connection does not exist!";
-      // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
       return false;
     }
     if (it->second.connection->get_state() == core::network::connection::state::disconnected) {
       it->second.connection->connect();
-      // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
       return true;
     }
   } else {
     LOG(ERROR) << "No such peer " << id;
   }
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   return false;
 }
 
-bool node::disconnect(const peer_id& id) {
-  // VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+bool node::disconnect(peer_id id) {
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it1 = connected_peers.find(id);
   if (it1 != connected_peers.end()) {
@@ -123,12 +123,12 @@ bool node::disconnect(const peer_id& id) {
       // not in known peers
     }
     connected_peers.erase(it1);
-    // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
     return true;
   } else {
     LOG(ERROR) << "Peer " << id << " is not connected!";
   }
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   return false;
 }
 
@@ -163,10 +163,12 @@ bool node::set_acceptor(const char* address) {
 }
 
 peer_id node::add_peer(const std::string& address) {
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   std::lock_guard<std::mutex> lock(peers_mutex);
   for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
     if (it->second.address == address) {
       LOG(ERROR) << "Already have peer " << address;
+      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
       return it->first;
     }
   }
@@ -178,7 +180,7 @@ peer_id node::add_peer(const std::string& address) {
   try {
     std::string protocol, addr;
     if (!address_parser(address, &protocol, &addr)) {
-      LOG(DEBUG) << "Address was not parsed!";
+      LOG(DEBUG) << "Address was not parsed! " << address;
     } else {
       new_connection = core::network::connection::create(protocol, info.id, addr, this);
       if (new_connection && !new_connection->init()) {
@@ -198,10 +200,12 @@ peer_id node::add_peer(const std::string& address) {
     info.connection = std::shared_ptr<core::network::connection> (new_connection);
   }
   known_peers[info.id] = info;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   return info.id;
 }
 
-void node::remove_peer(const peer_id& id) {
+void node::remove_peer(peer_id id) {
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   std::lock_guard<std::mutex> lock(peers_mutex);
   auto it1 = known_peers.find(id);
   if (it1 != known_peers.end()) {
@@ -212,24 +216,24 @@ void node::remove_peer(const peer_id& id) {
     }
     known_peers.erase(it1);
   }
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << id;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
 }
 
 std::vector<peer_id> node::list_known_peers() {
-  // VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
   std::lock_guard<std::mutex> lock(peers_mutex);
   std::vector<peer_id> res;
   for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
     res.push_back(it->first);
   }
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
   return res;
 }
 
 std::set<peer_id> node::list_connected_peers() {
-  // VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
   std::lock_guard<std::mutex> lock(peers_mutex);
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
   return connected_peers;
 }
 
@@ -257,56 +261,63 @@ bool node::address_parser(const std::string& s, std::string* protocol, std::stri
   }
 }
 
-void node::on_message_received(const peer_id& c, char* buffer, uint32_t bytes_read, uint32_t id) {
+void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t id) {
   LOG(DEBUG) << c << " -> on_message_received";
 }
 
-void node::on_message_sent(const peer_id& c, uint32_t id, core::network::connection::error e) {
+void node::on_message_sent(peer_id c, uint32_t id, core::network::connection::error e) {
   LOG(DEBUG) << c << " -> on_message_sent";
 }
 
-void node::on_connected(const peer_id& c) {
+void node::on_connected(peer_id c) {
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c;
   peers_mutex.lock();
   auto it = known_peers.find(c);
   if (it == known_peers.end()) {
     LOG(ERROR) << "Connected to unknown peer " << c << " THIS SHOULD NEVER HAPPEN";
     peers_mutex.unlock();
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c
+        << (it->second.address);
     return;
   }
-  // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << c->get_address();
   LOG(DEBUG) << "Connected to " << c;
   connected_peers.insert(c);
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c
+      << (it->second.address);
   peers_mutex.unlock();
   s_on_connected(c);
 }
 
-  // VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << c->get_address();
-void node::on_disconnected(const peer_id& c) {
+void node::on_disconnected(peer_id c) {
   LOG(DEBUG) << c << " -> on_disconnected";
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c;
   peers_mutex.lock();
   auto it = connected_peers.find(c);
   // If the address is not the id
   if (it != connected_peers.end()) {
     connected_peers.erase(it);
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c;
     peers_mutex.unlock();
     s_on_disconnected(c);
   } else {
-    // VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " " << c->get_address();
     LOG(ERROR) << "No such peer " << c;
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c;
     peers_mutex.unlock();
   }
 }
 
-void node::on_error(const peer_id& c, core::network::connection::error e) {
+void node::on_error(peer_id c, core::network::connection::error e) {
   LOG(DEBUG) << c << " -> on_error";
 }
 
 bool node::on_requested(core::network::acceptor* a, const std::string& address, peer_id* id) {
   LOG(DEBUG) << "Requested connection to " << acceptor_->get_address() << " from " << address;
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   std::lock_guard<std::mutex> lock(peers_mutex);
   for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
     if (it->second.address == address) {
       LOG(ERROR) << "Already have peer " << address;
+      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
       return false;
     }
   }
@@ -316,21 +327,25 @@ bool node::on_requested(core::network::acceptor* a, const std::string& address, 
   info.id = *id;
   info.connection = nullptr;
   known_peers[*id] = info;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   return true;
 }
 
 void node::on_connected(core::network::acceptor* a, core::network::connection* c, const std::string& address) {
   peer_id id = c->get_id();
   LOG(DEBUG) << "Connected in acceptor " << a->get_address() << " peer with id " << id << " (" << address << ')';
+  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   peers_mutex.lock();
   auto it = known_peers.find(id);
   if (it == known_peers.end()) {
+    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
     peers_mutex.unlock();
     LOG(ERROR) << "Connected to unknown peer " << id << " (" << address << ')' << " THIS SHOULD NEVER HAPPEN";
     return;
   }
   it->second.connection = std::shared_ptr<core::network::connection> (c);
   LOG(DEBUG) << "Connected to " << address;
+  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   peers_mutex.unlock();
 }
 

@@ -63,13 +63,13 @@ class connection {
   class connection_handler {
    public:
     virtual ~connection_handler() {}
-    virtual void on_message_received(const connection_id& c, char* buffer,
+    virtual void on_message_received(connection_id c, char* buffer,
         uint32_t bytes_read, uint32_t id) = 0;
-    virtual void on_message_sent(const connection_id& c, uint32_t id,
+    virtual void on_message_sent(connection_id c, uint32_t id,
         connection::error e) = 0;
-    virtual void on_connected(const connection_id& c) = 0;
-    virtual void on_disconnected(const connection_id& c) = 0;
-    virtual void on_error(const connection_id& c, connection::error e) = 0;
+    virtual void on_connected(connection_id c) = 0;
+    virtual void on_disconnected(connection_id c) = 0;
+    virtual void on_error(connection_id c, connection::error e) = 0;
   };
   virtual ~connection() {}
 
