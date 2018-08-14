@@ -1,6 +1,8 @@
 #include "automaton/core/smartproto/node.h"
 
+#include <chrono>
 #include <regex>
+#include <thread>
 
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 
@@ -15,7 +17,9 @@ namespace automaton {
 namespace core {
 namespace smartproto {
 
-node::node(unique_ptr<data::schema> schema, const string& lua_script)
+node::node(unique_ptr<data::schema> schema,
+           const string& lua_script,
+           std::vector<std::string> wire_msgs)
     : peer_ids(0)
     , msg_factory(make_unique<protobuf_factory>())
     , lua(script_engine.get_sol())
@@ -38,15 +42,34 @@ node::node(unique_ptr<data::schema> schema, const string& lua_script)
       lua.safe_script(lua_script, &sol::script_pass_on_error);
   std::string output = pfr;
   std::cout << output << std::endl;
+
+  script_on_update = lua["update"];
+
+  std::lock_guard<std::mutex> lock(updater_mutex);
+  updater_stop_signal = false;
+  updater = new std::thread([this]() {
+    while (!this->updater_stop_signal) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+         std::chrono::system_clock::now().time_since_epoch()).count();
+      sol::protected_function_result result = script_on_update(current_time);
+    }
+  });
 }
 
 node::~node() {
   LOG(DEBUG) << "Node destructor called";
+
   std::vector<peer_id> res = list_known_peers();
   LOG(DEBUG) << "Known peers " << res.size();
   for (uint32_t i = 0; i < res.size(); ++i) {
     LOG(DEBUG) << "known_peer: " << res[i];
   }
+
+  std::lock_guard<std::mutex> lock(updater_mutex);
+  updater_stop_signal = true;
+  updater->join();
+  delete updater;
 }
 
 void node::script(const char* input) {

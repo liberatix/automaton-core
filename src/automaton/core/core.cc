@@ -91,7 +91,8 @@ int main(int argc, char* argv[]) {
       auto schema_contents = get_file_contents(schema_file_name);
       auto script_contents = get_file_contents(proto_file_name);
       unique_ptr<schema> pb_schema(new protobuf_schema(schema_contents));
-      return make_unique<node>(std::move(pb_schema), script_contents);
+      std::vector<std::string> msgs{"Block", "Blocks", "GetBlock"};
+      return make_unique<node>(std::move(pb_schema), script_contents, msgs);
     }));
 
   // Bind this node to its own Lua state.
