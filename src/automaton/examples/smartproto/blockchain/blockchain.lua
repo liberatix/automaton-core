@@ -1,3 +1,9 @@
+-- node callback functions
+
+function update(time)
+  -- print("Update called at", time)
+end
+
 -- mining helper
 
 -- states
