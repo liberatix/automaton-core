@@ -71,6 +71,8 @@ node::node(std::vector<std::string> schemas,
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
       sol::protected_function_result result = script_on_update(current_time);
+      string output = result;
+      LOG(ERROR) << output;
     }
   });
 }
