@@ -30,7 +30,9 @@ struct peer_info {
 class node: public core::network::connection::connection_handler,
     public core::network::acceptor::acceptor_handler {
  public:
-  node(std::unique_ptr<data::schema> schema, const std::string& lua_script);
+  node(std::vector<std::string> schemas,
+       std::vector<std::string> lua_scripts,
+       std::vector<std::string> wire_msgs);
   ~node();
 
   peer_info get_peer_info(peer_id id);
@@ -70,7 +72,7 @@ class node: public core::network::connection::connection_handler,
   std::unique_ptr<data::factory> msg_factory;
   script::lua::lua_script_engine script_engine;
   sol::state_view lua;
-  std::unique_ptr<data::schema> schema;
+  // std::vector<std::unique_ptr<data::schema>> schemas_;
   std::shared_ptr<core::network::acceptor> acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
@@ -80,6 +82,14 @@ class node: public core::network::connection::connection_handler,
   peer_id get_next_peer_id();
 
   bool address_parser(const std::string& s, std::string* protocol, std::string* address);
+
+  // Protocol message id map
+  std::unordered_map<uint32_t, uint32_t> msg_ids;
+
+  // Time based update.
+  std::mutex updater_mutex;
+  bool updater_stop_signal;
+  std::thread* updater;
 
   // Inherited handlers' functions
 
@@ -106,9 +116,10 @@ class node: public core::network::connection::connection_handler,
   void s_on_disconnected(peer_id id) {}
 
   // Cached script handler functions.
-  sol::function script_on_msg_received;
-  sol::function script_on_connected;
-  sol::function script_on_disconnected;
+  sol::protected_function script_on_msg_received;
+  sol::protected_function script_on_connected;
+  sol::protected_function script_on_disconnected;
+  sol::protected_function script_on_update;
 };
 
 }  // namespace smartproto
