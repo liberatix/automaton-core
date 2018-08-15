@@ -25,7 +25,7 @@ When you do squash and merge, your repo will hang onto the commits that have alr
 
 **WARNING! THIS WILL WIPE YOUR LOCAL CHANGES!**
 
-<SPAN COLOR="#F00">**ONLY DO THIS AFTER YOU'VE SQUASHED AND MERGED ALL YOUR CHANGES INTO THE MASTER***</SPAN>
+<SPAN style="color: #F00">**ONLY DO THIS AFTER YOU'VE SQUASHED AND MERGED ALL YOUR CHANGES INTO THE MASTER***</SPAN>
 
 ```
 git reset --hard origin/master
