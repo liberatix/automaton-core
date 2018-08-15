@@ -20,12 +20,14 @@ namespace automaton {
 namespace core {
 namespace smartproto {
 
-// TODO(kari): Clear buffer in info on erase/delete/destruct
+// TODO(kari): Make buffers in connection shared_ptr
 
 static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
 static const uint32_t HEADER_SIZE = 3;
 static const uint32_t WAITING_HEADER = 1;
 static const uint32_t WAITING_MESSAGE = 2;
+
+peer_info::peer_info(): id(0), address("") {}
 
 node::node(std::vector<std::string> schemas,
            std::vector<std::string> lua_scripts,
@@ -95,31 +97,6 @@ void node::script(const char* input) {
   std::cout << output << std::endl;
 }
 
-peer_info node::get_peer_info(peer_id id) {
-  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-  std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = known_peers.find(id);
-  if (it != known_peers.end()) {
-    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-    return it->second;
-  }
-  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-  return peer_info{0};
-}
-
-bool node::set_peer_info(peer_id id, const peer_info& info) {
-  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-  std::lock_guard<std::mutex> lock(peers_mutex);
-  auto it = known_peers.find(id);
-  if (it != known_peers.end()) {
-    it->second = info;
-    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-    return true;
-  }
-  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-  return false;
-}
-
 // void node::send_message(peer_id id, const core::data::msg& message) {}
 
 void node::send_message(peer_id id, const std::string& message) {
@@ -184,22 +161,24 @@ bool node::connect(peer_id id) {
 
 bool node::disconnect(peer_id id) {
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-  std::lock_guard<std::mutex> lock(peers_mutex);
+  peers_mutex.lock();
   auto it1 = connected_peers.find(id);
   if (it1 != connected_peers.end()) {
     auto it = known_peers.find(id);
     if (it != known_peers.end()) {
-      it->second.connection->disconnect();
+      std::shared_ptr<core::network::connection> connection = (it->second.connection);
+      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+      peers_mutex.unlock();
+      connection->disconnect();
+      return true;
     } else {
       // not in known peers
     }
-    connected_peers.erase(it1);
-    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-    return true;
   } else {
     LOG(ERROR) << "Peer " << id << " is not connected!";
   }
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+  peers_mutex.unlock();
   return false;
 }
 
@@ -248,7 +227,7 @@ peer_id node::add_peer(const std::string& address) {
   info.address = address;
   info.id = get_next_peer_id();
   info.connection = nullptr;
-  info.buffer = new char[MAX_MESSAGE_SIZE];
+  info.buffer = std::shared_ptr<char>(new char[MAX_MESSAGE_SIZE]);
   core::network::connection* new_connection = nullptr;
   try {
     std::string protocol, addr;
@@ -272,24 +251,28 @@ peer_id node::add_peer(const std::string& address) {
   } else {
     info.connection = std::shared_ptr<core::network::connection> (new_connection);
   }
-  known_peers[info.id] = info;
+  known_peers[info.id] = std::move(info);
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   return info.id;
 }
 
 void node::remove_peer(peer_id id) {
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-  std::lock_guard<std::mutex> lock(peers_mutex);
+  peers_mutex.lock();
   auto it1 = known_peers.find(id);
   if (it1 != known_peers.end()) {
     auto it2 = connected_peers.find(id);
     if (it2 != connected_peers.end()) {
-      it1->second.connection->disconnect();
-      connected_peers.erase(it2);
+      std::shared_ptr<core::network::connection> connection = (it1->second.connection);
+      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+      peers_mutex.unlock();
+      connection->disconnect();
+      peers_mutex.lock();
     }
     known_peers.erase(it1);
   }
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+  peers_mutex.unlock();
 }
 
 std::vector<peer_id> node::list_known_peers() {
@@ -342,6 +325,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
         LOG(ERROR) << "Wrong header size received";
         return;
       }
+      // TODO(kari): check if this peer still exists, the buffer could be invalid
       // TODO(kari): make this loop
       uint32_t message_size = 0;
       message_size += (buffer[2] & 0x000000ff);
@@ -399,7 +383,7 @@ void node::on_connected(peer_id c) {
   connected_peers.insert(c);
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c
       << (it->second.address);
-  it->second.connection->async_read(it->second.buffer, MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
+  it->second.connection->async_read(it->second.buffer.get(), MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
   peers_mutex.unlock();
   s_on_connected(c);
 }
@@ -423,7 +407,8 @@ void node::on_disconnected(peer_id c) {
 }
 
 void node::on_error(peer_id c, core::network::connection::error e) {
-  LOG(DEBUG) << c << " -> on_error";
+  LOG(DEBUG) << c << " -> on_error " << e;
+  remove_peer(c);
 }
 
 bool node::on_requested(core::network::acceptor* a, const std::string& address, peer_id* id) {
@@ -442,8 +427,8 @@ bool node::on_requested(core::network::acceptor* a, const std::string& address, 
   info.address = address;
   info.id = *id;
   info.connection = nullptr;
-  info.buffer = new char[MAX_MESSAGE_SIZE];
-  known_peers[*id] = info;
+  info.buffer = std::shared_ptr<char>(new char[MAX_MESSAGE_SIZE]);
+  known_peers[*id] = std::move(info);
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   return true;
 }
@@ -467,7 +452,7 @@ void node::on_connected(core::network::acceptor* a, core::network::connection* c
 }
 
 void node::on_error(core::network::acceptor* a, core::network::connection::error e)  {
-  LOG(DEBUG) << a->get_address() << " -> on_error";
+  LOG(DEBUG) << a->get_address() << " -> on_error in acceptor";
 }
 
 }  // namespace smartproto
