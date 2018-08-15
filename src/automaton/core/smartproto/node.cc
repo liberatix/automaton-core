@@ -5,9 +5,12 @@
 #include <thread>
 
 #include "automaton/core/data/protobuf/protobuf_factory.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 
 using automaton::core::data::msg;
+using automaton::core::data::schema;
 using automaton::core::data::protobuf::protobuf_factory;
+using automaton::core::data::protobuf::protobuf_schema;
 
 using std::make_unique;
 using std::unique_ptr;
@@ -17,7 +20,7 @@ namespace automaton {
 namespace core {
 namespace smartproto {
 
-node::node(unique_ptr<data::schema> schema,
+node::node(std::vector<std::string> schemas,
            std::vector<std::string> lua_scripts,
            std::vector<std::string> wire_msgs)
     : peer_ids(0)
@@ -25,17 +28,21 @@ node::node(unique_ptr<data::schema> schema,
     , lua(script_engine.get_sol())
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
-  msg_factory->import_schema(schema.get(), "", "");
-  script_engine.bind_core();
 
-  // Bind schema messages.
-  for (uint32_t id = 0; id < msg_factory->get_schemas_number(); id++) {
-    auto name = msg_factory->get_schema_name(id);
-    LOG(DEBUG) << "Binding proto message " << name;
+  for (auto schema_content : schemas) {
+    schema* pb_schema = new protobuf_schema(schema_content);
+    msg_factory->import_schema(pb_schema, "", "");
+    script_engine.bind_core();
 
-    lua.set(name, [this, name, id]() -> unique_ptr<msg> {
-      return this->msg_factory->new_message_by_id(id);
-    });
+    // Bind schema messages.
+    for (uint32_t id = 0; id < msg_factory->get_schemas_number(); id++) {
+      auto name = msg_factory->get_schema_name(id);
+      LOG(DEBUG) << "Binding proto message " << name;
+
+      lua.set(name, [this, name, id]() -> unique_ptr<msg> {
+        return this->msg_factory->new_message_by_id(id);
+      });
+    }
   }
 
   for (std::string lua_script : lua_scripts) {

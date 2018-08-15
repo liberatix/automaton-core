@@ -29,7 +29,7 @@ struct peer_info {
 class node: public core::network::connection::connection_handler,
     public core::network::acceptor::acceptor_handler {
  public:
-  node(std::unique_ptr<data::schema> schema,
+  node(std::vector<std::string> schemas,
        std::vector<std::string> lua_scripts,
        std::vector<std::string> wire_msgs);
   ~node();
@@ -69,7 +69,7 @@ class node: public core::network::connection::connection_handler,
   std::unique_ptr<data::factory> msg_factory;
   script::lua::lua_script_engine script_engine;
   sol::state_view lua;
-  std::unique_ptr<data::schema> schema;
+  // std::vector<std::unique_ptr<data::schema>> schemas_;
   std::shared_ptr<core::network::acceptor> acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
