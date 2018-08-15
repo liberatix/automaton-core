@@ -24,6 +24,7 @@ https://gist.github.com/hofmannsven/6814451
 When you do squash and merge, your repo will hang onto the commits that have already been squashed and merged into the master.
 
 **WARNING! THIS WILL WIPE YOUR LOCAL CHANGES!**
+
 **ONLY DO THIS AFTER YOU'VE SQUASHED AND MERGED ALL YOUR CHANGES INTO THE MASTER***
 
 ```
