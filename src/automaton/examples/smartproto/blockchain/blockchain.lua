@@ -2,12 +2,18 @@
 function update(time)
   -- print("Update called at", time)
   -- for each peer check to see if we need to send more info, close connection, etc.
+  print(handshake(1))
   print("initial peer state: ")
+  print(handshake(-1))
+  t = assert(false, "asd")
+  print(t)
   print(tprint(peers))
   print("got here")
   for k, v in pairs(peers) do
-    print(k)
-    print(tprint(v))
+    -- print(k)
+    -- print(tprint(v))
+    -- handle peer
+
   end
   -- For each peer with state HANDSHAKE:
     -- Start the HANDSHAKE to find out if we are
@@ -128,6 +134,11 @@ function onConnect(peer_id)
   -- set peer state
   -- send initial block
   -- request getblock
+end
+
+function handshake(peer_id)
+  local t = assert(peer_id > 0, "peer_id needs to be possitive number")
+  return t
 end
 
 function onUpdate()
