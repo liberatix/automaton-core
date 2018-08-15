@@ -2,32 +2,33 @@
 function update(time)
   -- print("Update called at", time)
   -- for each peer check to see if we need to send more info, close connection, etc.
-  print(handshake(1))
-  print("initial peer state: ")
-  print(handshake(-1))
-  t = assert(false, "asd")
-  print(t)
-  print(tprint(peers))
+  --print("initial peer state: ")
+  --print(tprint(peers))
   print("got here")
   for k, v in pairs(peers) do
-    -- print(k)
-    -- print(tprint(v))
-    -- handle peer
-
+    print(v)
+    print(tprint(v))
+    if v.state == STATE.HANDSHAKE then
+      handshake(k)
+      print(k)
+      print(tprint(v))
+    end
   end
   -- For each peer with state HANDSHAKE:
     -- Start the HANDSHAKE to find out if we are
+  print "UPDATE FINISHED WITHOUT ERRORS"
 end
+
 
 
 
 -- states
 STATE = {}
-STATE.NOT_CONNECTED = 1
-STATE.HANDSHAKE = 2
-STATE.BEHIND = 3
-STATE.AHEAD = 4
-STATE.DISCONECTED = 5
+STATE.HANDSHAKE = 1
+STATE.BEHIND = 2
+STATE.AHEAD = 3
+STATE.DISCONECTED = 4
+STATE.NOT_CONNECTED = 5
 
 -- block state after validation
 BLOCK = {}
@@ -40,10 +41,10 @@ GENESIS_HASH = sha3("automaton")
 
 -- Initial peer list
 initial_peers = {
-  {IP = "0.0.0.0", STATE = "NOT_CONNECTED"},
-  {IP = "1.1.1.1", STATE = "NOT_CONNECTED"},
-  {IP = "2.2.2.2", STATE = "NOT_CONNECTED"},
-  {IP = "3.3.3.3", STATE = "NOT_CONNECTED"},
+  {IP = "0.0.0.0", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
+  {IP = "1.1.1.1", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
+  {IP = "2.2.2.2", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
+  {IP = "3.3.3.3", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
 }
 
 peers = {}
@@ -137,8 +138,25 @@ function onConnect(peer_id)
 end
 
 function handshake(peer_id)
-  local t = assert(peer_id > 0, "peer_id needs to be possitive number")
-  return t
+  -- Check if peer exists in peers
+  if peer_id <= 0 or peers[peer_id] == nil then
+    print "ERROR(Samir 301): in handshake, peer_id needs to be possitive number and peers[peer_id] should not be nil"
+    return
+  end
+  if peers[peer_id].STATE == STATE.HANDSHAKE and peers[peer_id].block.sent_block_hash == nil then
+    sendBlock(peer_id, blockchain[#blockchain])
+  elseif true then
+    print "elseif block is sent"
+    print(tprint(peers[id]))
+  end
+
+end
+
+function sendBlock(peer_id, blockHash)
+  -- TODO(Samir): Implement block sending to other peers, Check if the block is received
+  print "ERROR(Samir 101): sendBlock not implemented"
+  print("sending block to: " .. peer_id)
+  peers[peer_id].block.sent_block_hash = blockchain[#blockchain]
 end
 
 function onUpdate()
@@ -146,6 +164,11 @@ function onUpdate()
 end
 
 function onBlock(peer_id, block)
+  -- first_block_from_peer = peers[peer_id].state == STATE.HANDSHAKE and
+  --     peers[peer_id].block.receive_block == nil
+  if first_block_from_peer then
+    peers[peer_id].block.receive_block = block
+  end
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
   -- TODO(Samir): Instead of checking block validity handle the cases
