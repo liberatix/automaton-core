@@ -13,7 +13,7 @@
 #include "automaton/core/network/acceptor.h"
 #include "automaton/core/network/connection.h"
 #include "automaton/core/script/lua/lua_script_engine.h"
-#include "automaton/core/smartproto/peer.h"
+// #include "automaton/core/smartproto/peer.h"
 
 namespace automaton {
 namespace core {
