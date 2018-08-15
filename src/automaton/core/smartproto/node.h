@@ -41,9 +41,9 @@ class node: public core::network::connection::connection_handler,
 
   bool set_peer_info(peer_id id, const peer_info& info);
 
-  // void send_message(peer_id id, const core::data::msg& message);
+  void send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id);
 
-  void send_message(peer_id id, const std::string& message);
+  void send_blob(peer_id id, const std::string& blob, uint32_t msg_id);
 
   bool connect(peer_id id);
 
@@ -86,7 +86,8 @@ class node: public core::network::connection::connection_handler,
   bool address_parser(const std::string& s, std::string* protocol, std::string* address);
 
   // Protocol message id map
-  std::unordered_map<uint32_t, uint32_t> msg_ids;
+  std::unordered_map<uint32_t, uint32_t> wire_to_factory;
+  std::unordered_map<uint32_t, uint32_t> factory_to_wire;
 
   // Time based update.
   std::mutex updater_mutex;
@@ -113,12 +114,12 @@ class node: public core::network::connection::connection_handler,
   void on_error(core::network::acceptor* a, core::network::connection::error e);
 
   // Script handler functions.
-  void s_on_message_received(peer_id id, const std::string& message) {}
-  void s_on_connected(peer_id id) {}
-  void s_on_disconnected(peer_id id) {}
+  void s_on_blob_received(peer_id id, const std::string& blob);
+  void s_on_connected(peer_id id);
+  void s_on_disconnected(peer_id id);
 
-  // Cached script handler functions.
-  sol::protected_function script_on_msg_received;
+  // Script handler functions.
+  std::unordered_map<uint32_t, sol::protected_function> script_on_msg;
   sol::protected_function script_on_connected;
   sol::protected_function script_on_disconnected;
   sol::protected_function script_on_update;
