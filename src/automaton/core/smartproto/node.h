@@ -19,6 +19,7 @@ namespace automaton {
 namespace core {
 namespace smartproto {
 
+typedef core::network::connection_id peer_id;
 
 struct peer_info {
   peer_id id = 0;
