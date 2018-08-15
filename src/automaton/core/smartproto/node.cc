@@ -62,9 +62,7 @@ node::node(std::vector<std::string> schemas,
   }
 
   lua.set_function("send",
-    [this](uint32_t peer_id,
-           const core::data::msg& msg,
-           uint32_t msg_id) {
+    [this](uint32_t peer_id, const core::data::msg& msg, uint32_t msg_id) {
       send_message(peer_id, msg, msg_id);
     });
 
