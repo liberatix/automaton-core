@@ -23,20 +23,12 @@ https://gist.github.com/hofmannsven/6814451
 
 When you do squash and merge, your repo will hang onto the commits that have already been squashed and merged into the master.
 
-You can sync with the master and uncommit all of your changes by doing the following:
+**WARNING! THIS WILL WIPE YOUR LOCAL CHANGES!**
+
+**ONLY DO THIS AFTER YOU'VE SQUASHED AND MERGED ALL YOUR CHANGES INTO THE MASTER**
 
 ```
-git reset --mixed HEAD~$(git rev-list --count HEAD ^master)
-```
-
-On Windows run these separately
-```
-git rev-list --count HEAD ^master
-
-# and then use that number after HEAD~ in place of ###
-
-git reset --mixed HEAD~###
-
+git reset --hard origin/master
 ```
 
 ## Lint

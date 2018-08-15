@@ -13,6 +13,7 @@
 #include "automaton/core/network/acceptor.h"
 #include "automaton/core/network/connection.h"
 #include "automaton/core/script/lua/lua_script_engine.h"
+// #include "automaton/core/smartproto/peer.h"
 
 namespace automaton {
 namespace core {
@@ -21,9 +22,10 @@ namespace smartproto {
 typedef core::network::connection_id peer_id;
 
 struct peer_info {
-  peer_id id;
-  std::string address;
+  peer_id id = 0;
+  std::string address = "";
   std::shared_ptr<core::network::connection> connection;
+  char* buffer = nullptr;
 };
 
 class node: public core::network::connection::connection_handler,
@@ -38,7 +40,9 @@ class node: public core::network::connection::connection_handler,
 
   bool set_peer_info(peer_id id, const peer_info& info);
 
-  void send_message(peer_id id, const core::data::msg& message);
+  // void send_message(peer_id id, const core::data::msg& message);
+
+  void send_message(peer_id id, const std::string& message);
 
   bool connect(peer_id id);
 
@@ -90,11 +94,9 @@ class node: public core::network::connection::connection_handler,
 
   // Inherited handlers' functions
 
-  void on_message_received(peer_id c, char* buffer,
-      uint32_t bytes_read, uint32_t id);
+  void on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t id);
 
-  void on_message_sent(peer_id c, uint32_t id,
-      core::network::connection::error e);
+  void on_message_sent(peer_id c, uint32_t id, core::network::connection::error e);
 
   void on_connected(peer_id c);
 
@@ -110,7 +112,7 @@ class node: public core::network::connection::connection_handler,
   void on_error(core::network::acceptor* a, core::network::connection::error e);
 
   // Script handler functions.
-  void s_on_message_received(peer_id id, const core::data::msg& message) {}
+  void s_on_message_received(peer_id id, const std::string& message) {}
   void s_on_connected(peer_id id) {}
   void s_on_disconnected(peer_id id) {}
 
