@@ -1,3 +1,6 @@
+print("LOADED!")
+
+-- node callback functions
 
 function update(time)
   -- print("Update called at", time)
@@ -211,6 +214,18 @@ function onBlock(peer_id, block)
     -- potencial fork, the block will not be saved
     -- find out which blocks we need to request or just request from start
   end
+end
+
+function on_Block(peer_id, msg)
+  print("Received Block!")
+  print(msg:to_json())
+end
+
+function connected(peer_id)
+  print("Connected to " .. tostring(peer_id))
+  b = Block()
+  b.miner = "Ace"
+  send(1, b, 0)
 end
 
 function onBlocks(peer_id, msg)

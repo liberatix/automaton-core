@@ -98,6 +98,7 @@ int main(int argc, char* argv[]) {
 
       vector<string> script_contents;
       for (auto script_file_name : script_file_names) {
+        LOG(DEBUG) << "LOAD FILE " << script_file_name;
         script_contents.push_back(get_file_contents(script_file_name.c_str()));
       }
 
@@ -106,6 +107,7 @@ int main(int argc, char* argv[]) {
 
   // Bind this node to its own Lua state.
   node_type.set("add_peer", &node::add_peer);
+  node_type.set("remove_peer", &node::remove_peer);
   node_type.set("connect", &node::connect);
   node_type.set("disconnect", &node::disconnect);
   node_type.set("send", &node::send_message);
@@ -127,6 +129,8 @@ int main(int argc, char* argv[]) {
     return sol::as_table(n.list_connected_peers());
   });
 
+  node_type.set("script", &node::script);
+
   lua.set_usertype("node", node_type);
 
   lua.script(
@@ -134,7 +138,10 @@ int main(int argc, char* argv[]) {
       function anode()
         return node(
           {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-          {"automaton/examples/smartproto/blockchain/test.lua"},
+          {
+            "automaton/examples/smartproto/blockchain/test.lua",
+            "automaton/examples/smartproto/blockchain/blockchain.lua"
+          },
           {"Block", "GetBlocks", "Blocks"}
         )
       end
