@@ -107,6 +107,7 @@ int main(int argc, char* argv[]) {
 
   // Bind this node to its own Lua state.
   node_type.set("add_peer", &node::add_peer);
+  node_type.set("remove_peer", &node::remove_peer);
   node_type.set("connect", &node::connect);
   node_type.set("disconnect", &node::disconnect);
   node_type.set("send", &node::send_message);

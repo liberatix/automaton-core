@@ -22,10 +22,11 @@ namespace smartproto {
 typedef core::network::connection_id peer_id;
 
 struct peer_info {
-  peer_id id = 0;
-  std::string address = "";
+  peer_id id;
+  std::string address;
   std::shared_ptr<core::network::connection> connection;
-  char* buffer = nullptr;
+  std::shared_ptr<char> buffer;
+  peer_info();
 };
 
 class node: public core::network::connection::connection_handler,
