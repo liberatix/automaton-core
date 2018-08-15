@@ -230,7 +230,7 @@ peer_id node::add_peer(const std::string& address) {
   info.address = address;
   info.id = get_next_peer_id();
   info.connection = nullptr;
-  info.buffer = std::shared_ptr<char>(new char[MAX_MESSAGE_SIZE]);
+  info.buffer = std::shared_ptr<char>(new char[MAX_MESSAGE_SIZE], std::default_delete<char[]>());
   core::network::connection* new_connection = nullptr;
   try {
     std::string protocol, addr;
@@ -430,7 +430,7 @@ bool node::on_requested(core::network::acceptor* a, const std::string& address, 
   info.address = address;
   info.id = *id;
   info.connection = nullptr;
-  info.buffer = std::shared_ptr<char>(new char[MAX_MESSAGE_SIZE]);
+  info.buffer = std::shared_ptr<char>(new char[MAX_MESSAGE_SIZE], std::default_delete<char[]>());
   known_peers[*id] = std::move(info);
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   return true;
