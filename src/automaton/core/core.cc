@@ -20,13 +20,15 @@ using automaton::core::smartproto::node;
 using json = nlohmann::json;
 
 using std::make_unique;
+using std::string;
 using std::unique_ptr;
+using std::vector;
 
-void string_replace(std::string* str,
-                    const std::string& oldStr,
-                    const std::string& newStr) {
-  std::string::size_type pos = 0u;
-  while ((pos = str->find(oldStr, pos)) != std::string::npos) {
+void string_replace(string* str,
+                    const string& oldStr,
+                    const string& newStr) {
+  string::size_type pos = 0u;
+  while ((pos = str->find(oldStr, pos)) != string::npos) {
      str->replace(pos, oldStr.length(), newStr);
      pos += newStr.length();
   }
@@ -43,7 +45,7 @@ static const char* automaton_ascii_logo_cstr =
   "▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀" "\x1b[0m\n";
 
 int main(int argc, char* argv[]) {
-  std::string automaton_ascii_logo(automaton_ascii_logo_cstr);
+  string automaton_ascii_logo(automaton_ascii_logo_cstr);
   string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
   {
@@ -86,17 +88,20 @@ int main(int argc, char* argv[]) {
 
   node_type.set(sol::call_constructor,
     sol::factories(
-    [](const char* schema_file_name, std::vector<std::string> script_file_names, std::vector<std::string> msgs)
-    -> unique_ptr<node> {
-      auto schema_contents = get_file_contents(schema_file_name);
-      unique_ptr<schema> pb_schema(new protobuf_schema(schema_contents));
+    [](vector<string> schema_file_names,
+       vector<string> script_file_names,
+       vector<string> msgs) -> unique_ptr<node> {
+      vector<string> schemas_content;
+      for (auto schema_file_name : schema_file_names) {
+        schemas_content.push_back(get_file_contents(schema_file_name.c_str()));
+      }
 
-      std::vector<std::string> script_contents;
+      vector<string> script_contents;
       for (auto script_file_name : script_file_names) {
         script_contents.push_back(get_file_contents(script_file_name.c_str()));
       }
 
-      return make_unique<node>(std::move(pb_schema), script_contents, msgs);
+      return make_unique<node>(schemas_content, script_contents, msgs);
     }));
 
   // Bind this node to its own Lua state.
@@ -128,7 +133,7 @@ int main(int argc, char* argv[]) {
       R"(
       function anode()
         return node(
-          "automaton/examples/smartproto/blockchain/blockchain.proto",
+          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
           {"automaton/examples/smartproto/blockchain/test.lua"},
           {"Block", "GetBlocks", "Blocks"}
         )
@@ -136,7 +141,7 @@ int main(int argc, char* argv[]) {
 
       function BCNode()
         return node(
-          "automaton/examples/smartproto/blockchain/blockchain.proto",
+          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
           {"automaton/examples/smartproto/blockchain/blockchain.lua"},
           {"Block", "GetBlocks", "Blocks"}
         )
@@ -159,11 +164,11 @@ int main(int argc, char* argv[]) {
       break;
     }
 
-    std::string cmd{input};
+    string cmd{input};
     cli.history_add(cmd.c_str());
 
     sol::protected_function_result pfr = lua.safe_script(cmd, &sol::script_pass_on_error);
-    std::string output = pfr;
+    string output = pfr;
     std::cout << output << std::endl;
   }
 
