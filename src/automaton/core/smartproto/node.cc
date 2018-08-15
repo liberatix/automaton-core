@@ -58,7 +58,16 @@ node::node(std::vector<std::string> schemas,
     std::cout << output << std::endl;
   }
 
+  lua.set_function("send",
+    [this](uint32_t peer_id,
+           const core::data::msg& msg,
+           uint32_t msg_id) {
+      send_message(peer_id, msg, msg_id);
+    });
+
   script_on_update = lua["update"];
+  script_on_connected = lua["connected"];
+  script_on_disconnected = lua["disconnected"];
 
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = false;
@@ -67,11 +76,26 @@ node::node(std::vector<std::string> schemas,
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
-      sol::protected_function_result result = script_on_update(current_time);
-      string output = result;
-      LOG(ERROR) << output;
+      sol::protected_function_result result = this->script_on_update(current_time);
+      if (!result.valid()) {
+        sol::error err = result;
+        string what = err.what();
+        LOG(ERROR) << "UPDATE: " << what;
+      }
     }
   });
+
+  // Map wire msg IDs to factory msg IDs and vice versa.
+  uint32_t wire_id = 0;
+  for (auto wire_msg : wire_msgs) {
+    auto factory_id = msg_factory->get_schema_id(wire_msg);
+    factory_to_wire[factory_id] = wire_id;
+    wire_to_factory[wire_id] = factory_id;
+    string function_name = "on_" + wire_msg;
+    LOG(DEBUG) << wire_id << ": " << function_name;
+    script_on_msg[wire_id] = lua[function_name];
+    wire_id++;
+  }
 }
 
 node::~node() {
@@ -122,22 +146,47 @@ bool node::set_peer_info(peer_id id, const peer_info& info) {
   return false;
 }
 
-// void node::send_message(peer_id id, const core::data::msg& message) {}
+void node::send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id) {
+  auto msg_schema_id = msg.get_schema_id();
+  CHECK_GT(factory_to_wire.count(msg_schema_id), 0)
+      << "Message " << msg.get_message_type()
+      << " not part of the protocol";
+  auto wire_id = factory_to_wire[msg_schema_id];
+  string msg_blob;
+  if (msg.serialize_message(&msg_blob)) {
+    msg_blob.insert(0, 1, (char)wire_id);
+    send_blob(id, msg_blob, msg_id);
+  }
+}
 
-void node::send_message(peer_id id, const std::string& message) {
-  LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(message) <<
+void node::s_on_blob_received(peer_id id, const std::string& blob) {
+  auto wire_id = blob[0];
+  if (script_on_msg.count(wire_id) != 1) {
+    LOG(ERROR) << "Invalid wire msg_id sent to us!";
+    return;
+  }
+  CHECK_GT(wire_to_factory.count(wire_id), 0);
+  auto msg_id = wire_to_factory[wire_id];
+  unique_ptr<msg> m = msg_factory->new_message_by_id(msg_id);
+  m->deserialize_message(blob.substr(1));
+  script_on_msg[wire_id](id, std::move(m));
+}
+
+
+void node::send_blob(peer_id id, const std::string& blob, uint32_t msg_id) {
+  LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(blob) <<
       " to peer " << id;
-  uint32_t message_size = message.size();
-  if (message_size > MAX_MESSAGE_SIZE) {
-    LOG(ERROR) << "Message size is " << message_size << " and is too big! Max message size is " << MAX_MESSAGE_SIZE;
+  uint32_t blob_size = blob.size();
+  if (blob_size > MAX_MESSAGE_SIZE) {
+    LOG(ERROR) << "Message size is " << blob_size << " and is too big! Max message size is " << MAX_MESSAGE_SIZE;
     return;
   }
   char buffer[3];
-  buffer[2] = message_size & 0xff;
-  buffer[1] = (message_size >> 8) & 0xff;
-  buffer[0] = (message_size >> 16) & 0xff;
+  buffer[2] = blob_size & 0xff;
+  buffer[1] = (blob_size >> 8) & 0xff;
+  buffer[0] = (blob_size >> 16) & 0xff;
   // TODO(kari): Find more effective way to do this
-  std::string new_message = std::string(buffer, 3) + message;
+  std::string new_message = std::string(buffer, 3) + blob;
   std::lock_guard<std::mutex> lock(peers_mutex);
   if (connected_peers.find(id) == connected_peers.end()) {
     LOG(ERROR) << "Peer " << id << " is not connected! Call connect first!";
@@ -150,11 +199,19 @@ void node::send_message(peer_id id, const std::string& message) {
   }
   if (it->second.connection) {
     if (it->second.connection->get_state() == core::network::connection::state::connected) {
-      it->second.connection->async_send(new_message);
+      it->second.connection->async_send(new_message, msg_id);
     }
   } else {
     LOG(ERROR) << "No connection in peer " << id;
   }
+}
+
+void node::s_on_connected(peer_id id) {
+  script_on_connected((uint32_t)id);
+}
+
+void node::s_on_disconnected(peer_id id) {
+  script_on_disconnected((uint32_t)id);
 }
 
 bool node::connect(peer_id id) {
@@ -366,15 +423,15 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
     }
     break;
     case WAITING_MESSAGE: {
-      std::string message = std::string(buffer, bytes_read);
+      std::string blob = std::string(buffer, bytes_read);
       std::lock_guard<std::mutex> lock(peers_mutex);
       auto it = known_peers.find(c);
       if (it != known_peers.end() && it->second.connection && it->second.connection->get_state() ==
           core::network::connection::state::connected) {
         LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " received message " <<
-            core::io::bin2hex(message) << " from peer " << c;
+            core::io::bin2hex(blob) << " from peer " << c;
         it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
-        s_on_message_received(c, message);
+        s_on_blob_received(c, blob);
       }
     }
     break;
