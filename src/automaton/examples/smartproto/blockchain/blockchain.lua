@@ -1,11 +1,10 @@
--- node callback functions
-local inspect = require('inspect')
 
 function update(time)
   -- print("Update called at", time)
   -- for each peer check to see if we need to send more info, close connection, etc.
   print("initial peer state: ")
-  print(inspect(peers))
+  print(tprint(peers))
+  print("got here")
   -- for k, v in pairs(peers) do
   --   print()
   -- print(initial_peer_states[1].STATE)
@@ -15,13 +14,6 @@ function update(time)
     -- Start the HANDSHAKE to find out if we are
 end
 
-function test()
-  print "hey"
-  x = 5
-  print(x)
-  x = x+1
-  pritn(x)
-end
 
 
 -- states
@@ -46,7 +38,7 @@ initial_peers = {
   {IP = "0.0.0.0", STATE = "NOT_CONNECTED"},
   {IP = "1.1.1.1", STATE = "NOT_CONNECTED"},
   {IP = "2.2.2.2", STATE = "NOT_CONNECTED"},
-  {IP = "3.3.3.1", STATE = "NOT_CONNECTED"},
+  {IP = "3.3.3.1", STATE = {"NOT_CONNECTED"},
 }
 
 peers = {}
@@ -225,6 +217,28 @@ function get_target(difficulty)
 end
 
 
+init()
+
+
+--===== Helper functions for debuging =============================================
+
+-- Print table in human readable format
+function tprint (tbl, indent)
+  if not indent then indent = 0 end
+  for k, v in pairs(tbl) do
+    formatting = string.rep("  ", indent) .. k .. ": "
+    if type(v) == "table" then
+      print(formatting)
+      tprint(v, indent+1)
+    elseif type(v) == 'boolean' then
+      print(formatting .. tostring(v))
+    else
+      print(formatting .. v)
+    end
+  end
+end
+
+
 --================================== MAIN =========================================
 i = 0
 while i < 2 do
@@ -242,8 +256,11 @@ while i < 2 do
   i = i+1
 end
 
-init()
 
+
+
+
+--===== Not in use, will be deleted when no longer needed =============================
 function tests()
   -- FOR TESTING ONLY, REMOVE AFTER
   nonce = {0}
