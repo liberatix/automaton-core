@@ -130,7 +130,7 @@ void node::send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id)
   auto wire_id = factory_to_wire[msg_schema_id];
   string msg_blob;
   if (msg.serialize_message(&msg_blob)) {
-    msg_blob.insert(0, 1, (char)wire_id);
+    msg_blob.insert(0, 1, static_cast<char>(wire_id));
     send_blob(id, msg_blob, msg_id);
   }
 }
@@ -183,11 +183,11 @@ void node::send_blob(peer_id id, const std::string& blob, uint32_t msg_id) {
 }
 
 void node::s_on_connected(peer_id id) {
-  script_on_connected((uint32_t)id);
+  script_on_connected(static_cast<uint32_t>(id));
 }
 
 void node::s_on_disconnected(peer_id id) {
-  script_on_disconnected((uint32_t)id);
+  script_on_disconnected(static_cast<uint32_t>(id));
 }
 
 bool node::connect(peer_id id) {
