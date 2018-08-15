@@ -5,11 +5,10 @@ function update(time)
   print("initial peer state: ")
   print(tprint(peers))
   print("got here")
-  -- for k, v in pairs(peers) do
-  --   print()
-  -- print(initial_peer_states[1].STATE)
-  -- print(initial_peer_states[2].STATE)
-
+  for k, v in pairs(peers) do
+    print(k)
+    print(tprint(v))
+  end
   -- For each peer with state HANDSHAKE:
     -- Start the HANDSHAKE to find out if we are
 end
@@ -38,7 +37,7 @@ initial_peers = {
   {IP = "0.0.0.0", STATE = "NOT_CONNECTED"},
   {IP = "1.1.1.1", STATE = "NOT_CONNECTED"},
   {IP = "2.2.2.2", STATE = "NOT_CONNECTED"},
-  {IP = "3.3.3.1", STATE = {"NOT_CONNECTED"},
+  {IP = "3.3.3.3", STATE = "NOT_CONNECTED"},
 }
 
 peers = {}
@@ -221,7 +220,6 @@ init()
 
 
 --===== Helper functions for debuging =============================================
-
 -- Print table in human readable format
 function tprint (tbl, indent)
   if not indent then indent = 0 end
