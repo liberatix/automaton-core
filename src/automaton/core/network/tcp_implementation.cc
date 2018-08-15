@@ -198,8 +198,7 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
     } else {
         boost::asio::async_read(asio_socket, boost::asio::buffer(buffer, buffer_size),
           boost::asio::transfer_exactly(num_bytes),
-          [this, buffer, read_id](const boost::system::error_code& boost_error_code,
-          size_t bytes_transferred) {
+          [this, buffer, read_id](const boost::system::error_code& boost_error_code, size_t bytes_transferred) {
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
             disconnect();

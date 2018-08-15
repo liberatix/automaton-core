@@ -20,6 +20,13 @@ namespace automaton {
 namespace core {
 namespace smartproto {
 
+// TODO(kari): Clear buffer in info on erase/delete/destruct
+
+static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
+static const uint32_t HEADER_SIZE = 3;
+static const uint32_t WAITING_HEADER = 1;
+static const uint32_t WAITING_MESSAGE = 2;
+
 node::node(std::vector<std::string> schemas,
            std::vector<std::string> lua_scripts,
            std::vector<std::string> wire_msgs)
@@ -113,7 +120,39 @@ bool node::set_peer_info(peer_id id, const peer_info& info) {
   return false;
 }
 
-void node::send_message(peer_id id, const core::data::msg& message) {
+// void node::send_message(peer_id id, const core::data::msg& message) {}
+
+void node::send_message(peer_id id, const std::string& message) {
+  LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(message) <<
+      " to peer " << id;
+  uint32_t message_size = message.size();
+  if (message_size > MAX_MESSAGE_SIZE) {
+    LOG(ERROR) << "Message size is " << message_size << " and is too big! Max message size is " << MAX_MESSAGE_SIZE;
+    return;
+  }
+  char buffer[3];
+  buffer[2] = message_size & 0xff;
+  buffer[1] = (message_size >> 8) & 0xff;
+  buffer[0] = (message_size >> 16) & 0xff;
+  // TODO(kari): Find more effective way to do this
+  std::string new_message = std::string(buffer, 3) + message;
+  std::lock_guard<std::mutex> lock(peers_mutex);
+  if (connected_peers.find(id) == connected_peers.end()) {
+    LOG(ERROR) << "Peer " << id << " is not connected! Call connect first!";
+    return;
+  }
+  auto it = known_peers.find(id);
+  if (it == known_peers.end()) {
+    LOG(ERROR) << "Trying to send message to unknown peer " << id;
+    return;
+  }
+  if (it->second.connection) {
+    if (it->second.connection->get_state() == core::network::connection::state::connected) {
+      it->second.connection->async_send(new_message);
+    }
+  } else {
+    LOG(ERROR) << "No connection in peer " << id;
+  }
 }
 
 bool node::connect(peer_id id) {
@@ -195,6 +234,7 @@ bool node::set_acceptor(const char* address) {
 }
 
 peer_id node::add_peer(const std::string& address) {
+  // TODO(kari): Return 0 on error?
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   std::lock_guard<std::mutex> lock(peers_mutex);
   for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
@@ -208,6 +248,7 @@ peer_id node::add_peer(const std::string& address) {
   info.address = address;
   info.id = get_next_peer_id();
   info.connection = nullptr;
+  info.buffer = new char[MAX_MESSAGE_SIZE];
   core::network::connection* new_connection = nullptr;
   try {
     std::string protocol, addr;
@@ -294,7 +335,49 @@ bool node::address_parser(const std::string& s, std::string* protocol, std::stri
 }
 
 void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t id) {
-  LOG(DEBUG) << c << " -> on_message_received";
+  LOG(DEBUG) << "RECEIVED: " << core::io::bin2hex(std::string(buffer, bytes_read)) << " from peer " << c;
+  switch (id) {
+    case WAITING_HEADER: {
+      if (bytes_read != HEADER_SIZE) {
+        LOG(ERROR) << "Wrong header size received";
+        return;
+      }
+      // TODO(kari): make this loop
+      uint32_t message_size = 0;
+      message_size += (buffer[2] & 0x000000ff);
+      message_size += ((buffer[1] & 0x000000ff) << 8);
+      message_size += ((buffer[0] & 0x000000ff) << 16);
+      LOG(DEBUG) << "MESSAGE SIZE: " << message_size;
+      if (!message_size || message_size > MAX_MESSAGE_SIZE) {
+        LOG(ERROR) << "Invalid message size!";
+        return;
+      } else {
+        std::lock_guard<std::mutex> lock(peers_mutex);
+        auto it = known_peers.find(c);
+        if (it != known_peers.end() && it->second.connection && it->second.connection->get_state() ==
+            core::network::connection::state::connected) {
+          LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " waits message with size " << message_size
+              << " from peer " << id;
+          it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
+        }
+      }
+    }
+    break;
+    case WAITING_MESSAGE: {
+      std::string message = std::string(buffer, bytes_read);
+      std::lock_guard<std::mutex> lock(peers_mutex);
+      auto it = known_peers.find(c);
+      if (it != known_peers.end() && it->second.connection && it->second.connection->get_state() ==
+          core::network::connection::state::connected) {
+        LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " received message " <<
+            core::io::bin2hex(message) << " from peer " << c;
+        it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
+        s_on_message_received(c, message);
+      }
+    }
+    break;
+    default: {}
+  }
 }
 
 void node::on_message_sent(peer_id c, uint32_t id, core::network::connection::error e) {
@@ -316,6 +399,7 @@ void node::on_connected(peer_id c) {
   connected_peers.insert(c);
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << c
       << (it->second.address);
+  it->second.connection->async_read(it->second.buffer, MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
   peers_mutex.unlock();
   s_on_connected(c);
 }
@@ -358,6 +442,7 @@ bool node::on_requested(core::network::acceptor* a, const std::string& address, 
   info.address = address;
   info.id = *id;
   info.connection = nullptr;
+  info.buffer = new char[MAX_MESSAGE_SIZE];
   known_peers[*id] = info;
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   return true;
