@@ -1,16 +1,18 @@
-print("LOADED!")
-
 -- node callback functions
 
 function update(time)
-  -- print("Update called at", time)
+  log("update", string.format("Update called at %d", time))
+end
+
+function pid(id)
+  return "PEER" .. tostring(id)
 end
 
 function sent(peer_id, msg_id, success)
   if success then
-    print("Sucessfully sent messsage " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
+    log(pid(peerid), "Sucessfully sent messsage " .. tostring(msg_id))
   else
-    print("Error sending message " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
+    log(pid(peerid), "Error sending message " .. tostring(msg_id))
   end
 end
 
@@ -85,16 +87,16 @@ function validateBlock(block)
   hash = blockHash(block)
   local target = get_target(difficulty)
 
-  print("validating block with hash: " .. hex(hash))
-  print("And height: " .. block.height)
-  print(block)
+  log("validateBlock", "validating block with hash: " .. hex(hash))
+  log("validateBlock", "And height: " .. block.height)
+  log("validateBlock", block)
 
   -- Check if we already have the block
   if blocks[hash] ~= nil then
     return BLOCK.DUPLICATE
   -- Check if hash is greater than difficulty
   elseif hash > target then
-    print "In validateBlock, target > hash"
+    log("validateBlock", "In validateBlock, target > hash")
     return BLOCK.INVALID
   -- block height can't be less than one
   elseif block.height < 1 then
@@ -127,10 +129,10 @@ end
 function onBlock(peer_id, block)
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
-  print("Block Validity: " .. block_validity)
+  log("onBlock", "Block Validity: " .. block_validity)
 
   if block_validity == BLOCK.VALID  then
-    print "Valid block added to blocks"
+    log("onBlock", "Valid block added to blocks")
     blocks[hash] = block
     -- Check if we get a longer chain. Does not matter if it is the main or alternative.
     if block.height == #blockchain+1 then
@@ -160,15 +162,15 @@ function onBlock(peer_id, block)
 end
 
 function on_Block(peer_id, msg)
-  print("Received Block!")
-  print(msg:to_json())
+  log("on_Block", "Received Block!")
+  log("on_Block", msg:to_json())
 end
 
 function connected(peer_id)
-  print("Connected to " .. tostring(peer_id))
+  log(pid(peer_id), "Connected to " .. tostring(peer_id))
   b = Block()
   b.miner = "Ace"
-  send(1, b, 0)
+  send(peer_id, b, 0)
 end
 
 function onBlocks(peer_id, msg)
@@ -181,7 +183,7 @@ end
 
 -- Takes in block with miner, prev_hash, height
 function mine(miner, prev_hash, height, nonce, attempts)
-  print "Mining block"
+  log("miner", "Mining block")
   local target = get_target(difficulty)
   local block_data = miner .. prev_hash .. height
   for i = 0, attempts do
@@ -206,25 +208,24 @@ function get_target(difficulty)
     string.rep("00", 32-difficulty.leadingZeros-3))
 end
 
-
 --================================== MAIN =========================================
+
 i = 0
 while i < 1 do
   local nonce = {0}
   target = get_target(difficulty)
-  print(target)
+  log("miner", hex(target))
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   --TODO(Samir): put miner, perv_hash, #blockchain+1 and nonce in a struct
   --             and just previous BLOCK hash instead
   local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
   if found then
-    print(block)
+    log("miner", block)
     onBlock(-1, block)
     --local block_validity = validateBlock(block)
   end
-  i = i+1
+  i = i + 1
 end
-
 
 init()
