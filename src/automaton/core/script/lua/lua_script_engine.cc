@@ -3,9 +3,9 @@
 #include <iomanip>
 
 #include "automaton/core/io/io.h"
+#include "automaton/core/data/schema.h"
 
 using automaton::core::data::schema;
-using automaton::core::script::module;
 
 namespace automaton {
 namespace core {

@@ -1,8 +1,10 @@
 #ifndef AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
 #define AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
 
+#include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "automaton/core/crypto/hash_transformation.h"
 
