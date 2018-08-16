@@ -15,7 +15,7 @@ cc_library(
     "//automaton/core/data/protobuf",
     "//automaton/core/io",
     "//automaton/core/network",
-    "//automaton/core/script/lua",
+    "//automaton/core/script",
     "@json//:json",
   ],
   linkstatic=True,

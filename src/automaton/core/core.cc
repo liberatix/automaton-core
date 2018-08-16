@@ -8,13 +8,13 @@
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/network/tcp_implementation.h"
-#include "automaton/core/script/lua/lua_script_engine.h"
+#include "automaton/core/script/engine.h"
 #include "automaton/core/smartproto/node.h"
 
 using automaton::core::data::protobuf::protobuf_schema;
 using automaton::core::data::schema;
 using automaton::core::io::get_file_contents;
-using automaton::core::script::lua::lua_script_engine;
+using automaton::core::script::engine;
 using automaton::core::smartproto::node;
 
 using json = nlohmann::json;
@@ -48,43 +48,12 @@ int main(int argc, char* argv[]) {
   string automaton_ascii_logo(automaton_ascii_logo_cstr);
   string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
-  {
-    sol::state lua;
-    lua.open_libraries();
-
-    struct ttt {
-      int x;
-      int y;
-      ttt() {
-        x = 1;
-        y = 2;
-      }
-      ~ttt() {
-        std::cout << "Destroying ttt\n";
-      }
-    };
-
-    auto ttt_type = lua.create_simple_usertype<ttt>();
-    ttt_type.set(sol::call_constructor,
-      sol::factories([]() -> unique_ptr<ttt> {
-        return make_unique<ttt>();
-      }));
-
-    ttt_type.set("x", &ttt::x);
-    ttt_type.set("y", &ttt::y);
-    lua.set_usertype("ttt", ttt_type);
-    lua.script("a = ttt.new(); print(a.x, a.y); a.x = 5; a.y = 5; print(a.x, a.y)");
-    // lua.script("a = nil; collectgarbage()");
-    std::cout << "Destroying lua engine\n";
-  }
-
 {
-  lua_script_engine engine;
-  engine.bind_core();
-  sol::state_view& lua = engine.get_sol();
+  engine script;
+  script.bind_core();
 
   // Bind smartproto::node class
-  auto node_type = lua.create_simple_usertype<node>();
+  auto node_type = script.create_simple_usertype<node>();
 
   node_type.set(sol::call_constructor,
     sol::factories(
@@ -131,9 +100,9 @@ int main(int argc, char* argv[]) {
 
   node_type.set("script", &node::script);
 
-  lua.set_usertype("node", node_type);
+  script.set_usertype("node", node_type);
 
-  lua.script(
+  script.script(
       R"(
       function anode()
         return node(
@@ -158,7 +127,7 @@ int main(int argc, char* argv[]) {
   automaton::core::network::tcp_init();
 
   automaton::core::cli::cli cli;
-  lua.script(get_file_contents("automaton/core/coreinit.lua"));
+  script.script(get_file_contents("automaton/core/coreinit.lua"));
 
   cli.print(automaton_ascii_logo.c_str());
   cli.history_add("b = BCNode()");
@@ -174,12 +143,12 @@ int main(int argc, char* argv[]) {
     string cmd{input};
     cli.history_add(cmd.c_str());
 
-    sol::protected_function_result pfr = lua.safe_script(cmd, &sol::script_pass_on_error);
+    sol::protected_function_result pfr = script.safe_script(cmd, &sol::script_pass_on_error);
     string output = pfr;
     std::cout << output << std::endl;
   }
 
-  // lua.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);
+  // script.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);
   LOG(DEBUG) << "Destroying lua state & objects";
 }
 

@@ -36,41 +36,41 @@ node::node(std::vector<std::string> schemas,
            std::vector<std::string> wire_msgs)
     : peer_ids(0)
     , msg_factory(make_unique<protobuf_factory>())
-    , lua(script_engine.get_sol())
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);
     msg_factory->import_schema(pb_schema, "", "");
-    script_engine.bind_core();
+    engine.bind_core();
 
     // Bind schema messages.
     for (uint32_t id = 0; id < msg_factory->get_schemas_number(); id++) {
       auto name = msg_factory->get_schema_name(id);
       LOG(DEBUG) << "Binding proto message " << name;
 
-      lua.set(name, [this, name, id]() -> unique_ptr<msg> {
+      engine.set(name, [this, name, id]() -> unique_ptr<msg> {
         return this->msg_factory->new_message_by_id(id);
       });
     }
   }
 
   for (std::string lua_script : lua_scripts) {
-    sol::protected_function_result pfr = lua.safe_script(lua_script, &sol::script_pass_on_error);
+    sol::protected_function_result pfr =
+        engine.safe_script(lua_script, &sol::script_pass_on_error);
     std::string output = pfr;
     std::cout << output << std::endl;
   }
 
-  lua.set_function("send",
+  engine.set_function("send",
     [this](uint32_t peer_id, const core::data::msg& msg, uint32_t msg_id) {
       send_message(peer_id, msg, msg_id);
     });
 
-  script_on_update = lua["update"];
-  script_on_connected = lua["connected"];
-  script_on_disconnected = lua["disconnected"];
-  script_on_msg_sent = lua["sent"];
+  script_on_update = engine["update"];
+  script_on_connected = engine["connected"];
+  script_on_disconnected = engine["disconnected"];
+  script_on_msg_sent = engine["sent"];
 
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = false;
@@ -96,7 +96,7 @@ node::node(std::vector<std::string> schemas,
     wire_to_factory[wire_id] = factory_id;
     string function_name = "on_" + wire_msg;
     LOG(DEBUG) << wire_id << ": " << function_name;
-    script_on_msg[wire_id] = lua[function_name];
+    script_on_msg[wire_id] = engine[function_name];
     wire_id++;
   }
 }
@@ -119,7 +119,7 @@ node::~node() {
 void node::script(const char* input) {
   LOG(DEBUG) << "Calling script from node " << input;
   std::string cmd{input};
-  sol::protected_function_result pfr = lua.safe_script(cmd, &sol::script_pass_on_error);
+  sol::protected_function_result pfr = engine.safe_script(cmd, &sol::script_pass_on_error);
   std::string output = pfr;
   std::cout << output << std::endl;
 }

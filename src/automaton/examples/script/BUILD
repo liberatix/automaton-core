@@ -12,7 +12,7 @@ cc_binary(
     "//automaton/core/crypto",
     "//automaton/core/data/protobuf",
     "//automaton/core/io",
-    "//automaton/core/script/lua",
+    "//automaton/core/script",
   ],
   data = [
     "benchmark.lua",

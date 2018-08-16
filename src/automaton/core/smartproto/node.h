@@ -13,7 +13,7 @@
 #include "automaton/core/data/schema.h"
 #include "automaton/core/network/acceptor.h"
 #include "automaton/core/network/connection.h"
-#include "automaton/core/script/lua/lua_script_engine.h"
+#include "automaton/core/script/engine.h"
 // #include "automaton/core/smartproto/peer.h"
 
 namespace automaton {
@@ -73,8 +73,7 @@ class node: public network::connection::connection_handler,
  private:
   peer_id peer_ids;
   std::unique_ptr<data::factory> msg_factory;
-  script::lua::lua_script_engine script_engine;
-  sol::state_view lua;
+  script::engine engine;
   // std::vector<std::unique_ptr<data::schema>> schemas_;
   std::shared_ptr<network::acceptor> acceptor_;
   std::mutex peers_mutex;

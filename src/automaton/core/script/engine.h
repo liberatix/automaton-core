@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
-#define AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
+#ifndef AUTOMATON_CORE_SCRIPT_ENGINE_H_
+#define AUTOMATON_CORE_SCRIPT_ENGINE_H_
 
 #include <array>
 #include <memory>
@@ -13,17 +13,14 @@
 namespace automaton {
 namespace core {
 namespace script {
-namespace lua {
 
 /**
   Lua script engine wrapper and Autoamaton's module bridge.
 */
-class lua_script_engine {
+class engine : public sol::state {
  public:
-  /**
-  */
-  lua_script_engine();
-  ~lua_script_engine();
+  engine();
+  ~engine();
 
   void bind_core() {
     bind_crypto();
@@ -46,13 +43,7 @@ class lua_script_engine {
 
   void bind_state();
 
-  auto get_lua_state() { return L; }
-  auto& get_sol() { return lua; }
-
  private:
-  lua_State* L;
-  sol::state lua;
-
   // Crypto hash functions
   std::unique_ptr<crypto::hash_transformation> ripemd160;
   std::unique_ptr<crypto::hash_transformation> sha512;
@@ -61,9 +52,8 @@ class lua_script_engine {
   std::unique_ptr<crypto::hash_transformation> keccak256;
 };
 
-}  // namespace lua
 }  // namespace script
 }  // namespace core
 }  // namespace automaton
 
-#endif  // AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
+#endif  // AUTOMATON_CORE_SCRIPT_ENGINE_H_

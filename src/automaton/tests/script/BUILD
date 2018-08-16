@@ -6,7 +6,7 @@ cc_test(
   name = "test_script",
   srcs = ["test_script.cc",],
   deps = [
-    "//automaton/core/script/lua",
+    "//automaton/core/script",
     "@gtest//:gtest_main",
   ],
   linkstatic = True,
