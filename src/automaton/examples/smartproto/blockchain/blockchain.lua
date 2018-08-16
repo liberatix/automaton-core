@@ -1,14 +1,25 @@
 print("LOADED!")
 
-
-nonce = {0}
+nonce = {1}
+current_message_id = 1
 -- node callback functions
 function update(time)
+  print ("UPDATE STARTED for node: " .. node_id)
+  count = 0
+  for k, v in pairs(blocks) do
+    count = count + 1
+  end
+  current_message_id = current_message_id +1
+  print(current_message_id)
+  print "asd"
+  print ("#blocks: " .. tostring(count))
+  print ("#blockchain: " .. tostring(#blockchain))
+  local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   -- attempt to mine a block
-  local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
+  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
-  print "got here"
   if found then
+    print("Mined block: " .. hex(blockHash(block)))
     print(block:to_json())
     on_Block(-1, block)
   end
@@ -24,8 +35,8 @@ function update(time)
     end
   end
   -- print ("UPDATE FINISHED for node: " .. node_id)
-  --print "UPDATE FINISHED WITHOUT ERRORS"
-  print (#blockchain)
+  print "UPDATE FINISHED WITHOUT ERRORS"
+  --print (#blockchain)
 end
 
 function update2(time)
@@ -50,9 +61,9 @@ end
 
 function sent(peer_id, msg_id, success)
   if success then
-    print("Sucessfully sent messsage " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
+    print("Sucessfully sent messsage " .. tostring(msg_id) .. " to peer " .. tostring(peer_id) .. tostring(node_id))
   else
-    print("Error sending message " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
+    print("Error sending message " .. tostring(msg_id) .. " to peer " .. tostring(peer_id) .. tostring(node_id))
     if msg_id == 0 then
       print "Lost connection with peer"
       peers[peer_id] = nil
@@ -69,6 +80,7 @@ STATE.BEHIND = 2
 STATE.AHEAD = 3
 STATE.DISCONECTED = 4
 STATE.NOT_CONNECTED = 5
+STATE.IN_CONSENSUS = 6
 
 -- block state after validation
 BLOCK = {}
@@ -204,13 +216,10 @@ function connected(peer_id)
   end
 end
 
--- function on_Block(peer_id, msg)
---   print("Received Block!")
---   print(msg:to_json())
--- end
 
 function on_Block(peer_id, block)
-
+  print("on_Block, peer_id: " .. peer_id)
+  -- If this is the first block from a newly connect peer
   if peers[peer_id] ~= nill and peers[peer_id].received_block == nil then
     print ("First block from peer: " .. peer_id)
     peers[peer_id].received_block = block
@@ -222,9 +231,9 @@ function on_Block(peer_id, block)
     end
   end
 
+  -- Validate, save and broadcast
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
-  -- TODO(Samir): Instead of checking block validity handle the cases
   print("Block Validity: " .. block_validity)
   -- Valid block is a block that:
   -- 1. Is a new block, with valid hash and height >= 1
@@ -235,24 +244,42 @@ function on_Block(peer_id, block)
   if block_validity == BLOCK.VALID  then
     print "Valid block added to blocks"
     blocks[hash] = block
+    print("peer_id:" .. tostring(peer_id))
+    print(peer_id)
+    shout(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
     --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then
     --!   print "block added to the longest chain"
     --!   blockchain[#blockchain+1] = hash
     -- Check if we get a longer chain. Does not matter if it is the main or alternative.
     if block.height == #blockchain+1 then
+      -- print "block.height == #blockchain+1"
       -- We are sure that this is the head of the longest chain
       blockchain[#blockchain+1] = hash
       -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
+      -- print "got to One"
+      -- print("#blockchain: " .. tostring(#blockchain))
       local block_index = #blockchain-1
+      -- print "got to two"
+      -- print("#blockchain-1:" .. tostring(#blockchain-1))
+      -- print("got to two.five")
       local longest_chain_hash = block.prev_hash
-      while block_index >= 1 and blockchain[block_index] ~= longest_chain_hash do
-        blockchain[block_index] = longest_chain_hash
+      print(block_index)
+      -- print "got to three"
+      while block_index >= 1 do
+        -- print("got to this")
+        print(block_index)
+        if (blockchain[block_index] ~= longest_chain_hash) then
+          -- print "got Inside"
+          blockchain[block_index] = longest_chain_hash
+          -- print "midpoint inside"
+          longest_chain_hash = blocks[longest_chain_hash].prev_hash
+          -- print "finished inside"
+        end
         block_index = block_index - 1
-        longest_chain_hash = blocks[longest_chain_hash].prev_hash
       end
+      -- print "end of block.height == #blockchain"
     end
-    -- shout
   -- If it is DUPLICATE
   elseif(block_validity == BLOCK.DUPLICATE) then
     -- do nothing
@@ -266,6 +293,18 @@ function on_Block(peer_id, block)
   end
 end
 
+function shout(from, block_hash)
+  print "I GOT TO SHAUT I GOT TO SHAUT I GOT TO SHAUT I GOT TO SHAUT I GOT TO SHAUT "
+  print ("shouting, from = " .. to_string(from))
+  for k, v in pairs(peers) do
+    -- TODO(Samir): Decide to which peer states we should send the block
+    --if v.state == STATE.IN_CONSENSUS then
+      if k ~= from then
+        sendBlock(k, blocks[block_hash], 0)
+      end
+  --end
+  end
+end
 
 function onBlocks(peer_id, msg)
 end
@@ -285,7 +324,18 @@ function handshake(peer_id)
   end
   if peers[peer_id].state == STATE.HANDSHAKE and peers[peer_id].received_block ~= nil then
     --print "we have sent and recieved block"
+    -- if block headers are the same
+      -- Consensus
+    -- elseif we have the decieved_block
+      -- Send all blocks after the recieved blocks
+    -- elseif we have the longest chain
+      -- send all blocks from begining
+    -- else get blocks, validate and save until consesnsus is reached
   end
+
+
+
+
   -- if peers[peer_id].STATE == STATE.HANDSHAKE and peers[peer_id].sent_block_hash == nil then
   --   if #blockchain == 0 then
   --     local no_blocks = block()
@@ -307,8 +357,10 @@ function mine(miner, prev_hash, height, nonce, attempts)
   print "Mining block"
   local target = get_target(difficulty)
   local block_data = miner .. prev_hash .. height
+  print "Got here 1"
   for i = 0, attempts do
     block_hash = sha3(block_data .. nonce_str(nonce))
+    --print(hex(nonce_str(nonce)))
     if block_hash <= target then
       -- create and return block
       mined_block = Block()
@@ -353,7 +405,7 @@ end
 
 --================================== MAIN =========================================
 i = 0
-while i < 1 do
+while i < 0 do
   local nonce = {0}
   target = get_target(difficulty)
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH

@@ -426,6 +426,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
 }
 
 void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
+  LOG(DEBUG) << "in on_message_sent, peer_id: " << c << " msg_id: " << id;
   script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
 }
 
