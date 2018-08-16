@@ -44,26 +44,10 @@ class lua_script_engine {
 
   void bind_state();
 
-  /**
-  */
-  void bind_registered_modules();
-
-  /**
-  */
-  common::status execute(std::string script);
-
   auto get_lua_state() { return L; }
   auto& get_sol() { return lua; }
 
  private:
-  void bind_static_function(module* m,
-                            const module::static_function_info& func);
-
-  void bind_class(module* m,
-                  const module::implementation_info& info);
-
-  void bind_registered_module(module* m);
-
   lua_State* L;
   sol::state lua;
 
