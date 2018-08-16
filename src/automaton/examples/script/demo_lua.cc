@@ -8,21 +8,15 @@
 #include <vector>
 
 #include "automaton/core/crypto/cryptopp/Keccak_256_cryptopp.h"
-#include "automaton/core/crypto/cryptopp/module.h"
 #include "automaton/core/crypto/cryptopp/RIPEMD160_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/secure_random_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA3_256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA512_cryptopp.h"
-#include "automaton/core/crypto/ed25519_orlp/module.h"
-#include "automaton/core/crypto/module.h"
-#include "automaton/core/data/module.h"
-#include "automaton/core/data/protobuf/module.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/network/module.h"
 #include "automaton/core/script/lua/lua_script_engine.h"
 #include "automaton/core/script/registry.h"
-#include "automaton/core/state/module.h"
 
 #include "replxx.hxx"
 #include "sol.hpp"
