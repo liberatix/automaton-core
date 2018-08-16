@@ -70,6 +70,7 @@ node::node(std::vector<std::string> schemas,
   script_on_update = lua["update"];
   script_on_connected = lua["connected"];
   script_on_disconnected = lua["disconnected"];
+  script_on_msg_sent = lua["sent"];
 
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = false;
@@ -423,8 +424,8 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
   }
 }
 
-void node::on_message_sent(peer_id c, uint32_t id, core::network::connection::error e) {
-  LOG(DEBUG) << c << " -> on_message_sent";
+void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
+  script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
 }
 
 void node::on_connected(peer_id c) {
@@ -465,12 +466,12 @@ void node::on_disconnected(peer_id c) {
   }
 }
 
-void node::on_error(peer_id c, core::network::connection::error e) {
+void node::on_error(peer_id c, network::connection::error e) {
   LOG(DEBUG) << c << " -> on_error " << e;
   remove_peer(c);
 }
 
-bool node::on_requested(core::network::acceptor* a, const std::string& address, peer_id* id) {
+bool node::on_requested(network::acceptor* a, const std::string& address, peer_id* id) {
   LOG(DEBUG) << "Requested connection to " << acceptor_->get_address() << " from " << address;
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   std::lock_guard<std::mutex> lock(peers_mutex);
@@ -492,7 +493,7 @@ bool node::on_requested(core::network::acceptor* a, const std::string& address, 
   return true;
 }
 
-void node::on_connected(core::network::acceptor* a, core::network::connection* c, const std::string& address) {
+void node::on_connected(network::acceptor* a, network::connection* c, const std::string& address) {
   peer_id id = c->get_id();
   LOG(DEBUG) << "Connected in acceptor " << a->get_address() << " peer with id " << id << " (" << address << ')';
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
@@ -504,13 +505,13 @@ void node::on_connected(core::network::acceptor* a, core::network::connection* c
     LOG(ERROR) << "Connected to unknown peer " << id << " (" << address << ')' << " THIS SHOULD NEVER HAPPEN";
     return;
   }
-  it->second.connection = std::shared_ptr<core::network::connection> (c);
+  it->second.connection = std::shared_ptr<network::connection> (c);
   LOG(DEBUG) << "Connected to " << address;
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   peers_mutex.unlock();
 }
 
-void node::on_error(core::network::acceptor* a, core::network::connection::error e)  {
+void node::on_error(network::acceptor* a, network::connection::error e)  {
   LOG(DEBUG) << a->get_address() << " -> on_error in acceptor";
 }
 

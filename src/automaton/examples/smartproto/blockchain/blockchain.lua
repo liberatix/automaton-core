@@ -37,8 +37,15 @@ function update2(time)
   print "UPDATE FINISHED WITHOUT ERRORS"
 end
 
+function sent(peer_id, msg_id, success)
+  if success then
+    print("Sucessfully sent messsage " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
+  else
+    print("Error sending message " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
+  end
+end
 
-
+-- mining helper
 
 -- states
 STATE = {}
