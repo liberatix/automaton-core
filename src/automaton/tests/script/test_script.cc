@@ -1,6 +1,6 @@
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/script/lua/lua_script_engine.h"
+#include "automaton/core/script/engine.h"
 
 #include "gtest/gtest.h"
 #include "cryptlib.h"  // NOLINT
@@ -37,11 +37,11 @@ TEST_F(test_script, module_registration) {
         "47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E"},
   };
 
-  script::lua::lua_script_engine lua;
+  script::engine lua;
   lua.bind_core();
 
   for (auto test : tests) {
-    auto result = lua.get_sol()[test.hash_function](test.input);
+    auto result = lua[test.hash_function](test.input);
     EXPECT_EQ(io::bin2hex(result), test.output);
   }
 }

@@ -11,7 +11,7 @@ cc_library(
     "cli.h",
   ],
   deps = [
-    "//automaton/core/script/lua",
+    "//automaton/core/script",
     "@replxx//:replxx",
   ],
   linkstatic=True,
