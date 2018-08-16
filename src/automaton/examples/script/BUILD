@@ -10,8 +10,8 @@ cc_binary(
   deps = [
     "@replxx//:replxx",
     "//automaton/core/crypto",
+    "//automaton/core/data/protobuf",
     "//automaton/core/io",
-    "//automaton/core/script",
     "//automaton/core/script/lua",
   ],
   data = [

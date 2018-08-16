@@ -9,7 +9,6 @@
 #include <vector>
 #include <boost/regex.hpp>
 
-#include "automaton/core/common/obj.h"
 #include "automaton/core/data/factory.h"
 #include "automaton/core/data/msg.h"
 #include "automaton/core/data/schema.h"

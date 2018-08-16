@@ -4,8 +4,6 @@
 #include <map>
 #include <string>
 
-#include "automaton/core/common/obj.h"
-
 namespace automaton {
 namespace core {
 namespace data {
@@ -25,7 +23,7 @@ namespace data {
 
 */
 
-class schema : public common::obj {
+class schema {
  public:
   /**
    Allowed data types.
@@ -75,11 +73,6 @@ class schema : public common::obj {
       }
     }
   };
-
-  /**
-    Handles process requests from script and routing to corresponding method.
-  */
-  common::status process(const obj& request, obj* response);
 
   /**
     Serializes schema to JSON string.

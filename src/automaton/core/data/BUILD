@@ -16,7 +16,6 @@ cc_library(
     "msg.h",
   ],
   deps = [
-    "//automaton/core/common",
   ],
   linkstatic=True,
 )
