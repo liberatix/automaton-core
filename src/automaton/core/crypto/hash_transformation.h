@@ -5,20 +5,13 @@
 #include <map>
 #include <string>
 
-#include "automaton/core/common/obj.h"
-
 namespace automaton {
 namespace core {
 namespace crypto {
 
 // Base class for hash functions
-class hash_transformation : public common::obj {
+class hash_transformation {
  public:
-  /**
-    Handles process requests from script and routing to corresponding method.
-  */
-  common::status process(const obj& request, obj* response);
-
   // Updates the hash with additional input and computes the hash of the current
   // message.
   // Precondition digest_size == digest in bytes.

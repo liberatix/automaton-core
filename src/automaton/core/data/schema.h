@@ -3,8 +3,7 @@
 
 #include <map>
 #include <string>
-
-#include "automaton/core/common/obj.h"
+#include <vector>
 
 namespace automaton {
 namespace core {
@@ -25,7 +24,7 @@ namespace data {
 
 */
 
-class schema : public common::obj {
+class schema {
  public:
   /**
    Allowed data types.
@@ -75,11 +74,6 @@ class schema : public common::obj {
       }
     }
   };
-
-  /**
-    Handles process requests from script and routing to corresponding method.
-  */
-  common::status process(const obj& request, obj* response);
 
   /**
     Serializes schema to JSON string.
@@ -159,6 +153,8 @@ class schema : public common::obj {
   virtual void add_scalar_field(field_info field, int32_t message_id) = 0;
   virtual void add_enum_field(field_info field, int32_t message_id) = 0;
   virtual void add_message_field(field_info field, int32_t message_id) = 0;
+
+  virtual std::vector<std::string> get_message_names() = 0;
 };
 
 }  // namespace data

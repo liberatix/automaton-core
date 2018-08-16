@@ -1,9 +1,9 @@
-#include "automaton/core/common/obj.h"
+#include "automaton/core/io/blob.h"
 
 namespace automaton {
 namespace core {
-namespace common {
+namespace io {
 
-}  // namespace common
+}  // namespace io
 }  // namespace core
 }  // namespace automaton

@@ -8,29 +8,23 @@
 #include <vector>
 
 #include "automaton/core/crypto/cryptopp/Keccak_256_cryptopp.h"
-#include "automaton/core/crypto/cryptopp/module.h"
 #include "automaton/core/crypto/cryptopp/RIPEMD160_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/secure_random_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA3_256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA512_cryptopp.h"
-#include "automaton/core/crypto/ed25519_orlp/module.h"
-#include "automaton/core/crypto/module.h"
-#include "automaton/core/data/module.h"
-#include "automaton/core/data/protobuf/module.h"
+#include "automaton/core/data/msg.h"
+#include "automaton/core/data/schema.h"
+#include "automaton/core/data/protobuf/protobuf_factory.h"
+#include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/network/module.h"
-#include "automaton/core/script/lua/lua_script_engine.h"
-#include "automaton/core/script/registry.h"
-#include "automaton/core/state/module.h"
+#include "automaton/core/script/engine.h"
 
 #include "replxx.hxx"
 #include "sol.hpp"
 
 using Replxx = replxx::Replxx;
 
-using automaton::core::common::obj;
-using automaton::core::common::status;
 using automaton::core::crypto::cryptopp::Keccak_256_cryptopp;
 using automaton::core::crypto::cryptopp::RIPEMD160_cryptopp;
 using automaton::core::crypto::cryptopp::secure_random_cryptopp;
@@ -39,14 +33,16 @@ using automaton::core::crypto::cryptopp::SHA512_cryptopp;
 using automaton::core::crypto::cryptopp::SHA3_256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::data::msg;
+using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 using automaton::core::data::schema;
 using automaton::core::io::get_file_contents;
 using automaton::core::io::bin2hex;
-using automaton::core::script::lua::lua_script_engine;
-using automaton::core::script::module;
+using automaton::core::script::engine;
+
 using std::unique_ptr;
 
+protobuf_factory factory;
 
 // prototypes
 Replxx::completions_t hook_completion(std::string const& context, int index, void* user_data);
@@ -68,11 +64,9 @@ Replxx::completions_t hook_completion(std::string const& context, int index, voi
 }
 
 Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& color, void* user_data) { // NOLINT
-  auto* lua = static_cast<sol::state_view*>(user_data);
+  auto* script = static_cast<engine*>(user_data);
   std::vector<std::string> examples;
   Replxx::hints_t hints;
-
-  auto& factory = automaton::core::script::registry::instance().get_factory();
 
   for (auto i = 0; i < factory.get_schemas_number(); i++) {
     auto name = factory.get_schema_name(i);
@@ -126,9 +120,6 @@ void hook_color(std::string const& context, Replxx::colors_t& colors, void* user
   }
 }
 
-void register_messages(sol::state_view* lua) {
-}
-
 void string_replace(std::string* str,
                     const std::string& oldStr,
                     const std::string& newStr) {
@@ -169,20 +160,17 @@ struct byte_array {
 };
 
 int main() {
-  auto& factory = automaton::core::script::registry::instance().get_factory();
-
   // Load proto messages
   auto proto_contents = get_file_contents("automaton/examples/script/blockchain.proto");
   auto proto_schema = new protobuf_schema(proto_contents);
   factory.import_schema(proto_schema, "", "");
 
-  lua_script_engine engine;
-  sol::state_view& lua = engine.get_sol();
+  engine script;
 
   auto add_req_id = factory.get_schema_id("AddRequest");
   auto add_rep_id = factory.get_schema_id("AddResponse");
 
-  lua.set_function("add", [&](int x, int y) {
+  script.set_function("add", [&](int x, int y) {
     auto req = factory.new_message_by_id(add_req_id);
     auto rep = factory.new_message_by_id(add_rep_id);
     req->set_int32(1, x);
@@ -191,7 +179,7 @@ int main() {
     return rep->get_int32(1);
   });
 
-  lua.new_usertype<byte_array>("ByteArray",
+  script.new_usertype<byte_array>("ByteArray",
     sol::constructors<byte_array(size_t)>(),
     sol::meta_function::index, &byte_array::get,
     sol::meta_function::new_index, &byte_array::set,
@@ -210,7 +198,7 @@ int main() {
   auto sha3 = new SHA3_256_cryptopp();
   auto keccak256 = new Keccak_256_cryptopp();
 
-  lua.set_function("rand", [random](int bytes) -> std::string {
+  script.set_function("rand", [random](int bytes) -> std::string {
     uint8_t* buf = new uint8_t[bytes];
     random->block(buf, bytes);
     auto result = std::string((char*)buf, bytes); // NOLINT
@@ -218,7 +206,7 @@ int main() {
     return result;
   });
 
-  lua.set_function("fromcpp", [&](const std::string& h, int n) -> std::string {
+  script.set_function("fromcpp", [&](const std::string& h, int n) -> std::string {
     hash_transformation* f;
     size_t size = 0;
 
@@ -260,7 +248,7 @@ int main() {
     return "";
   });
 
-  lua.set_function("sha256A", [sha256](const std::string& input) -> const std::string {
+  script.set_function("sha256A", [sha256](const std::string& input) -> const std::string {
     static char digest[32];
     sha256->calculate_digest(
         reinterpret_cast<const uint8_t*>(input.c_str()),
@@ -269,7 +257,7 @@ int main() {
     return std::string(digest, 32);
   });
 
-  lua.set_function("sha256B", [sha256](const char * input, size_t inp_size) -> const char * {
+  script.set_function("sha256B", [sha256](const char * input, size_t inp_size) -> const char * {
     static char digest[32];
     sha256->calculate_digest(
         reinterpret_cast<const uint8_t*>(input),
@@ -278,28 +266,7 @@ int main() {
     return digest;
   });
 
-  engine.bind_core();
-
-  auto r = status::ok();
-
-  // Load and run script.
-  LOG(DEBUG) << "BENCHMARK";
-  r = engine.execute(get_file_contents("automaton/examples/script/benchmark.lua"));
-  if (r.code != status::OK) {
-    LOG(ERROR) << "LUA ERROR: " << r.msg;
-  }
-
-  LOG(DEBUG) << "DATA";
-  r = engine.execute(get_file_contents("automaton/examples/script/data.lua"));
-  if (r.code != status::OK) {
-    LOG(ERROR) << "LUA ERROR: " << r.msg;
-  }
-
-  LOG(DEBUG) << "BLOCKCHAIN";
-  r = engine.execute(get_file_contents("automaton/examples/script/blockchain.lua"));
-  if (r.code != status::OK) {
-    LOG(ERROR) << "LUA ERROR: " << r.msg;
-  }
+  script.bind_core();
 
   // words to be completed
   std::vector<std::string> examples {
@@ -396,7 +363,7 @@ int main() {
   // set the callbacks
   rx.set_completion_callback(hook_completion, static_cast<void*>(&examples));
   rx.set_highlighter_callback(hook_color, static_cast<void*>(&regex_color));
-  rx.set_hint_callback(hook_hint, static_cast<void*>(&lua));
+  rx.set_hint_callback(hook_hint, static_cast<void*>(&script));
 
   static std::string automaton_ascii_logo =
     "\n\x1b[40m\x1b[1m"
@@ -467,7 +434,7 @@ int main() {
     // easier to manipulate
     std::string input {cinput};
 
-    sol::protected_function_result pfr = lua.safe_script(input, &sol::script_pass_on_error);
+    sol::protected_function_result pfr = script.safe_script(input, &sol::script_pass_on_error);
     std::string output = pfr;
     std::cout << output << std::endl;
 

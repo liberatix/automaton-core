@@ -11,13 +11,11 @@ cc_library(
     "node.h",
   ],
   deps = [
-    "//automaton/core/common",
     "//automaton/core/data",
     "//automaton/core/data/protobuf",
     "//automaton/core/io",
     "//automaton/core/network",
     "//automaton/core/script",
-    "//automaton/core/script/lua",
     "@json//:json",
   ],
   linkstatic=True,

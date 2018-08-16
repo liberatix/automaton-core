@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_SMARTPROTO_NODE_H_
 
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -12,25 +13,25 @@
 #include "automaton/core/data/schema.h"
 #include "automaton/core/network/acceptor.h"
 #include "automaton/core/network/connection.h"
-#include "automaton/core/script/lua/lua_script_engine.h"
+#include "automaton/core/script/engine.h"
 // #include "automaton/core/smartproto/peer.h"
 
 namespace automaton {
 namespace core {
 namespace smartproto {
 
-typedef core::network::connection_id peer_id;
+typedef network::connection_id peer_id;
 
 struct peer_info {
   peer_id id;
   std::string address;
-  std::shared_ptr<core::network::connection> connection;
+  std::shared_ptr<network::connection> connection;
   std::shared_ptr<char> buffer;
   peer_info();
 };
 
-class node: public core::network::connection::connection_handler,
-    public core::network::acceptor::acceptor_handler {
+class node: public network::connection::connection_handler,
+    public network::acceptor::acceptor_handler {
  public:
   node(std::vector<std::string> schemas,
        std::vector<std::string> lua_scripts,
@@ -41,7 +42,7 @@ class node: public core::network::connection::connection_handler,
 
   bool set_peer_info(peer_id id, const peer_info& info);
 
-  void send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id);
+  void send_message(peer_id id, const data::msg& msg, uint32_t msg_id);
 
   void send_blob(peer_id id, const std::string& blob, uint32_t msg_id);
 
@@ -62,20 +63,18 @@ class node: public core::network::connection::connection_handler,
   void script(const char* input);
 
   uint32_t find_message_id(const char * name) {
-    return msg_factory->get_schema_id(name);
+    return engine.get_factory().get_schema_id(name);
   }
 
   std::unique_ptr<data::msg> create_msg_by_id(uint32_t id) {
-    return this->msg_factory->new_message_by_id(id);
+    return engine.get_factory().new_message_by_id(id);
   }
 
  private:
   peer_id peer_ids;
-  std::unique_ptr<data::factory> msg_factory;
-  script::lua::lua_script_engine script_engine;
-  sol::state_view lua;
+  script::engine engine;
   // std::vector<std::unique_ptr<data::schema>> schemas_;
-  std::shared_ptr<core::network::acceptor> acceptor_;
+  std::shared_ptr<network::acceptor> acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
   std::set<peer_id> connected_peers;
@@ -98,20 +97,20 @@ class node: public core::network::connection::connection_handler,
 
   void on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t id);
 
-  void on_message_sent(peer_id c, uint32_t id, core::network::connection::error e);
+  void on_message_sent(peer_id c, uint32_t id, network::connection::error e);
 
   void on_connected(peer_id c);
 
   void on_disconnected(peer_id c);
 
-  void on_error(peer_id c, core::network::connection::error e);
+  void on_error(peer_id c, network::connection::error e);
 
-  bool on_requested(core::network::acceptor* a, const std::string& address, peer_id* id);
+  bool on_requested(network::acceptor* a, const std::string& address, peer_id* id);
 
-  void on_connected(core::network::acceptor* a, core::network::connection* c,
+  void on_connected(network::acceptor* a, network::connection* c,
       const std::string& address);
 
-  void on_error(core::network::acceptor* a, core::network::connection::error e);
+  void on_error(network::acceptor* a, network::connection::error e);
 
   // Script handler functions.
   void s_on_blob_received(peer_id id, const std::string& blob);
@@ -123,6 +122,7 @@ class node: public core::network::connection::connection_handler,
   sol::protected_function script_on_connected;
   sol::protected_function script_on_disconnected;
   sol::protected_function script_on_update;
+  sol::protected_function script_on_msg_sent;
 };
 
 }  // namespace smartproto

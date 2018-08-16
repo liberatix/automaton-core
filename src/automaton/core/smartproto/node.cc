@@ -5,6 +5,7 @@
 #include <thread>
 #include <utility>
 
+#include "automaton/core/io/io.h"
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 
@@ -34,41 +35,31 @@ node::node(std::vector<std::string> schemas,
            std::vector<std::string> lua_scripts,
            std::vector<std::string> wire_msgs)
     : peer_ids(0)
-    , msg_factory(make_unique<protobuf_factory>())
-    , lua(script_engine.get_sol())
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);
-    msg_factory->import_schema(pb_schema, "", "");
-    script_engine.bind_core();
-
-    // Bind schema messages.
-    for (uint32_t id = 0; id < msg_factory->get_schemas_number(); id++) {
-      auto name = msg_factory->get_schema_name(id);
-      LOG(DEBUG) << "Binding proto message " << name;
-
-      lua.set(name, [this, name, id]() -> unique_ptr<msg> {
-        return this->msg_factory->new_message_by_id(id);
-      });
-    }
+    engine.import_schema(pb_schema);
+    engine.bind_core();
   }
 
   for (std::string lua_script : lua_scripts) {
-    sol::protected_function_result pfr = lua.safe_script(lua_script, &sol::script_pass_on_error);
+    sol::protected_function_result pfr =
+        engine.safe_script(lua_script, &sol::script_pass_on_error);
     std::string output = pfr;
     std::cout << output << std::endl;
   }
 
-  lua.set_function("send",
+  engine.set_function("send",
     [this](uint32_t peer_id, const core::data::msg& msg, uint32_t msg_id) {
       send_message(peer_id, msg, msg_id);
     });
 
-  script_on_update = lua["update"];
-  script_on_connected = lua["connected"];
-  script_on_disconnected = lua["disconnected"];
+  script_on_update = engine["update"];
+  script_on_connected = engine["connected"];
+  script_on_disconnected = engine["disconnected"];
+  script_on_msg_sent = engine["sent"];
 
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = false;
@@ -89,12 +80,12 @@ node::node(std::vector<std::string> schemas,
   // Map wire msg IDs to factory msg IDs and vice versa.
   uint32_t wire_id = 0;
   for (auto wire_msg : wire_msgs) {
-    auto factory_id = msg_factory->get_schema_id(wire_msg);
+    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
     factory_to_wire[factory_id] = wire_id;
     wire_to_factory[wire_id] = factory_id;
     string function_name = "on_" + wire_msg;
     LOG(DEBUG) << wire_id << ": " << function_name;
-    script_on_msg[wire_id] = lua[function_name];
+    script_on_msg[wire_id] = engine[function_name];
     wire_id++;
   }
 }
@@ -117,7 +108,7 @@ node::~node() {
 void node::script(const char* input) {
   LOG(DEBUG) << "Calling script from node " << input;
   std::string cmd{input};
-  sol::protected_function_result pfr = lua.safe_script(cmd, &sol::script_pass_on_error);
+  sol::protected_function_result pfr = engine.safe_script(cmd, &sol::script_pass_on_error);
   std::string output = pfr;
   std::cout << output << std::endl;
 }
@@ -143,7 +134,7 @@ void node::s_on_blob_received(peer_id id, const std::string& blob) {
   }
   CHECK_GT(wire_to_factory.count(wire_id), 0);
   auto msg_id = wire_to_factory[wire_id];
-  unique_ptr<msg> m = msg_factory->new_message_by_id(msg_id);
+  unique_ptr<msg> m = engine.get_factory().new_message_by_id(msg_id);
   m->deserialize_message(blob.substr(1));
   script_on_msg[wire_id](id, std::move(m));
 }
@@ -422,8 +413,8 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
   }
 }
 
-void node::on_message_sent(peer_id c, uint32_t id, core::network::connection::error e) {
-  LOG(DEBUG) << c << " -> on_message_sent";
+void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
+  script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
 }
 
 void node::on_connected(peer_id c) {
@@ -464,12 +455,12 @@ void node::on_disconnected(peer_id c) {
   }
 }
 
-void node::on_error(peer_id c, core::network::connection::error e) {
+void node::on_error(peer_id c, network::connection::error e) {
   LOG(DEBUG) << c << " -> on_error " << e;
   remove_peer(c);
 }
 
-bool node::on_requested(core::network::acceptor* a, const std::string& address, peer_id* id) {
+bool node::on_requested(network::acceptor* a, const std::string& address, peer_id* id) {
   LOG(DEBUG) << "Requested connection to " << acceptor_->get_address() << " from " << address;
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   std::lock_guard<std::mutex> lock(peers_mutex);
@@ -491,7 +482,7 @@ bool node::on_requested(core::network::acceptor* a, const std::string& address, 
   return true;
 }
 
-void node::on_connected(core::network::acceptor* a, core::network::connection* c, const std::string& address) {
+void node::on_connected(network::acceptor* a, network::connection* c, const std::string& address) {
   peer_id id = c->get_id();
   LOG(DEBUG) << "Connected in acceptor " << a->get_address() << " peer with id " << id << " (" << address << ')';
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
@@ -503,13 +494,13 @@ void node::on_connected(core::network::acceptor* a, core::network::connection* c
     LOG(ERROR) << "Connected to unknown peer " << id << " (" << address << ')' << " THIS SHOULD NEVER HAPPEN";
     return;
   }
-  it->second.connection = std::shared_ptr<core::network::connection> (c);
+  it->second.connection = std::shared_ptr<network::connection> (c);
   LOG(DEBUG) << "Connected to " << address;
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   peers_mutex.unlock();
 }
 
-void node::on_error(core::network::acceptor* a, core::network::connection::error e)  {
+void node::on_error(network::acceptor* a, network::connection::error e)  {
   LOG(DEBUG) << a->get_address() << " -> on_error in acceptor";
 }
 

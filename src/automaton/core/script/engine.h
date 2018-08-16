@@ -1,28 +1,27 @@
-#ifndef AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
-#define AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
+#ifndef AUTOMATON_CORE_SCRIPT_ENGINE_H_
+#define AUTOMATON_CORE_SCRIPT_ENGINE_H_
 
+#include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "automaton/core/crypto/hash_transformation.h"
-#include "automaton/core/script/registry.h"
+#include "automaton/core/data/factory.h"
 
 #include "sol.hpp"
 
 namespace automaton {
 namespace core {
 namespace script {
-namespace lua {
 
 /**
   Lua script engine wrapper and Autoamaton's module bridge.
 */
-class lua_script_engine {
+class engine : public sol::state {
  public:
-  /**
-  */
-  lua_script_engine();
-  ~lua_script_engine();
+  engine();
+  ~engine();
 
   void bind_core() {
     bind_crypto();
@@ -45,28 +44,14 @@ class lua_script_engine {
 
   void bind_state();
 
-  /**
-  */
-  void bind_registered_modules();
+  void import_schema(data::schema* msg_schema);
 
-  /**
-  */
-  common::status execute(std::string script);
-
-  auto get_lua_state() { return L; }
-  auto& get_sol() { return lua; }
+  data::factory& get_factory() {
+    return *data_factory;
+  }
 
  private:
-  void bind_static_function(module* m,
-                            const module::static_function_info& func);
-
-  void bind_class(module* m,
-                  const module::implementation_info& info);
-
-  void bind_registered_module(module* m);
-
-  lua_State* L;
-  sol::state lua;
+  std::unique_ptr<data::factory> data_factory;
 
   // Crypto hash functions
   std::unique_ptr<crypto::hash_transformation> ripemd160;
@@ -76,9 +61,8 @@ class lua_script_engine {
   std::unique_ptr<crypto::hash_transformation> keccak256;
 };
 
-}  // namespace lua
 }  // namespace script
 }  // namespace core
 }  // namespace automaton
 
-#endif  // AUTOMATON_CORE_SCRIPT_LUA_LUA_SCRIPT_ENGINE_H_
+#endif  // AUTOMATON_CORE_SCRIPT_ENGINE_H_

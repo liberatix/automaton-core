@@ -16,20 +16,6 @@ cc_library(
     "msg.h",
   ],
   deps = [
-    "//automaton/core/common",
-  ],
-  linkstatic=True,
-)
-
-cc_library(
-  name = "module",
-  srcs = ["module.cc"],
-  hdrs = ["module.h"],
-  data = ["module.proto"],
-  deps = [
-    "//automaton/core/data",
-    "//automaton/core/io",
-    "//automaton/core/script",
   ],
   linkstatic=True,
 )
