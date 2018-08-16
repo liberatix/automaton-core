@@ -35,24 +35,13 @@ node::node(std::vector<std::string> schemas,
            std::vector<std::string> lua_scripts,
            std::vector<std::string> wire_msgs)
     : peer_ids(0)
-    , msg_factory(make_unique<protobuf_factory>())
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);
-    msg_factory->import_schema(pb_schema, "", "");
+    engine.import_schema(pb_schema);
     engine.bind_core();
-
-    // Bind schema messages.
-    for (uint32_t id = 0; id < msg_factory->get_schemas_number(); id++) {
-      auto name = msg_factory->get_schema_name(id);
-      LOG(DEBUG) << "Binding proto message " << name;
-
-      engine.set(name, [this, name, id]() -> unique_ptr<msg> {
-        return this->msg_factory->new_message_by_id(id);
-      });
-    }
   }
 
   for (std::string lua_script : lua_scripts) {
@@ -91,7 +80,7 @@ node::node(std::vector<std::string> schemas,
   // Map wire msg IDs to factory msg IDs and vice versa.
   uint32_t wire_id = 0;
   for (auto wire_msg : wire_msgs) {
-    auto factory_id = msg_factory->get_schema_id(wire_msg);
+    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
     factory_to_wire[factory_id] = wire_id;
     wire_to_factory[wire_id] = factory_id;
     string function_name = "on_" + wire_msg;
@@ -145,7 +134,7 @@ void node::s_on_blob_received(peer_id id, const std::string& blob) {
   }
   CHECK_GT(wire_to_factory.count(wire_id), 0);
   auto msg_id = wire_to_factory[wire_id];
-  unique_ptr<msg> m = msg_factory->new_message_by_id(msg_id);
+  unique_ptr<msg> m = engine.get_factory().new_message_by_id(msg_id);
   m->deserialize_message(blob.substr(1));
   script_on_msg[wire_id](id, std::move(m));
 }
