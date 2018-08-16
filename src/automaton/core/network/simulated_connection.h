@@ -18,6 +18,11 @@ namespace network {
 class simulated_connection;
 class simulated_acceptor;
 
+/**
+  Acceptor address: (max connections):(bandwidth):(address)
+  Connection address: (min lag):(max lag):(bandwidth):(remote address)
+*/
+
 // this could be protobuf message
 // TODO(kari): Shrink it
 struct event {
@@ -104,8 +109,16 @@ class simulation {
   */
   void set_time(uint64_t time);
 
+  bool simulation_running;
+  std::thread running_thread;
+  std::mutex running_mutex;
+
  public:
   ~simulation();
+
+  void simulation_start(uint64_t millisec_step);
+
+  void simulation_stop();
 
   /**
     Returns pointer to the simulation instance;
@@ -144,7 +157,6 @@ class simulated_connection: public connection {
   uint32_t remote_address;
   uint32_t local_connection_id;
   uint32_t remote_connection_id;
-  state connection_state;
   // TODO(kari): better names for these structs
   struct incoming_packet {
     char* buffer;
@@ -160,6 +172,57 @@ class simulated_connection: public connection {
     uint32_t id;
     outgoing_packet();
   };
+
+  connection_params parameters;
+
+  std::queue<outgoing_packet> sending;
+  std::mutex sending_q_mutex;
+  std::queue<incoming_packet> reading;
+  std::mutex reading_q_mutex;
+  std::queue<std::string> receive_buffer;
+  std::mutex recv_buf_mutex;
+
+  simulated_connection(connection_id id, const std::string& address_, connection_handler* handler_);
+
+  bool init();
+
+  bool parse_address(const std::string& address_, connection_params* params, uint32_t* parsed_remote_address);
+
+  void connect();
+
+  void disconnect();
+
+  void async_send(const std::string& message, uint32_t message_id);
+
+  void async_read(char* buffer, uint32_t buffer_size, uint32_t num_bytes, uint32_t id);
+
+  void handle_read();
+
+  void handle_send();
+
+  state get_state() const;
+
+  void set_state(connection::state new_state);
+
+  std::string get_address() const;
+
+  uint32_t get_lag() const;
+
+  connection_handler* get_handler();
+
+  void set_time_stamp(uint32_t t);
+
+  uint32_t get_time_stamp() const;
+
+  /**
+    Clears queues related to read operation. It is used when disconnecting.
+    Could be removed if connections are unique and won't be reused.
+  */
+  void clear_queues();
+
+  void cancel_operations();
+
+ private:
   /**
     This is used when setting event time to prevent events that are called before others to be
     handled first because they had smaller lag. It shows the last time when THIS endpoint send
@@ -168,48 +231,17 @@ class simulated_connection: public connection {
     in the event queue at the same time.
   */
   uint32_t time_stamp;  // time_stamp
-  connection_params parameters;
-
-  /**
-    Queue storing message_id and how many bytes from this message have left and should be
-    sent
-  */
-  std::queue<outgoing_packet> sending;
-  std::queue<incoming_packet> reading;
-  std::queue<std::string> receive_buffer;
-
-  simulated_connection(const std::string& address_, connection_handler* handler_);
-
-  bool init();
-
-  bool parse_address(const std::string& address);
-
-  void async_send(const std::string& message, uint32_t message_id);
-
-  void async_read(char* buffer, uint32_t buffer_size, uint32_t num_bytes, uint32_t id);
-  void handle_read();
-  void handle_send();
-
-  state get_state() const;
-  std::string get_address() const;
-  uint32_t get_lag() const;
-  void connect();
-  void disconnect();
-  connection_handler* get_handler();
-
-  /**
-    Clears queues related to read operation. It is used when disconnecting.
-    Could be removed if connections are unique and won't be reused.
-  */
-  void clear_queues();
-  void cancel_operations();
+  mutable std::mutex time_stamp_mutex;
+  std::string original_address;
+  connection::state connection_state;
+  mutable std::mutex state_mutex;
 };
 
 class simulated_acceptor: public acceptor {
  public:
-  uint32_t address;  // first 13 bits acceprors, second 19 - ports/connections
+  uint32_t address;
+  std::string original_address;
   acceptor_params parameters;
-  bool started_accepting;
   connection::connection_handler* accepted_connections_handler;
 
   simulated_acceptor(const std::string& address_, acceptor::acceptor_handler*
@@ -221,11 +253,17 @@ class simulated_acceptor: public acceptor {
 
   state get_state() const;
 
+  void set_state(acceptor::state new_state);
+
   std::string get_address() const;
 
-  bool parse_address(const std::string& address);  // not implemented yet
+  bool parse_address(const std::string& address_, acceptor_params* params, uint32_t* parsed_address);
 
   acceptor_handler* get_handler();
+
+ private:
+  acceptor::state acceptor_state;
+  mutable std::mutex state_mutex;
 };
 
 }  // namespace network
