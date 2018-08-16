@@ -1,6 +1,9 @@
 #include "automaton/core/smartproto/node.h"
 
 #include <chrono>
+#include <fstream>
+#include <ios>
+#include <iostream>
 #include <regex>
 #include <thread>
 #include <utility>
@@ -15,8 +18,11 @@ using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 
 using std::make_unique;
-using std::unique_ptr;
 using std::string;
+using std::unique_ptr;
+using std::vector;
+using std::ofstream;
+using std::ios_base;
 
 namespace automaton {
 namespace core {
@@ -44,17 +50,23 @@ node::node(std::vector<std::string> schemas,
     engine.bind_core();
   }
 
+  // Bind node methods.
+  engine.set_function("send",
+    [this](uint32_t peer_id, const core::data::msg& msg, uint32_t msg_id) {
+      send_message(peer_id, msg, msg_id);
+    });
+
+  engine.set_function("log",
+    [this](string logger, string msg) {
+      log(logger, msg);
+    });
+
   for (std::string lua_script : lua_scripts) {
     sol::protected_function_result pfr =
         engine.safe_script(lua_script, &sol::script_pass_on_error);
     std::string output = pfr;
     std::cout << output << std::endl;
   }
-
-  engine.set_function("send",
-    [this](uint32_t peer_id, const core::data::msg& msg, uint32_t msg_id) {
-      send_message(peer_id, msg, msg_id);
-    });
 
   script_on_update = engine["update"];
   script_on_connected = engine["connected"];
@@ -104,6 +116,67 @@ node::~node() {
   updater->join();
   delete updater;
 }
+
+void node::log(string logger, string msg) {
+  if (logs.count(logger) == 0) {
+    logs.emplace(logger, vector<string>());
+  }
+  logs[logger].push_back(msg);
+}
+
+void node::dump_logs(std::string html_file) {
+  ofstream f;
+  f.open(html_file, ios_base::trunc);
+
+  f << R"(
+<html>
+<head>
+<style>
+pre {
+  border: 1px solid black;
+  padding: 8px;
+  overflow:auto;
+  font: bold 11px "Courier New";
+}
+
+.button {
+  font: bold 11px Play;
+  text-decoration: none;
+  background-color: #aad8f3;
+  color: #333;
+  padding: 2px 6px 2px 6px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;
+  margin: 4px;
+}
+</style>
+</head>
+<body>
+<br/>
+)";
+
+  for (auto log : logs) {
+    f << "<a class='button' href='#" << log.first << "'>";
+    f << log.first << std::endl;
+    f << "</a>\n";
+  }
+  f << "<br/><br/>";
+
+  for (auto log : logs) {
+    f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
+    f << "<pre>";
+    for (auto msg : log.second) {
+      f << msg << "\n";
+    }
+    f << "</pre>\n";
+  }
+
+  f << "</body></html>\n";
+  f.close();
+}
+
 
 void node::script(const char* input) {
   LOG(DEBUG) << "Calling script from node " << input;
