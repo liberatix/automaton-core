@@ -1,7 +1,16 @@
 print("LOADED!")
 
+
+nonce = {0}
 -- node callback functions
 function update(time)
+  -- attempt to mine a block
+  local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 100000)
+  -- if a block is mined call broadcast to all peers
+  if found then
+    print(block:to_json())
+    on_Block(-1, block)
+  end
   --print ("STARTED UPDATE for node: " .. node_id)
   -- for each peer call the necesery function
   for k, v in pairs(peers) do
@@ -14,7 +23,8 @@ function update(time)
     end
   end
   -- print ("UPDATE FINISHED for node: " .. node_id)
-  print "UPDATE FINISHED WITHOUT ERRORS"
+  --print "UPDATE FINISHED WITHOUT ERRORS"
+  print (#blockchain)
 end
 
 function update2(time)
@@ -42,6 +52,10 @@ function sent(peer_id, msg_id, success)
     print("Sucessfully sent messsage " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
   else
     print("Error sending message " .. tostring(msg_id) .. " to peer " .. tostring(peer_id))
+    if msg_id == 0 then
+      print "Lost connection with peer"
+      peers[peer_id] = nil
+    end
   end
 end
 
@@ -258,7 +272,7 @@ function onGetBlocks(peer_id, msg)
 end
 
 function handshake(peer_id)
-  print ("start handshake with peer_id: " .. peer_id)
+  --print ("start handshake with peer_id: " .. peer_id)
   -- print(peers[peer_id].received_block.miner)
   -- print(peers[peer_id].received_block.height)
   -- print(tprint(peers[peer_id]))
@@ -268,7 +282,7 @@ function handshake(peer_id)
     return
   end
   if peers[peer_id].state == STATE.HANDSHAKE and peers[peer_id].received_block ~= nil then
-    print "we have sent and recieved block"
+    --print "we have sent and recieved block"
   end
   -- if peers[peer_id].STATE == STATE.HANDSHAKE and peers[peer_id].sent_block_hash == nil then
   --   if #blockchain == 0 then
@@ -337,7 +351,7 @@ end
 
 --================================== MAIN =========================================
 i = 0
-while i < 0 do
+while i < 1 do
   local nonce = {0}
   target = get_target(difficulty)
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
@@ -346,7 +360,8 @@ while i < 0 do
   local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
   if found then
-    onBlock(-1, block)
+    print(block:to_json())
+    on_Block(-1, block)
     --local block_validity = validateBlock(block)
   end
   i = i+1
