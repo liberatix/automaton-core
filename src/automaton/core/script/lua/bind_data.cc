@@ -1,7 +1,8 @@
 #include "automaton/core/script/lua/lua_script_engine.h"
 
-#include "automaton/core/data/msg.h"
 #include "automaton/core/data/factory.h"
+#include "automaton/core/data/msg.h"
+#include "automaton/core/io/io.h"
 
 using automaton::core::data::msg;
 using automaton::core::data::factory;
@@ -20,7 +21,7 @@ void lua_script_engine::bind_data() {
 
   msg_type.set(sol::meta_function::index,
     [](sol::this_state L, msg& m, std::string key) -> sol::object {
-      LOG(DEBUG) << "Getting key: " << key;
+      VLOG(9) << "Getting key: " << key;
       sol::state_view lua(L);
       auto schema_id = m.get_schema_id();
       auto tag_id = m.get_field_tag(key);
@@ -108,7 +109,7 @@ void lua_script_engine::bind_data() {
 
   msg_type.set(sol::meta_function::new_index,
     [](sol::this_state L, msg& m, std::string key, sol::object value) {
-      LOG(DEBUG) << "Setting key:" << key << " value: " << value.as<std::string>();
+      VLOG(9) << "Setting key:" << key << " value: " << value.as<std::string>();
       auto schema_id = m.get_schema_id();
       auto tag_id = m.get_field_tag(key);
       auto fi = m.get_field_info_by_tag(tag_id);
