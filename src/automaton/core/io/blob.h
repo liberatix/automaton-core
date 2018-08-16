@@ -1,6 +1,9 @@
 #ifndef AUTOMATON_CORE_IO_BLOB_H_
 #define AUTOMATON_CORE_IO_BLOB_H_
 
+#include <string>
+#include <vector>
+
 #include "automaton/core/io/io.h"
 
 namespace automaton {
@@ -31,7 +34,7 @@ struct blob {
   void resize(size_t new_size) {
     buffer.resize(new_size, 0);
   }
-  
+
   std::string tostring() {
     io::bin2hex(std::string(reinterpret_cast<const char*>(buffer.data()), buffer.size()));
   }
