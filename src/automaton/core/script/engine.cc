@@ -58,11 +58,9 @@ void engine::import_schema(data::schema* msg_schema) {
     auto msg_id = data_factory->get_schema_id(msg_name);
     LOG(DEBUG) << "Binding message " << msg_name << " with data::factory ID " << msg_id;
 
-/*
     set(msg_name, [this, msg_name, msg_id]() -> unique_ptr<msg> {
       return data_factory->new_message_by_id(msg_id);
     });
-*/
   }
 }
 
