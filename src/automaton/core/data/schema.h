@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 namespace automaton {
 namespace core {
@@ -152,6 +153,8 @@ class schema {
   virtual void add_scalar_field(field_info field, int32_t message_id) = 0;
   virtual void add_enum_field(field_info field, int32_t message_id) = 0;
   virtual void add_message_field(field_info field, int32_t message_id) = 0;
+
+  virtual std::vector<std::string> get_message_names() = 0;
 };
 
 }  // namespace data

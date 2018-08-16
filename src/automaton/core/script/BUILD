@@ -19,6 +19,7 @@ cc_library(
       "//automaton/core/crypto/cryptopp",
       "//automaton/core/crypto/ed25519_orlp",
       "//automaton/core/data",
+      "//automaton/core/data/protobuf",
       "//automaton/core/io",
     ],
     linkstatic=True,

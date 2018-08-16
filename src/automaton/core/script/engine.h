@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "automaton/core/crypto/hash_transformation.h"
+#include "automaton/core/data/factory.h"
 
 #include "sol.hpp"
 
@@ -43,7 +44,15 @@ class engine : public sol::state {
 
   void bind_state();
 
+  void import_schema(data::schema* msg_schema);
+
+  data::factory& get_factory() {
+    return *data_factory;
+  }
+
  private:
+  std::unique_ptr<data::factory> data_factory;
+
   // Crypto hash functions
   std::unique_ptr<crypto::hash_transformation> ripemd160;
   std::unique_ptr<crypto::hash_transformation> sha512;
