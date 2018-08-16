@@ -9,14 +9,12 @@ function update(time)
   for k, v in pairs(blocks) do
     count = count + 1
   end
-  current_message_id = current_message_id +1
-  print(current_message_id)
   print "asd"
   print ("#blocks: " .. tostring(count))
   print ("#blockchain: " .. tostring(#blockchain))
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   -- attempt to mine a block
-  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 1000)
+  local found, block = mine(sha3("tostring(node_id)"), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
   if found then
     print("Mined block: " .. hex(blockHash(block)))
@@ -244,8 +242,6 @@ function on_Block(peer_id, block)
   if block_validity == BLOCK.VALID  then
     print "Valid block added to blocks"
     blocks[hash] = block
-    print("peer_id:" .. tostring(peer_id))
-    print(peer_id)
     shout(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
     --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then
@@ -253,32 +249,32 @@ function on_Block(peer_id, block)
     --!   blockchain[#blockchain+1] = hash
     -- Check if we get a longer chain. Does not matter if it is the main or alternative.
     if block.height == #blockchain+1 then
-      -- print "block.height == #blockchain+1"
+      print "block.height == #blockchain+1"
       -- We are sure that this is the head of the longest chain
       blockchain[#blockchain+1] = hash
       -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
-      -- print "got to One"
-      -- print("#blockchain: " .. tostring(#blockchain))
+      print "got to One"
+      print("#blockchain: " .. tostring(#blockchain))
       local block_index = #blockchain-1
-      -- print "got to two"
-      -- print("#blockchain-1:" .. tostring(#blockchain-1))
-      -- print("got to two.five")
+      print "got to two"
+      print("#blockchain-1:" .. tostring(#blockchain-1))
+      print("got to two.five")
       local longest_chain_hash = block.prev_hash
       print(block_index)
-      -- print "got to three"
+      print "got to three"
       while block_index >= 1 do
-        -- print("got to this")
+        print("got to this")
         print(block_index)
         if (blockchain[block_index] ~= longest_chain_hash) then
-          -- print "got Inside"
+          print "got Inside"
           blockchain[block_index] = longest_chain_hash
-          -- print "midpoint inside"
+          print "midpoint inside"
           longest_chain_hash = blocks[longest_chain_hash].prev_hash
-          -- print "finished inside"
+          print "finished inside"
         end
         block_index = block_index - 1
       end
-      -- print "end of block.height == #blockchain"
+      print "end of block.height == #blockchain"
     end
   -- If it is DUPLICATE
   elseif(block_validity == BLOCK.DUPLICATE) then
@@ -294,13 +290,12 @@ function on_Block(peer_id, block)
 end
 
 function shout(from, block_hash)
-  print "I GOT TO SHAUT I GOT TO SHAUT I GOT TO SHAUT I GOT TO SHAUT I GOT TO SHAUT "
-  print ("shouting, from = " .. to_string(from))
+  --print ("shouting, from = " .. to_string(from))
   for k, v in pairs(peers) do
     -- TODO(Samir): Decide to which peer states we should send the block
     --if v.state == STATE.IN_CONSENSUS then
       if k ~= from then
-        sendBlock(k, blocks[block_hash], 0)
+        send(k, blocks[block_hash], 0)
       end
   --end
   end
