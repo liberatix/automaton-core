@@ -64,7 +64,7 @@ Replxx::completions_t hook_completion(std::string const& context, int index, voi
 }
 
 Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& color, void* user_data) { // NOLINT
-  auto* engine = static_cast<engine*>(user_data);
+  auto* script = static_cast<engine*>(user_data);
   std::vector<std::string> examples;
   Replxx::hints_t hints;
 
@@ -165,12 +165,12 @@ int main() {
   auto proto_schema = new protobuf_schema(proto_contents);
   factory.import_schema(proto_schema, "", "");
 
-  engine engine;
+  engine script;
 
   auto add_req_id = factory.get_schema_id("AddRequest");
   auto add_rep_id = factory.get_schema_id("AddResponse");
 
-  engine.set_function("add", [&](int x, int y) {
+  script.set_function("add", [&](int x, int y) {
     auto req = factory.new_message_by_id(add_req_id);
     auto rep = factory.new_message_by_id(add_rep_id);
     req->set_int32(1, x);
@@ -179,7 +179,7 @@ int main() {
     return rep->get_int32(1);
   });
 
-  engine.new_usertype<byte_array>("ByteArray",
+  script.new_usertype<byte_array>("ByteArray",
     sol::constructors<byte_array(size_t)>(),
     sol::meta_function::index, &byte_array::get,
     sol::meta_function::new_index, &byte_array::set,
@@ -198,7 +198,7 @@ int main() {
   auto sha3 = new SHA3_256_cryptopp();
   auto keccak256 = new Keccak_256_cryptopp();
 
-  engine.set_function("rand", [random](int bytes) -> std::string {
+  script.set_function("rand", [random](int bytes) -> std::string {
     uint8_t* buf = new uint8_t[bytes];
     random->block(buf, bytes);
     auto result = std::string((char*)buf, bytes); // NOLINT
@@ -206,7 +206,7 @@ int main() {
     return result;
   });
 
-  engine.set_function("fromcpp", [&](const std::string& h, int n) -> std::string {
+  script.set_function("fromcpp", [&](const std::string& h, int n) -> std::string {
     hash_transformation* f;
     size_t size = 0;
 
@@ -248,7 +248,7 @@ int main() {
     return "";
   });
 
-  engine.set_function("sha256A", [sha256](const std::string& input) -> const std::string {
+  script.set_function("sha256A", [sha256](const std::string& input) -> const std::string {
     static char digest[32];
     sha256->calculate_digest(
         reinterpret_cast<const uint8_t*>(input.c_str()),
@@ -257,7 +257,7 @@ int main() {
     return std::string(digest, 32);
   });
 
-  engine.set_function("sha256B", [sha256](const char * input, size_t inp_size) -> const char * {
+  script.set_function("sha256B", [sha256](const char * input, size_t inp_size) -> const char * {
     static char digest[32];
     sha256->calculate_digest(
         reinterpret_cast<const uint8_t*>(input),
@@ -266,7 +266,7 @@ int main() {
     return digest;
   });
 
-  engine.bind_core();
+  script.bind_core();
 
   // words to be completed
   std::vector<std::string> examples {
@@ -363,7 +363,7 @@ int main() {
   // set the callbacks
   rx.set_completion_callback(hook_completion, static_cast<void*>(&examples));
   rx.set_highlighter_callback(hook_color, static_cast<void*>(&regex_color));
-  rx.set_hint_callback(hook_hint, static_cast<void*>(&engine));
+  rx.set_hint_callback(hook_hint, static_cast<void*>(&script));
 
   static std::string automaton_ascii_logo =
     "\n\x1b[40m\x1b[1m"
@@ -434,7 +434,7 @@ int main() {
     // easier to manipulate
     std::string input {cinput};
 
-    sol::protected_function_result pfr = engine.safe_script(input, &sol::script_pass_on_error);
+    sol::protected_function_result pfr = script.safe_script(input, &sol::script_pass_on_error);
     std::string output = pfr;
     std::cout << output << std::endl;
 
