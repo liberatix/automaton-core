@@ -38,6 +38,7 @@ node::node(std::vector<std::string> schemas,
     , lua(script_engine.get_sol())
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
+  lua["node_id"] = (uint64_t)(this);
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);

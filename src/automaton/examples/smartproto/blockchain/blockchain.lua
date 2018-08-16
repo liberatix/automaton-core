@@ -1,8 +1,23 @@
 print("LOADED!")
 
 -- node callback functions
-
 function update(time)
+  --print ("STARTED UPDATE for node: " .. node_id)
+  -- for each peer call the necesery function
+  for k, v in pairs(peers) do
+    --print(v)
+    --print(tprint(v))
+    if v.state == STATE.HANDSHAKE then
+      handshake(k)
+      --print(k)
+      --print(tprint(v))
+    end
+  end
+  -- print ("UPDATE FINISHED for node: " .. node_id)
+  print "UPDATE FINISHED WITHOUT ERRORS"
+end
+
+function update2(time)
   -- print("Update called at", time)
   -- for each peer check to see if we need to send more info, close connection, etc.
   --print("initial peer state: ")
@@ -133,45 +148,57 @@ function validateBlock(block)
   end
 end
 
-function onConnect(peer_id)
-  peer_states[peer_id] = { state=HANDSHAKE }
-  -- set peer state
-  -- send initial block
-  -- request getblock
-end
-
-function handshake(peer_id)
-  -- Check if peer exists in peers
-  if peer_id <= 0 or peers[peer_id] == nil then
-    print "ERROR(Samir 301): in handshake, peer_id needs to be possitive number and peers[peer_id] should not be nil"
-    return
-  end
-  if peers[peer_id].STATE == STATE.HANDSHAKE and peers[peer_id].block.sent_block_hash == nil then
-    sendBlock(peer_id, blockchain[#blockchain])
-  elseif true then
-    print "elseif block is sent"
-    print(tprint(peers[id]))
-  end
-
-end
-
-function sendBlock(peer_id, blockHash)
+function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesis give proper hash
   -- TODO(Samir): Implement block sending to other peers, Check if the block is received
-  print "ERROR(Samir 101): sendBlock not implemented"
-  print("sending block to: " .. peer_id)
-  peers[peer_id].block.sent_block_hash = blockchain[#blockchain]
-end
-
-function onUpdate()
-  -- for each peer check to see if we need to send more info, close connection, etc.
-end
-
-function onBlock(peer_id, block)
-  -- first_block_from_peer = peers[peer_id].state == STATE.HANDSHAKE and
-  --     peers[peer_id].block.receive_block == nil
-  if first_block_from_peer then
-    peers[peer_id].block.receive_block = block
+  --print ("sending block " .. hex(blockHash))
+  if blockHash == GENESIS_HASH then
+    local no_blocks = Block()
+    no_blocks.height = 0
+    no_blocks.miner = "No miner"
+    send(peer_id, no_blocks, 0)
+  else
+    send(peer_id, blocks[blockHash], 0)
   end
+end
+
+
+function connected(peer_id)
+  print("Connected to " .. tostring(peer_id))
+  peers[peer_id] = {}
+  peers[peer_id].state = STATE.HANDSHAKE
+  --b = Block()
+  --b.miner = "Ace"
+  --send(1, b, 0) -- send (peer_id, message, mesage_id)
+  -- peer -> {IP = "0.0.0.0", state = STATE.HANDSHAKE, sent_block_hash = nil received_block = nil}},
+  -- save peer to peer list -- set peer state
+  -- send highest block or create and send block with height 0 to indicate we have no blocks
+  -- TODO(Samir): peers[peer_id].sent_block_hash needs to be set when message is confirmed to be received
+  if #blockchain > 0 then
+    sendBlock(peer_id, blockchain[#blockchain])
+    peers[peer_id].sent_block_hash = blockchain[#blockchain]
+  else
+    sendBlock(peer_id, GENESIS_HASH)
+    peers[peer_id].sent_block_hash = GENESIS_HASH
+  end
+end
+
+-- function on_Block(peer_id, msg)
+--   print("Received Block!")
+--   print(msg:to_json())
+-- end
+
+function on_Block(peer_id, block)
+  if peers[peer_id].received_block == nil then
+    print ("First block from peer: " .. peer_id)
+    peers[peer_id].received_block = block
+    --print(tprint(peers[peer_id]))
+    -- if this peer has no block return and handle the rest in handshake
+    if block.height == 0 then
+      print "in on_Block, we got block with height 0"
+      return
+    end
+  end
+
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
   -- TODO(Samir): Instead of checking block validity handle the cases
@@ -206,7 +233,7 @@ function onBlock(peer_id, block)
   -- If it is DUPLICATE
   elseif(block_validity == BLOCK.DUPLICATE) then
     -- do nothing
-  -- If it is INVALID
+  -- If it is INVALIDd
   elseif(block_validity == BLOCK.INVALID) then
     -- do nothing or respond with invalid
   -- if there is no block with prev_hash in blocks
@@ -216,25 +243,40 @@ function onBlock(peer_id, block)
   end
 end
 
-function on_Block(peer_id, msg)
-  print("Received Block!")
-  print(msg:to_json())
-end
-
-function connected(peer_id)
-  print("Connected to " .. tostring(peer_id))
-  b = Block()
-  b.miner = "Ace"
-  send(1, b, 0)
-end
 
 function onBlocks(peer_id, msg)
-
 end
 
 function onGetBlocks(peer_id, msg)
-
 end
+
+function handshake(peer_id)
+  print ("start handshake with peer_id: " .. peer_id)
+  -- print(peers[peer_id].received_block.miner)
+  -- print(peers[peer_id].received_block.height)
+  -- print(tprint(peers[peer_id]))
+  -- Check if peer exists in peers
+  if peer_id <= 0 or peers[peer_id] == nil then
+    print "ERROR(Samir 301): in handshake, peer_id needs to be possitive number and peers[peer_id] should not be nil"
+    return
+  end
+  if peers[peer_id].state == STATE.HANDSHAKE and peers[peer_id].received_block ~= nil then
+    print "we have sent and recieved block"
+  end
+  -- if peers[peer_id].STATE == STATE.HANDSHAKE and peers[peer_id].sent_block_hash == nil then
+  --   if #blockchain == 0 then
+  --     local no_blocks = block()
+  --     no_blocks.height = 0
+  --     send(peer_id, no_blocks, 0)
+  --   else
+  --     sendBlock(peer_id, blockchain[#blockchain])
+  --   end
+  -- elseif true then
+  --   --print "elseif block is sent"
+  --   print(tprint(peers[peer_id]))
+  -- end
+end
+
 
 -- Takes in block with miner, prev_hash, height
 --
@@ -265,7 +307,7 @@ function get_target(difficulty)
 end
 
 
-init()
+--init()
 
 
 --===== Helper functions for debuging =============================================
@@ -288,7 +330,7 @@ end
 
 --================================== MAIN =========================================
 i = 0
-while i < 2 do
+while i < 0 do
   local nonce = {0}
   target = get_target(difficulty)
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
