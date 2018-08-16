@@ -158,9 +158,9 @@ int main(int argc, char* argv[]) {
   automaton::core::network::tcp_init();
 
   automaton::core::cli::cli cli;
+  cli.print(automaton_ascii_logo.c_str());
   lua.script(get_file_contents("automaton/core/coreinit.lua"));
 
-  cli.print(automaton_ascii_logo.c_str());
   cli.history_add("b = BCNode()");
 
   while (1) {

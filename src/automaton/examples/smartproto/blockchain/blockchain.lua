@@ -5,8 +5,9 @@ nonce = {0}
 -- node callback functions
 function update(time)
   -- attempt to mine a block
-  local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 100000)
+  local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
+  print "got here"
   if found then
     print(block:to_json())
     on_Block(-1, block)
@@ -209,7 +210,8 @@ end
 -- end
 
 function on_Block(peer_id, block)
-  if peers[peer_id].received_block == nil then
+
+  if peers[peer_id] ~= nill and peers[peer_id].received_block == nil then
     print ("First block from peer: " .. peer_id)
     peers[peer_id].received_block = block
     --print(tprint(peers[peer_id]))
