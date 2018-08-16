@@ -43,21 +43,13 @@ void engine::bind_state() {
 }
 
 void engine::import_schema(data::schema* msg_schema) {
-  LOG(DEBUG) << "Importing schema";
   data_factory->import_schema(msg_schema, "", "");
   auto schemas_number = data_factory->get_schemas_number();
-  LOG(DEBUG) << schemas_number << " imported.";
-
-  for (uint32_t id = 0; id < schemas_number; id++) {
-    LOG(DEBUG) << "schema " << id << ": " << data_factory->get_schema_name(id);
-  }
 
   // Bind schema messages.
   auto msg_names = msg_schema->get_message_names();
   for (auto msg_name : msg_names) {
     auto msg_id = data_factory->get_schema_id(msg_name);
-    LOG(DEBUG) << "Binding message " << msg_name << " with data::factory ID " << msg_id;
-
     set(msg_name, [this, msg_name, msg_id]() -> unique_ptr<msg> {
       return data_factory->new_message_by_id(msg_id);
     });

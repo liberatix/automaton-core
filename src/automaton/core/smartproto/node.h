@@ -70,6 +70,10 @@ class node: public network::connection::connection_handler,
     return engine.get_factory().new_message_by_id(id);
   }
 
+  void log(std::string logger, std::string msg);
+
+  void dump_logs(std::string html_file);
+
  private:
   peer_id peer_ids;
   script::engine engine;
@@ -79,6 +83,8 @@ class node: public network::connection::connection_handler,
   std::unordered_map<peer_id, peer_info> known_peers;
   std::set<peer_id> connected_peers;
   std::mutex peer_ids_mutex;
+
+  std::unordered_map<std::string, std::vector<std::string>> logs;
 
   peer_id get_next_peer_id();
 

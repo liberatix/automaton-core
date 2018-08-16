@@ -132,6 +132,7 @@ int main(int argc, char* argv[]) {
     std::cout << output << std::endl;
   }
   sim->simulation_stop();
+  delete sim;
   // script.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);
   LOG(DEBUG) << "Destroying lua state & objects";
 

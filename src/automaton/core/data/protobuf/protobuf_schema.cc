@@ -376,7 +376,7 @@ void dump_msg(const DescriptorProto dpr, std::ostream& ostream_, const std::stri
 }
 
 std::string protobuf_schema::dump_schema() {
-  std::unique_ptr<FileDescriptorProto>& fdp = file_descriptor_proto;
+  auto& fdp = file_descriptor_proto;
   std::stringstream ostream_;
   for (int i = 0; i < fdp->message_type_size(); ++i) {
     const DescriptorProto d = fdp->message_type(i);
@@ -397,8 +397,10 @@ std::string protobuf_schema::dump_schema() {
 std::vector<std::string> protobuf_schema::get_message_names() {
   std::vector<std::string> result;
 
-  for (auto message : messages) {
-    result.push_back(message->name());
+  auto& fdp = file_descriptor_proto;
+  for (int i = 0; i < fdp->message_type_size(); ++i) {
+    const DescriptorProto& d = fdp->message_type(i);
+    result.push_back(d.name());
   }
 
   return result;
