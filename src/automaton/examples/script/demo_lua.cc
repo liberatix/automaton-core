@@ -13,18 +13,18 @@
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA3_256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA512_cryptopp.h"
+#include "automaton/core/data/msg.h"
+#include "automaton/core/data/schema.h"
+#include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/script/lua/lua_script_engine.h"
-#include "automaton/core/script/registry.h"
 
 #include "replxx.hxx"
 #include "sol.hpp"
 
 using Replxx = replxx::Replxx;
 
-using automaton::core::common::obj;
-using automaton::core::common::status;
 using automaton::core::crypto::cryptopp::Keccak_256_cryptopp;
 using automaton::core::crypto::cryptopp::RIPEMD160_cryptopp;
 using automaton::core::crypto::cryptopp::secure_random_cryptopp;
@@ -33,14 +33,16 @@ using automaton::core::crypto::cryptopp::SHA512_cryptopp;
 using automaton::core::crypto::cryptopp::SHA3_256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::data::msg;
+using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 using automaton::core::data::schema;
 using automaton::core::io::get_file_contents;
 using automaton::core::io::bin2hex;
 using automaton::core::script::lua::lua_script_engine;
-using automaton::core::script::module;
+
 using std::unique_ptr;
 
+protobuf_factory factory;
 
 // prototypes
 Replxx::completions_t hook_completion(std::string const& context, int index, void* user_data);
@@ -65,8 +67,6 @@ Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& 
   auto* lua = static_cast<sol::state_view*>(user_data);
   std::vector<std::string> examples;
   Replxx::hints_t hints;
-
-  auto& factory = automaton::core::script::registry::instance().get_factory();
 
   for (auto i = 0; i < factory.get_schemas_number(); i++) {
     auto name = factory.get_schema_name(i);
@@ -163,8 +163,6 @@ struct byte_array {
 };
 
 int main() {
-  auto& factory = automaton::core::script::registry::instance().get_factory();
-
   // Load proto messages
   auto proto_contents = get_file_contents("automaton/examples/script/blockchain.proto");
   auto proto_schema = new protobuf_schema(proto_contents);
@@ -273,27 +271,6 @@ int main() {
   });
 
   engine.bind_core();
-
-  auto r = status::ok();
-
-  // Load and run script.
-  LOG(DEBUG) << "BENCHMARK";
-  r = engine.execute(get_file_contents("automaton/examples/script/benchmark.lua"));
-  if (r.code != status::OK) {
-    LOG(ERROR) << "LUA ERROR: " << r.msg;
-  }
-
-  LOG(DEBUG) << "DATA";
-  r = engine.execute(get_file_contents("automaton/examples/script/data.lua"));
-  if (r.code != status::OK) {
-    LOG(ERROR) << "LUA ERROR: " << r.msg;
-  }
-
-  LOG(DEBUG) << "BLOCKCHAIN";
-  r = engine.execute(get_file_contents("automaton/examples/script/blockchain.lua"));
-  if (r.code != status::OK) {
-    LOG(ERROR) << "LUA ERROR: " << r.msg;
-  }
 
   // words to be completed
   std::vector<std::string> examples {

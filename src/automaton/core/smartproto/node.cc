@@ -5,6 +5,7 @@
 #include <thread>
 #include <utility>
 
+#include "automaton/core/io/io.h"
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 
