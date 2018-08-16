@@ -5,7 +5,6 @@
 #include <string>
 
 #include "automaton/core/crypto/hash_transformation.h"
-#include "automaton/core/script/registry.h"
 
 #include "sol.hpp"
 

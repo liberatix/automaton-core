@@ -11,7 +11,6 @@ cc_binary(
     "@replxx//:replxx",
     "//automaton/core/crypto",
     "//automaton/core/io",
-    "//automaton/core/script",
     "//automaton/core/script/lua",
   ],
   data = [
