@@ -23,7 +23,6 @@ cc_library(
     "SHA512_cryptopp.h",
   ],
   deps = [
-    "//automaton/core/common",
     "//automaton/core/crypto",
     "@cryptopp//:cryptopp",
   ],

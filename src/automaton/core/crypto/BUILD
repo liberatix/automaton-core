@@ -15,7 +15,6 @@ cc_library(
     "secure_random.h",
   ],
   deps = [
-    "//automaton/core/common",
     "//automaton/core/data",
     "//automaton/core/io",
   ],

@@ -11,7 +11,6 @@ cc_library(
     "registry.h",
   ],
   deps = [
-    "//automaton/core/common",
     "//automaton/core/data",
     "//automaton/core/data/protobuf",
     "//automaton/core/io",
