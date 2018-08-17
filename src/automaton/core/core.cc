@@ -134,7 +134,6 @@ int main(int argc, char* argv[]) {
   cli.print(automaton_ascii_logo.c_str());
   script.script(get_file_contents("automaton/core/coreinit.lua"));
 
-  cli.history_add("b = BCNode()");
   cli.history_add("sim_test()");
   cli.history_add("dump_logs()");
   cli.history_add("tcp_test()");
