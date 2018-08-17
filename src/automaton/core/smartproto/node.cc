@@ -68,8 +68,11 @@ node::node(vector<string> schemas,
   for (string lua_script : lua_scripts) {
     sol::protected_function_result pfr =
         engine.safe_script(lua_script, &sol::script_pass_on_error);
-    string output = pfr;
-    std::cout << output << std::endl;
+    if (!pfr.valid()) {
+      sol::error err = pfr;
+      string what = err.what();
+      LOG(ERROR) << "SCRIPT: " << what;
+    }
   }
 
   script_on_update = engine["update"];
