@@ -1,4 +1,4 @@
-print("================== SIMULATION ==================")
+--[[print("================== SIMULATION ==================")
 
 NODES = 2
 PEERS = 1
@@ -60,16 +60,23 @@ end
 
 p = n[5000]:peers()
 print("Connected peers " .. #p)
+]]
 
+a1 = "tcp://127.0.0.1:5001"
+a2 = "tcp://127.0.0.1:5002"
 n1 = anode()
 n2 = anode()
 
 n1:listen(a1)
 n2:listen(a2)
 
-p2 = n1:add_peer(addr)
+
+
+p2 = n1:add_peer(a2)
 
 n1:connect(p2)
-
+function dump_logs()
+  n1:dump_logs(string.format("logs/N%d.html", 1))
+  n2:dump_logs(string.format("logs/N%d.html", 2))
+end
 -- n1:sendb(p2, "alabala", 1)
-]]

@@ -1,22 +1,27 @@
 print("LOADED!")
 -- x = math.random(10)
 -- nonce = {x}
-nonce = {0}
+nonce = {105}
 
 current_message_id = 1
 -- node callback functions
 function update(time)
   print ("UPDATE STARTED for node: " .. node_id)
+  --print(tprint(peers))
+  -- log("update", string.format("Update called at %d", time))
   count = 0
   for k, v in pairs(blocks) do
     count = count + 1
   end
-  print ("#blocks: " .. tostring(count))
-  print ("#blockchain: " .. tostring(#blockchain))
+  -- print ("#blocks: " .. tostring(count))
+  -- print ("#blockchain: " .. tostring(#blockchain))
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   -- attempt to mine a block
+  print("nonce:")
   print(hex(nonce_str(nonce)))
-  local found, block = mine(sha3("tostring(node_id)"), prev_hash, #blockchain+1, nonce, 0)
+  print(prev_hash)
+  print("prev_hash: " .. hex(prev_hash))
+  local found, block = mine(sha3("tostring(node_id)"), prev_hash, #blockchain+1, nonce, 100)
   -- if a block is mined call broadcast to all peers
   if found then
     print("Mined block: " .. hex(blockHash(block)))
@@ -37,27 +42,7 @@ function update(time)
   -- print ("UPDATE FINISHED for node: " .. node_id)
   print "UPDATE FINISHED WITHOUT ERRORS"
   --print (#blockchain)
-end
-
-function update2(time)
-  -- print("Update called at", time)
-  -- for each peer check to see if we need to send more info, close connection, etc.
-  --print("initial peer state: ")
-  --print(tprint(peers))
-  -- print("got here")
-  -- for k, v in pairs(peers) do
-  --   print(v)
-  --   print(tprint(v))
-  --   if v.state == STATE.HANDSHAKE then
-  --     handshake(k)
-  --     print(k)
-  --     print(tprint(v))
-  --   end
-  -- end
-  -- For each peer with state HANDSHAKE:
-    -- Start the HANDSHAKE to find out if we are
-  print "UPDATE FINISHED WITHOUT ERRORS"
-  log("update", string.format("Update called at %d", time))
+  log("update", string.format("Update finished at %d", time))
 end
 
 function pid(id)
@@ -226,9 +211,11 @@ end
 
 
 function on_Block(peer_id, block)
-  print("on_Block, peer_id: " .. peer_id)
+  log("onBlock", "on_Block started")
+  log("onBlock", "peer_id: " .. peer_id)
+  print("printed peer_id")
   -- If this is the first block from a newly connect peer
-  if peers[peer_id] ~= nill and peers[peer_id].received_block == nil then
+  if peers[peer_id] ~= nil and peers[peer_id].received_block == nil then
     print ("First block from peer: " .. peer_id)
     peers[peer_id].received_block = block
     --print(tprint(peers[peer_id]))
@@ -243,7 +230,7 @@ function on_Block(peer_id, block)
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
   log("onBlock", "Block Validity: " .. block_validity)
-
+  print("Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
     log("onBlock", "Valid block added to blocks")
     blocks[hash] = block
@@ -297,13 +284,19 @@ end
 
 function shout(from, block_hash)
   --print ("shouting, from = " .. to_string(from))
+  print "In shout!: =============================================================================="
+  --print(tprint(peers))
+  print "b4 loop"
   for k, v in pairs(peers) do
+    print "printing v: "
+    print(v)
     -- TODO(Samir): Decide to which peer states we should send the block
     --if v.state == STATE.IN_CONSENSUS then
       if k ~= from then
         print("Sending to peer: " .. tostring(k))
         --print(blocks[block_hash])
-        send(k, blocks[block_hash], 0)
+        current_message_id = current_message_id+1
+        send(k, blocks[block_hash], current_message_id)
       end
   --end
   end
@@ -363,6 +356,7 @@ function mine(miner, prev_hash, height, nonce, attempts)
   print "Got here 1"
   for i = 0, attempts do
     block_hash = sha3(block_data .. nonce_str(nonce))
+    --print(hex(block_hash))
     if block_hash <= target then
       print "Inside if block_hash <= target then"
       -- create and return block
@@ -395,42 +389,3 @@ end
 
 
 --init()
-
-
---===== Helper functions for debuging =============================================
--- Print table in human readable format
-function tprint (tbl, indent)
-  if not indent then indent = 0 end
-  for k, v in pairs(tbl) do
-    formatting = string.rep("  ", indent) .. k .. ": "
-    if type(v) == "table" then
-      print(formatting)
-      tprint(v, indent+1)
-    elseif type(v) == 'boolean' then
-      print(formatting .. tostring(v))
-    else
-      print(formatting .. v)
-    end
-  end
-end
-
-
---================================== MAIN =========================================
-
-i = 0
-while i < 0 do
-  local nonce = {0}
-  target = get_target(difficulty)
-  log("miner", hex(target))
-  local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  --TODO(Samir): put miner, perv_hash, #blockchain+1 and nonce in a struct
-  --             and just previous BLOCK hash instead
-  local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
-  -- if a block is mined call broadcast to all peers
-  if found then
-    log("miner", block)
-    onBlock(-1, block)
-    --local block_validity = validateBlock(block)
-  end
-  i = i + 1
-end
