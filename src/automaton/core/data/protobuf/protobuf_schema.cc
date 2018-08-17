@@ -325,6 +325,7 @@ bool protobuf_schema::from_json(const std::string& input) {
   }
   return status.ok();
 }
+
 void dump_msg(const DescriptorProto dpr, std::ostream& ostream_, const std::string& prefix) {
   ostream_ << prefix << "message " << dpr.name() << " {" << std::endl;
   std::string new_prefix = '\t' + prefix;
@@ -373,8 +374,9 @@ void dump_msg(const DescriptorProto dpr, std::ostream& ostream_, const std::stri
   }
   ostream_ << prefix << "}" << std::endl;
 }
+
 std::string protobuf_schema::dump_schema() {
-  std::unique_ptr<FileDescriptorProto>& fdp = file_descriptor_proto;
+  auto& fdp = file_descriptor_proto;
   std::stringstream ostream_;
   for (int i = 0; i < fdp->message_type_size(); ++i) {
     const DescriptorProto d = fdp->message_type(i);
@@ -390,6 +392,18 @@ std::string protobuf_schema::dump_schema() {
     ostream_ << "}" << std::endl;
   }
   return ostream_.str();
+}
+
+std::vector<std::string> protobuf_schema::get_message_names() {
+  std::vector<std::string> result;
+
+  auto& fdp = file_descriptor_proto;
+  for (int i = 0; i < fdp->message_type_size(); ++i) {
+    const DescriptorProto& d = fdp->message_type(i);
+    result.push_back(d.name());
+  }
+
+  return result;
 }
 
 }  // namespace protobuf

@@ -13,7 +13,7 @@
 #include "automaton/core/data/schema.h"
 #include "automaton/core/network/acceptor.h"
 #include "automaton/core/network/connection.h"
-#include "automaton/core/script/lua/lua_script_engine.h"
+#include "automaton/core/script/engine.h"
 // #include "automaton/core/smartproto/peer.h"
 
 namespace automaton {
@@ -63,24 +63,28 @@ class node: public network::connection::connection_handler,
   void script(const char* input);
 
   uint32_t find_message_id(const char * name) {
-    return msg_factory->get_schema_id(name);
+    return engine.get_factory().get_schema_id(name);
   }
 
   std::unique_ptr<data::msg> create_msg_by_id(uint32_t id) {
-    return this->msg_factory->new_message_by_id(id);
+    return engine.get_factory().new_message_by_id(id);
   }
+
+  void log(std::string logger, std::string msg);
+
+  void dump_logs(std::string html_file);
 
  private:
   peer_id peer_ids;
-  std::unique_ptr<data::factory> msg_factory;
-  script::lua::lua_script_engine script_engine;
-  sol::state_view lua;
+  script::engine engine;
   // std::vector<std::unique_ptr<data::schema>> schemas_;
   std::shared_ptr<network::acceptor> acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
   std::set<peer_id> connected_peers;
   std::mutex peer_ids_mutex;
+
+  std::unordered_map<std::string, std::vector<std::string>> logs;
 
   peer_id get_next_peer_id();
 

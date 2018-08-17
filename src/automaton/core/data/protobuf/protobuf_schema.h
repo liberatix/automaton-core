@@ -117,6 +117,8 @@ class protobuf_schema: public schema {
 
   std::string dump_schema();
 
+  std::vector<std::string> get_message_names();
+
  private:
   std::unique_ptr<google::protobuf::FileDescriptorProto> file_descriptor_proto;
   std::vector <google::protobuf::DescriptorProto*> messages;

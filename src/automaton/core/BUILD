@@ -13,6 +13,25 @@ cc_binary(
     "//automaton/core/io",
     "//automaton/core/network",
     "//automaton/core/network:network_tcp",
+    "//automaton/core/network:simulated_connection",
+    "//automaton/core/smartproto",
+    "//automaton/core/state",
+    "@json//:json",
+  ],
+)
+
+cc_binary(
+  name = "test",
+  srcs = [
+    "test.cc",
+  ],
+  deps = [
+    "//automaton/core/cli",
+    "//automaton/core/data",
+    "//automaton/core/io",
+    "//automaton/core/network",
+    "//automaton/core/network:network_tcp",
+    "//automaton/core/network:simulated_connection",
     "//automaton/core/smartproto",
     "//automaton/core/state",
     "@json//:json",

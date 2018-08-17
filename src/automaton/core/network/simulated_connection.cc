@@ -14,6 +14,8 @@ namespace automaton {
 namespace core {
 namespace network {
 
+// TODO(kari): Make thread safe.
+
 event::event() {
   type_ = event::type::undefined;
   time_of_handling = 0;
@@ -62,16 +64,14 @@ acceptor_params::acceptor_params():max_connections(0), bandwidth(0) {}
 
 simulation* simulation::simulator = NULL;
 
-simulation::simulation():simulation_time(0) {
-  connection::register_connection_type("sim", [](const std::string& address,
+simulation::simulation():simulation_time(0), simulation_running(false) {
+  connection::register_connection_type("sim", [](connection_id id, const std::string& address,
       connection::connection_handler* handler) {
-    return reinterpret_cast<connection*>(new simulated_connection(address, handler));
+    return reinterpret_cast<connection*>(new simulated_connection(id, address, handler));
   });
-  acceptor::register_acceptor_type("sim", [](const std::string& address,
-      acceptor::acceptor_handler* handler_,
+  acceptor::register_acceptor_type("sim", [](const std::string& address, acceptor::acceptor_handler* handler_,
       connection::connection_handler* connections_handler_) {
-    return reinterpret_cast<acceptor*>(new
-        simulated_acceptor(address, handler_, connections_handler_));
+    return reinterpret_cast<acceptor*>(new simulated_acceptor(address, handler_, connections_handler_));
   });
   /// Makes connection id = 0 invalid
   // connections.push_back(nullptr);
@@ -79,6 +79,34 @@ simulation::simulation():simulation_time(0) {
 }
 
 simulation::~simulation() {}
+
+void simulation::simulation_start(uint64_t millisec_step) {
+  running_mutex.lock();
+  simulation_running = true;
+  running_mutex.unlock();
+  running_thread = std::thread([this, millisec_step](){
+    uint64_t current = 0;
+    while (true) {
+      running_mutex.lock();
+      if (simulation_running == false) {
+          running_mutex.unlock();
+          break;
+      } else {
+        running_mutex.unlock();
+      }
+      process(current);
+      std::this_thread::sleep_for(std::chrono::milliseconds(millisec_step));
+      current += millisec_step;
+    }
+  });
+}
+
+void simulation::simulation_stop() {
+  running_mutex.lock();
+  simulation_running = false;
+  running_mutex.unlock();
+  running_thread.join();
+}
 
 void simulation::push_event(const event& event_) {
   std::lock_guard<std::mutex> lock(q_mutex);
@@ -109,14 +137,14 @@ void simulation::handle_event(const event& e) {
       if (!destination) {  // state == disconnected should never happen
         LOG(INFO) << "Event disconnect but remote peer has already disconnected or does not exist";
         return;
-      } else if (destination->connection_state == connection::state::connecting) {
+      } else if (destination->get_state() == connection::state::connecting) {
         LOG(INFO) << "Event disconnect but peer is not connected yet! This situation is not "
             "handled right now!";
         return;
       }
       LOG(INFO) << "Other peer closed connection in: " << destination->get_address();
-      destination->connection_state = connection::state::disconnected;
-      destination->get_handler()->on_disconnected(destination);
+      destination->set_state(connection::state::disconnected);
+      destination->get_handler()->on_disconnected(destination->get_id());
       // TODO(kari): Clear queues and call handlers with error, delete connection ids
       destination->remote_connection_id = 0;
       destination->cancel_operations();
@@ -141,7 +169,7 @@ void simulation::handle_event(const event& e) {
         LOG(ERROR) << "Connection request from unexisting peer: " << e.source;
         break;
       }
-      if (!acceptor_ || !(acceptor_->started_accepting)) {
+      if (!acceptor_ || acceptor_->get_state() != acceptor::state::accepting) {
         LOG(ERROR) << "No such peer: " << e.destination;
         // TODO(kari): error no such peer /
         // new_event.type_ = event::type::error;
@@ -152,7 +180,8 @@ void simulation::handle_event(const event& e) {
       new_event.destination = e.source;
       new_event.time_of_handling = sim->get_time() + source->get_lag();
       const connection_params& params = source->parameters;
-      if (acceptor_->get_handler()->on_requested(acceptor_, source_address)) {
+      connection_id cid;
+      if (acceptor_->get_handler()->on_requested(acceptor_, source_address, &cid)) {
         // LOG(DEBUG) << "accepted";
         new_event.type_ = event::type::accept;
         /**
@@ -163,17 +192,21 @@ void simulation::handle_event(const event& e) {
             std::to_string(params.min_lag) + ":" + std::to_string(params.max_lag) + ":" +
             std::to_string(acceptor_->parameters.bandwidth) + ":0";
         simulated_connection* new_connection =
-            new simulated_connection(new_addr, acceptor_->accepted_connections_handler);
-        sim->add_connection(new_connection);
-        source->parameters.bandwidth = new_connection->parameters.bandwidth =
-            source->parameters.bandwidth <= new_connection->parameters.bandwidth ?
-            source->parameters.bandwidth : new_connection->parameters.bandwidth;
-        source->remote_connection_id = new_connection->local_connection_id;
-        new_connection->connection_state = connection::state::connected;
-        new_connection->remote_connection_id = source->local_connection_id;
-        new_connection->time_stamp = new_event.time_of_handling;
-        acceptor_->get_handler()->on_connected(acceptor_, new_connection, source_address);
-        new_connection->get_handler()->on_connected(new_connection);
+            new simulated_connection(cid, new_addr, acceptor_->accepted_connections_handler);
+        if (new_connection->init()) {
+          sim->add_connection(new_connection);
+          source->parameters.bandwidth = new_connection->parameters.bandwidth =
+              source->parameters.bandwidth <= new_connection->parameters.bandwidth ?
+              source->parameters.bandwidth : new_connection->parameters.bandwidth;
+          source->remote_connection_id = new_connection->local_connection_id;
+          new_connection->set_state(connection::state::connected);
+          new_connection->remote_connection_id = source->local_connection_id;
+          new_connection->set_time_stamp(new_event.time_of_handling);
+          acceptor_->get_handler()->on_connected(acceptor_, new_connection, source_address);
+          new_connection->get_handler()->on_connected(cid);
+        } else {
+          LOG(ERROR) << "Error while initializing connection";
+        }
       } else {
         // LOG(DEBUG) << "refused";
         new_event.type_ = event::type::refuse;
@@ -202,22 +235,31 @@ void simulation::handle_event(const event& e) {
         break;
       }
       destination->receive_buffer.push(e.data);
+      destination->reading_q_mutex.lock();
       if (destination->reading.size()) {
+        destination->reading_q_mutex.unlock();
         destination->handle_read();
+      } else {
+        destination->reading_q_mutex.unlock();
       }
+      source->sending_q_mutex.lock();
       if (source && source->sending.front().message.size() == source->sending.front().bytes_send) {
+        source->sending_q_mutex.unlock();
         event new_event;
         new_event.type_ = event::type::ack_received;
         new_event.data = std::to_string(connection::error::no_error);
         new_event.source = e.destination;
         new_event.destination = e.source;
-        new_event.time_of_handling = (sim->get_time() > destination->time_stamp + 1 ?
-                                      sim->get_time() : destination->time_stamp + 1)
-                                      + destination->get_lag();
-        destination->time_stamp = new_event.time_of_handling;
+        uint32_t t = sim->get_time();
+        uint32_t ts = destination->get_time_stamp();
+        new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + destination->get_lag();
+        destination->set_time_stamp(new_event.time_of_handling);
         sim->push_event(new_event);
       } else if (source && source->get_state() == connection::state::connected) {
+        source->sending_q_mutex.unlock();
         source->handle_send();
+      } else {
+        source->sending_q_mutex.unlock();
       }
       // LOG(DEBUG) << "message 1";
       break;
@@ -230,8 +272,8 @@ void simulation::handle_event(const event& e) {
         // LOG(DEBUG) << "accept 2";
         break;
       }
-      destination->connection_state = connection::state::connected;
-      destination->get_handler()->on_connected(destination);
+      destination->set_state(connection::state::connected);
+      destination->get_handler()->on_connected(destination->get_id());
       destination->handle_send();
       // LOG(DEBUG) << "accept 1";
       break;
@@ -244,8 +286,8 @@ void simulation::handle_event(const event& e) {
         // LOG(DEBUG) << "refuse 2";
         break;
       }
-      destination->connection_state = connection::state::disconnected;
-      destination->get_handler()->on_error(destination, connection::error::connection_refused);
+      destination->set_state(connection::state::disconnected);
+      destination->get_handler()->on_error(destination->get_id(), connection::error::connection_refused);
       destination->cancel_operations();
       destination->clear_queues();
       // LOG(DEBUG) << "refuse 1";
@@ -256,12 +298,16 @@ void simulation::handle_event(const event& e) {
       //   // TODO(kari): Possible: broken_pipe, operation_cancelled
       // }
       simulated_connection* destination = sim->get_connection(e.destination);
+      destination->sending_q_mutex.lock();
       if (destination && destination->sending.size()) {
         uint32_t id = destination->sending.front().id;
         destination->sending.pop();
+        destination->sending_q_mutex.unlock();
         destination->handle_send();
-        destination->get_handler()->on_message_sent(destination, id,
+        destination->get_handler()->on_message_sent(destination->get_id(), id,
             static_cast<connection::error>(std::stoi(e.data)));
+      } else {
+        destination->sending_q_mutex.unlock();
       }
       break;
     }
@@ -387,20 +433,19 @@ simulated_connection::incoming_packet::incoming_packet(): buffer(nullptr), buffe
     expect_to_read(0), id(0), bytes_read(0) {}
 simulated_connection::outgoing_packet::outgoing_packet(): bytes_send(0), id(0) {}
 
-simulated_connection::simulated_connection(const std::string& address_,
-    connection_handler* handler_): connection(handler_), remote_address(0), local_connection_id(0),
-        remote_connection_id(0), time_stamp(0) {
-  connection_state = connection::state::disconnected;
-  if (!parse_address(address_)) {
-    std::stringstream msg;
-    msg << "ERROR: Connection creation failed! Could not resolve address and parameters in: " <<
-      address_;
-    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
-    throw std::invalid_argument(msg.str());
-  }
+simulated_connection::simulated_connection(connection_id id, const std::string& address_, connection_handler* handler_):
+    connection(id, handler_), remote_address(0), local_connection_id(0), remote_connection_id(0), time_stamp(0),
+    original_address(address_), connection_state(connection::state::invalid_state) {
 }
 
 bool simulated_connection::init() {
+  connection_state = connection::state::disconnected;
+  if (!parse_address(original_address, &parameters, &remote_address)) {
+    std::stringstream msg;
+    LOG(ERROR) << "ERROR: Connection creation failed! Could not resolve address and parameters in: "
+        << original_address;
+    return false;
+  }
   return true;
 }
 
@@ -409,7 +454,7 @@ void simulated_connection::async_send(const std::string& message, uint32_t id = 
     LOG(ERROR) << "Send called but no message: id -> " << id;
     return;
   }
-  if (connection_state == disconnected) {
+  if (get_state() == disconnected) {
     LOG(ERROR) << "Cannot send message! Call connect first!";
     return;
   }
@@ -420,21 +465,26 @@ void simulated_connection::async_send(const std::string& message, uint32_t id = 
   packet.bytes_send = 0;
   packet.id = id;
   // LOG(DEBUG) << "pushing message <" << message << "> with id: " << id;
+  sending_q_mutex.lock();
   sending.push(std::move(packet));
-  if (connection_state == connection::state::connected) {
+  sending_q_mutex.unlock();
+  if (get_state() == connection::state::connected) {
     handle_send();
   }
   // LOG(DEBUG) << "</async_send>";
 }
 
 void simulated_connection::handle_send() {
+  sending_q_mutex.lock();
   /// nothing to send or waiting for ACK
   if (sending.empty() || sending.front().message.size() == sending.front().bytes_send) {
+    sending_q_mutex.unlock();
     return;
   }
   // LOG(DEBUG) << "<handle_send>";
   simulation* sim = simulation::get_simulator();
-  outgoing_packet& packet = sending.front();
+  outgoing_packet packet = sending.front();
+  sending_q_mutex.unlock();
   event new_event;
   new_event.type_ = event::type::message;
   new_event.source = local_connection_id;
@@ -449,15 +499,18 @@ void simulated_connection::handle_send() {
       new_event.data = packet.message.substr(packet.bytes_send, parameters.bandwidth);
   }
   packet.bytes_send += new_event.data.size();
-  new_event.time_of_handling = (sim->get_time() > time_stamp + 1 ?
-                                sim->get_time() : time_stamp + 1) + get_lag();
-  time_stamp = new_event.time_of_handling;
+  uint32_t t = sim->get_time();
+  uint32_t ts = get_time_stamp();
+  new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
+  set_time_stamp(new_event.time_of_handling);
   sim->push_event(new_event);
   // LOG(DEBUG) << "</handle_send>";
 }
 
 void simulated_connection::handle_read() {
   // LOG(DEBUG) << "<handle_read>";
+  std::lock_guard<std::mutex> reading_lock(reading_q_mutex);
+  std::lock_guard<std::mutex> recv_lock(recv_buf_mutex);
   while (receive_buffer.size() && reading.size()) {
     incoming_packet& packet = reading.front();
     bool read_some = packet.expect_to_read == 0;
@@ -479,7 +532,7 @@ void simulated_connection::handle_read() {
       // TODO(kari): use T top = std::move(q.front()); q.pop();
       incoming_packet packet = std::move(reading.front());
       reading.pop();
-      handler->on_message_received(this, packet.buffer, packet.bytes_read, packet.id);
+      handler->on_message_received(this->id, packet.buffer, packet.bytes_read, packet.id);
     }
   }
   // LOG(DEBUG) << "</handle_read>";
@@ -504,30 +557,43 @@ void simulated_connection::async_read(char* buffer, uint32_t buffer_size,
   packet.buffer_size = buffer_size;
   packet.expect_to_read = num_bytes;
   packet.id = id;
+  reading_q_mutex.lock();
   reading.push(std::move(packet));
+  reading_q_mutex.unlock();
+  recv_buf_mutex.lock();
   if (receive_buffer.size()) {
+    recv_buf_mutex.unlock();
     handle_read();
+  } else {
+    recv_buf_mutex.unlock();
   }
   // LOG(DEBUG) << "</async_read>";
 }
 
-bool simulated_connection::parse_address(const std::string& address) {
+bool simulated_connection::parse_address(const std::string& address_, connection_params* params,
+    uint32_t* parsed_remote_address) {
   std::regex rgx_sim("(\\d+):(\\d+):(\\d+):(\\d+)");
   std::smatch match;
-  if (std::regex_match(address.begin(), address.end(), match, rgx_sim) &&
+  if (std::regex_match(address_.begin(), address_.end(), match, rgx_sim) &&
       std::stoul(match[1]) <= std::stoul(match[2]) &&
       match.size() == 5) {
-    parameters.min_lag = std::stoul(match[1]);
-    parameters.max_lag = std::stoul(match[2]);
-    parameters.bandwidth = std::stoul(match[3]);
-    remote_address = std::stoul(match[4]);
+    params->min_lag = std::stoul(match[1]);
+    params->max_lag = std::stoul(match[2]);
+    params->bandwidth = std::stoul(match[3]);
+    *parsed_remote_address = std::stoul(match[4]);
     return true;
   }
   return false;
 }
 
 connection::state simulated_connection::get_state() const {
+  std::lock_guard<std::mutex> lock(state_mutex);
   return connection_state;
+}
+
+void simulated_connection::set_state(connection::state new_state) {
+  std::lock_guard<std::mutex> lock(state_mutex);
+  connection_state = new_state;
 }
 
 std::string simulated_connection::get_address() const {
@@ -556,9 +622,10 @@ void simulated_connection::connect() {
   new_event.type_ = event::type::connection_request;
   new_event.source = local_connection_id;
   new_event.destination = remote_address;
-  new_event.time_of_handling = (sim->get_time() > time_stamp + 1 ?
-                                sim->get_time() : time_stamp + 1) + get_lag();
-  time_stamp = new_event.time_of_handling;
+  uint32_t t = sim->get_time();
+  uint32_t ts = get_time_stamp();
+  new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
+  set_time_stamp(new_event.time_of_handling);
   sim->push_event(new_event);
   // LOG(DEBUG) << "</connect>";
 }
@@ -573,16 +640,17 @@ void simulated_connection::disconnect() {
     event new_event;
     new_event.type_ = event::type::disconnect;
     new_event.destination = remote_connection_id;
-    new_event.time_of_handling = (sim->get_time() > time_stamp + 1 ?
-                                  sim->get_time() : time_stamp + 1) + get_lag();
-    time_stamp = new_event.time_of_handling;
+    uint32_t t = sim->get_time();
+    uint32_t ts = get_time_stamp();
+    new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
+    set_time_stamp(new_event.time_of_handling);
     sim->push_event(new_event);
     remote_connection_id = 0;
     cancel_operations();
     clear_queues();
     sim->remove_connection(local_connection_id);
     local_connection_id = 0;
-    handler->on_disconnected(this);
+    handler->on_disconnected(this->id);
     // LOG(DEBUG) << "</disconnect>";
 }
 
@@ -590,7 +658,22 @@ connection::connection_handler* simulated_connection::get_handler() {
   return handler;
 }
 
+void simulated_connection::set_time_stamp(uint32_t t) {
+  std::lock_guard<std::mutex> lock(time_stamp_mutex);
+  if (t > time_stamp) {
+    time_stamp = t;
+  }
+}
+
+uint32_t simulated_connection::get_time_stamp() const {
+  std::lock_guard<std::mutex> lock(time_stamp_mutex);
+  return time_stamp;
+}
+
 void simulated_connection::clear_queues() {
+  std::lock_guard<std::mutex> sending_lock(sending_q_mutex);
+  std::lock_guard<std::mutex> reading_lock(reading_q_mutex);
+  std::lock_guard<std::mutex> recv_lock(recv_buf_mutex);
   std::queue<incoming_packet> empty_reading;
   std::swap(reading, empty_reading);
   std::queue<outgoing_packet> empty_sending;
@@ -600,8 +683,9 @@ void simulated_connection::clear_queues() {
 }
 
 void simulated_connection::cancel_operations() {
+  std::lock_guard<std::mutex> lock(sending_q_mutex);
   while (!sending.empty()) {
-    handler->on_message_sent(this, sending.front().id, connection::error::closed_by_peer);
+    handler->on_message_sent(this->id, sending.front().id, connection::error::closed_by_peer);
     sending.pop();
   }
   // TODO(kari): Check what error gives if read is cancelled
@@ -610,41 +694,36 @@ void simulated_connection::cancel_operations() {
 
 // ACCEPTOR
 
-simulated_acceptor::simulated_acceptor(const std::string& address_,
-    acceptor::acceptor_handler* handler_,
-    connection::connection_handler* connections_handler):
-    acceptor(handler_), started_accepting(false),
-    accepted_connections_handler(connections_handler) {
-  if (parse_address(address_)) {
+simulated_acceptor::simulated_acceptor(const std::string& address_, acceptor::acceptor_handler* handler_,
+    connection::connection_handler* connections_handler):acceptor(handler_),
+    accepted_connections_handler(connections_handler), address(0), original_address(address_),
+    acceptor_state(acceptor::state::invalid_state) {
+}
+
+bool simulated_acceptor::init() {
+  if (parse_address(original_address, &parameters, &address)) {
     if (!address) {
-      std::stringstream msg;
-      msg << "ERROR: Acceptor creation failed! Acceptor address should be > 0";
-      LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
-      throw std::invalid_argument(msg.str());
+      LOG(ERROR) << "ERROR: Acceptor creation failed! Acceptor address should be > 0";
+      return false;
     } else {
       simulation::get_simulator()->add_acceptor(address, this);
     }
   } else {
-    std::stringstream msg;
-    msg << "ERROR: Acceptor creation failed! Could not resolve address and parameters in: " <<
-      address_;
-    LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
-    throw std::invalid_argument(msg.str());
-    address = 0;
+    LOG(ERROR) << "ERROR: Acceptor creation failed! Could not resolve address and parameters in: "
+        << original_address;
+    return false;
   }
-}
-
-bool simulated_acceptor::init() {
+  set_state(acceptor::state::not_accepting);
   return true;
 }
 
-bool simulated_acceptor::parse_address(const std::string& address_) {
+bool simulated_acceptor::parse_address(const std::string& address_, acceptor_params* params, uint32_t* parsed_address) {
   std::regex rgx_sim("(\\d+):(\\d+):(\\d+)");
   std::smatch match;
   if (std::regex_match(address_.begin(), address_.end(), match, rgx_sim) && match.size() == 4) {
-    parameters.max_connections = std::stoul(match[1]);
-    parameters.bandwidth = std::stoul(match[2]);
-    address = std::stoul(match[3]);
+    params->max_connections = std::stoul(match[1]);
+    params->bandwidth = std::stoul(match[2]);
+    *parsed_address = std::stoul(match[3]);
     return true;
   }
   return false;
@@ -654,14 +733,22 @@ void simulated_acceptor::start_accepting() {
   if (!address) {
     LOG(ERROR) << "This should never happen! Acceptor's address is not valid! Could not accept";
   }
-  started_accepting = true;
+  set_state(acceptor::state::accepting);
 }
 
 acceptor::state simulated_acceptor::get_state() const {
-  return acceptor::invalid_state;
+  std::lock_guard<std::mutex> lock(state_mutex);
+  return acceptor_state;
 }
 
-std::string simulated_acceptor::get_address() const {return "";}
+void simulated_acceptor::set_state(acceptor::state new_state) {
+  std::lock_guard<std::mutex> lock(state_mutex);
+  acceptor_state = new_state;
+}
+
+std::string simulated_acceptor::get_address() const {
+  return original_address;
+}
 
 acceptor::acceptor_handler* simulated_acceptor::get_handler() {
   return handler;

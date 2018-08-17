@@ -4,12 +4,11 @@
 
 #include <json.hpp>
 
-#include "automaton/core/network/tcp_implementation.h"
 #include "automaton/core/cli/cli.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/network/simulated_connection.h"
 #include "automaton/core/network/tcp_implementation.h"
+#include "automaton/core/network/simulated_connection.h"
 #include "automaton/core/script/engine.h"
 #include "automaton/core/smartproto/node.h"
 
@@ -50,7 +49,6 @@ int main(int argc, char* argv[]) {
   string automaton_ascii_logo(automaton_ascii_logo_cstr);
   string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
-{
   engine script;
   script.bind_core();
 
@@ -82,11 +80,11 @@ int main(int argc, char* argv[]) {
   node_type.set("connect", &node::connect);
   node_type.set("disconnect", &node::disconnect);
   node_type.set("send", &node::send_message);
+  node_type.set("sendb", &node::send_blob);
   node_type.set("listen", &node::set_acceptor);
 
   node_type.set("msg_id", &node::find_message_id);
   node_type.set("new_msg", &node::create_msg_by_id);
-  node_type.set("send", &node::send_message);
 
   node_type.set("known_peers", [](node& n) {
     LOG(DEBUG) << "getting known peers... " << &n;
@@ -101,42 +99,22 @@ int main(int argc, char* argv[]) {
   });
 
   node_type.set("script", &node::script);
-  node_type.set("dump_logs", &node::dump_logs);
 
   script.set_usertype("node", node_type);
 
   script.script(
       R"(
       function anode()
-        return node(
-          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-          {
-            "automaton/examples/smartproto/blockchain/test.lua",
-            "automaton/examples/smartproto/blockchain/blockchain.lua"
-          },
-          {"Block", "GetBlocks", "Blocks"}
-        )
-      end
-
-      function BCNode()
-        return node(
-          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-          {"automaton/examples/smartproto/blockchain/blockchain.lua"},
-          {"Block", "GetBlocks", "Blocks"}
-        )
+        return node({},{},{})
       end
       )");
-
-  automaton::core::network::tcp_init();
 
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(500);
   automaton::core::cli::cli cli;
-  cli.print(automaton_ascii_logo.c_str());
   script.script(get_file_contents("automaton/core/coreinit.lua"));
 
-  cli.history_add("b = BCNode()");
-  cli.history_add("dump_logs()");
+  cli.print(automaton_ascii_logo.c_str());
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
@@ -153,19 +131,10 @@ int main(int argc, char* argv[]) {
     string output = pfr;
     std::cout << output << std::endl;
   }
-
-  // script.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);
-  LOG(DEBUG) << "Destroying lua state & objects";
-
   sim->simulation_stop();
   delete sim;
-}
-
-  LOG(DEBUG) << "tcp_release";
-
-  automaton::core::network::tcp_release();
-
-  LOG(DEBUG) << "tcp_release done.";
+  // script.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);
+  LOG(DEBUG) << "Destroying lua state & objects";
 
   return 0;
 }

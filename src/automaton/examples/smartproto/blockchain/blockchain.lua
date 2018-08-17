@@ -1,7 +1,7 @@
 print("LOADED!")
 -- x = math.random(10)
 -- nonce = {x}
-nonce = {107}
+nonce = {0}
 
 current_message_id = 1
 -- node callback functions
@@ -57,6 +57,11 @@ function update2(time)
   -- For each peer with state HANDSHAKE:
     -- Start the HANDSHAKE to find out if we are
   print "UPDATE FINISHED WITHOUT ERRORS"
+  log("update", string.format("Update called at %d", time))
+end
+
+function pid(id)
+  return "PEER " .. tostring(id)
 end
 
 function sent(peer_id, msg_id, success)
@@ -67,13 +72,9 @@ function sent(peer_id, msg_id, success)
   pritn (" succsess: " .. success)
   print ("inputs printed")
   if success then
-    print("Sucessfully sent messsage " .. tostring(msg_id) .. " to peer " .. tostring(peer_id) .. " node_id: " .. tostring(node_id))
+    log(pid(peerid), "Sucessfully sent messsage " .. tostring(msg_id))
   else
-    print("Error sending message " .. tostring(msg_id) .. " to peer " .. tostring(peer_id) ..  " node_id: " .. tostring(node_id))
-    if msg_id == 0 then
-      print "Lost connection with peer"
-      peers[peer_id] = nil
-    end
+    log(pid(peerid), "Error sending message " .. tostring(msg_id))
   end
   print "sent finished"
 end
@@ -161,16 +162,16 @@ function validateBlock(block)
   hash = blockHash(block)
   local target = get_target(difficulty)
 
-  print("validating block with hash: " .. hex(hash))
-  print("And height: " .. block.height)
-  print(block)
+  log("validateBlock", "validating block with hash: " .. hex(hash))
+  log("validateBlock", "And height: " .. block.height)
+  log("validateBlock", block)
 
   -- Check if we already have the block
   if blocks[hash] ~= nil then
     return BLOCK.DUPLICATE
   -- Check if hash is greater than difficulty
   elseif hash > target then
-    print "In validateBlock, target > hash"
+    log("validateBlock", "In validateBlock, target > hash")
     return BLOCK.INVALID
   -- block height can't be less than one
   elseif block.height < 1 then
@@ -241,15 +242,10 @@ function on_Block(peer_id, block)
   -- Validate, save and broadcast
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
-  print("Block Validity: " .. block_validity)
-  -- Valid block is a block that:
-  -- 1. Is a new block, with valid hash and height >= 1
-  -- 2. Either prev_hash is in blocks or the block is with height #1 and prev_hash is GENESIS_HASH
-  -- 3. Has height difference of one with the blocks[prev_hash].height
-  --    or it is block#1 with prev_hash equal to GENESIS_HASH
-  -- If it is VALID
+  log("onBlock", "Block Validity: " .. block_validity)
+
   if block_validity == BLOCK.VALID  then
-    print "Valid block added to blocks"
+    log("onBlock", "Valid block added to blocks")
     blocks[hash] = block
     shout(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
@@ -361,7 +357,7 @@ end
 -- Takes in block with miner, prev_hash, height
 --
 function mine(miner, prev_hash, height, nonce, attempts)
-  print "Mining block"
+  log("miner", "Mining block")
   local target = get_target(difficulty)
   local block_data = miner .. prev_hash .. height
   print "Got here 1"
@@ -420,19 +416,21 @@ end
 
 
 --================================== MAIN =========================================
+
 i = 0
 while i < 0 do
   local nonce = {0}
   target = get_target(difficulty)
+  log("miner", hex(target))
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   --TODO(Samir): put miner, perv_hash, #blockchain+1 and nonce in a struct
   --             and just previous BLOCK hash instead
   local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
   if found then
-    print(block:to_json())
-    on_Block(-1, block)
+    log("miner", block)
+    onBlock(-1, block)
     --local block_validity = validateBlock(block)
   end
-  i = i+1
+  i = i + 1
 end

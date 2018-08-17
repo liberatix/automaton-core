@@ -1,6 +1,9 @@
 #include "automaton/core/smartproto/node.h"
 
 #include <chrono>
+#include <fstream>
+#include <ios>
+#include <iostream>
 #include <regex>
 #include <thread>
 #include <utility>
@@ -15,8 +18,11 @@ using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 
 using std::make_unique;
-using std::unique_ptr;
 using std::string;
+using std::unique_ptr;
+using std::vector;
+using std::ofstream;
+using std::ios_base;
 
 namespace automaton {
 namespace core {
@@ -35,43 +41,38 @@ node::node(std::vector<std::string> schemas,
            std::vector<std::string> lua_scripts,
            std::vector<std::string> wire_msgs)
     : peer_ids(0)
-    , msg_factory(make_unique<protobuf_factory>())
-    , lua(script_engine.get_sol())
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
-  lua["node_id"] = (uint64_t)(this);
+  engine["node_id"] = (uint64_t)(this);
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);
-    msg_factory->import_schema(pb_schema, "", "");
-    script_engine.bind_core();
-
-    // Bind schema messages.
-    for (uint32_t id = 0; id < msg_factory->get_schemas_number(); id++) {
-      auto name = msg_factory->get_schema_name(id);
-      LOG(DEBUG) << "Binding proto message " << name;
-
-      lua.set(name, [this, name, id]() -> unique_ptr<msg> {
-        return this->msg_factory->new_message_by_id(id);
-      });
-    }
+    engine.import_schema(pb_schema);
+    engine.bind_core();
   }
 
-  for (std::string lua_script : lua_scripts) {
-    sol::protected_function_result pfr = lua.safe_script(lua_script, &sol::script_pass_on_error);
-    std::string output = pfr;
-    std::cout << output << std::endl;
-  }
-
-  lua.set_function("send",
+  // Bind node methods.
+  engine.set_function("send",
     [this](uint32_t peer_id, const core::data::msg& msg, uint32_t msg_id) {
       send_message(peer_id, msg, msg_id);
     });
 
-  script_on_update = lua["update"];
-  script_on_connected = lua["connected"];
-  script_on_disconnected = lua["disconnected"];
-  script_on_msg_sent = lua["sent"];
+  engine.set_function("log",
+    [this](string logger, string msg) {
+      log(logger, msg);
+    });
+
+  for (std::string lua_script : lua_scripts) {
+    sol::protected_function_result pfr =
+        engine.safe_script(lua_script, &sol::script_pass_on_error);
+    std::string output = pfr;
+    std::cout << output << std::endl;
+  }
+
+  script_on_update = engine["update"];
+  script_on_connected = engine["connected"];
+  script_on_disconnected = engine["disconnected"];
+  script_on_msg_sent = engine["sent"];
 
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = false;
@@ -92,12 +93,12 @@ node::node(std::vector<std::string> schemas,
   // Map wire msg IDs to factory msg IDs and vice versa.
   uint32_t wire_id = 0;
   for (auto wire_msg : wire_msgs) {
-    auto factory_id = msg_factory->get_schema_id(wire_msg);
+    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
     factory_to_wire[factory_id] = wire_id;
     wire_to_factory[wire_id] = factory_id;
     string function_name = "on_" + wire_msg;
     LOG(DEBUG) << wire_id << ": " << function_name;
-    script_on_msg[wire_id] = lua[function_name];
+    script_on_msg[wire_id] = engine[function_name];
     wire_id++;
   }
 }
@@ -117,10 +118,71 @@ node::~node() {
   delete updater;
 }
 
+void node::log(string logger, string msg) {
+  if (logs.count(logger) == 0) {
+    logs.emplace(logger, vector<string>());
+  }
+  logs[logger].push_back(msg);
+}
+
+void node::dump_logs(std::string html_file) {
+  ofstream f;
+  f.open(html_file, ios_base::trunc);
+
+  f << R"(
+<html>
+<head>
+<style>
+pre {
+  border: 1px solid black;
+  padding: 8px;
+  overflow:auto;
+  font: bold 11px "Courier New";
+}
+
+.button {
+  font: bold 11px Play;
+  text-decoration: none;
+  background-color: #aad8f3;
+  color: #333;
+  padding: 2px 6px 2px 6px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;
+  margin: 4px;
+}
+</style>
+</head>
+<body>
+<br/>
+)";
+
+  for (auto log : logs) {
+    f << "<a class='button' href='#" << log.first << "'>";
+    f << log.first << std::endl;
+    f << "</a>\n";
+  }
+  f << "<br/><br/>";
+
+  for (auto log : logs) {
+    f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
+    f << "<pre>";
+    for (auto msg : log.second) {
+      f << msg << "\n";
+    }
+    f << "</pre>\n";
+  }
+
+  f << "</body></html>\n";
+  f.close();
+}
+
+
 void node::script(const char* input) {
   LOG(DEBUG) << "Calling script from node " << input;
   std::string cmd{input};
-  sol::protected_function_result pfr = lua.safe_script(cmd, &sol::script_pass_on_error);
+  sol::protected_function_result pfr = engine.safe_script(cmd, &sol::script_pass_on_error);
   std::string output = pfr;
   std::cout << output << std::endl;
 }
@@ -146,7 +208,7 @@ void node::s_on_blob_received(peer_id id, const std::string& blob) {
   }
   CHECK_GT(wire_to_factory.count(wire_id), 0);
   auto msg_id = wire_to_factory[wire_id];
-  unique_ptr<msg> m = msg_factory->new_message_by_id(msg_id);
+  unique_ptr<msg> m = engine.get_factory().new_message_by_id(msg_id);
   m->deserialize_message(blob.substr(1));
   script_on_msg[wire_id](id, std::move(m));
 }
