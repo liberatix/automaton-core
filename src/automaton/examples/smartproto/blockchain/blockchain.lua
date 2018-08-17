@@ -11,25 +11,17 @@ function update(time)
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 100)
+  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 10)
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
   end
-  --print ("STARTED UPDATE for node: " .. node_id)
   -- for each peer call the necesery function
   for k, v in pairs(peers) do
-    --print(v)
-    --print(tprint(v))
     if v.state == STATE.HANDSHAKE then
       handshake(k)
-      --print(k)
-      --print(tprint(v))
     end
   end
-  -- print ("UPDATE FINISHED for node: " .. node_id)
-  --print "UPDATE FINISHED WITHOUT ERRORS"
-  --print (#blockchain)
 end
 
 function pid(id)
@@ -37,16 +29,11 @@ function pid(id)
 end
 
 function sent(peer_id, msg_id, success)
-  -- print "GOT TO SENT"
-  -- print "printing the inputs"
-  -- print ("peer_id: ", peer_id)
-  -- print (" msg_id: " .. msg_id)
-  -- pritn (" succsess: " .. success)
-  -- print ("inputs printed")
   if success then
-    log(pid(peer_id), "Sucessfully sent messsage to" .. tostring(peer_id))
+    log(pid(peer_id), "Successfully sent messsage to: " .. pid(peer_id))
   else
-    log(pid(peer_id), "Error sending message to" .. tostring(peer_id))
+    peers[peer_id] = nil
+    log(pid(peer_id), "Error sending message to: " .. pid(peer_id))
   end
 end
 
@@ -149,6 +136,8 @@ end
 function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesis give proper hash
   -- TODO(Samir): Implement block sending to other peers, Check if the block is received
   --print ("sending block " .. hex(blockHash))
+  log(pid(peer_id), "Sending the following  block to this peer:")
+
   current_message_id = current_message_id+1
   if blockHash == GENESIS_HASH then
     local no_blocks = Block()
@@ -156,10 +145,13 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
     no_blocks.miner = "No miner"
     no_blocks.miner = GENESIS_HASH
     no_blocks.nonce = 0
+    log_block(pid(peer_id), no_blocks)
     send(peer_id, no_blocks, current_message_id)
   else
+    log_block(pid(peer_id), blocks[blockHash])
     send(peer_id, blocks[blockHash], current_message_id)
   end
+
 end
 
 
@@ -188,7 +180,6 @@ end
 
 function on_Block(peer_id, block)
   log("on_Block", "Received a block from: " .. pid(peer_id))
-  log(pid(peer_id), "Received block: ")
   if block == nil then
     log("on_Block", "WARRNING!!!!! The block is == nil ")
     return
@@ -198,17 +189,18 @@ function on_Block(peer_id, block)
     log(pid(peer_id), "Received a block with height 0 (This peer has no blocks)")
   else
     log_block("on_Block", block)
+    log(pid(peer_id), "Received the following block from this peer: ")
     log_block(pid(peer_id), block)
   end
   --log(pid(peer_id), "Received a block: " .. tostring(msg_id))
   -- If this is the first block from a newly connect peer
   if peers[peer_id] ~= nil and peers[peer_id].received_block == nil then
-    log("on_Block", "First block from peer: " .. peer_id)
+    log("on_Block", " First block from peer: " .. peer_id)
     peers[peer_id].received_block = block
     --print(tprint(peers[peer_id]))
     -- if this peer has no block return and handle the rest in handshake
     if block.height == 0 then
-      log("on_Block", "in on_Block, we got block with height 0")
+      log("on_Block", " in on_Block, we got block with height 0")
       return
     end
   end
@@ -216,9 +208,9 @@ function on_Block(peer_id, block)
   -- Validate, save and broadcast
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
-  log("on_Block", "Block Validity: " .. block_validity)
+  log("on_Block", " Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
-    log("on_Block", "Valid block added to blocks")
+    log("on_Block", " Valid block added to blocks")
     blocks[hash] = block
     shout(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
@@ -262,7 +254,9 @@ function shout(from, block_hash)
       if k ~= from then
         log("shout", "Sending to peer: " .. tostring(k))
         --print(blocks[block_hash])
-        sendBlock(k, blocks[block_hash])
+        -- current_message_id = current_message_id+1
+        -- send(k, blocks[block_hash], current_message_id)
+        sendBlock(k, block_hash)
       end
   --end
   end
@@ -329,7 +323,7 @@ function mine(miner, prev_hash, height, nonce, attempts)
       mined_block.prev_hash = prev_hash
       mined_block.height = height
       mined_block.nonce = nonce_str(nonce)
-      log("miner", "Just mined the fallowing block:")
+      log("miner", "Just mined the following block:")
       log_block("miner", mined_block)
       return true, mined_block
     else
