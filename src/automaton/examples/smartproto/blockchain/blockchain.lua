@@ -7,55 +7,22 @@ current_message_id = 1
 function update(time)
   -- log("update", string.format("Update called at %d", time))
   log("update", string.format("UPDATE STARTED for node %d", node_id))
-<<<<<<< HEAD
   log("Blockchain", "Height: " .. tostring(#blockchain))
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 10)
-=======
-  count = 0
-  for k, v in pairs(blocks) do
-    count = count + 1
-  end
-  -- print ("#blocks: " .. tostring(count))
-  -- print ("#blockchain: " .. tostring(#blockchain))
-  local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  -- attempt to mine a block
-  -- print("nonce:")
-  -- print(hex(nonce_str(nonce)))
-  -- print(prev_hash)
-  -- print("prev_hash: " .. hex(prev_hash))
-  local found, block = mine(sha3("tostring(node_id)"), prev_hash, #blockchain+1, nonce, 100)
->>>>>>> master
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
   end
-<<<<<<< HEAD
+
   -- for each peer call the necesery function
   for k, v in pairs(peers) do
     if v.state == STATE.HANDSHAKE then
       handshake(k)
     end
   end
-=======
-  --print ("STARTED UPDATE for node: " .. node_id)
-  -- for each peer call the necesery function
-  for k, v in pairs(peers) do
-    --print(v)
-    --print(tprint(v))
-    if v.state == STATE.HANDSHAKE then
-      handshake(k)
-      --print(k)
-      --print(tprint(v))
-    end
-  end
-  -- print ("UPDATE FINISHED for node: " .. node_id)
-  --print "UPDATE FINISHED WITHOUT ERRORS"
-  --print (#blockchain)
-  log("update", string.format("Update finished at %d", time))
->>>>>>> master
 end
 
 function pid(id)
@@ -97,17 +64,6 @@ BLOCK.NO_PARENT = 4
 
 GENESIS_HASH = sha3("automaton")
 
-<<<<<<< HEAD
-=======
--- Initial peer list
-initial_peers = {
-  {IP = "0.0.0.0", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
-  {IP = "1.1.1.1", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
-  {IP = "2.2.2.2", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
-  {IP = "3.3.3.3", state = STATE.HANDSHAKE, block = {sent_block_hash = nil, receive_block = nil}},
-}
-
->>>>>>> master
 peers = {}
 blocks = {}
 blockchain = {}
@@ -146,16 +102,6 @@ function blockHash(block)
   return sha3(blockdata)
 end
 
-<<<<<<< HEAD
-=======
-function init()
-  -- Add initial peer list to peer_states
-  peers = initial_peers
-  -- Load the blockchain if avalible
-end
-
-
->>>>>>> master
 -- Valid block is a block that:
 -- 1. Is a new block, with valid hash and height >= 1
 -- 2. Either prev_hash is in blocks or the block is with height #1 and prev_hash is GENESIS_HASH
