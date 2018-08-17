@@ -189,7 +189,6 @@ function connected(peer_id)
   log("connected", "Connected to " .. tostring(peer_id))
   peers[peer_id] = {}
   peers[peer_id].state = STATE.HANDSHAKE
-  log("connected", "Total peers " .. tostring(#peers))
   --b = Block()
   --b.miner = "Ace"
   --send(1, b, 0) -- send (peer_id, message, mesage_id)
