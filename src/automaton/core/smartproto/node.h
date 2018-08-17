@@ -77,12 +77,13 @@ class node: public network::connection::connection_handler,
  private:
   peer_id peer_ids;
   script::engine engine;
-  // std::vector<std::unique_ptr<data::schema>> schemas_;
+
   std::shared_ptr<network::acceptor> acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
   std::set<peer_id> connected_peers;
   std::mutex peer_ids_mutex;
+  std::mutex script_mutex;
 
   std::unordered_map<std::string, std::vector<std::string>> logs;
 
