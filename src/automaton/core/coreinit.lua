@@ -32,8 +32,8 @@ function run_tcp(cfg)
 end
 
 function sim_test()
-  NODES = 10
-  PEERS = 16
+  NODES = 100
+  PEERS = 4
 
   a={}
 
@@ -52,15 +52,16 @@ function sim_test()
   end
 end
 
-START_PORT = 5000
+math.randomseed(os.time())
+START_PORT = 5000 + math.random(60000)
 
 function tcp_addr(i)
   return "tcp://127.0.0.1:" .. tostring(START_PORT + i)
 end
 
 function tcp_test()
-  N = 20
-  M = 4
+  N = 5
+  M = 1
 
   for i = 1, N do
     nodes[i] = anode()
