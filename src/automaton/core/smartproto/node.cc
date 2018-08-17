@@ -80,11 +80,15 @@ node::node(vector<string> schemas,
   lock_guard<mutex> lock(updater_mutex);
   updater_stop_signal = false;
   updater = new std::thread([this]() {
-    while (!this->updater_stop_signal) {
+    while (!updater_stop_signal) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
-      sol::protected_function_result result = this->script_on_update(current_time);
+
+      script_mutex.lock();
+      sol::protected_function_result result = script_on_update(current_time);
+      script_mutex.unlock();
+
       if (!result.valid()) {
         sol::error err = result;
         string what = err.what();
@@ -101,7 +105,9 @@ node::node(vector<string> schemas,
     wire_to_factory[wire_id] = factory_id;
     string function_name = "on_" + wire_msg;
     LOG(DEBUG) << wire_id << ": " << function_name;
+    script_mutex.lock();
     script_on_msg[wire_id] = engine[function_name];
+    script_mutex.unlock();
     wire_id++;
   }
 }
@@ -236,7 +242,9 @@ void node::s_on_blob_received(peer_id id, const string& blob) {
   auto msg_id = wire_to_factory[wire_id];
   unique_ptr<msg> m = engine.get_factory().new_message_by_id(msg_id);
   m->deserialize_message(blob.substr(1));
+  script_mutex.lock();
   script_on_msg[wire_id](id, std::move(m));
+  script_mutex.unlock();
 }
 
 
@@ -274,11 +282,15 @@ void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
 }
 
 void node::s_on_connected(peer_id id) {
+  script_mutex.lock();
   script_on_connected(static_cast<uint32_t>(id));
+  script_mutex.unlock();
 }
 
 void node::s_on_disconnected(peer_id id) {
+  script_mutex.lock();
   script_on_disconnected(static_cast<uint32_t>(id));
+  script_mutex.unlock();
 }
 
 bool node::connect(peer_id id) {
@@ -515,7 +527,9 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
 
 void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
   LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent";
+  script_mutex.lock();
   script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
+  script_mutex.unlock();
 }
 
 void node::on_connected(peer_id c) {
