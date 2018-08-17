@@ -31,7 +31,7 @@ end
 function run_tcp(cfg)
 end
 
-function sim_test2()
+function sim_test()
   NODES = 10
   PEERS = 16
 
