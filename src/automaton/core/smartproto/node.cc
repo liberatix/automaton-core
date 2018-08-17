@@ -84,7 +84,7 @@ node::node(std::vector<std::string> schemas,
       if (!result.valid()) {
         sol::error err = result;
         string what = err.what();
-        LOG(ERROR) << "UPDATE: " << what;
+        // LOG(ERROR) << "UPDATE: " << what;
       }
     }
   });
@@ -103,13 +103,13 @@ node::node(std::vector<std::string> schemas,
 }
 
 node::~node() {
-  LOG(DEBUG) << "Node destructor called";
-
-  std::vector<peer_id> res = list_known_peers();
-  LOG(DEBUG) << "Known peers " << res.size();
-  for (uint32_t i = 0; i < res.size(); ++i) {
-    LOG(DEBUG) << "known_peer: " << res[i];
-  }
+  // LOG(DEBUG) << "Node destructor called";
+  //
+  // std::vector<peer_id> res = list_known_peers();
+  // LOG(DEBUG) << "Known peers " << res.size();
+  // for (uint32_t i = 0; i < res.size(); ++i) {
+  //   LOG(DEBUG) << "known_peer: " << res[i];
+  // }
 
   std::lock_guard<std::mutex> lock(updater_mutex);
   updater_stop_signal = true;
