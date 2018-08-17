@@ -134,9 +134,16 @@ int main(int argc, char* argv[]) {
   cli.print(automaton_ascii_logo.c_str());
   script.script(get_file_contents("automaton/core/coreinit.lua"));
 
+<<<<<<< HEAD
   cli.history_add("b = BCNode()");
   cli.history_add("dump_logs()");
   cli.history_add("tcp_test()");
+=======
+  cli.print(automaton_ascii_logo.c_str());
+  cli.history_add("dump_logs()");
+  cli.history_add("tcp_test()");
+  cli.history_add("sim_test()");
+>>>>>>> master
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");

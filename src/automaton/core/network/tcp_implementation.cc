@@ -314,6 +314,9 @@ bool tcp_acceptor::init() {
         LOG(ERROR) << address << " -> " <<  ecc.message();
         return false;
       } else {
+        std::stringstream s;
+        s << asio_acceptor.local_endpoint().address() << ':' << asio_acceptor.local_endpoint().port();
+        address = s.str();
         asio_acceptor.listen();
         return true;
       }
