@@ -47,6 +47,7 @@ node::node(vector<string> schemas,
     : peer_ids(0)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
+  engine["node_id"] = (uint64_t)(this);
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);
@@ -132,10 +133,10 @@ node::~node() {
 
 static string get_date_string(system_clock::time_point t) {
   auto as_time_t = std::chrono::system_clock::to_time_t(t);
-  struct tm tm;
-  if (::gmtime_r(&as_time_t, &tm)) {
+  struct tm* tm;
+  if (tm = ::gmtime(&as_time_t)) {
     char some_buffer[64];
-    if (std::strftime(some_buffer, sizeof(some_buffer), "%F %T", &tm)) {
+    if (std::strftime(some_buffer, sizeof(some_buffer), "%F %T", tm)) {
       return std::string{some_buffer};
     }
   }

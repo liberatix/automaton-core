@@ -4,11 +4,11 @@
 
 #include <json.hpp>
 
+#include "automaton/core/network/tcp_implementation.h"
 #include "automaton/core/cli/cli.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/network/simulated_connection.h"
-#include "automaton/core/network/tcp_implementation.h"
 #include "automaton/core/script/engine.h"
 #include "automaton/core/smartproto/node.h"
 
@@ -131,11 +131,12 @@ int main(int argc, char* argv[]) {
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(500);
   automaton::core::cli::cli cli;
+  cli.print(automaton_ascii_logo.c_str());
   script.script(get_file_contents("automaton/core/coreinit.lua"));
 
-  cli.print(automaton_ascii_logo.c_str());
   cli.history_add("b = BCNode()");
   cli.history_add("dump_logs()");
+  cli.history_add("tcp_test()");
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
