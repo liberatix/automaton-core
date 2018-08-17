@@ -5,13 +5,14 @@ nonce = {105}
 current_message_id = 1
 -- node callback functions
 function update(time)
+  sendBlock(1, GENESIS_HASH)
   -- log("update", string.format("Update called at %d", time))
   log("update", string.format("UPDATE STARTED for node %d", node_id))
   log("Blockchain", "Height: " .. tostring(#blockchain))
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 10)
+  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 300)
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
@@ -37,10 +38,10 @@ function sent(peer_id, msg_id, success)
   -- pritn (" succsess: " .. success)
   -- print ("inputs printed")
   if success then
-    log(pid(peer_id), "Successfully sent messsage to: " .. pid(peer_id))
+    log(pid(peer_id), "Successfully sent message id: " .. tostring(msg_id))
   else
     peers[peer_id] = nil
-    log(pid(peer_id), "Error sending message to: " .. pid(peer_id))
+    log(pid(peer_id), "Error sending message id: " .. tostring(msg_id))
   end
 end
 
@@ -142,9 +143,9 @@ end
 function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesis give proper hash
   -- TODO(Samir): Implement block sending to other peers, Check if the block is received
   --print ("sending block " .. hex(blockHash))
-  log(pid(peer_id), "Sending the following  block to this peer:")
 
-  current_message_id = current_message_id+1
+  current_message_id = current_message_id + 1
+  log(pid(peer_id), "Sending the following  block to this peer -- " .. tostring(current_message_id))
   if blockHash == GENESIS_HASH then
     local no_blocks = Block()
     no_blocks.height = 0
@@ -155,7 +156,9 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
     send(peer_id, no_blocks, current_message_id)
   else
     log_block(pid(peer_id), blocks[blockHash])
-    send(peer_id, blocks[blockHash], current_message_id)
+    local block = Block()
+    block:deserialize(blocks[blockHash]:serialize())
+    send(peer_id, block, current_message_id)
   end
 
 end
@@ -178,6 +181,7 @@ function connected(peer_id)
     sendBlock(peer_id, blockchain[#blockchain])
     peers[peer_id].sent_block_hash = blockchain[#blockchain]
   else
+    sendBlock(peer_id, GENESIS_HASH)
     sendBlock(peer_id, GENESIS_HASH)
     peers[peer_id].sent_block_hash = GENESIS_HASH
   end
