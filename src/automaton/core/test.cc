@@ -115,6 +115,10 @@ int main(int argc, char* argv[]) {
   script.script(get_file_contents("automaton/core/coreinit.lua"));
 
   cli.print(automaton_ascii_logo.c_str());
+  cli.history_add("n[1]:sendb(1,\"alabala\", 1)");
+  cli.history_add("n[2]:sendb(1,\"alabala\", 2)");
+  cli.history_add("n[1]:sendb(3,\"alabala\", 3)");
+
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");

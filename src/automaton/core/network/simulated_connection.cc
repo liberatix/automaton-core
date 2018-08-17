@@ -78,7 +78,9 @@ simulation::simulation():simulation_time(0), simulation_running(false) {
   std::srand(816405263);
 }
 
-simulation::~simulation() {}
+simulation::~simulation() {
+  LOG(DEBUG) << "Simulation destructor";
+}
 
 void simulation::simulation_start(uint64_t millisec_step) {
   running_mutex.lock();
@@ -340,7 +342,6 @@ int simulation::process(uint64_t time_) {
     }
     current_time++;
   }
-
   q_mutex.unlock();
   return events_processed;
 }
@@ -379,6 +380,7 @@ void simulation::remove_connection(uint32_t connection_id) {
   std::lock_guard<std::mutex> lock(connections_mutex);
   auto iterator_ = connections.find(connection_id);
   if (iterator_ != connections.end()) {
+    delete iterator_->second;
     connections.erase(iterator_);
   }
 }
@@ -406,6 +408,7 @@ void simulation::remove_acceptor(uint32_t address) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   auto iterator_ = acceptors.find(address);
   if (iterator_ != acceptors.end()) {
+    delete iterator_->second;
     acceptors.erase(iterator_);
   }
 }
@@ -436,6 +439,10 @@ simulated_connection::outgoing_packet::outgoing_packet(): bytes_send(0), id(0) {
 simulated_connection::simulated_connection(connection_id id, const std::string& address_, connection_handler* handler_):
     connection(id, handler_), remote_address(0), local_connection_id(0), remote_connection_id(0), time_stamp(0),
     original_address(address_), connection_state(connection::state::invalid_state) {
+}
+
+simulated_connection::~simulated_connection() {
+  LOG(DEBUG) << "Connection destructor";
 }
 
 bool simulated_connection::init() {
@@ -509,8 +516,8 @@ void simulated_connection::handle_send() {
 
 void simulated_connection::handle_read() {
   // LOG(DEBUG) << "<handle_read>";
-  std::lock_guard<std::mutex> reading_lock(reading_q_mutex);
-  std::lock_guard<std::mutex> recv_lock(recv_buf_mutex);
+  reading_q_mutex.lock();
+  recv_buf_mutex.lock();
   while (receive_buffer.size() && reading.size()) {
     incoming_packet& packet = reading.front();
     bool read_some = packet.expect_to_read == 0;
@@ -532,9 +539,15 @@ void simulated_connection::handle_read() {
       // TODO(kari): use T top = std::move(q.front()); q.pop();
       incoming_packet packet = std::move(reading.front());
       reading.pop();
+      recv_buf_mutex.unlock();
+      reading_q_mutex.unlock();
       handler->on_message_received(this->id, packet.buffer, packet.bytes_read, packet.id);
+      reading_q_mutex.lock();
+      recv_buf_mutex.lock();
     }
   }
+  recv_buf_mutex.unlock();
+  reading_q_mutex.unlock();
   // LOG(DEBUG) << "</handle_read>";
 }
 
@@ -698,6 +711,10 @@ simulated_acceptor::simulated_acceptor(const std::string& address_, acceptor::ac
     connection::connection_handler* connections_handler):acceptor(handler_),
     accepted_connections_handler(connections_handler), address(0), original_address(address_),
     acceptor_state(acceptor::state::invalid_state) {
+}
+
+simulated_acceptor::~simulated_acceptor() {
+  LOG(DEBUG) << "Acceptor destructor";
 }
 
 bool simulated_acceptor::init() {

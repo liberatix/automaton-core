@@ -184,6 +184,8 @@ class simulated_connection: public connection {
 
   simulated_connection(connection_id id, const std::string& address_, connection_handler* handler_);
 
+  ~simulated_connection();
+
   bool init();
 
   bool parse_address(const std::string& address_, connection_params* params, uint32_t* parsed_remote_address);
@@ -246,6 +248,8 @@ class simulated_acceptor: public acceptor {
 
   simulated_acceptor(const std::string& address_, acceptor::acceptor_handler*
       handler_, connection::connection_handler* accepted_connections_handler);
+
+  ~simulated_acceptor();
 
   bool init();
 
