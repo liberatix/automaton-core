@@ -221,7 +221,7 @@ while i < 1 do
   local found, block = mine(sha3("Samir"), prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
   if found then
-    log("miner", block)
+    log("miner", block:to_json())
     onBlock(-1, block)
     --local block_validity = validateBlock(block)
   end
