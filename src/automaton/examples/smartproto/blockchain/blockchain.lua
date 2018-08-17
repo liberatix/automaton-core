@@ -105,9 +105,8 @@ function validateBlock(block)
   hash = blockHash(block)
   local target = get_target(difficulty)
 
-  log("validateBlock", "validating block with hash: " .. hex(hash))
-  log("validateBlock", "And height: " .. block.height)
-  log("validateBlock", block)
+  log("validateBlock", "validating block: ")
+  log_block("validateBlock", block)
 
   -- Check if we already have the block
   if blocks[hash] ~= nil then
@@ -209,6 +208,7 @@ function on_Block(peer_id, block)
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
   log("on_Block", " Block Validity: " .. block_validity)
+  log("validateBlock", " Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
     log("on_Block", " Valid block added to blocks")
     blocks[hash] = block
