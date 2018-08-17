@@ -76,20 +76,3 @@ function tcp_test()
     end
   end
 end
-
-function samir_test()
-  a1 = "sim://5:5:1"
-  a2 = "sim://5:13:2"
-
-  n1 = anode()
-  n2 = anode()
-
-  n1:listen(a1)
-  n2:listen(a2)
-
-  p2 = n1:add_peer(a1)
-
-  n1:connect(p2)
-
-  -- n1:sendb(p2, "alabala", 1)
-end
