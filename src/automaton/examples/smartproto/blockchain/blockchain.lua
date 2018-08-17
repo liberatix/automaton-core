@@ -1,4 +1,3 @@
-print("LOADED!")
 -- x = math.random(10)
 -- nonce = {x}
 nonce = {105}
@@ -6,9 +5,8 @@ nonce = {105}
 current_message_id = 1
 -- node callback functions
 function update(time)
-  print ("UPDATE STARTED for node: " .. node_id)
-  --print(tprint(peers))
   -- log("update", string.format("Update called at %d", time))
+  log("update", string.format("UPDATE STARTED for node %d", node_id))
   count = 0
   for k, v in pairs(blocks) do
     count = count + 1
@@ -17,15 +15,13 @@ function update(time)
   -- print ("#blockchain: " .. tostring(#blockchain))
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
   -- attempt to mine a block
-  print("nonce:")
-  print(hex(nonce_str(nonce)))
-  print(prev_hash)
-  print("prev_hash: " .. hex(prev_hash))
+  -- print("nonce:")
+  -- print(hex(nonce_str(nonce)))
+  -- print(prev_hash)
+  -- print("prev_hash: " .. hex(prev_hash))
   local found, block = mine(sha3("tostring(node_id)"), prev_hash, #blockchain+1, nonce, 100)
   -- if a block is mined call broadcast to all peers
   if found then
-    print("Mined block: " .. hex(blockHash(block)))
-    print(block:to_json())
     on_Block(-1, block)
   end
   --print ("STARTED UPDATE for node: " .. node_id)
@@ -40,7 +36,7 @@ function update(time)
     end
   end
   -- print ("UPDATE FINISHED for node: " .. node_id)
-  print "UPDATE FINISHED WITHOUT ERRORS"
+  --print "UPDATE FINISHED WITHOUT ERRORS"
   --print (#blockchain)
   log("update", string.format("Update finished at %d", time))
 end
@@ -50,18 +46,17 @@ function pid(id)
 end
 
 function sent(peer_id, msg_id, success)
-  print "GOT TO SENT"
-  print "printing the inputs"
-  print ("peer_id: ", peer_id)
-  print (" msg_id: " .. msg_id)
-  pritn (" succsess: " .. success)
-  print ("inputs printed")
+  -- print "GOT TO SENT"
+  -- print "printing the inputs"
+  -- print ("peer_id: ", peer_id)
+  -- print (" msg_id: " .. msg_id)
+  -- pritn (" succsess: " .. success)
+  -- print ("inputs printed")
   if success then
-    log(pid(peerid), "Sucessfully sent messsage " .. tostring(msg_id))
+    log(pid(peer_id), "Sucessfully sent messsage " .. tostring(msg_id))
   else
-    log(pid(peerid), "Error sending message " .. tostring(msg_id))
+    log(pid(peer_id), "Error sending message " .. tostring(msg_id))
   end
-  print "sent finished"
 end
 
 -- mining helper
@@ -178,21 +173,23 @@ end
 function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesis give proper hash
   -- TODO(Samir): Implement block sending to other peers, Check if the block is received
   --print ("sending block " .. hex(blockHash))
+  current_message_id = current_message_id+1
   if blockHash == GENESIS_HASH then
     local no_blocks = Block()
     no_blocks.height = 0
     no_blocks.miner = "No miner"
-    send(peer_id, no_blocks, 0)
+    send(peer_id, no_blocks, current_message_id)
   else
-    send(peer_id, blocks[blockHash], 0)
+    send(peer_id, blocks[blockHash], current_message_id)
   end
 end
 
 
 function connected(peer_id)
-  print("Connected to " .. tostring(peer_id))
+  log("connected", "Connected to " .. tostring(peer_id))
   peers[peer_id] = {}
   peers[peer_id].state = STATE.HANDSHAKE
+  log("connected", "Total peers " .. tostring(#peers))
   --b = Block()
   --b.miner = "Ace"
   --send(1, b, 0) -- send (peer_id, message, mesage_id)
@@ -211,17 +208,16 @@ end
 
 
 function on_Block(peer_id, block)
-  log("onBlock", "on_Block started")
-  log("onBlock", "peer_id: " .. peer_id)
-  print("printed peer_id")
+  log("on_Block", "on_Block started")
+  log("on_Block", "peer_id: " .. peer_id)
   -- If this is the first block from a newly connect peer
   if peers[peer_id] ~= nil and peers[peer_id].received_block == nil then
-    print ("First block from peer: " .. peer_id)
+    log("on_Block", "First block from peer: " .. peer_id)
     peers[peer_id].received_block = block
     --print(tprint(peers[peer_id]))
     -- if this peer has no block return and handle the rest in handshake
     if block.height == 0 then
-      print "in on_Block, we got block with height 0"
+      log("on_Block", "in on_Block, we got block with height 0")
       return
     end
   end
@@ -229,10 +225,9 @@ function on_Block(peer_id, block)
   -- Validate, save and broadcast
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
-  log("onBlock", "Block Validity: " .. block_validity)
-  print("Block Validity: " .. block_validity)
+  log("on_Block", "Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
-    log("onBlock", "Valid block added to blocks")
+    log("on_Block", "Valid block added to blocks")
     blocks[hash] = block
     shout(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
@@ -241,33 +236,18 @@ function on_Block(peer_id, block)
     --!   blockchain[#blockchain+1] = hash
     -- Check if we get a longer chain. Does not matter if it is the main or alternative.
     if block.height == #blockchain+1 then
-      print "block.height == #blockchain+1"
-      print (#blockchain+1)
       -- We are sure that this is the head of the longest chain
       blockchain[#blockchain+1] = hash
       -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
-      print "got to One"
-      print("#blockchain: " .. tostring(#blockchain))
       local block_index = (#blockchain)-1
-      print "got to two"
-      print("#blockchain-1: " .. tostring((#blockchain)-1))
-      print("got to two.five")
       local longest_chain_hash = block.prev_hash
-      print(block_index)
-      print "got to three"
       while block_index >= 1 do
-        print("got to this")
-        print(block_index)
         if (blockchain[block_index] ~= longest_chain_hash) then
-          print "got Inside"
           blockchain[block_index] = longest_chain_hash
-          print "midpoint inside"
           longest_chain_hash = blocks[longest_chain_hash].prev_hash
-          print "finished inside"
         end
         block_index = block_index - 1
       end
-      print "end of block.height == #blockchain"
     end
   -- If it is DUPLICATE
   elseif(block_validity == BLOCK.DUPLICATE) then
@@ -283,17 +263,13 @@ function on_Block(peer_id, block)
 end
 
 function shout(from, block_hash)
-  --print ("shouting, from = " .. to_string(from))
-  print "In shout!: =============================================================================="
+  log("shout", "shouting, from = " .. tostring(from))
   --print(tprint(peers))
-  print "b4 loop"
   for k, v in pairs(peers) do
-    print "printing v: "
-    print(v)
     -- TODO(Samir): Decide to which peer states we should send the block
     --if v.state == STATE.IN_CONSENSUS then
       if k ~= from then
-        print("Sending to peer: " .. tostring(k))
+        log("shout", "Sending to peer: " .. tostring(k))
         --print(blocks[block_hash])
         current_message_id = current_message_id+1
         send(k, blocks[block_hash], current_message_id)
@@ -315,7 +291,8 @@ function handshake(peer_id)
   -- print(tprint(peers[peer_id]))
   -- Check if peer exists in peers
   if peer_id <= 0 or peers[peer_id] == nil then
-    print "ERROR(Samir 301): in handshake, peer_id needs to be possitive number and peers[peer_id] should not be nil"
+    log("handshake", "ERROR(Samir 301): in handshake,"
+    .. "peer_id needs to be possitive number and peers[peer_id] should not be nil")
     return
   end
   if peers[peer_id].state == STATE.HANDSHAKE and peers[peer_id].received_block ~= nil then
@@ -350,30 +327,23 @@ end
 -- Takes in block with miner, prev_hash, height
 --
 function mine(miner, prev_hash, height, nonce, attempts)
-  log("miner", "Mining block")
   local target = get_target(difficulty)
   local block_data = miner .. prev_hash .. height
-  print "Got here 1"
   for i = 0, attempts do
     block_hash = sha3(block_data .. nonce_str(nonce))
     --print(hex(block_hash))
     if block_hash <= target then
-      print "Inside if block_hash <= target then"
       -- create and return block
       mined_block = Block()
       mined_block.miner = miner
       mined_block.prev_hash = prev_hash
       mined_block.height = height
       mined_block.nonce = nonce_str(nonce)
-      print(hex(miner))
-      print(hex(mined_block.miner))
-      print(hex(prev_hash))
-      print(hex(mined_block.prev_hash))
-      print(height)
-      print(mined_block.height)
-      print(hex(nonce_str(nonce)))
-      print(hex(mined_block.nonce))
-      -- print(mined_block)
+      log("miner", "Hash: " .. hex(block_hash))
+      log("miner", "prev_hash: " .. hex(mined_block.prev_hash))
+      log("miner", "miner: " .. hex(mined_block.miner))
+      log("miner", "height: " .. mined_block.height)
+
       return true, mined_block
     else
      inc_nonce(nonce)
