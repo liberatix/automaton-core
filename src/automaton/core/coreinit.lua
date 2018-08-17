@@ -1,60 +1,79 @@
---[[print("================== SIMULATION ==================")
+-- GLOBALS
 
-NODES = 2
-PEERS = 1
-
-a={}
-n={}
-
-for i = 1, NODES do
-  a[i] = string.format("sim://5:5:%d", i)
-  n[i] = anode()
-  n[i]:listen(a[i])
-  print(a[i])
-end
-
-for i = 1, NODES do
-  for j = 1, PEERS do
-    paddr = ((i + j - 1) % NODES) + 1;
-    peer_id = n[i]:add_peer(string.format("sim://150:1000:4:%d", paddr))
-    print(i, j, paddr, peer_id)
-    n[i]:connect(peer_id)
-  end
-end
+nodes = {}
 
 function dump_logs()
-  for i = 1, NODES do
-    n[i]:dump_logs(string.format("logs/N%d.html", i))
+  for i = 1, #nodes do
+    nodes[i]:dump_logs(string.format("logs/N%d.html", i))
   end
 end
 
 --[[
-a1 = "sim://5:5:1"
-a2 = "sim://5:13:2"
+  Runs simulation with specific configuration.
 
-addr = "sim://150:1000:4:1"
--- Google address
--- a1 = "69.172.200.235:80"
+  cfg is a table which can have the following keys:
 
-n = {}
-N = 50
-M = 8
+  nodes
+  min_bandwidth
+  max_bandwidth
+  min_lag
+  max_lag
+  max_incoming_peers
+  max_outgoing_peers
+]]
 
-function addr(i)
-  return "tcp://127.0.0.1:" .. tostring(i)
+function run_simulation(cfg)
 end
 
-for i = 5000,5000 + N do
-  n[i] = anode()
-  print(addr(i))
-  n[i]:listen(addr(i))
+function run_localhost(cfg)
 end
 
-for i = 5000,5000 + N do
-  for j = 1, M do
-    a = 5000 + ((i + j) - 5000) % N
-    print(i, a)
-    n[i]:connect(n[i]:add_peer(addr(a)))
+function run_tcp(cfg)
+end
+
+function sim_test2()
+  NODES = 10
+  PEERS = 16
+
+  a={}
+
+  for i = 1, NODES do
+    a[i] = string.format("sim://5:5:%d", i)
+    nodes[i] = anode()
+    nodes[i]:listen(a[i])
+  end
+
+  for i = 1, NODES do
+    for j = 1, PEERS do
+      paddr = ((i + j - 1) % NODES) + 1;
+      peer_id = nodes[i]:add_peer(string.format("sim://150:1000:4:%d", paddr))
+      nodes[i]:connect(peer_id)
+    end
+  end
+end
+
+START_PORT = 5000
+
+function tcp_addr(i)
+  return "tcp://127.0.0.1:" .. tostring(START_PORT + i)
+end
+
+function tcp_test()
+  N = 20
+  M = 4
+
+  for i = 1, N do
+    nodes[i] = anode()
+    nodes[i]:listen(tcp_addr(i))
+  end
+
+  for i = 1, N do
+    for j = 1, M do
+      a = (i + j - 1) % N + 1
+      -- print(tcp_addr(i), "->", tcp_addr(a))
+      peer_id = nodes[i]:add_peer(tcp_addr(a))
+      nodes[i]:connect(peer_id)
+    end
   end
 end
 
@@ -67,8 +86,8 @@ a2 = "tcp://127.0.0.1:5002"
 n1 = anode()
 n2 = anode()
 
-n1:listen(a1)
-n2:listen(a2)
+  n1:listen(a1)
+  n2:listen(a2)
 
 
 

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <fstream>
+#include <iomanip>
 #include <ios>
 #include <iostream>
 #include <regex>
@@ -17,12 +18,15 @@ using automaton::core::data::schema;
 using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 
+using std::chrono::system_clock;
+using std::ios_base;
+using std::lock_guard;
 using std::make_unique;
+using std::mutex;
+using std::ofstream;
 using std::string;
 using std::unique_ptr;
 using std::vector;
-using std::ofstream;
-using std::ios_base;
 
 namespace automaton {
 namespace core {
@@ -37,9 +41,9 @@ static const uint32_t WAITING_MESSAGE = 2;
 
 peer_info::peer_info(): id(0), address("") {}
 
-node::node(std::vector<std::string> schemas,
-           std::vector<std::string> lua_scripts,
-           std::vector<std::string> wire_msgs)
+node::node(vector<string> schemas,
+           vector<string> lua_scripts,
+           vector<string> wire_msgs)
     : peer_ids(0)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
@@ -62,11 +66,14 @@ node::node(std::vector<std::string> schemas,
       log(logger, msg);
     });
 
-  for (std::string lua_script : lua_scripts) {
+  for (string lua_script : lua_scripts) {
     sol::protected_function_result pfr =
         engine.safe_script(lua_script, &sol::script_pass_on_error);
-    std::string output = pfr;
-    std::cout << output << std::endl;
+    if (!pfr.valid()) {
+      sol::error err = pfr;
+      string what = err.what();
+      LOG(ERROR) << "SCRIPT: " << what;
+    }
   }
 
   script_on_update = engine["update"];
@@ -74,14 +81,18 @@ node::node(std::vector<std::string> schemas,
   script_on_disconnected = engine["disconnected"];
   script_on_msg_sent = engine["sent"];
 
-  std::lock_guard<std::mutex> lock(updater_mutex);
+  lock_guard<mutex> lock(updater_mutex);
   updater_stop_signal = false;
   updater = new std::thread([this]() {
-    while (!this->updater_stop_signal) {
+    while (!updater_stop_signal) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
-      sol::protected_function_result result = this->script_on_update(current_time);
+
+      script_mutex.lock();
+      sol::protected_function_result result = script_on_update(current_time);
+      script_mutex.unlock();
+
       if (!result.valid()) {
         sol::error err = result;
         string what = err.what();
@@ -98,34 +109,58 @@ node::node(std::vector<std::string> schemas,
     wire_to_factory[wire_id] = factory_id;
     string function_name = "on_" + wire_msg;
     LOG(DEBUG) << wire_id << ": " << function_name;
+    script_mutex.lock();
     script_on_msg[wire_id] = engine[function_name];
+    script_mutex.unlock();
     wire_id++;
   }
 }
 
 node::~node() {
-  LOG(DEBUG) << "Node destructor called";
+  // LOG(DEBUG) << "Node destructor called";
+  //
+  // vector<peer_id> res = list_known_peers();
+  // LOG(DEBUG) << "Known peers " << res.size();
+  // for (uint32_t i = 0; i < res.size(); ++i) {
+  //   LOG(DEBUG) << "known_peer: " << res[i];
+  // }
 
-  std::vector<peer_id> res = list_known_peers();
-  LOG(DEBUG) << "Known peers " << res.size();
-  for (uint32_t i = 0; i < res.size(); ++i) {
-    LOG(DEBUG) << "known_peer: " << res[i];
-  }
-
-  std::lock_guard<std::mutex> lock(updater_mutex);
+  lock_guard<mutex> lock(updater_mutex);
   updater_stop_signal = true;
   updater->join();
   delete updater;
+}
+
+static string get_date_string(system_clock::time_point t) {
+  auto as_time_t = std::chrono::system_clock::to_time_t(t);
+  struct tm* tm;
+  if (tm = ::gmtime(&as_time_t)) {
+    char some_buffer[64];
+    if (std::strftime(some_buffer, sizeof(some_buffer), "%F %T", tm)) {
+      return std::string{some_buffer};
+    }
+  }
+  throw std::runtime_error("Failed to get current date as string");
+}
+
+string zero_padded(int num, int width) {
+  std::ostringstream ss;
+  ss << std::setw(width) << std::setfill('0') << num;
+  return ss.str();
 }
 
 void node::log(string logger, string msg) {
   if (logs.count(logger) == 0) {
     logs.emplace(logger, vector<string>());
   }
-  logs[logger].push_back(msg);
+  auto now = std::chrono::system_clock::now();
+  auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+     now.time_since_epoch()).count();
+  logs[logger].push_back(
+    "[" + get_date_string(now) + "." + zero_padded(current_time % 1000, 3) + "] " + msg);
 }
 
-void node::dump_logs(std::string html_file) {
+void node::dump_logs(string html_file) {
   ofstream f;
   f.open(html_file, ios_base::trunc);
 
@@ -151,6 +186,7 @@ pre {
   border-bottom: 1px solid #333333;
   border-left: 1px solid #CCCCCC;
   margin: 4px;
+  line-height: 24px;
 }
 </style>
 </head>
@@ -163,7 +199,6 @@ pre {
     f << log.first << std::endl;
     f << "</a>\n";
   }
-  f << "<br/><br/>";
 
   for (auto log : logs) {
     f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
@@ -178,12 +213,11 @@ pre {
   f.close();
 }
 
-
 void node::script(const char* input) {
   LOG(DEBUG) << "Calling script from node " << input;
-  std::string cmd{input};
+  string cmd{input};
   sol::protected_function_result pfr = engine.safe_script(cmd, &sol::script_pass_on_error);
-  std::string output = pfr;
+  string output = pfr;
   std::cout << output << std::endl;
 }
 
@@ -197,10 +231,12 @@ void node::send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id)
   if (msg.serialize_message(&msg_blob)) {
     msg_blob.insert(0, 1, static_cast<char>(wire_id));
     send_blob(id, msg_blob, msg_id);
+  } else {
+    LOG(DEBUG) << "Could not serialize message!";
   }
 }
 
-void node::s_on_blob_received(peer_id id, const std::string& blob) {
+void node::s_on_blob_received(peer_id id, const string& blob) {
   auto wire_id = blob[0];
   if (script_on_msg.count(wire_id) != 1) {
     LOG(ERROR) << "Invalid wire msg_id sent to us!";
@@ -210,11 +246,13 @@ void node::s_on_blob_received(peer_id id, const std::string& blob) {
   auto msg_id = wire_to_factory[wire_id];
   unique_ptr<msg> m = engine.get_factory().new_message_by_id(msg_id);
   m->deserialize_message(blob.substr(1));
+  script_mutex.lock();
   script_on_msg[wire_id](id, std::move(m));
+  script_mutex.unlock();
 }
 
 
-void node::send_blob(peer_id id, const std::string& blob, uint32_t msg_id) {
+void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
   LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(blob) <<
       " to peer " << id;
   uint32_t blob_size = blob.size();
@@ -227,8 +265,8 @@ void node::send_blob(peer_id id, const std::string& blob, uint32_t msg_id) {
   buffer[1] = (blob_size >> 8) & 0xff;
   buffer[0] = (blob_size >> 16) & 0xff;
   // TODO(kari): Find more effective way to do this
-  std::string new_message = std::string(buffer, 3) + blob;
-  std::lock_guard<std::mutex> lock(peers_mutex);
+  string new_message = string(buffer, 3) + blob;
+  lock_guard<mutex> lock(peers_mutex);
   if (connected_peers.find(id) == connected_peers.end()) {
     LOG(ERROR) << "Peer " << id << " is not connected! Call connect first!";
     return;
@@ -248,16 +286,20 @@ void node::send_blob(peer_id id, const std::string& blob, uint32_t msg_id) {
 }
 
 void node::s_on_connected(peer_id id) {
+  script_mutex.lock();
   script_on_connected(static_cast<uint32_t>(id));
+  script_mutex.unlock();
 }
 
 void node::s_on_disconnected(peer_id id) {
+  script_mutex.lock();
   script_on_disconnected(static_cast<uint32_t>(id));
+  script_mutex.unlock();
 }
 
 bool node::connect(peer_id id) {
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-  std::lock_guard<std::mutex> lock(peers_mutex);
+  lock_guard<mutex> lock(peers_mutex);
   if (connected_peers.find(id) != connected_peers.end()) {
     VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
     LOG(DEBUG) << "Peer " << id << " is already connected!";
@@ -308,7 +350,7 @@ bool node::disconnect(peer_id id) {
 bool node::set_acceptor(const char* address) {
   core::network::acceptor* new_acceptor = nullptr;
   try {
-    std::string protocol, addr;
+    string protocol, addr;
     if (!address_parser(address, &protocol, &addr)) {
       LOG(DEBUG) << "Address was not parsed!";
       return false;
@@ -335,10 +377,10 @@ bool node::set_acceptor(const char* address) {
   return true;
 }
 
-peer_id node::add_peer(const std::string& address) {
+peer_id node::add_peer(const string& address) {
   // TODO(kari): Return 0 on error?
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
-  std::lock_guard<std::mutex> lock(peers_mutex);
+  lock_guard<mutex> lock(peers_mutex);
   for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
     if (it->second.address == address) {
       LOG(ERROR) << "Already have peer " << address;
@@ -353,7 +395,7 @@ peer_id node::add_peer(const std::string& address) {
   info.buffer = std::shared_ptr<char>(new char[MAX_MESSAGE_SIZE], std::default_delete<char[]>());
   core::network::connection* new_connection = nullptr;
   try {
-    std::string protocol, addr;
+    string protocol, addr;
     if (!address_parser(address, &protocol, &addr)) {
       LOG(DEBUG) << "Address was not parsed! " << address;
     } else {
@@ -398,10 +440,10 @@ void node::remove_peer(peer_id id) {
   peers_mutex.unlock();
 }
 
-std::vector<peer_id> node::list_known_peers() {
+vector<peer_id> node::list_known_peers() {
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
-  std::lock_guard<std::mutex> lock(peers_mutex);
-  std::vector<peer_id> res;
+  lock_guard<mutex> lock(peers_mutex);
+  vector<peer_id> res;
   for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
     res.push_back(it->first);
   }
@@ -411,17 +453,17 @@ std::vector<peer_id> node::list_known_peers() {
 
 std::set<peer_id> node::list_connected_peers() {
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
-  std::lock_guard<std::mutex> lock(peers_mutex);
+  lock_guard<mutex> lock(peers_mutex);
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A");
   return connected_peers;
 }
 
 peer_id node::get_next_peer_id() {
-  std::lock_guard<std::mutex> lock(peer_ids_mutex);
+  lock_guard<mutex> lock(peer_ids_mutex);
   return ++peer_ids;
 }
 
-bool node::address_parser(const std::string& s, std::string* protocol, std::string* address) {
+bool node::address_parser(const string& s, string* protocol, string* address) {
   std::regex rgx_ip("(.+)://(.+)");
   std::smatch match;
   if (std::regex_match(s.begin(), s.end(), match, rgx_ip) &&
@@ -441,7 +483,7 @@ bool node::address_parser(const std::string& s, std::string* protocol, std::stri
 }
 
 void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t id) {
-  LOG(DEBUG) << "RECEIVED: " << core::io::bin2hex(std::string(buffer, bytes_read)) << " from peer " << c;
+  LOG(DEBUG) << "RECEIVED: " << core::io::bin2hex(string(buffer, bytes_read)) << " from peer " << c;
   switch (id) {
     case WAITING_HEADER: {
       if (bytes_read != HEADER_SIZE) {
@@ -459,7 +501,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
         LOG(ERROR) << "Invalid message size!";
         return;
       } else {
-        std::lock_guard<std::mutex> lock(peers_mutex);
+        lock_guard<mutex> lock(peers_mutex);
         auto it = known_peers.find(c);
         if (it != known_peers.end() && it->second.connection && it->second.connection->get_state() ==
             core::network::connection::state::connected) {
@@ -471,8 +513,8 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
     }
     break;
     case WAITING_MESSAGE: {
-      std::string blob = std::string(buffer, bytes_read);
-      std::lock_guard<std::mutex> lock(peers_mutex);
+      string blob = string(buffer, bytes_read);
+      lock_guard<mutex> lock(peers_mutex);
       auto it = known_peers.find(c);
       if (it != known_peers.end() && it->second.connection && it->second.connection->get_state() ==
           core::network::connection::state::connected) {
@@ -488,8 +530,10 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
 }
 
 void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
-  LOG(DEBUG) << "in on_message_sent, peer_id: " << c << " msg_id: " << id;
-  //script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
+  LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent";
+  script_mutex.lock();
+  script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
+  script_mutex.unlock();
 }
 
 void node::on_connected(peer_id c) {
@@ -535,10 +579,10 @@ void node::on_error(peer_id c, network::connection::error e) {
   remove_peer(c);
 }
 
-bool node::on_requested(network::acceptor* a, const std::string& address, peer_id* id) {
+bool node::on_requested(network::acceptor* a, const string& address, peer_id* id) {
   LOG(DEBUG) << "Requested connection to " << acceptor_->get_address() << " from " << address;
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
-  std::lock_guard<std::mutex> lock(peers_mutex);
+  lock_guard<mutex> lock(peers_mutex);
   for (auto it = known_peers.begin(); it != known_peers.end(); ++it) {
     if (it->second.address == address) {
       LOG(ERROR) << "Already have peer " << address;
@@ -557,7 +601,7 @@ bool node::on_requested(network::acceptor* a, const std::string& address, peer_i
   return true;
 }
 
-void node::on_connected(network::acceptor* a, network::connection* c, const std::string& address) {
+void node::on_connected(network::acceptor* a, network::connection* c, const string& address) {
   peer_id id = c->get_id();
   LOG(DEBUG) << "Connected in acceptor " << a->get_address() << " peer with id " << id << " (" << address << ')';
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
