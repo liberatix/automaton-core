@@ -355,6 +355,3 @@ function get_target(difficulty)
   return bin(string.rep("00", difficulty.leadingZeros) .. difficulty.prefix ..
     string.rep("00", 32-difficulty.leadingZeros-3))
 end
-
-
---init()

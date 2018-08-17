@@ -31,7 +31,7 @@ end
 function run_tcp(cfg)
 end
 
-function sim_test2()
+function sim_test()
   NODES = 10
   PEERS = 16
 
@@ -75,20 +75,4 @@ function tcp_test()
       nodes[i]:connect(peer_id)
     end
   end
-end
-
-function Samir()
-
-a1 = "tcp://127.0.0.1:5001"
-a2 = "tcp://127.0.0.1:5002"
-n1 = anode()
-n2 = anode()
-
-  n1:listen(a1)
-  n2:listen(a2)
-
-p2 = n1:add_peer(a2)
-
-n1:connect(p2)
-
 end
