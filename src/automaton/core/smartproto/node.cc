@@ -117,7 +117,7 @@ node::node(std::string id,
   engine["nodeid"] = id;
 
   engine.set_function("peer", [this](uint32_t peer_id) {
-    
+
   });
 
   uint32_t script_id = 0;
@@ -321,7 +321,7 @@ void node::s_on_blob_received(peer_id id, const string& blob) {
   m->deserialize_message(blob.substr(1));
   add_task([this, wire_id, id, m]() -> string {
     auto r = fresult("on_" + m->get_message_type(), script_on_msg[wire_id](id, m));
-    delete m;
+    // delete m;
     return r;
   });
 }
