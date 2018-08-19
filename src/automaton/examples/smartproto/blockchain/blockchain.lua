@@ -1,3 +1,7 @@
+function debug_html()
+  return "<pre>TEST\nTEST2</pre>"
+end
+
 -- x = math.random(10)
 -- nonce = {x}
 nonce = {105}
@@ -12,7 +16,7 @@ function update(time)
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 300)
+  local found, block = mine(sha3(nodeid), prev_hash, #blockchain+1, nonce, 300)
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
@@ -71,7 +75,7 @@ blockchain = {}
 
 difficulty = {}
 difficulty.leadingZeros = 1
-difficulty.prefix = "FFFFFF"
+difficulty.prefix = "0FFFFF"
 
 
 -- mining helper
@@ -99,7 +103,7 @@ function nonce_str(n)
 end
 
 function blockHash(block)
-  blockdata = block.miner .. block.prev_hash .. tostring(block.height) .. block.nonce;
+  blockdata = tostring(block.miner) .. tostring(block.prev_hash) .. tostring(block.height) .. tostring(block.nonce);
   return sha3(blockdata)
 end
 
@@ -118,6 +122,7 @@ function validateBlock(block)
 
   -- Check if we already have the block
   if blocks[hash] ~= nil then
+    log("validateBlock", "DUPLICATE")
     return BLOCK.DUPLICATE
   -- Check if hash is greater than difficulty
   elseif hash > target then
@@ -125,17 +130,21 @@ function validateBlock(block)
     return BLOCK.INVALID
   -- block height can't be less than one
   elseif block.height < 1 then
+    log("validateBlock", "INVALID")
     return BLOCK.INVALID
   -- The block should have its predecessor in blocks unless it is the first block
   elseif block.prev_hash ~= GENESIS_HASH and blocks[block.prev_hash] == nil then
+    log("validateBlock", "NO_PARENT")
     return BLOCK.NO_PARENT
   -- 1. If this is the first block, it needs to have GENESIS_HASH as prev_hash.
   -- 2. If it is not the first block, check if the height of
   --    the block with hash prev_hash is the height of this
   elseif block.height == 1 and block.prev_hash ~= GENESIS_HASH
       or block.height > 1 and blocks[block.prev_hash].height ~= block.height-1 then
+    log("validateBlock", "INVALID 2")
     return BLOCK.INVALID
   else
+    log("validateBlock", "VALID")
     return BLOCK.VALID
   end
 end
@@ -155,7 +164,7 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
     log_block(pid(peer_id), no_blocks)
     send(peer_id, no_blocks, current_message_id)
   else
-    log_block(pid(peer_id), blocks[blockHash])
+    log_block("CRASH " .. pid(peer_id), blocks[blockHash])
     local block = Block()
     block:deserialize(blocks[blockHash]:serialize())
     send(peer_id, block, current_message_id)
@@ -168,12 +177,6 @@ function connected(peer_id)
   peers[peer_id] = {}
   peers[peer_id].state = STATE.HANDSHAKE
   log(pid(peer_id), "STATE: HANDSHAKE")
-
-  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 300)
-  -- if a block is mined call broadcast to all peers
-  if found then
-    on_Block(peer_id, block)
-  end
 
   --b = Block()
   --b.miner = "Ace"
@@ -323,12 +326,11 @@ function handshake(peer_id)
   -- end
 end
 
-
 -- Takes in block with miner, prev_hash, height
 --
 function mine(miner, prev_hash, height, nonce, attempts)
   local target = get_target(difficulty)
-  local block_data = miner .. prev_hash .. height
+  local block_data = tostring(miner) .. tostring(prev_hash) .. tostring(height)
   for i = 0, attempts do
     block_hash = sha3(block_data .. nonce_str(nonce))
     --print(hex(block_hash))
@@ -355,8 +357,8 @@ function get_target(difficulty)
 end
 
 function log_block(identifer, block)
-  log(identifer, " height: " .. block.height)
+  log(identifer, " height: " .. tostring(block.height))
   log(identifer, " Hash: " .. hex(blockHash(block)))
-  log(identifer, " prev_hash: " .. hex(block.prev_hash))
-  log(identifer, " miner: " .. hex(block.miner))
+  log(identifer, " prev_hash: " .. hex(tostring(block.prev_hash)))
+  log(identifer, " miner: " .. hex(tostring(block.miner)))
 end

@@ -43,11 +43,11 @@ static const uint32_t WAITING_MESSAGE = 2;
 
 peer_info::peer_info(): id(0), address("") {}
 
-static std::string fresult(sol::protected_function_result pfr) {
+static std::string fresult(string fname, sol::protected_function_result pfr) {
   if (!pfr.valid()) {
     sol::error err = pfr;
     string what = err.what();
-    LOG(ERROR) << "*** SCRIPT ERROR ***\n" << what;
+    LOG(ERROR) << "*** SCRIPT ERROR IN " << fname << "***\n" << what;
     return what;
   }
 
@@ -61,6 +61,16 @@ void html_escape(std::string *data) {
   replace_all(*data, "\'", "&apos;");
   replace_all(*data, "<",  "&lt;");
   replace_all(*data, ">",  "&gt;");
+}
+
+std::string node::debug_html() {
+  lock_guard<mutex> lock(tasks_mutex);
+  auto result = script_on_debug_html();
+  if (result.valid()) {
+    return result;
+  } else {
+    return "Invalid or missing debug_html() in script.";
+  }
 }
 
 node::node(std::string id,
@@ -88,7 +98,7 @@ node::node(std::string id,
   engine.set_function("log",
     [this](string logger, string msg) {
       lock_guard<mutex> lock(log_mutex);
-      LOG(TRACE) << "[" << logger << "] " << msg;
+      // LOG(TRACE) << "[" << logger << "] " << msg;
       log(logger, msg);
     });
 
@@ -110,14 +120,18 @@ node::node(std::string id,
     
   });
 
+  uint32_t script_id = 0;
   for (string lua_script : lua_scripts) {
-    fresult(engine.safe_script(lua_script, &sol::script_pass_on_error));
+    script_id++;
+    fresult("script " + std::to_string(script_id),
+        engine.safe_script(lua_script, &sol::script_pass_on_error));
   }
 
   script_on_update = engine["update"];
   script_on_connected = engine["connected"];
   script_on_disconnected = engine["disconnected"];
   script_on_msg_sent = engine["sent"];
+  script_on_debug_html = engine["debug_html"];
 
   lock_guard<mutex> lock(worker_mutex);
   worker_stop_signal = false;
@@ -129,7 +143,7 @@ node::node(std::string id,
 
       // Call update function only if a valid definition for it exists.
       if (script_on_update.valid()) {
-        fresult(script_on_update(current_time));
+        fresult("update", script_on_update(current_time));
       }
 
       // TODO(asen): custom break condition, e.g. max number of tasks per update.
@@ -202,6 +216,7 @@ string zero_padded(int num, int width) {
 }
 
 void node::log(string logger, string msg) {
+  LOG(TRACE) << "[" << logger << "] " << msg;
   if (logs.count(logger) == 0) {
     logs.emplace(logger, vector<string>());
   }
@@ -254,6 +269,8 @@ pre {
   }
 
   f << "<hr />\n";
+  f << debug_html();
+  f << "<hr />\n";
 
   for (auto log : logs) {
     f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
@@ -303,7 +320,7 @@ void node::s_on_blob_received(peer_id id, const string& blob) {
   msg* m = engine.get_factory().new_message_by_id(msg_id).release();
   m->deserialize_message(blob.substr(1));
   add_task([this, wire_id, id, m]() -> string {
-    auto r = fresult(script_on_msg[wire_id](id, m));
+    auto r = fresult("on_" + m->get_message_type(), script_on_msg[wire_id](id, m));
     delete m;
     return r;
   });
@@ -344,13 +361,13 @@ void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
 
 void node::s_on_connected(peer_id id) {
   add_task([this, id]() -> string {
-    return fresult(script_on_connected(static_cast<uint32_t>(id)));
+    return fresult("connected", script_on_connected(static_cast<uint32_t>(id)));
   });
 }
 
 void node::s_on_disconnected(peer_id id) {
   add_task([this, id]() -> string {
-    return fresult(script_on_disconnected(static_cast<uint32_t>(id)));
+    return fresult("disconnected", script_on_disconnected(static_cast<uint32_t>(id)));
   });
 }
 
@@ -589,7 +606,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
 void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
   LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent";
   add_task([this, c, id, e]() -> string {
-    return fresult(script_on_msg_sent(c, id, e == network::connection::error::no_error));
+    return fresult("sent", script_on_msg_sent(c, id, e == network::connection::error::no_error));
   });
 }
 

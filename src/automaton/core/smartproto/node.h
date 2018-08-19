@@ -49,6 +49,8 @@ class node: public network::connection::connection_handler,
 
   void send_blob(peer_id id, const std::string& blob, uint32_t msg_id);
 
+  std::string debug_html();
+
   bool connect(peer_id id);
 
   bool disconnect(peer_id id);
@@ -90,6 +92,7 @@ class node: public network::connection::connection_handler,
   sol::protected_function script_on_update;
   sol::protected_function script_on_msg_sent;
   std::unordered_map<uint32_t, sol::protected_function> script_on_msg;
+  sol::protected_function script_on_debug_html;
 
   // Network
   std::shared_ptr<network::acceptor> acceptor_;
