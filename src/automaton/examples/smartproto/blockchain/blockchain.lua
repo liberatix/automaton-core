@@ -144,7 +144,6 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
   --print ("sending block " .. hex(blockHash))
   log(pid(peer_id), "Sending the following  block to this peer:")
 
-  log(pid(peer_id), "Sending the following  block to this peer -- " .. tostring(current_message_id))
   current_message_id = current_message_id+1
   if blockHash == GENESIS_HASH then
     local no_blocks = Block()
