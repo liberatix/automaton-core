@@ -64,7 +64,6 @@ void html_escape(std::string *data) {
 }
 
 std::string node::debug_html() {
-  lock_guard<mutex> lock(tasks_mutex);
   auto result = script_on_debug_html();
   if (result.valid()) {
     return result;
@@ -81,7 +80,6 @@ node::node(std::string id,
     , peer_ids(0)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
-  engine["node_id"] = (uint64_t)(this);
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);
@@ -116,10 +114,6 @@ node::node(std::string id,
 
   engine["nodeid"] = nodeid;
 
-  engine.set_function("peer", [this](uint32_t peer_id) {
-    
-  });
-
   uint32_t script_id = 0;
   for (string lua_script : lua_scripts) {
     script_id++;
@@ -136,6 +130,7 @@ node::node(std::string id,
   lock_guard<mutex> lock(worker_mutex);
   worker_stop_signal = false;
   worker = new std::thread([this]() {
+    LOG(DEBUG) << "Worker thread starting in " << nodeid;
     while (!worker_stop_signal) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -143,11 +138,13 @@ node::node(std::string id,
 
       // Call update function only if a valid definition for it exists.
       if (script_on_update.valid()) {
+        LOG(DEBUG) << "Calling update in " << nodeid;
         fresult("update", script_on_update(current_time));
       }
 
       // TODO(asen): custom break condition, e.g. max number of tasks per update.
       // Process tasks pending in the queue.
+      LOG(DEBUG) << "Executing tasks in " << nodeid;
       while (!tasks.empty()) {
         if (worker_stop_signal) {
           break;
@@ -161,6 +158,7 @@ node::node(std::string id,
         tasks_mutex.unlock();
 
         // Execute task.
+        LOG(DEBUG) << "  - Executing a task in " << nodeid;
         auto result = t();
         if (result.size() > 0) {
           LOG(DEBUG) << task();
@@ -228,6 +226,9 @@ void node::log(string logger, string msg) {
 }
 
 void node::dump_logs(string html_file) {
+  lock_guard<mutex> lock1(worker_mutex);
+  lock_guard<mutex> lock2(tasks_mutex);
+  lock_guard<mutex> lock3(log_mutex);
   ofstream f;
   f.open(html_file, ios_base::trunc);
 
@@ -240,8 +241,8 @@ void node::dump_logs(string html_file) {
 
 <style type="text/css">
   #mynetwork {
-    width: 1200px;
-    height: 800px;
+    width: 1000px;
+    height: 600px;
     border: 1px solid lightgray;
   }
 

@@ -20,6 +20,7 @@ print_separator() {
 
 LOCAL_3P="local_third_party"
 
+cd src
 mkdir -p $LOCAL_3P
 cd $LOCAL_3P
 

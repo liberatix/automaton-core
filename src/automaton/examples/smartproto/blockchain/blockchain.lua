@@ -51,7 +51,7 @@ function debug_html()
   -- GENESIS_HASH
   local s
   GH = hex(GENESIS_HASH):sub(3,8)
-  s = string.format("{id: '%s', label: 'GENESIS [%s]'}", GH, GH)
+  s = string.format("{id: '%s', label: 'GENESIS [%s]', color: '#D2B4DE', level: %d}", GH, GH, 0)
   table.insert(n, s)
 
   local clr
@@ -60,11 +60,11 @@ function debug_html()
     from = hex(v.prev_hash):sub(3,8)
     -- check if this is in current blockchain
     if k == blockchain[v.height] then
-      clr = "'lime'"
+      clr = "'#ABEBC6'"
     else
-      clr = "'cyan'"
+      clr = "'#F5CBA7'"
     end
-    s = string.format("{id: '%s', label: '%s', color: %s}", to, to, clr)
+    s = string.format("{id: '%s', label: '%s', color: %s, level: %d}", to, to, clr, v.height)
     table.insert(n, s)
     s = string.format("{from: '%s', to: '%s', arrows:'to'}", from, to)
     table.insert(e, s)
@@ -122,7 +122,21 @@ function debug_html()
     nodes: nodes,
     edges: edges
   };
-  var options = {};
+  var options = {
+    edges: {
+      smooth: {
+        type: 'cubicBezier',
+        forceDirection: 'vertical',
+        roundness: 0.4
+      }
+    },
+    layout: {
+      hierarchical: {
+        direction: "UD"
+      }
+    },
+    physics: false
+  };
   var network = new vis.Network(container, data, options);
 </script>
 ]]
@@ -139,7 +153,7 @@ current_message_id = 1
 function update(time)
   sendBlock(1, GENESIS_HASH)
   -- log("update", string.format("Update called at %d", time))
-  log("update", string.format("UPDATE STARTED for node %d", node_id))
+  log("update", string.format("UPDATE STARTED for node %s", node_id))
   log("Blockchain", "Height: " .. tostring(#blockchain))
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
@@ -202,8 +216,8 @@ blocks = {}
 blockchain = {}
 
 difficulty = {}
-difficulty.leadingZeros = 1
-difficulty.prefix = "0FFFFF"
+difficulty.leadingZeros = 2
+difficulty.prefix = "FFFFFF"
 
 
 -- mining helper
@@ -288,7 +302,7 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
     no_blocks.height = 0
     no_blocks.miner = "No miner"
     no_blocks.prev_hash = GENESIS_HASH
-    no_blocks.nonce = 0
+    no_blocks.nonce = ""
     log_block(pid(peer_id), no_blocks)
     send(peer_id, no_blocks, current_message_id)
   else
@@ -358,7 +372,8 @@ function on_Block(peer_id, block)
   log("validateBlock", " Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
     log("on_Block", " Valid block added to blocks")
-    blocks[hash] = block
+    blocks[hash] = Block()
+    blocks[hash]:deserialize(block:serialize())
     shout(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
     --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then

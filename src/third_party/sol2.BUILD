@@ -17,4 +17,7 @@ cc_library(
     "//conditions:osx": ["@luajit//:luajit"],
     "//conditions:default": ["@lua//:liblua"],
   }),
+  defines = [
+    "SOL_CHECK_ARGUMENTS",
+  ],
 )
