@@ -1,12 +1,13 @@
 syntax = "proto3";
 
 message Hello {
-  string name = 1;
+  bytes name = 1;
 }
 
 message Msg {
-  uint64 sequence = 1;
-  string author = 2;
-  string msg = 3;
-  uint64 global_sequence = 4;
+  bytes hash = 1;
+  uint64 sequence = 2;
+  bytes author = 3;
+  bytes msg = 4;
+  uint64 global_sequence = 5;
 }

@@ -1,5 +1,133 @@
+-- DEBUG
+
+--[[
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+  // create an array with nodes
+  var nodes = new vis.DataSet([
+    {id: 1, label: 'Node 1'},
+    {id: 2, label: 'Node 2'},
+    {id: 3, label: 'Node 3'},
+    {id: 4, label: 'Node 4'},
+    {id: 5, label: 'Node 5'},
+    {id: 6, label: 'Node 6'},
+    {id: 7, label: 'Node 7'},
+    {id: 8, label: 'Node 8'}
+  ]);
+
+  // create an array with edges
+  var edges = new vis.DataSet([
+    {from: 1, to: 8, arrows:'to', dashes:true},
+    {from: 1, to: 3, arrows:'to'},
+    {from: 1, to: 2, arrows:'to, from'},
+    {from: 2, to: 4, arrows:'to, middle'},
+    {from: 2, to: 5, arrows:'to, middle, from'},
+    {from: 5, to: 6, arrows:{to:{scaleFactor:2}}},
+    {from: 6, to: 7, arrows:{middle:{scaleFactor:0.5},from:true}}
+  ]);
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {};
+  var network = new vis.Network(container, data, options);
+</script>
+
+]]
+
 function debug_html()
-  return "<pre>TEST\nTEST2</pre>"
+  local n = {}
+  local e = {}
+
+  local bb = {}
+  for i = 1, #blockchain do
+    table.insert(bb, tostring(i) .. ": " .. hex(blockchain[i]))
+  end
+
+  -- GENESIS_HASH
+  local s
+  GH = hex(GENESIS_HASH):sub(3,8)
+  s = string.format("{id: '%s', label: 'GENESIS [%s]'}", GH, GH)
+  table.insert(n, s)
+
+  local clr
+  for k,v in pairs(blocks) do
+    to = hex(k):sub(3,8)
+    from = hex(v.prev_hash):sub(3,8)
+    -- check if this is in current blockchain
+    if k == blockchain[v.height] then
+      clr = "'lime'"
+    else
+      clr = "'cyan'"
+    end
+    s = string.format("{id: '%s', label: '%s', color: %s}", to, to, clr)
+    table.insert(n, s)
+    s = string.format("{from: '%s', to: '%s', arrows:'to'}", from, to)
+    table.insert(e, s)
+  end
+
+  local html =
+[[
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+  // create an array with nodes
+  var nodes = new vis.DataSet([
+]]
+..
+
+  table.concat(n, ",\n")
+  --[[
+    {id: "a1", label: 'Node 1'},
+    {id: "a2", label: 'Node 2'},
+    {id: "a3", label: 'Node 3'},
+    {id: "a4", label: 'Node 4'},
+    {id: "a5", label: 'Node 5'},
+    {id: "a6", label: 'Node 6'},
+    {id: "a7", label: 'Node 7'},
+    {id: "a8", label: 'Node 8'}
+  ]]
+
+..
+[[
+  ]);
+  // create an array with edges
+  var edges = new vis.DataSet([
+]]  
+..
+
+  table.concat(e, ",\n")
+--[[
+    {from: "a1", to: "a8", arrows:'to', dashes:true},
+    {from: "a1", to: "a3", arrows:'to'},
+    {from: "a1", to: "a2", arrows:'to, from'},
+    {from: "a2", to: "a4", arrows:'to, middle'},
+    {from: "a2", to: "a5", arrows:'to, middle, from'},
+    {from: "a5", to: "a6", arrows:{to:{scaleFactor:2}}},
+    {from: "a6", to: "a7", arrows:{middle:{scaleFactor:0.5},from:true}}
+
+]]
+
+..
+[[
+  ]);
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {};
+  var network = new vis.Network(container, data, options);
+</script>
+]]
+
+  return html;
 end
 
 -- x = math.random(10)
@@ -159,7 +287,7 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
     local no_blocks = Block()
     no_blocks.height = 0
     no_blocks.miner = "No miner"
-    no_blocks.miner = GENESIS_HASH
+    no_blocks.prev_hash = GENESIS_HASH
     no_blocks.nonce = 0
     log_block(pid(peer_id), no_blocks)
     send(peer_id, no_blocks, current_message_id)
@@ -243,11 +371,9 @@ function on_Block(peer_id, block)
       -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
       local block_index = (#blockchain)-1
       local longest_chain_hash = block.prev_hash
-      while block_index >= 1 do
-        if (blockchain[block_index] ~= longest_chain_hash) then
-          blockchain[block_index] = longest_chain_hash
-          longest_chain_hash = blocks[longest_chain_hash].prev_hash
-        end
+      while block_index >= 1 and (blockchain[block_index] ~= longest_chain_hash) do
+        blockchain[block_index] = longest_chain_hash
+        longest_chain_hash = blocks[longest_chain_hash].prev_hash
         block_index = block_index - 1
       end
     end

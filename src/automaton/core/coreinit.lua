@@ -187,7 +187,7 @@ nodes = {}
 
 function dump_logs()
   for i = 1, #nodes do
-    nodes[i]:dump_logs(string.format("logs/N%d-%s.html", i, names[i]))
+    nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
 end
 
@@ -244,8 +244,8 @@ function sim_test()
 end
 
 function tcp_test()
-  N = 5
-  M = 1
+  N = 10
+  M = 3
 
   for i = 1, N do
     nodes[i] = anode(names[i])

@@ -80,7 +80,7 @@ class node: public network::connection::connection_handler,
   void dump_logs(std::string html_file);
 
  private:
-  std::string id;
+  std::string nodeid;
   peer_id peer_ids;
 
   // Script processing related

@@ -77,7 +77,7 @@ node::node(std::string id,
            vector<string> schemas,
            vector<string> lua_scripts,
            vector<string> wire_msgs)
-    : id(id)
+    : nodeid(id)
     , peer_ids(0)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
@@ -91,8 +91,8 @@ node::node(std::string id,
 
   // Bind node methods.
   engine.set_function("send",
-    [this](uint32_t peer_id, const core::data::msg& msg, uint32_t msg_id) {
-      send_message(peer_id, msg, msg_id);
+    [this](uint32_t peer_id, msg& m, uint32_t msg_id) {
+      send_message(peer_id, m, msg_id);
     });
 
   engine.set_function("log",
@@ -114,7 +114,7 @@ node::node(std::string id,
       disconnect(peer_id);
     });
 
-  engine["nodeid"] = id;
+  engine["nodeid"] = nodeid;
 
   engine.set_function("peer", [this](uint32_t peer_id) {
     
@@ -234,28 +234,38 @@ void node::dump_logs(string html_file) {
   f << R"(
 <html>
 <head>
-<style>
-pre {
-  border: 1px solid black;
-  padding: 8px;
-  overflow:auto;
-  font-size: 16px;
-  font-family: 'Inconsolata', monospace;
-}
 
-.button {
-  font: bold 11px Play;
-  text-decoration: none;
-  background-color: #aad8f3;
-  color: #333;
-  padding: 2px 6px 2px 6px;
-  border-top: 1px solid #CCCCCC;
-  border-right: 1px solid #333333;
-  border-bottom: 1px solid #333333;
-  border-left: 1px solid #CCCCCC;
-  margin: 4px;
-  line-height: 24px;
-}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+  #mynetwork {
+    width: 1200px;
+    height: 800px;
+    border: 1px solid lightgray;
+  }
+
+  pre {
+    border: 1px solid black;
+    padding: 8px;
+    overflow:auto;
+    font-size: 16px;
+    font-family: 'Inconsolata', monospace;
+  }
+
+  .button {
+    font: bold 11px Play;
+    text-decoration: none;
+    background-color: #aad8f3;
+    color: #333;
+    padding: 2px 6px 2px 6px;
+    border-top: 1px solid #CCCCCC;
+    border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    border-left: 1px solid #CCCCCC;
+    margin: 4px;
+    line-height: 24px;
+  }
 </style>
 </head>
 <body>
@@ -294,7 +304,7 @@ void node::script(const char* input) {
   std::cout << output << std::endl;
 }
 
-void node::send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id) {
+void node::send_message(peer_id p_id, const core::data::msg& msg, uint32_t msg_id) {
   auto msg_schema_id = msg.get_schema_id();
   CHECK_GT(factory_to_wire.count(msg_schema_id), 0)
       << "Message " << msg.get_message_type()
@@ -303,13 +313,15 @@ void node::send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id)
   string msg_blob;
   if (msg.serialize_message(&msg_blob)) {
     msg_blob.insert(0, 1, static_cast<char>(wire_id));
-    send_blob(id, msg_blob, msg_id);
+    send_blob(p_id, msg_blob, msg_id);
   } else {
     LOG(DEBUG) << "Could not serialize message!";
   }
 }
 
-void node::s_on_blob_received(peer_id id, const string& blob) {
+void node::s_on_blob_received(peer_id p_id, const string& blob) {
+  static uint32_t c = 0;
+  uint32_t cc = c++;
   auto wire_id = blob[0];
   if (script_on_msg.count(wire_id) != 1) {
     LOG(FATAL) << "Invalid wire msg_id sent to us!";
@@ -319,16 +331,18 @@ void node::s_on_blob_received(peer_id id, const string& blob) {
   auto msg_id = wire_to_factory[wire_id];
   msg* m = engine.get_factory().new_message_by_id(msg_id).release();
   m->deserialize_message(blob.substr(1));
-  add_task([this, wire_id, id, m]() -> string {
-    auto r = fresult("on_" + m->get_message_type(), script_on_msg[wire_id](id, m));
-    delete m;
+  add_task([this, wire_id, p_id, m, blob, cc]() -> string {
+    LOG(TRACE) << "BEFORE ON_MSG " << this << " " << cc << " " << io::bin2hex(blob);
+    auto r = fresult("on_" + m->get_message_type(), script_on_msg[wire_id](p_id, m));
+    LOG(TRACE) << "AFTER ON_MSG " << this << " " << cc << " " << io::bin2hex(blob);
+    // delete m;
     return r;
   });
 }
 
-void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
+void node::send_blob(peer_id p_id, const string& blob, uint32_t msg_id) {
   LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(blob) <<
-      " to peer " << id;
+      " to peer " << p_id;
   uint32_t blob_size = blob.size();
   if (blob_size > MAX_MESSAGE_SIZE) {
     LOG(ERROR) << "Message size is " << blob_size << " and is too big! Max message size is " << MAX_MESSAGE_SIZE;
@@ -341,13 +355,13 @@ void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
   // TODO(kari): Find more effective way to do this
   string new_message = string(buffer, 3) + blob;
   lock_guard<mutex> lock(peers_mutex);
-  if (connected_peers.find(id) == connected_peers.end()) {
-    LOG(ERROR) << "Peer " << id << " is not connected! Call connect first!";
+  if (connected_peers.find(p_id) == connected_peers.end()) {
+    LOG(ERROR) << "Peer " << p_id << " is not connected! Call connect first!";
     return;
   }
-  auto it = known_peers.find(id);
+  auto it = known_peers.find(p_id);
   if (it == known_peers.end()) {
-    LOG(ERROR) << "Trying to send message to unknown peer " << id;
+    LOG(ERROR) << "Trying to send message to unknown peer " << p_id;
     return;
   }
   if (it->second.connection) {
@@ -355,58 +369,51 @@ void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
       it->second.connection->async_send(new_message, msg_id);
     }
   } else {
-    LOG(ERROR) << "No connection in peer " << id;
+    LOG(ERROR) << "No connection in peer " << p_id;
   }
 }
 
-void node::s_on_connected(peer_id id) {
-  add_task([this, id]() -> string {
-    return fresult("connected", script_on_connected(static_cast<uint32_t>(id)));
+void node::s_on_connected(peer_id p_id) {
+  add_task([this, p_id]() -> string {
+    return fresult("connected", script_on_connected(static_cast<uint32_t>(p_id)));
   });
 }
 
-void node::s_on_disconnected(peer_id id) {
-  add_task([this, id]() -> string {
-    return fresult("disconnected", script_on_disconnected(static_cast<uint32_t>(id)));
+void node::s_on_disconnected(peer_id p_id) {
+  add_task([this, p_id]() -> string {
+    return fresult("disconnected", script_on_disconnected(static_cast<uint32_t>(p_id)));
   });
 }
 
-bool node::connect(peer_id id) {
-  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+bool node::connect(peer_id p_id) {
   lock_guard<mutex> lock(peers_mutex);
-  if (connected_peers.find(id) != connected_peers.end()) {
-    VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
-    LOG(DEBUG) << "Peer " << id << " is already connected!";
+  if (connected_peers.find(p_id) != connected_peers.end()) {
+    LOG(DEBUG) << "Peer " << p_id << " is already connected!";
     return false;
   }
-  auto it = known_peers.find(id);
+  auto it = known_peers.find(p_id);
   if (it != known_peers.end()) {
     if (!it->second.connection) {
       LOG(ERROR) << "Connection does not exist!";
-      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
       return false;
     }
     if (it->second.connection->get_state() == core::network::connection::state::disconnected) {
       it->second.connection->connect();
-      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
       return true;
     }
   } else {
-    LOG(ERROR) << "No such peer " << id;
+    LOG(ERROR) << "No such peer " << p_id;
   }
-  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   return false;
 }
 
-bool node::disconnect(peer_id id) {
-  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+bool node::disconnect(peer_id p_id) {
   peers_mutex.lock();
-  auto it1 = connected_peers.find(id);
+  auto it1 = connected_peers.find(p_id);
   if (it1 != connected_peers.end()) {
-    auto it = known_peers.find(id);
+    auto it = known_peers.find(p_id);
     if (it != known_peers.end()) {
       std::shared_ptr<core::network::connection> connection = (it->second.connection);
-      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
       peers_mutex.unlock();
       connection->disconnect();
       return true;
@@ -414,9 +421,8 @@ bool node::disconnect(peer_id id) {
       // not in known peers
     }
   } else {
-    LOG(ERROR) << "Peer " << id << " is not connected!";
+    LOG(ERROR) << "Peer " << p_id << " is not connected!";
   }
-  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   peers_mutex.unlock();
   return false;
 }
@@ -495,22 +501,20 @@ peer_id node::add_peer(const string& address) {
   return info.id;
 }
 
-void node::remove_peer(peer_id id) {
-  VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+void node::remove_peer(peer_id p_id) {
   peers_mutex.lock();
-  auto it1 = known_peers.find(id);
+  auto it1 = known_peers.find(p_id);
   if (it1 != known_peers.end()) {
-    auto it2 = connected_peers.find(id);
+    auto it2 = connected_peers.find(p_id);
     if (it2 != connected_peers.end()) {
       std::shared_ptr<core::network::connection> connection = (it1->second.connection);
-      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
+      VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << p_id;
       peers_mutex.unlock();
       connection->disconnect();
       peers_mutex.lock();
     }
     known_peers.erase(it1);
   }
-  VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " peer " << id;
   peers_mutex.unlock();
 }
 
