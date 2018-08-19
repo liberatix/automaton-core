@@ -51,7 +51,11 @@ function debug_html()
   -- GENESIS_HASH
   local s
   GH = hex(GENESIS_HASH):sub(3,8)
+<<<<<<< HEAD
   s = string.format("{id: '%s', label: 'GENESIS [%s]', color: '#D2B4DE', level: %d}", GH, GH, 0)
+=======
+  s = string.format("{id: '%s', label: 'GENESIS [%s]'}", GH, GH)
+>>>>>>> master
   table.insert(n, s)
 
   local clr
