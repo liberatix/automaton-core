@@ -8,4 +8,5 @@ message Msg {
   uint64 sequence = 1;
   string author = 2;
   string msg = 3;
+  uint64 global_sequence = 4;
 }

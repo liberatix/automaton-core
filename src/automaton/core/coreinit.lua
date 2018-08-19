@@ -1,3 +1,42 @@
+-- SMART PROTOCOLS FACTORY FUNCTIONS
+
+function anode(id)
+  return node(
+    id,
+    {"automaton/examples/smartproto/blockchain/blockchain.proto"},
+    {
+      "automaton/examples/smartproto/blockchain/test.lua",
+      "automaton/examples/smartproto/blockchain/blockchain.lua"
+    },
+    {"Block", "GetBlocks", "Blocks"}
+  )
+end
+
+function chat_node(id)
+  return node(
+    id,
+    {
+      "automaton/examples/smartproto/chat/chat.proto"
+    },
+    {
+      "automaton/examples/smartproto/chat/messages.lua",
+      "automaton/examples/smartproto/chat/connections.lua",
+      "automaton/examples/smartproto/chat/chat.lua"},
+    {"Hello", "Msg"}
+  )
+end
+
+function BCNode(id)
+  return node(
+    id,
+    {"automaton/examples/smartproto/blockchain/blockchain.proto"},
+    {"automaton/examples/smartproto/blockchain/blockchain.lua"},
+    {"Block", "GetBlocks", "Blocks"}
+  )
+end
+
+-- NAMES FOR TEST NODE IDS
+
 names = {
   "Alice",
   "Bob",
@@ -153,7 +192,7 @@ function dump_logs()
 end
 
 function chat_test()
-  setup_localhost(10, 2, chat_node)
+  setup_localhost(5, 1, chat_node)
 end
 
 --[[

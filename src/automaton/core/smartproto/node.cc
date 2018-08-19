@@ -92,6 +92,18 @@ node::node(std::string id,
       log(logger, msg);
     });
 
+  engine.set_function("connect",
+    [this](uint32_t peer_id) {
+      log("connect_", "CONNECTED " + std::to_string(peer_id));
+      connect(peer_id);
+    });
+
+  engine.set_function("disconnect",
+    [this](uint32_t peer_id) {
+      log("disconnect_", "DISCONNECTED " + std::to_string(peer_id));
+      disconnect(peer_id);
+    });
+
   engine["nodeid"] = id;
 
   engine.set_function("peer", [this](uint32_t peer_id) {
@@ -296,7 +308,6 @@ void node::s_on_blob_received(peer_id id, const string& blob) {
     return r;
   });
 }
-
 
 void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
   LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(blob) <<

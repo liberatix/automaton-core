@@ -105,39 +105,6 @@ int main(int argc, char* argv[]) {
 
   script.set_usertype("node", node_type);
 
-  script.script(
-      R"(
-      function anode(id)
-        return node(
-          id,
-          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-          {
-            "automaton/examples/smartproto/blockchain/test.lua",
-            "automaton/examples/smartproto/blockchain/blockchain.lua"
-          },
-          {"Block", "GetBlocks", "Blocks"}
-        )
-      end
-
-      function chat_node(id)
-        return node(
-          id,
-          {"automaton/examples/smartproto/chat/chat.proto"},
-          {"automaton/examples/smartproto/chat/chat.lua"},
-          {"Hello", "Msg"}
-        )
-      end
-
-      function BCNode(id)
-        return node(
-          id,
-          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-          {"automaton/examples/smartproto/blockchain/blockchain.lua"},
-          {"Block", "GetBlocks", "Blocks"}
-        )
-      end
-      )");
-
   automaton::core::network::tcp_init();
 
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
