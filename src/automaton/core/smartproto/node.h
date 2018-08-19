@@ -99,6 +99,7 @@ class node: public network::connection::connection_handler,
   std::mutex peer_ids_mutex;
 
   // Logging
+  std::mutex log_mutex;
   std::unordered_map<std::string, std::vector<std::string>> logs;
 
   peer_id get_next_peer_id();

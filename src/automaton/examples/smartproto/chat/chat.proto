@@ -1,6 +1,11 @@
 syntax = "proto3";
 
+message Hello {
+  string name = 1;
+}
+
 message Msg {
-  string author = 1;
-  string msg = 2;
+  uint64 sequence = 1;
+  string author = 2;
+  string msg = 3;
 }

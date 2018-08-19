@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
           id,
           {"automaton/examples/smartproto/chat/chat.proto"},
           {"automaton/examples/smartproto/chat/chat.lua"},
-          {"Msg"}
+          {"Hello", "Msg"}
         )
       end
 

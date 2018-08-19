@@ -9,6 +9,8 @@
 #include <thread>
 #include <utility>
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include "automaton/core/io/io.h"
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
@@ -34,7 +36,7 @@ namespace smartproto {
 
 // TODO(kari): Make buffers in connection shared_ptr
 
-static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
+static const uint32_t MAX_MESSAGE_SIZE = 1024 * 1024;  // Maximum size of message in bytes
 static const uint32_t HEADER_SIZE = 3;
 static const uint32_t WAITING_HEADER = 1;
 static const uint32_t WAITING_MESSAGE = 2;
@@ -50,6 +52,15 @@ static std::string fresult(sol::protected_function_result pfr) {
   }
 
   return "";
+}
+
+void html_escape(std::string *data) {
+  using boost::algorithm::replace_all;
+  replace_all(*data, "&",  "&amp;");
+  replace_all(*data, "\"", "&quot;");
+  replace_all(*data, "\'", "&apos;");
+  replace_all(*data, "<",  "&lt;");
+  replace_all(*data, ">",  "&gt;");
 }
 
 node::node(std::string id,
@@ -76,12 +87,12 @@ node::node(std::string id,
 
   engine.set_function("log",
     [this](string logger, string msg) {
+      lock_guard<mutex> lock(log_mutex);
+      LOG(TRACE) << "[" << logger << "] " << msg;
       log(logger, msg);
     });
 
-  engine.set_function("nodeid", [this]() {
-    return this->id;
-  });
+  engine["nodeid"] = id;
 
   engine.set_function("peer", [this](uint32_t peer_id) {
     
@@ -100,7 +111,7 @@ node::node(std::string id,
   worker_stop_signal = false;
   worker = new std::thread([this]() {
     while (!worker_stop_signal) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
 
@@ -112,16 +123,22 @@ node::node(std::string id,
       // TODO(asen): custom break condition, e.g. max number of tasks per update.
       // Process tasks pending in the queue.
       while (!tasks.empty()) {
+        if (worker_stop_signal) {
+          break;
+        }
+
+        // Pop a task from the front of the queue.
         tasks_mutex.lock();
         auto task = tasks.front();
         tasks.pop_front();
-        LOG(DEBUG) << "BEFORE TASK";
-        auto result = task();
-        LOG(DEBUG) << "AFTER TASK";
+        auto t = task;
+        tasks_mutex.unlock();
+
+        // Execute task.
+        auto result = t();
         if (result.size() > 0) {
           LOG(DEBUG) << task();
         }
-        tasks_mutex.unlock();
       }
     }
   });
@@ -230,6 +247,7 @@ pre {
     f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
     f << "<pre>";
     for (auto msg : log.second) {
+      html_escape(&msg);
       f << msg << "\n";
     }
     f << "</pre>\n";
@@ -560,8 +578,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
 void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
   LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent";
   add_task([this, c, id, e]() -> string {
-    script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
-    return "on_msg_sent";
+    return fresult(script_on_msg_sent(c, id, e == network::connection::error::no_error));
   });
 }
 

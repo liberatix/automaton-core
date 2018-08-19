@@ -1,7 +1,7 @@
 names = {
   "Alice",
   "Bob",
-  "Chalie",
+  "Charlie",
   "Dave",
   "Emily",
   "Frank",
@@ -153,7 +153,7 @@ function dump_logs()
 end
 
 function chat_test()
-  setup_localhost(5, 1, chat_node)
+  setup_localhost(10, 2, chat_node)
 end
 
 --[[
@@ -180,7 +180,7 @@ function run_tcp(cfg)
 end
 
 function sim_test()
-  NODES = 100
+  NODES = 20
   PEERS = 4
 
   a={}
