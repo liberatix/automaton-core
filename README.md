@@ -1,6 +1,6 @@
-![automaton.network](media/automaton-avatar-64x64.svg) **automaton.network**
+<img width="64" height="64" src="media/automaton-avatar-64x64.svg">
 
-# Smart Protocols at Scale
+# **Automaton** - Smart Protocols at Scale
 
 ## Building Automaton
 
