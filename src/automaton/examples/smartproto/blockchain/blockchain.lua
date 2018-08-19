@@ -5,14 +5,13 @@ nonce = {105}
 current_message_id = 1
 -- node callback functions
 function update(time)
-  sendBlock(1, GENESIS_HASH)
   -- log("update", string.format("Update called at %d", time))
   log("update", string.format("UPDATE STARTED for node %d", node_id))
   log("Blockchain", "Height: " .. tostring(#blockchain))
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 300)
+  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 10)
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
@@ -143,24 +142,25 @@ end
 function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesis give proper hash
   -- TODO(Samir): Implement block sending to other peers, Check if the block is received
   --print ("sending block " .. hex(blockHash))
+  log(pid(peer_id), "Sending the following  block to this peer:")
 
-  current_message_id = current_message_id + 1
   log(pid(peer_id), "Sending the following  block to this peer -- " .. tostring(current_message_id))
+  current_message_id = current_message_id+1
   if blockHash == GENESIS_HASH then
     local no_blocks = Block()
     no_blocks.height = 0
     no_blocks.miner = "No miner"
-    no_blocks.miner = GENESIS_HASH
+    no_blocks.prev_hash = GENESIS_HASH
     no_blocks.nonce = 0
     log_block(pid(peer_id), no_blocks)
     send(peer_id, no_blocks, current_message_id)
   else
     log_block(pid(peer_id), blocks[blockHash])
-    local block = Block()
-    block:deserialize(blocks[blockHash]:serialize())
-    send(peer_id, block, current_message_id)
+    send(peer_id, blocks[blockHash], current_message_id)
   end
+
 end
+
 
 function connected(peer_id)
   log("connected", "Connected to " .. tostring(peer_id))
@@ -168,13 +168,6 @@ function connected(peer_id)
   peers[peer_id] = {}
   peers[peer_id].state = STATE.HANDSHAKE
   log(pid(peer_id), "STATE: HANDSHAKE")
-
-  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 300)
-  -- if a block is mined call broadcast to all peers
-  if found then
-    on_Block(peer_id, block)
-  end
-
   --b = Block()
   --b.miner = "Ace"
   --send(1, b, 0) -- send (peer_id, message, mesage_id)
@@ -186,7 +179,6 @@ function connected(peer_id)
     sendBlock(peer_id, blockchain[#blockchain])
     peers[peer_id].sent_block_hash = blockchain[#blockchain]
   else
-    sendBlock(peer_id, GENESIS_HASH)
     sendBlock(peer_id, GENESIS_HASH)
     peers[peer_id].sent_block_hash = GENESIS_HASH
   end
