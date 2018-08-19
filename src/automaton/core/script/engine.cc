@@ -50,7 +50,7 @@ void engine::import_schema(data::schema* msg_schema) {
   auto msg_names = msg_schema->get_message_names();
   for (auto msg_name : msg_names) {
     auto msg_id = data_factory->get_schema_id(msg_name);
-    set(msg_name, [this, msg_name, msg_id]() -> unique_ptr<msg> {
+    set_function(msg_name, [this, msg_name, msg_id]() -> unique_ptr<msg> {
       return data_factory->new_message_by_id(msg_id);
     });
   }

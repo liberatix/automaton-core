@@ -1,6 +1,8 @@
 #ifndef AUTOMATON_CORE_SMARTPROTO_NODE_H_
 #define AUTOMATON_CORE_SMARTPROTO_NODE_H_
 
+#include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -33,7 +35,8 @@ struct peer_info {
 class node: public network::connection::connection_handler,
     public network::acceptor::acceptor_handler {
  public:
-  node(std::vector<std::string> schemas,
+  node(std::string id,
+       std::vector<std::string> schemas,
        std::vector<std::string> lua_scripts,
        std::vector<std::string> wire_msgs);
   ~node();
@@ -75,30 +78,50 @@ class node: public network::connection::connection_handler,
   void dump_logs(std::string html_file);
 
  private:
+  std::string id;
   peer_id peer_ids;
-  script::engine engine;
 
+  // Script processing related
+  script::engine engine;
+  // std::mutex script_mutex;
+
+  sol::protected_function script_on_connected;
+  sol::protected_function script_on_disconnected;
+  sol::protected_function script_on_update;
+  sol::protected_function script_on_msg_sent;
+  std::unordered_map<uint32_t, sol::protected_function> script_on_msg;
+
+  // Network
   std::shared_ptr<network::acceptor> acceptor_;
   std::mutex peers_mutex;
   std::unordered_map<peer_id, peer_info> known_peers;
   std::set<peer_id> connected_peers;
   std::mutex peer_ids_mutex;
-  std::mutex script_mutex;
 
+  // Logging
+  std::mutex log_mutex;
   std::unordered_map<std::string, std::vector<std::string>> logs;
 
   peer_id get_next_peer_id();
 
   bool address_parser(const std::string& s, std::string* protocol, std::string* address);
 
-  // Protocol message id map
+  // Protocol schema
   std::unordered_map<uint32_t, uint32_t> wire_to_factory;
   std::unordered_map<uint32_t, uint32_t> factory_to_wire;
 
-  // Time based update.
-  std::mutex updater_mutex;
-  bool updater_stop_signal;
-  std::thread* updater;
+  // Worker thread
+  std::mutex worker_mutex;
+  bool worker_stop_signal;
+  std::thread* worker;
+
+  std::mutex tasks_mutex;
+  std::deque<std::function<std::string()>> tasks;
+
+  void add_task(std::function<std::string()> task) {
+    std::lock_guard<std::mutex> lock(tasks_mutex);
+    tasks.push_back(task);
+  }
 
   // Inherited handlers' functions
 
@@ -119,17 +142,10 @@ class node: public network::connection::connection_handler,
 
   void on_error(network::acceptor* a, network::connection::error e);
 
-  // Script handler functions.
+  // Script handler functions
   void s_on_blob_received(peer_id id, const std::string& blob);
   void s_on_connected(peer_id id);
   void s_on_disconnected(peer_id id);
-
-  // Script handler functions.
-  std::unordered_map<uint32_t, sol::protected_function> script_on_msg;
-  sol::protected_function script_on_connected;
-  sol::protected_function script_on_disconnected;
-  sol::protected_function script_on_update;
-  sol::protected_function script_on_msg_sent;
 };
 
 }  // namespace smartproto

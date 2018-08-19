@@ -39,8 +39,8 @@ static const char* automaton_ascii_logo_cstr =
   "\n\x1b[40m\x1b[1m"
   "                                                                     " "\x1b[0m\n\x1b[40m\x1b[1m"
   "                                                                     " "\x1b[0m\n\x1b[40m\x1b[1m"
-  "    @197m█▀▀▀█ @39m█ ▀ █ @11m▀▀█▀▀ @129m█▀▀▀█ @47m█▀█▀█ @9m█▀▀▀█ @27m▀▀█▀▀ @154m█▀▀▀█ @13m█▀█ █            " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
-  "    @197m█▀▀▀█ @39m█ ▀ █ @11m▀ █ ▀ @129m█ ▀ █ @47m█ ▀ █ @9m█▀▀▀█ @27m▀ █ ▀ @154m█ ▀ █ @13m█ █ █   @15mCORE     " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
+  "    @197m█▀▀▀█ @39m█ █ █ @11m▀▀█▀▀ @129m█▀▀▀█ @47m█▀█▀█ @9m█▀▀▀█ @27m▀▀█▀▀ @154m█▀▀▀█ @13m█▀█ █            " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
+  "    @197m█▀▀▀█ @39m█ ▀ █ @11m█ █ █ @129m█ ▀ █ @47m█ ▀ █ @9m█▀▀▀█ @27m█ █ █ @154m█ ▀ █ @13m█ █ █   @15mCORE     " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
   "    @197m▀ ▀ ▀ @39m▀▀▀▀▀ @11m▀ ▀ ▀ @129m▀▀▀▀▀ @47m▀ ▀ ▀ @9m▀ ▀ ▀ @27m▀ ▀ ▀ @154m▀▀▀▀▀ @13m▀ ▀▀▀   @15mv0.0.1   " "\x1b[0m\n\x1b[40m\x1b[1m" // NOLINT
   "                                                                     " "\x1b[0m\n@0m"
   "▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀" "\x1b[0m\n";
@@ -58,7 +58,8 @@ int main(int argc, char* argv[]) {
 
   node_type.set(sol::call_constructor,
     sol::factories(
-    [](vector<string> schema_file_names,
+    [](string id,
+       vector<string> schema_file_names,
        vector<string> script_file_names,
        vector<string> msgs) -> unique_ptr<node> {
       vector<string> schemas_content;
@@ -72,7 +73,7 @@ int main(int argc, char* argv[]) {
         script_contents.push_back(get_file_contents(script_file_name.c_str()));
       }
 
-      return make_unique<node>(schemas_content, script_contents, msgs);
+      return make_unique<node>(id, schemas_content, script_contents, msgs);
     }));
 
   // Bind this node to its own Lua state.
@@ -104,28 +105,6 @@ int main(int argc, char* argv[]) {
 
   script.set_usertype("node", node_type);
 
-  script.script(
-      R"(
-      function anode()
-        return node(
-          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-          {
-            "automaton/examples/smartproto/blockchain/test.lua",
-            "automaton/examples/smartproto/blockchain/blockchain.lua"
-          },
-          {"Block", "GetBlocks", "Blocks"}
-        )
-      end
-
-      function BCNode()
-        return node(
-          {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-          {"automaton/examples/smartproto/blockchain/blockchain.lua"},
-          {"Block", "GetBlocks", "Blocks"}
-        )
-      end
-      )");
-
   automaton::core::network::tcp_init();
 
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
@@ -135,8 +114,9 @@ int main(int argc, char* argv[]) {
   script.script(get_file_contents("automaton/core/coreinit.lua"));
 
   cli.history_add("sim_test()");
-  cli.history_add("dump_logs()");
   cli.history_add("tcp_test()");
+  cli.history_add("dump_logs()");
+  cli.history_add("chat_test()");
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");

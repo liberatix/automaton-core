@@ -9,6 +9,8 @@
 #include <thread>
 #include <utility>
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include "automaton/core/io/io.h"
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
@@ -34,17 +36,39 @@ namespace smartproto {
 
 // TODO(kari): Make buffers in connection shared_ptr
 
-static const uint32_t MAX_MESSAGE_SIZE = 512;  // Maximum size of message in bytes
+static const uint32_t MAX_MESSAGE_SIZE = 1024 * 1024;  // Maximum size of message in bytes
 static const uint32_t HEADER_SIZE = 3;
 static const uint32_t WAITING_HEADER = 1;
 static const uint32_t WAITING_MESSAGE = 2;
 
 peer_info::peer_info(): id(0), address("") {}
 
-node::node(vector<string> schemas,
+static std::string fresult(sol::protected_function_result pfr) {
+  if (!pfr.valid()) {
+    sol::error err = pfr;
+    string what = err.what();
+    LOG(ERROR) << "*** SCRIPT ERROR ***\n" << what;
+    return what;
+  }
+
+  return "";
+}
+
+void html_escape(std::string *data) {
+  using boost::algorithm::replace_all;
+  replace_all(*data, "&",  "&amp;");
+  replace_all(*data, "\"", "&quot;");
+  replace_all(*data, "\'", "&apos;");
+  replace_all(*data, "<",  "&lt;");
+  replace_all(*data, ">",  "&gt;");
+}
+
+node::node(std::string id,
+           vector<string> schemas,
            vector<string> lua_scripts,
            vector<string> wire_msgs)
-    : peer_ids(0)
+    : id(id)
+    , peer_ids(0)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
   engine["node_id"] = (uint64_t)(this);
@@ -63,17 +87,31 @@ node::node(vector<string> schemas,
 
   engine.set_function("log",
     [this](string logger, string msg) {
+      lock_guard<mutex> lock(log_mutex);
+      LOG(TRACE) << "[" << logger << "] " << msg;
       log(logger, msg);
     });
 
+  engine.set_function("connect",
+    [this](uint32_t peer_id) {
+      log("connect_", "CONNECTED " + std::to_string(peer_id));
+      connect(peer_id);
+    });
+
+  engine.set_function("disconnect",
+    [this](uint32_t peer_id) {
+      log("disconnect_", "DISCONNECTED " + std::to_string(peer_id));
+      disconnect(peer_id);
+    });
+
+  engine["nodeid"] = id;
+
+  engine.set_function("peer", [this](uint32_t peer_id) {
+    
+  });
+
   for (string lua_script : lua_scripts) {
-    sol::protected_function_result pfr =
-        engine.safe_script(lua_script, &sol::script_pass_on_error);
-    if (!pfr.valid()) {
-      sol::error err = pfr;
-      string what = err.what();
-      LOG(ERROR) << "SCRIPT: " << what;
-    }
+    fresult(engine.safe_script(lua_script, &sol::script_pass_on_error));
   }
 
   script_on_update = engine["update"];
@@ -81,24 +119,38 @@ node::node(vector<string> schemas,
   script_on_disconnected = engine["disconnected"];
   script_on_msg_sent = engine["sent"];
 
-  lock_guard<mutex> lock(updater_mutex);
-  updater_stop_signal = false;
-  updater = new std::thread([this]() {
-    while (!updater_stop_signal) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  lock_guard<mutex> lock(worker_mutex);
+  worker_stop_signal = false;
+  worker = new std::thread([this]() {
+    while (!worker_stop_signal) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
 
-      LOG(DEBUG) << "SCRIPT LOCK " << this;
-      script_mutex.lock();
-      sol::protected_function_result result = script_on_update(current_time);
-      script_mutex.unlock();
-      LOG(DEBUG) << "SCRIPT UNLOCK " << this;
+      // Call update function only if a valid definition for it exists.
+      if (script_on_update.valid()) {
+        fresult(script_on_update(current_time));
+      }
 
-      if (!result.valid()) {
-        sol::error err = result;
-        string what = err.what();
-        LOG(ERROR) << "UPDATE: " << what;
+      // TODO(asen): custom break condition, e.g. max number of tasks per update.
+      // Process tasks pending in the queue.
+      while (!tasks.empty()) {
+        if (worker_stop_signal) {
+          break;
+        }
+
+        // Pop a task from the front of the queue.
+        tasks_mutex.lock();
+        auto task = tasks.front();
+        tasks.pop_front();
+        auto t = task;
+        tasks_mutex.unlock();
+
+        // Execute task.
+        auto result = t();
+        if (result.size() > 0) {
+          LOG(DEBUG) << task();
+        }
       }
     }
   });
@@ -111,11 +163,7 @@ node::node(vector<string> schemas,
     wire_to_factory[wire_id] = factory_id;
     string function_name = "on_" + wire_msg;
     LOG(DEBUG) << wire_id << ": " << function_name;
-    LOG(DEBUG) << "SCRIPT LOCK " << this;
-    script_mutex.lock();
     script_on_msg[wire_id] = engine[function_name];
-    script_mutex.unlock();
-    LOG(DEBUG) << "SCRIPT UNLOCK " << this;
     wire_id++;
   }
 }
@@ -129,10 +177,10 @@ node::~node() {
   //   LOG(DEBUG) << "known_peer: " << res[i];
   // }
 
-  lock_guard<mutex> lock(updater_mutex);
-  updater_stop_signal = true;
-  updater->join();
-  delete updater;
+  lock_guard<mutex> lock(worker_mutex);
+  worker_stop_signal = true;
+  worker->join();
+  delete worker;
 }
 
 static string get_date_string(system_clock::time_point t) {
@@ -141,7 +189,7 @@ static string get_date_string(system_clock::time_point t) {
   if (tm = ::gmtime(&as_time_t)) {
     char some_buffer[64];
     if (std::strftime(some_buffer, sizeof(some_buffer), "%F %T", tm)) {
-      return std::string{some_buffer};
+      return string{some_buffer};
     }
   }
   throw std::runtime_error("Failed to get current date as string");
@@ -176,7 +224,8 @@ pre {
   border: 1px solid black;
   padding: 8px;
   overflow:auto;
-  font: normal 21px "Courier New";
+  font-size: 16px;
+  font-family: 'Inconsolata', monospace;
 }
 
 .button {
@@ -204,10 +253,13 @@ pre {
     f << "</a>\n";
   }
 
+  f << "<hr />\n";
+
   for (auto log : logs) {
     f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
     f << "<pre>";
     for (auto msg : log.second) {
+      html_escape(&msg);
       f << msg << "\n";
     }
     f << "</pre>\n";
@@ -243,20 +295,19 @@ void node::send_message(peer_id id, const core::data::msg& msg, uint32_t msg_id)
 void node::s_on_blob_received(peer_id id, const string& blob) {
   auto wire_id = blob[0];
   if (script_on_msg.count(wire_id) != 1) {
-    LOG(ERROR) << "Invalid wire msg_id sent to us!";
+    LOG(FATAL) << "Invalid wire msg_id sent to us!";
     return;
   }
   CHECK_GT(wire_to_factory.count(wire_id), 0);
   auto msg_id = wire_to_factory[wire_id];
-  unique_ptr<msg> m = engine.get_factory().new_message_by_id(msg_id);
+  msg* m = engine.get_factory().new_message_by_id(msg_id).release();
   m->deserialize_message(blob.substr(1));
-  LOG(DEBUG) << "SCRIPT LOCK " << this;
-  script_mutex.lock();
-  script_on_msg[wire_id](id, std::move(m));
-  script_mutex.unlock();
-  LOG(DEBUG) << "SCRIPT UNLOCK " << this;
+  add_task([this, wire_id, id, m]() -> string {
+    auto r = fresult(script_on_msg[wire_id](id, m));
+    delete m;
+    return r;
+  });
 }
-
 
 void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
   LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(blob) <<
@@ -292,19 +343,15 @@ void node::send_blob(peer_id id, const string& blob, uint32_t msg_id) {
 }
 
 void node::s_on_connected(peer_id id) {
-  LOG(DEBUG) << "SCRIPT LOCK " << this;
-  script_mutex.lock();
-  script_on_connected(static_cast<uint32_t>(id));
-  script_mutex.unlock();
-  LOG(DEBUG) << "SCRIPT UNLOCK " << this;
+  add_task([this, id]() -> string {
+    return fresult(script_on_connected(static_cast<uint32_t>(id)));
+  });
 }
 
 void node::s_on_disconnected(peer_id id) {
-  LOG(DEBUG) << "SCRIPT LOCK " << this;
-  script_mutex.lock();
-  script_on_disconnected(static_cast<uint32_t>(id));
-  script_mutex.unlock();
-  LOG(DEBUG) << "SCRIPT UNLOCK " << this;
+  add_task([this, id]() -> string {
+    return fresult(script_on_disconnected(static_cast<uint32_t>(id)));
+  });
 }
 
 bool node::connect(peer_id id) {
@@ -541,12 +588,9 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
 
 void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
   LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent";
-  LOG(DEBUG) << "SCRIPT LOCK " << this;
-  script_mutex.lock();
-  LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent AFTER LOCK";
-  script_on_msg_sent(c, id, e == network::connection::error::no_error ? true : false);
-  script_mutex.unlock();
-  LOG(DEBUG) << "SCRIPT UNLOCK " << this;
+  add_task([this, c, id, e]() -> string {
+    return fresult(script_on_msg_sent(c, id, e == network::connection::error::no_error));
+  });
 }
 
 void node::on_connected(peer_id c) {
