@@ -40,28 +40,35 @@
 ]]
 
 function debug_html()
-  print(nodeid .. " DEBUG1")
   local n = {}
   local e = {}
 
+  local bb = {}
+  for i = 1, #blockchain do
+    table.insert(bb, tostring(i) .. ": " .. hex(blockchain[i]))
+  end
+
   -- GENESIS_HASH
   local s
-  GH = hex(GENESIS_HASH):sub(1,8)
+  GH = hex(GENESIS_HASH):sub(3,8)
   s = string.format("{id: '%s', label: 'GENESIS [%s]'}", GH, GH)
   table.insert(n, s)
 
-  print(nodeid .. " DEBUG2")
-
+  local clr
   for k,v in pairs(blocks) do
-    to = hex(k):sub(1,8)
-    from = hex(v.prev_hash):sub(1,8)
-    s = string.format("{id: '%s', label: '%s'}", to, to)
+    to = hex(k):sub(3,8)
+    from = hex(v.prev_hash):sub(3,8)
+    -- check if this is in current blockchain
+    if k == blockchain[v.height] then
+      clr = "'lime'"
+    else
+      clr = "'cyan'"
+    end
+    s = string.format("{id: '%s', label: '%s', color: %s}", to, to, clr)
     table.insert(n, s)
     s = string.format("{from: '%s', to: '%s', arrows:'to'}", from, to)
     table.insert(e, s)
   end
-
-  print(nodeid .. " DEBUG3")
 
   local html =
 [[
