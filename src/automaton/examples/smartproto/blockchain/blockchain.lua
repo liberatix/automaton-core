@@ -160,9 +160,7 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
     block:deserialize(blocks[blockHash]:serialize())
     send(peer_id, block, current_message_id)
   end
-
 end
-
 
 function connected(peer_id)
   log("connected", "Connected to " .. tostring(peer_id))
@@ -170,6 +168,13 @@ function connected(peer_id)
   peers[peer_id] = {}
   peers[peer_id].state = STATE.HANDSHAKE
   log(pid(peer_id), "STATE: HANDSHAKE")
+
+  local found, block = mine(sha3(tostring(node_id)), prev_hash, #blockchain+1, nonce, 300)
+  -- if a block is mined call broadcast to all peers
+  if found then
+    on_Block(peer_id, block)
+  end
+
   --b = Block()
   --b.miner = "Ace"
   --send(1, b, 0) -- send (peer_id, message, mesage_id)
