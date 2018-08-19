@@ -241,7 +241,7 @@ void node::dump_logs(string html_file) {
 <style type="text/css">
   #mynetwork {
     width: 1200px;
-    height: 1000px;
+    height: 800px;
     border: 1px solid lightgray;
   }
 
