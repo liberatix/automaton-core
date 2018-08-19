@@ -195,6 +195,10 @@ function chat_test()
   setup_localhost(5, 1, chat_node)
 end
 
+function blockchain_test()
+  setup_localhost(5, 1, anode)
+end
+
 --[[
   Runs simulation with specific configuration.
 

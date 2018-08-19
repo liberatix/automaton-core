@@ -88,6 +88,10 @@ int main(int argc, char* argv[]) {
   node_type.set("new_msg", &node::create_msg_by_id);
   node_type.set("send", &node::send_message);
 
+  node_type.set("script", &node::script);
+  node_type.set("dump_logs", &node::dump_logs);
+  node_type.set("debug_html", &node::debug_html);
+
   node_type.set("known_peers", [](node& n) {
     LOG(DEBUG) << "getting known peers... " << &n;
     LOG(DEBUG) << n.list_known_peers();
@@ -99,9 +103,6 @@ int main(int argc, char* argv[]) {
     LOG(DEBUG) << n.list_connected_peers();
     return sol::as_table(n.list_connected_peers());
   });
-
-  node_type.set("script", &node::script);
-  node_type.set("dump_logs", &node::dump_logs);
 
   script.set_usertype("node", node_type);
 
