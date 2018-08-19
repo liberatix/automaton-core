@@ -371,11 +371,9 @@ function on_Block(peer_id, block)
       -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
       local block_index = (#blockchain)-1
       local longest_chain_hash = block.prev_hash
-      while block_index >= 1 do
-        if (blockchain[block_index] ~= longest_chain_hash) then
-          blockchain[block_index] = longest_chain_hash
-          longest_chain_hash = blocks[longest_chain_hash].prev_hash
-        end
+      while block_index >= 1 and (blockchain[block_index] ~= longest_chain_hash) do
+        blockchain[block_index] = longest_chain_hash
+        longest_chain_hash = blocks[longest_chain_hash].prev_hash
         block_index = block_index - 1
       end
     end
