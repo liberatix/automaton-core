@@ -50,6 +50,8 @@ int main(int argc, char* argv[]) {
   string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
 {
+  automaton::core::cli::cli cli;
+
   engine script;
   script.bind_core();
 
@@ -106,18 +108,16 @@ int main(int argc, char* argv[]) {
 
   script.set_usertype("node", node_type);
 
+  script.set_function("history_add", [&](std::string cmd){
+    cli.history_add(cmd.c_str());
+  });
+
   automaton::core::network::tcp_init();
 
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(500);
-  automaton::core::cli::cli cli;
   cli.print(automaton_ascii_logo.c_str());
   script.script(get_file_contents("automaton/core/coreinit.lua"));
-
-  cli.history_add("sim_test()");
-  cli.history_add("tcp_test()");
-  cli.history_add("dump_logs()");
-  cli.history_add("chat_test()");
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
@@ -131,8 +131,10 @@ int main(int argc, char* argv[]) {
     cli.history_add(cmd.c_str());
 
     sol::protected_function_result pfr = script.safe_script(cmd, &sol::script_pass_on_error);
-    string output = pfr;
-    std::cout << output << std::endl;
+    if (!pfr.valid()) {
+      sol::error err = pfr;
+      std::cout << "\n" << err.what() << "\n";
+    }
   }
 
   // script.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);

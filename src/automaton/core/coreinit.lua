@@ -1,4 +1,18 @@
+-- coreinit.lua
+
+-- HISTORY
+
+history_add("sim_test()");
+history_add("tcp_test()");
+history_add("dump_logs()");
+history_add("chat_test()");
+history_add("blockchain_test()")
+
 -- SMART PROTOCOLS FACTORY FUNCTIONS
+
+function blank(id)
+  return node(id, {}, {}, {})
+end
 
 function anode(id)
   return node(
@@ -192,11 +206,11 @@ function dump_logs()
 end
 
 function chat_test()
-  setup_localhost(5, 1, chat_node)
+  setup_localhost(1, 0, chat_node)
 end
 
 function blockchain_test()
-  setup_localhost(5, 1, anode)
+  setup_localhost(20, 4, anode)
 end
 
 --[[
@@ -245,7 +259,7 @@ end
 
 function tcp_test()
   N = 10
-  M = 3
+  M = 1
 
   for i = 1, N do
     nodes[i] = anode(names[i])
