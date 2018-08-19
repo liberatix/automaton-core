@@ -9,7 +9,7 @@ function gossip(peer_id, msg)
       mm = msg
       mm.global_sequence = global_seq
       send(k, mm, global_seq)
-      if math.random(1000) < 20 then
+      if math.random(1000) < 0 then
         log("sent", "ATTEMPTING DISCONNECT BEFORE")
         disconnect(k)
         log("sent", "ATTEMPTING DISCONNECT AFTER")
@@ -45,6 +45,7 @@ function update(timestamp)
     msg_index = msg_index + 1
     local idx = ((msg_index - 1) % #msg_contents) + 1
 
+    m.hash = sha3(nodeid .. tostring(msg_index))
     m.sequence = msg_index
     m.author = nodeid;
     m.msg = msg_contents[idx] .. " (" .. tostring(msg_index) .. ")"

@@ -187,7 +187,7 @@ nodes = {}
 
 function dump_logs()
   for i = 1, #nodes do
-    nodes[i]:dump_logs(string.format("logs/N%d-%s.html", i, names[i]))
+    nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
 end
 
