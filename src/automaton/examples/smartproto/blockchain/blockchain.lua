@@ -2,22 +2,17 @@ function debug_html()
   return "<pre>TEST\nTEST2</pre>"
 end
 
--- x = math.random(10)
--- nonce = {x}
-nonce = {105}
 
-current_message_id = 1
 -- node callback functions
 function update(time)
-  sendBlock(1, GENESIS_HASH)
-  -- log("update", string.format("Update called at %d", time))
   log("update", string.format("UPDATE STARTED for node %d", node_id))
   log("Blockchain", "Height: " .. tostring(#blockchain))
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
+  -- Attempt to mien a block
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(sha3(nodeid), prev_hash, #blockchain+1, nonce, 300)
-  -- if a block is mined call broadcast to all peers
+  local found, block = mine(sha3(nodeid), prev_hash, #blockchain+1, nonce, 10)
+  -- Ff a block is mined, validate and broadcast
   if found then
     on_Block(-1, block)
   end
@@ -35,12 +30,6 @@ function pid(id)
 end
 
 function sent(peer_id, msg_id, success)
-  -- print "GOT TO SENT"
-  -- print "printing the inputs"
-  -- print ("peer_id: ", peer_id)
-  -- print (" msg_id: " .. msg_id)
-  -- pritn (" succsess: " .. success)
-  -- print ("inputs printed")
   if success then
     log(pid(peer_id), "Successfully sent message id: " .. tostring(msg_id))
   else
@@ -49,7 +38,9 @@ function sent(peer_id, msg_id, success)
   end
 end
 
--- mining helper
+-- some variables
+nonce = {105}
+current_message_id = 1
 
 -- states
 STATE = {}
@@ -75,7 +66,7 @@ blockchain = {}
 
 difficulty = {}
 difficulty.leadingZeros = 1
-difficulty.prefix = "0FFFFF"
+difficulty.prefix = "FFFFFF"
 
 
 -- mining helper
@@ -105,6 +96,112 @@ end
 function blockHash(block)
   blockdata = tostring(block.miner) .. tostring(block.prev_hash) .. tostring(block.height) .. tostring(block.nonce);
   return sha3(blockdata)
+end
+
+-- When connected to new peer
+function connected(peer_id)
+  log("connected", "Connected to " .. tostring(peer_id))
+  log(pid(peer_id), "Connected!")
+  peers[peer_id] = {}
+  peers[peer_id].state = STATE.HANDSHAKE
+  log(pid(peer_id), "STATE: HANDSHAKE")
+
+  if #blockchain > 0 then
+    sendBlock(peer_id, blockchain[#blockchain])
+    peers[peer_id].sent_block_hash = blockchain[#blockchain]
+  else
+    sendBlock(peer_id, GENESIS_HASH)
+    peers[peer_id].sent_block_hash = GENESIS_HASH
+  end
+  log(pid(peer_id), "peer.sent_block_hash: " .. hex(peers[peer_id].sent_block_hash))
+end
+
+-- Mine
+function mine(miner, prev_hash, height, nonce, attempts)
+  local target = get_target(difficulty)
+  local block_data = tostring(miner) .. tostring(prev_hash) .. tostring(height)
+  for i = 0, attempts do
+    block_hash = sha3(block_data .. nonce_str(nonce))
+    --print(hex(block_hash))
+    if block_hash <= target then
+      -- create and return block
+      mined_block = Block()
+      mined_block.miner = miner
+      mined_block.prev_hash = prev_hash
+      mined_block.height = height
+      mined_block.nonce = nonce_str(nonce)
+      log("miner", "Just mined the following block:")
+      log_block("miner", mined_block)
+      return true, mined_block
+    else
+     inc_nonce(nonce)
+    end
+  end
+  return false
+end
+
+function on_Block(peer_id, block)
+  log("on_Block", "Received a block from: " .. pid(peer_id))
+
+  if block.height == 0 then
+    log("on_Block", " Block height 0 (the peer has no blocks)")
+    log(pid(peer_id), "Received a block with height 0 (This peer has no blocks)")
+  else
+    log_block("on_Block", block)
+    log(pid(peer_id), "Received the following block from this peer: ")
+    log_block(pid(peer_id), block)
+  end
+
+  -- If this is the first block from a newly connect peer
+  if peers[peer_id] ~= nil and peers[peer_id].received_block == nil then
+    log("on_Block", " First block from peer: " .. peer_id)
+    peers[peer_id].received_block = block
+    log(pid(peer_id), "peer.received_block: ")
+    log_block(pid(peer_id), block)
+    -- if this peer has no block return and handle the rest in handshake
+    if block.height == 0 then
+      log("on_Block", " in on_Block, we got block with height 0")
+      return
+    end
+  end
+
+  -- Validate, save and broadcast
+  local block_validity = validateBlock(block)
+  local hash = blockHash(block)
+  log("on_Block", " Block Validity: " .. block_validity)
+  log("validateBlock", " Block Validity: " .. block_validity)
+  if block_validity == BLOCK.VALID  then
+    log("on_Block", " Valid block added to blocks")
+    blocks[hash] = block
+    shout(peer_id, hash)
+    --Add the block to the head of the blockchain if possobile
+    --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then
+    --!   print "block added to the longest chain"
+    --!   blockchain[#blockchain+1] = hash
+    -- Check if we get a longer chain. Does not matter if it is the main or alternative.
+    if block.height == #blockchain+1 then
+      -- We are sure that this is the head of the longest chain
+      blockchain[#blockchain+1] = hash
+      -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
+      local block_index = (#blockchain)-1
+      local longest_chain_hash = block.prev_hash
+      while block_index >= 1 and (blockchain[block_index] ~= longest_chain_hash) do
+        blockchain[block_index] = longest_chain_hash
+        longest_chain_hash = blocks[longest_chain_hash].prev_hash
+        block_index = block_index - 1
+      end
+    end
+    -- If it is DUPLICATE
+  elseif(block_validity == BLOCK.DUPLICATE) then
+    -- do nothing
+    -- If it is INVALIDd
+  elseif(block_validity == BLOCK.INVALID) then
+    -- do nothing or respond with invalid
+    -- if there is no block with prev_hash in blocks
+  elseif(block_validity == BLOCK.NO_PARENT) then
+    -- potencial fork, the block will not be saved
+    -- find out which blocks we need to request or just request from start
+  end
 end
 
 -- Valid block is a block that:
@@ -149,118 +246,23 @@ function validateBlock(block)
   end
 end
 
-function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesis give proper hash
-  -- TODO(Samir): Implement block sending to other peers, Check if the block is received
-  --print ("sending block " .. hex(blockHash))
+function sendBlock(peer_id, blockHash)
 
   current_message_id = current_message_id + 1
   log(pid(peer_id), "Sending the following  block to this peer -- " .. tostring(current_message_id))
+  log_block(pid(peer_id), blocks[blockHash])
   if blockHash == GENESIS_HASH then
     local no_blocks = Block()
     no_blocks.height = 0
     no_blocks.miner = "No miner"
-    no_blocks.miner = GENESIS_HASH
+    no_blocks.prev_hash = GENESIS_HASH
     no_blocks.nonce = 0
     log_block(pid(peer_id), no_blocks)
     send(peer_id, no_blocks, current_message_id)
   else
-    log_block("CRASH " .. pid(peer_id), blocks[blockHash])
     local block = Block()
     block:deserialize(blocks[blockHash]:serialize())
     send(peer_id, block, current_message_id)
-  end
-end
-
-function connected(peer_id)
-  log("connected", "Connected to " .. tostring(peer_id))
-  log(pid(peer_id), "Connected!")
-  peers[peer_id] = {}
-  peers[peer_id].state = STATE.HANDSHAKE
-  log(pid(peer_id), "STATE: HANDSHAKE")
-
-  --b = Block()
-  --b.miner = "Ace"
-  --send(1, b, 0) -- send (peer_id, message, mesage_id)
-  -- peer -> {IP = "0.0.0.0", state = STATE.HANDSHAKE, sent_block_hash = nil received_block = nil}},
-  -- save peer to peer list -- set peer state
-  -- send highest block or create and send block with height 0 to indicate we have no blocks
-  -- TODO(Samir): peers[peer_id].sent_block_hash needs to be set when message is confirmed to be received
-  if #blockchain > 0 then
-    sendBlock(peer_id, blockchain[#blockchain])
-    peers[peer_id].sent_block_hash = blockchain[#blockchain]
-  else
-    sendBlock(peer_id, GENESIS_HASH)
-    sendBlock(peer_id, GENESIS_HASH)
-    peers[peer_id].sent_block_hash = GENESIS_HASH
-  end
-end
-
-
-function on_Block(peer_id, block)
-  log("on_Block", "Received a block from: " .. pid(peer_id))
-  if block == nil then
-    log("on_Block", "WARRNING!!!!! The block is == nil ")
-    return
-  end
-  if block.height == 0 then
-    log("on_Block", " Block height 0 (the peer has no blocks)")
-    log(pid(peer_id), "Received a block with height 0 (This peer has no blocks)")
-  else
-    log_block("on_Block", block)
-    log(pid(peer_id), "Received the following block from this peer: ")
-    log_block(pid(peer_id), block)
-  end
-  --log(pid(peer_id), "Received a block: " .. tostring(msg_id))
-  -- If this is the first block from a newly connect peer
-  if peers[peer_id] ~= nil and peers[peer_id].received_block == nil then
-    log("on_Block", " First block from peer: " .. peer_id)
-    peers[peer_id].received_block = block
-    --print(tprint(peers[peer_id]))
-    -- if this peer has no block return and handle the rest in handshake
-    if block.height == 0 then
-      log("on_Block", " in on_Block, we got block with height 0")
-      return
-    end
-  end
-
-  -- Validate, save and broadcast
-  local block_validity = validateBlock(block)
-  local hash = blockHash(block)
-  log("on_Block", " Block Validity: " .. block_validity)
-  log("validateBlock", " Block Validity: " .. block_validity)
-  if block_validity == BLOCK.VALID  then
-    log("on_Block", " Valid block added to blocks")
-    blocks[hash] = block
-    shout(peer_id, hash)
-    --Add the block to the head of the blockchain if possobile
-    --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then
-    --!   print "block added to the longest chain"
-    --!   blockchain[#blockchain+1] = hash
-    -- Check if we get a longer chain. Does not matter if it is the main or alternative.
-    if block.height == #blockchain+1 then
-      -- We are sure that this is the head of the longest chain
-      blockchain[#blockchain+1] = hash
-      -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
-      local block_index = (#blockchain)-1
-      local longest_chain_hash = block.prev_hash
-      while block_index >= 1 do
-        if (blockchain[block_index] ~= longest_chain_hash) then
-          blockchain[block_index] = longest_chain_hash
-          longest_chain_hash = blocks[longest_chain_hash].prev_hash
-        end
-        block_index = block_index - 1
-      end
-    end
-  -- If it is DUPLICATE
-  elseif(block_validity == BLOCK.DUPLICATE) then
-    -- do nothing
-  -- If it is INVALIDd
-  elseif(block_validity == BLOCK.INVALID) then
-    -- do nothing or respond with invalid
-  -- if there is no block with prev_hash in blocks
-  elseif(block_validity == BLOCK.NO_PARENT) then
-    -- potencial fork, the block will not be saved
-    -- find out which blocks we need to request or just request from start
   end
 end
 
@@ -326,30 +328,6 @@ function handshake(peer_id)
   -- end
 end
 
--- Takes in block with miner, prev_hash, height
---
-function mine(miner, prev_hash, height, nonce, attempts)
-  local target = get_target(difficulty)
-  local block_data = tostring(miner) .. tostring(prev_hash) .. tostring(height)
-  for i = 0, attempts do
-    block_hash = sha3(block_data .. nonce_str(nonce))
-    --print(hex(block_hash))
-    if block_hash <= target then
-      -- create and return block
-      mined_block = Block()
-      mined_block.miner = miner
-      mined_block.prev_hash = prev_hash
-      mined_block.height = height
-      mined_block.nonce = nonce_str(nonce)
-      log("miner", "Just mined the following block:")
-      log_block("miner", mined_block)
-      return true, mined_block
-    else
-     inc_nonce(nonce)
-    end
-  end
-  return false
-end
 
 function get_target(difficulty)
   return bin(string.rep("00", difficulty.leadingZeros) .. difficulty.prefix ..

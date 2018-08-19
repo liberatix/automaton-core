@@ -244,8 +244,8 @@ function sim_test()
 end
 
 function tcp_test()
-  N = 5
-  M = 1
+  N = 20
+  M = 4
 
   for i = 1, N do
     nodes[i] = anode(names[i])
