@@ -206,7 +206,7 @@ function dump_logs()
 end
 
 function chat_test()
-  setup_localhost(1, 0, chat_node)
+  setup_localhost(5, 1, chat_node)
 end
 
 function blockchain_test()
