@@ -85,7 +85,6 @@ class node: public network::connection::connection_handler,
 
   // Script processing related
   script::engine engine;
-  // std::mutex script_mutex;
 
   sol::protected_function script_on_connected;
   sol::protected_function script_on_disconnected;

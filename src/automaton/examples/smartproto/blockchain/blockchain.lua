@@ -51,11 +51,7 @@ function debug_html()
   -- GENESIS_HASH
   local s
   GH = hex(GENESIS_HASH):sub(3,8)
-<<<<<<< HEAD
-  s = string.format("{id: '%s', label: 'GENESIS [%s]', color: '#D2B4DE', level: %d}", GH, GH, 0)
-=======
-  s = string.format("{id: '%s', label: 'GENESIS [%s]'}", GH, GH)
->>>>>>> master
+  s = string.format("{id: '%s', label: 'GENESIS', color: '#D2B4DE', level: %d}", GH, 0)
   table.insert(n, s)
 
   local clr
@@ -68,7 +64,9 @@ function debug_html()
     else
       clr = "'#F5CBA7'"
     end
-    s = string.format("{id: '%s', label: '%s', color: %s, level: %d}", to, to, clr, v.height)
+    title = "mined by " .. v.miner
+    s = string.format("{id: '%s', label: '%s', color: %s, level: %d, title: '%s'}",
+      to, to, clr, v.height, title)
     table.insert(n, s)
     s = string.format("{from: '%s', to: '%s', arrows:'to'}", from, to)
     table.insert(e, s)
@@ -130,13 +128,15 @@ function debug_html()
     edges: {
       smooth: {
         type: 'cubicBezier',
-        forceDirection: 'vertical',
+        forceDirection: 'horizontal',
         roundness: 0.4
       }
     },
     layout: {
       hierarchical: {
-        direction: "UD"
+        direction: "LR",
+        levelSeparation: 80,
+        nodeSpacing: 50
       }
     },
     physics: false
@@ -162,7 +162,7 @@ function update(time)
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(sha3(nodeid), prev_hash, #blockchain+1, nonce, 300)
+  local found, block = mine(nodeid, prev_hash, #blockchain+1, nonce, 1000)
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
@@ -220,8 +220,8 @@ blocks = {}
 blockchain = {}
 
 difficulty = {}
-difficulty.leadingZeros = 2
-difficulty.prefix = "FFFFFF"
+difficulty.leadingZeros = 1
+difficulty.prefix = "03FFFF"
 
 
 -- mining helper
@@ -312,7 +312,10 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
   else
     log_block("CRASH " .. pid(peer_id), blocks[blockHash])
     local block = Block()
-    block:deserialize(blocks[blockHash]:serialize())
+    block.miner = blocks[blockHash].miner
+    block.prev_hash = blocks[blockHash].prev_hash
+    block.height = blocks[blockHash].height
+    block.nonce = blocks[blockHash].nonce
     send(peer_id, block, current_message_id)
   end
 end
@@ -376,8 +379,12 @@ function on_Block(peer_id, block)
   log("validateBlock", " Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
     log("on_Block", " Valid block added to blocks")
-    blocks[hash] = Block()
-    blocks[hash]:deserialize(block:serialize())
+    blocks[hash] = {
+      miner = block.miner,
+      prev_hash = block.prev_hash,
+      height = block.height,
+      nonce = block.nonce
+    }
     shout(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
     --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then

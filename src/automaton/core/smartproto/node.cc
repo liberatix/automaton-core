@@ -130,7 +130,7 @@ node::node(std::string id,
   lock_guard<mutex> lock(worker_mutex);
   worker_stop_signal = false;
   worker = new std::thread([this]() {
-    LOG(DEBUG) << "Worker thread starting in " << nodeid;
+    // LOG(DEBUG) << "Worker thread starting in " << nodeid;
     while (!worker_stop_signal) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -138,13 +138,13 @@ node::node(std::string id,
 
       // Call update function only if a valid definition for it exists.
       if (script_on_update.valid()) {
-        LOG(DEBUG) << "Calling update in " << nodeid;
+        // LOG(DEBUG) << "Calling update in " << nodeid;
         fresult("update", script_on_update(current_time));
       }
 
       // TODO(asen): custom break condition, e.g. max number of tasks per update.
       // Process tasks pending in the queue.
-      LOG(DEBUG) << "Executing tasks in " << nodeid;
+      // LOG(DEBUG) << "Executing tasks in " << nodeid;
       while (!tasks.empty()) {
         if (worker_stop_signal) {
           break;
@@ -158,7 +158,7 @@ node::node(std::string id,
         tasks_mutex.unlock();
 
         // Execute task.
-        LOG(DEBUG) << "  - Executing a task in " << nodeid;
+        // LOG(DEBUG) << "  - Executing a task in " << nodeid;
         auto result = t();
         if (result.size() > 0) {
           LOG(DEBUG) << task();
@@ -229,6 +229,9 @@ void node::dump_logs(string html_file) {
   lock_guard<mutex> lock1(worker_mutex);
   lock_guard<mutex> lock2(tasks_mutex);
   lock_guard<mutex> lock3(log_mutex);
+  lock_guard<mutex> lock4(peers_mutex);
+  lock_guard<mutex> lock5(peer_ids_mutex);
+
   ofstream f;
   f.open(html_file, ios_base::trunc);
 

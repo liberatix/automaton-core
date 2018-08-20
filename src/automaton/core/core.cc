@@ -117,7 +117,8 @@ int main(int argc, char* argv[]) {
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(500);
   cli.print(automaton_ascii_logo.c_str());
-  script.script(get_file_contents("automaton/core/coreinit.lua"));
+  string init_script = get_file_contents("automaton/core/coreinit.lua");
+  script.safe_script(init_script);
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
