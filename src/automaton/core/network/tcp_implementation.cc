@@ -142,12 +142,12 @@ void tcp_connection::connect() {
 
 void tcp_connection::async_send(const std::string& msg, uint32_t message_id) {
   if (tcp_initialized && asio_socket.is_open() && msg.size() > 0) {
-    LOG(DEBUG) << "ASYNC SEND MSG ID" << message_id << " data: " << io::bin2hex(msg);
+    // LOG(DEBUG) << "ASYNC SEND MSG ID" << message_id << " data: " << io::bin2hex(msg);
     std::string* message = new std::string(msg);
     asio_socket.async_write_some(boost::asio::buffer(*message),
         [this, message_id, message](const boost::system::error_code& boost_error_code,
         size_t bytes_transferred) {
-      LOG(DEBUG) << "ASYNC SEND CALLBACK " << bytes_transferred;
+      // LOG(DEBUG) << "ASYNC SEND CALLBACK " << bytes_transferred;
       if (boost_error_code) {
         LOG(ERROR) << address << " -> " <<  boost_error_code.message();
         if (boost_error_code == boost::asio::error::broken_pipe) {
@@ -161,9 +161,9 @@ void tcp_connection::async_send(const std::string& msg, uint32_t message_id) {
         }
        // if (bytes_transferred < message.size())
       } else {
-        LOG(DEBUG)
-            << "SUCCESSFULLY SENT MESSAGE WITH "
-            << message->size() << " BYTES TO " << id << " msg_id " << message_id;
+        // LOG(DEBUG)
+        //     << "SUCCESSFULLY SENT MESSAGE WITH "
+        //     << message->size() << " BYTES TO " << id << " msg_id " << message_id;
         handler->on_message_sent(id, message_id, connection::error::no_error);
       }
       delete message;

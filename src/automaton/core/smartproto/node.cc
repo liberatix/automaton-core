@@ -95,7 +95,6 @@ node::node(std::string id,
 
   engine.set_function("log",
     [this](string logger, string msg) {
-      lock_guard<mutex> lock(log_mutex);
       // LOG(TRACE) << "[" << logger << "] " << msg;
       log(logger, msg);
     });
@@ -219,6 +218,8 @@ string zero_padded(int num, int width) {
 }
 
 void node::log(string logger, string msg) {
+  lock_guard<mutex> lock(log_mutex);
+
   // LOG(TRACE) << "[" << logger << "] " << msg;
   if (logs.count(logger) == 0) {
     logs.emplace(logger, vector<string>());
@@ -343,9 +344,7 @@ void node::s_on_blob_received(peer_id p_id, const string& blob) {
   msg* m = engine.get_factory().new_message_by_id(msg_id).release();
   m->deserialize_message(blob.substr(1));
   add_task([this, wire_id, p_id, m, blob, cc]() -> string {
-    LOG(TRACE) << "BEFORE ON_MSG " << this << " " << cc << " " << io::bin2hex(blob);
     auto r = fresult("on_" + m->get_message_type(), script_on_msg[wire_id](p_id, m));
-    LOG(TRACE) << "AFTER ON_MSG " << this << " " << cc << " " << io::bin2hex(blob);
     // delete m;
     return r;
   });
