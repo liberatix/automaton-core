@@ -23,12 +23,19 @@ https://gist.github.com/hofmannsven/6814451
 
 When you do squash and merge, your repo will hang onto the commits that have already been squashed and merged into the master.
 
-**WARNING! THIS WILL WIPE YOUR LOCAL CHANGES!**
+**WARNING! THIS WILL WIPE YOUR LOCAL CHANGES! IT IS BEST TO STASH YOUR CHANGES PRIOR TO THAT!**
 
 **ONLY DO THIS AFTER YOU'VE SQUASHED AND MERGED ALL YOUR CHANGES INTO THE MASTER**
 
 ```
-git reset --hard origin/master
+# If you still have changes in your branch it's best to stash them
+git stash -u
+
+# Now you can reset hard to the latest and update your remote repository
+git reset --hard origin/master && git push --force
+
+# Recover your local changes (if you had any)
+git stash pop
 ```
 
 ## Lint
