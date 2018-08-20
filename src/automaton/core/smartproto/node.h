@@ -148,6 +148,7 @@ class node: public network::connection::connection_handler,
   void s_on_blob_received(peer_id id, const std::string& blob);
   void s_on_connected(peer_id id);
   void s_on_disconnected(peer_id id);
+  void s_on_error(peer_id id, const std::string& message) {}
 };
 
 }  // namespace smartproto
