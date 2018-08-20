@@ -154,15 +154,20 @@ node::node(std::string id,
         tasks_mutex.lock();
         auto task = tasks.front();
         tasks.pop_front();
-        auto t = task;
         tasks_mutex.unlock();
 
         // Execute task.
         // LOG(DEBUG) << "  - Executing a task in " << nodeid;
-        auto result = t();
-        if (result.size() > 0) {
-          LOG(DEBUG) << task();
+        worker_mutex.lock();
+        try {
+          string result = task();
+          if (result.size() > 0) {
+            LOG(FATAL) << "TASK FAILED: " << result;
+          }
+        } catch (...) {
+          LOG(FATAL) << "TASK FAILED: EXCEPTION DURING TASK EXECUTION!";
         }
+        worker_mutex.unlock();
       }
     }
   });
@@ -214,7 +219,7 @@ string zero_padded(int num, int width) {
 }
 
 void node::log(string logger, string msg) {
-  LOG(TRACE) << "[" << logger << "] " << msg;
+  // LOG(TRACE) << "[" << logger << "] " << msg;
   if (logs.count(logger) == 0) {
     logs.emplace(logger, vector<string>());
   }
@@ -226,16 +231,11 @@ void node::log(string logger, string msg) {
 }
 
 void node::dump_logs(string html_file) {
-  lock_guard<mutex> lock1(worker_mutex);
-  lock_guard<mutex> lock2(tasks_mutex);
-  lock_guard<mutex> lock3(log_mutex);
-  lock_guard<mutex> lock4(peers_mutex);
-  lock_guard<mutex> lock5(peer_ids_mutex);
+  add_task([this, html_file](){
+    ofstream f;
+    f.open(html_file, ios_base::trunc);
 
-  ofstream f;
-  f.open(html_file, ios_base::trunc);
-
-  f << R"(
+    f << R"(
 <html>
 <head>
 
@@ -276,28 +276,35 @@ void node::dump_logs(string html_file) {
 <br/>
 )";
 
-  for (auto log : logs) {
-    f << "<a class='button' href='#" << log.first << "'>";
-    f << log.first << std::endl;
-    f << "</a>\n";
-  }
-
-  f << "<hr />\n";
-  f << debug_html();
-  f << "<hr />\n";
-
-  for (auto log : logs) {
-    f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
-    f << "<pre>";
-    for (auto msg : log.second) {
-      html_escape(&msg);
-      f << msg << "\n";
+    log_mutex.lock();
+    for (auto log : logs) {
+      f << "<a class='button' href='#" << log.first << "'>";
+      f << log.first << std::endl;
+      f << "</a>\n";
     }
-    f << "</pre>\n";
-  }
+    log_mutex.unlock();
 
-  f << "</body></html>\n";
-  f.close();
+    f << "<hr />\n";
+    f << debug_html();
+    f << "<hr />\n";
+
+    log_mutex.lock();
+    for (auto log : logs) {
+      f << "<br/><span class='button' id='" << log.first << "'>" << log.first << "</span>";
+      f << "<pre>";
+      for (auto msg : log.second) {
+        html_escape(&msg);
+        f << msg << "\n";
+      }
+      f << "</pre>\n";
+    }
+    log_mutex.unlock();
+
+    f << "</body></html>\n";
+    f.close();
+
+    return "";
+  });
 }
 
 void node::script(const char* input) {
