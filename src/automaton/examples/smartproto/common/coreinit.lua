@@ -2,11 +2,10 @@
 
 -- HISTORY
 
-history_add("sim_test()");
-history_add("tcp_test()");
 history_add("dump_logs()");
-history_add("chat_test()");
-history_add("blockchain_test()")
+
+history_add("testnet(simulation, blockchain_node, 10, 1)")
+history_add("testnet(localhost, blockchain_node, 10, 1)")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
@@ -14,12 +13,12 @@ function blank(id)
   return node(id, {}, {}, {})
 end
 
-function anode(id)
+function blockchain_node(id)
   return node(
     id,
     {"automaton/examples/smartproto/blockchain/blockchain.proto"},
     {
-      "automaton/examples/smartproto/blockchain/test.lua",
+      "automaton/examples/smartproto/blockchain/graph.lua",
       "automaton/examples/smartproto/blockchain/blockchain.lua"
     },
     {"Block", "GetBlocks", "Blocks"}
@@ -37,15 +36,6 @@ function chat_node(id)
       "automaton/examples/smartproto/chat/connections.lua",
       "automaton/examples/smartproto/chat/chat.lua"},
     {"Hello", "Msg"}
-  )
-end
-
-function BCNode(id)
-  return node(
-    id,
-    {"automaton/examples/smartproto/blockchain/blockchain.proto"},
-    {"automaton/examples/smartproto/blockchain/blockchain.lua"},
-    {"Block", "GetBlocks", "Blocks"}
   )
 end
 
@@ -75,6 +65,7 @@ names = {
   "Walter",
   "Zach",
 
+  "Ace",
   "Aaron",
   "Adam",
   "Alexander",
@@ -105,9 +96,7 @@ names = {
   "Donna",
   "Edward",
   "Elizabeth",
-  "Emily",
   "Eric",
-  "Gary",
   "George",
   "Gregory",
   "James",
@@ -130,7 +119,6 @@ names = {
   "Kenneth",
   "Kevin",
   "Kimberly",
-  "Larry",
   "Laura",
   "Linda",
   "Lisa",
@@ -147,7 +135,6 @@ names = {
   "Pamela",
   "Patricia",
   "Patrick",
-  "Rachel",
   "Rebecca",
   "Richard",
   "Robert",
@@ -169,6 +156,33 @@ names = {
   "Zachary",
 }
 
+-- NETWORK SIMULATION
+
+function sim_bind(i)
+  return string.format("sim://5:500:%d", i)
+end
+
+function sim_addr(i)
+  return string.format("sim://150:1000:500:%d", i)
+end
+
+function simulation(node_factory, NODES, PEERS)
+  for i = 1, NODES do
+    print(sim_bind(i))
+    nodes[i] = node_factory(names[i])
+    nodes[i]:listen(sim_bind(i))
+  end
+
+  for i = 1, NODES do
+    for j = 1, PEERS do
+      a = ((i + j - 1) % NODES) + 1;
+      print(sim_addr(a))
+      peer_id = nodes[i]:add_peer(sim_addr(a))
+      nodes[i]:connect(peer_id)
+    end
+  end
+end
+
 -- LOCALHOST DISCOVERY SETUP
 
 math.randomseed(os.time())
@@ -178,7 +192,7 @@ function tcp_addr(i)
   return "tcp://127.0.0.1:" .. tostring(START_PORT + i)
 end
 
-function setup_localhost(NODES, PEERS, node_factory)
+function localhost(node_factory, NODES, PEERS)
   -- create nodes and start listening
   for i = 1, NODES do
     nodes[i] = node_factory(names[i])
@@ -195,6 +209,10 @@ function setup_localhost(NODES, PEERS, node_factory)
   end
 end
 
+function testnet(discovery, node_factory, num_nodes, num_peers)
+  discovery(node_factory, num_nodes, num_peers)
+end
+
 -- GLOBALS
 
 nodes = {}
@@ -205,13 +223,16 @@ function dump_logs()
   end
 end
 
+--[[
 function chat_test()
-  setup_localhost(5, 1, chat_node)
+  setup_localhost(chat_node, 5, 1)
 end
 
 function blockchain_test()
-  setup_localhost(10, 1, anode)
+  setup_localhost(blockchain_node, 10, 1)
 end
+
+]]
 
 --[[
   Runs simulation with specific configuration.
@@ -226,52 +247,3 @@ end
   max_incoming_peers
   max_outgoing_peers
 ]]
-
-function run_simulation(cfg)
-end
-
-function run_localhost(cfg)
-end
-
-function run_tcp(cfg)
-end
-
-function sim_test()
-  NODES = 20
-  PEERS = 4
-
-  a={}
-
-  for i = 1, NODES do
-    a[i] = string.format("sim://5:5:%d", i)
-    nodes[i] = anode(names[i])
-    nodes[i]:listen(a[i])
-  end
-
-  for i = 1, NODES do
-    for j = 1, PEERS do
-      paddr = ((i + j - 1) % NODES) + 1;
-      peer_id = nodes[i]:add_peer(string.format("sim://150:1000:4:%d", paddr))
-      nodes[i]:connect(peer_id)
-    end
-  end
-end
-
-function tcp_test()
-  N = 10
-  M = 1
-
-  for i = 1, N do
-    nodes[i] = anode(names[i])
-    nodes[i]:listen(tcp_addr(i))
-  end
-
-  for i = 1, N do
-    for j = 1, M do
-      a = (i + j - 1) % N + 1
-      -- print(tcp_addr(i), "->", tcp_addr(a))
-      peer_id = nodes[i]:add_peer(tcp_addr(a))
-      nodes[i]:connect(peer_id)
-    end
-  end
-end
