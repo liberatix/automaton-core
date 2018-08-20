@@ -588,6 +588,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
     case WAITING_HEADER: {
       if (bytes_read != HEADER_SIZE) {
         LOG(ERROR) << "Wrong header size received";
+        s_on_error(c, "Wrong header size received");
         disconnect(c);
         return;
       }
@@ -600,6 +601,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
       LOG(DEBUG) << "MESSAGE SIZE: " << message_size;
       if (!message_size || message_size > MAX_MESSAGE_SIZE) {
         LOG(ERROR) << "Invalid message size!";
+        s_on_error(c, "Invalid message size!");
         disconnect(c);
         return;
       } else {
@@ -611,7 +613,8 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
               << " from peer " << id;
           it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
         } else {
-          disconnect(c);
+        s_on_error(c, "No such peer or peer disconnected!");
+        disconnect(c);
         }
       }
     }
@@ -627,6 +630,7 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
         it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
         s_on_blob_received(c, blob);
       } else {
+        s_on_error(c, "No such peer or peer disconnected!");
         disconnect(c);
       }
     }
@@ -683,6 +687,7 @@ void node::on_disconnected(peer_id c) {
 
 void node::on_error(peer_id c, network::connection::error e) {
   LOG(DEBUG) << c << " -> on_error " << e;
+  s_on_error(c, "Connection error " + std::to_string(e));
   disconnect(c);
 }
 
