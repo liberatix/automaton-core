@@ -1,5 +1,9 @@
 -- GRAPH VISUALIZATION OF BLOCK TREE
 
+function hashstr(h)
+  return hex(h):sub(-8,-1)
+end
+
 function debug_html()
   local n = {}
   local e = {}
@@ -11,14 +15,14 @@ function debug_html()
 
   -- GENESIS_HASH
   local s
-  GH = hex(GENESIS_HASH):sub(3,8)
-  s = string.format("{id: '%s', label: 'GENESIS', color: '#D2B4DE', level: %d}", GH, 0)
+  GH = hashstr(GENESIS_HASH)
+  s = string.format("{id: '%s', shape: 'box', label: 'GENESIS', color: '#D2B4DE', level: %d}", GH, 0)
   table.insert(n, s)
 
   local clr
   for k,v in pairs(blocks) do
-    to = hex(k):sub(3,8)
-    from = hex(v.prev_hash):sub(3,8)
+    to = hashstr(k)
+    from = hashstr(v.prev_hash)
     -- check if this is in current blockchain
     if k == blockchain[v.height] then
       clr = "'#ABEBC6'"
@@ -26,7 +30,7 @@ function debug_html()
       clr = "'#F5CBA7'"
     end
     title = "mined by " .. v.miner
-    s = string.format("{id: '%s', label: '%s', color: %s, level: %d, title: '%s'}",
+    s = string.format("{id: '%s', shape: 'box', label: '%s', color: %s, level: %d, title: '%s'}",
       to, to, clr, v.height, title)
     table.insert(n, s)
     s = string.format("{from: '%s', to: '%s', arrows:'to'}", from, to)
@@ -96,8 +100,8 @@ function debug_html()
     layout: {
       hierarchical: {
         direction: "LR",
-        levelSeparation: 80,
-        nodeSpacing: 50
+        levelSeparation: 120,
+        nodeSpacing: 100
       }
     },
     physics: false
