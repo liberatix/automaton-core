@@ -1,4 +1,4 @@
-nonce = {105}
+nonce = {0}
 
 current_message_id = 1
 -- node callback functions
@@ -10,7 +10,7 @@ function update(time)
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(nodeid, prev_hash, #blockchain+1, nonce, 1000)
+  local found, block = mine(nodeid, prev_hash, #blockchain+1, nonce, 10000)
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
@@ -75,31 +75,6 @@ blockchain = {}
 difficulty = {}
 difficulty.leadingZeros = 1
 difficulty.prefix = "03FFFF"
-
-
--- mining helper
-function inc_nonce(n)
-  for i = 1, #n do
-    if n[i] < 255 then
-      n[i] = n[i] + 1
-      break
-    else
-      n[i] = 0
-      if i == #n then
-        table.insert(n, 1)
-        return
-      end
-    end
-  end
-end
-
-function nonce_str(n)
-  s = {}
-  for i = 1, #n do
-    table.insert(s, string.char(n[i]))
-  end
-  return table.concat(s)
-end
 
 function blockHash(block)
   blockdata = tostring(block.miner) .. tostring(block.prev_hash) .. tostring(block.height) .. tostring(block.nonce);
