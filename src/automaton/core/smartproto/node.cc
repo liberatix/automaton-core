@@ -351,11 +351,14 @@ void node::s_on_blob_received(peer_id p_id, const string& blob) {
 }
 
 void node::send_blob(peer_id p_id, const string& blob, uint32_t msg_id) {
-  LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " send message " << core::io::bin2hex(blob) <<
+  LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " sending message " << core::io::bin2hex(blob) <<
       " to peer " << p_id;
   uint32_t blob_size = blob.size();
   if (blob_size > MAX_MESSAGE_SIZE) {
     LOG(ERROR) << "Message size is " << blob_size << " and is too big! Max message size is " << MAX_MESSAGE_SIZE;
+    add_task([this, p_id, msg_id]() -> string {
+      return fresult("sent", script_on_msg_sent(p_id, msg_id, false));
+    });
     return;
   }
   char buffer[3];
@@ -367,11 +370,17 @@ void node::send_blob(peer_id p_id, const string& blob, uint32_t msg_id) {
   lock_guard<mutex> lock(peers_mutex);
   if (connected_peers.find(p_id) == connected_peers.end()) {
     LOG(ERROR) << "Peer " << p_id << " is not connected! Call connect first!";
+    add_task([this, p_id, msg_id]() -> string {
+      return fresult("sent", script_on_msg_sent(p_id, msg_id, false));
+    });
     return;
   }
   auto it = known_peers.find(p_id);
   if (it == known_peers.end()) {
     LOG(ERROR) << "Trying to send message to unknown peer " << p_id;
+    add_task([this, p_id, msg_id]() -> string {
+      return fresult("sent", script_on_msg_sent(p_id, msg_id, false));
+    });
     return;
   }
   if (it->second.connection) {
@@ -380,6 +389,9 @@ void node::send_blob(peer_id p_id, const string& blob, uint32_t msg_id) {
     }
   } else {
     LOG(ERROR) << "No connection in peer " << p_id;
+    add_task([this, p_id, msg_id]() -> string {
+      return fresult("sent", script_on_msg_sent(p_id, msg_id, false));
+    });
   }
 }
 
@@ -576,6 +588,8 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
     case WAITING_HEADER: {
       if (bytes_read != HEADER_SIZE) {
         LOG(ERROR) << "Wrong header size received";
+        s_on_error(c, "Wrong header size received");
+        disconnect(c);
         return;
       }
       // TODO(kari): check if this peer still exists, the buffer could be invalid
@@ -587,6 +601,8 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
       LOG(DEBUG) << "MESSAGE SIZE: " << message_size;
       if (!message_size || message_size > MAX_MESSAGE_SIZE) {
         LOG(ERROR) << "Invalid message size!";
+        s_on_error(c, "Invalid message size!");
+        disconnect(c);
         return;
       } else {
         lock_guard<mutex> lock(peers_mutex);
@@ -596,6 +612,9 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
           LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " waits message with size " << message_size
               << " from peer " << id;
           it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
+        } else {
+        s_on_error(c, "No such peer or peer disconnected!");
+        disconnect(c);
         }
       }
     }
@@ -610,6 +629,9 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
             core::io::bin2hex(blob) << " from peer " << c;
         it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
         s_on_blob_received(c, blob);
+      } else {
+        s_on_error(c, "No such peer or peer disconnected!");
+        disconnect(c);
       }
     }
     break;
@@ -618,7 +640,8 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
 }
 
 void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
-  LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent";
+  LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent " <<
+      (e == network::connection::error::no_error ? "successfully" : "unsuccessfully");
   add_task([this, c, id, e]() -> string {
     return fresult("sent", script_on_msg_sent(c, id, e == network::connection::error::no_error));
   });
@@ -664,7 +687,8 @@ void node::on_disconnected(peer_id c) {
 
 void node::on_error(peer_id c, network::connection::error e) {
   LOG(DEBUG) << c << " -> on_error " << e;
-  remove_peer(c);
+  s_on_error(c, "Connection error " + std::to_string(e));
+  disconnect(c);
 }
 
 bool node::on_requested(network::acceptor* a, const string& address, peer_id* id) {

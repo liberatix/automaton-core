@@ -99,7 +99,7 @@ function debug_html()
   ]);
   // create an array with edges
   var edges = new vis.DataSet([
-]]  
+]]
 ..
 
   table.concat(e, ",\n")
@@ -194,6 +194,11 @@ function sent(peer_id, msg_id, success)
     log(pid(peer_id), "Error sending message id: " .. tostring(msg_id))
   end
 end
+
+function disconnected(peer_id)
+  log(pid(peer_id), "Disconnected (in script)")
+end
+
 
 -- mining helper
 
