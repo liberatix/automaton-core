@@ -145,9 +145,12 @@ node::node(std::string id,
       // Process tasks pending in the queue.
       // LOG(DEBUG) << "Executing tasks in " << nodeid;
       while (!tasks.empty()) {
+        // Check to see if we should stop the thread execution.
+        worker_mutex.lock();
         if (worker_stop_signal) {
           break;
         }
+        worker_mutex.unlock();
 
         // Pop a task from the front of the queue.
         tasks_mutex.lock();
@@ -193,8 +196,10 @@ node::~node() {
   //   LOG(DEBUG) << "known_peer: " << res[i];
   // }
 
-  lock_guard<mutex> lock(worker_mutex);
+  worker_mutex.lock();
   worker_stop_signal = true;
+  worker_mutex.unlock();
+
   worker->join();
   delete worker;
 }

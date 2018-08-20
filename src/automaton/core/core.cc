@@ -115,9 +115,9 @@ int main(int argc, char* argv[]) {
   automaton::core::network::tcp_init();
 
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
-  sim->simulation_start(500);
+  sim->simulation_start(100);
   cli.print(automaton_ascii_logo.c_str());
-  string init_script = get_file_contents("automaton/core/coreinit.lua");
+  string init_script = get_file_contents("automaton/examples/smartproto/common/coreinit.lua");
   script.safe_script(init_script);
 
   while (1) {

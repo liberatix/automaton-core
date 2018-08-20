@@ -10,7 +10,7 @@ cc_library(
   ]),
   hdrs = glob(["**/*.h"]),
   deps = select({
-      "//conditions:linux": ["@luajit//:luajit"],
+      "//conditions:osx": ["@luajit//:luajit"],
       "//conditions:default": ["@lua//:liblua"],
     }) +
     [
