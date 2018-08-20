@@ -210,7 +210,7 @@ function chat_test()
 end
 
 function blockchain_test()
-  setup_localhost(20, 4, anode)
+  setup_localhost(10, 1, anode)
 end
 
 --[[
