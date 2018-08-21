@@ -10,7 +10,7 @@ function update(time)
   log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
 
   local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(nodeid, prev_hash, #blockchain+1, nonce, 10000)
+  local found, block = mine(nodeid, prev_hash, #blockchain+1, nonce)
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
@@ -304,36 +304,6 @@ function handshake(peer_id)
   --   --print "elseif block is sent"
   --   print(tprint(peers[peer_id]))
   -- end
-end
-
--- Takes in block with miner, prev_hash, height
---
-function mine(miner, prev_hash, height, nonce, attempts)
-  local target = get_target(difficulty)
-  local block_data = tostring(miner) .. tostring(prev_hash) .. tostring(height)
-  for i = 0, attempts do
-    block_hash = sha3(block_data .. nonce_str(nonce))
-    --print(hex(block_hash))
-    if block_hash <= target then
-      -- create and return block
-      mined_block = Block()
-      mined_block.miner = miner
-      mined_block.prev_hash = prev_hash
-      mined_block.height = height
-      mined_block.nonce = nonce_str(nonce)
-      log("miner", "Just mined the following block:")
-      log_block("miner", mined_block)
-      return true, mined_block
-    else
-     inc_nonce(nonce)
-    end
-  end
-  return false
-end
-
-function get_target(difficulty)
-  return bin(string.rep("00", difficulty.leadingZeros) .. difficulty.prefix ..
-    string.rep("00", 32-difficulty.leadingZeros-3))
 end
 
 function log_block(identifer, block)
