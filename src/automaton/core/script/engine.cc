@@ -22,6 +22,7 @@ engine::engine() {
 }
 
 engine::~engine() {
+  collect_garbage();
 }
 
 void engine::bind_io() {
