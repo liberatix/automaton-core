@@ -31,7 +31,21 @@ cc_library(
       "//conditions:windows": ["BOOST_ALL_NO_LIB"],
       "//conditions:default": [],
   }),
+)
 
+cc_library(
+  name = "network_zmq",
+  srcs = [
+    "zmq_connection.h",
+    "zmq_connection.cc",
+  ],
+  deps = [
+    "@libzmq//:libzmq",
+    "@cppzmq//:cppzmq",
+    ":network",
+    "//automaton/core/io",
+  ],
+  linkstatic=True,
 )
 
 cc_library(

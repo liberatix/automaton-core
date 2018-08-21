@@ -1,3 +1,4 @@
+#include <future>
 #include <iostream>
 #include <regex>
 #include <string>
@@ -90,9 +91,15 @@ int main(int argc, char* argv[]) {
   node_type.set("new_msg", &node::create_msg_by_id);
   node_type.set("send", &node::send_message);
 
-  node_type.set("script", &node::script);
   node_type.set("dump_logs", &node::dump_logs);
   node_type.set("debug_html", &node::debug_html);
+
+  node_type.set("script", [](node& n, std::string command) {
+    std::promise<sol::object> prom;
+    std::future<sol::object> fut = prom.get_future();
+    n.script(command, &prom);
+    return fut.get();
+  });
 
   node_type.set("known_peers", [](node& n) {
     LOG(DEBUG) << "getting known peers... " << &n;
@@ -117,8 +124,8 @@ int main(int argc, char* argv[]) {
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(100);
   cli.print(automaton_ascii_logo.c_str());
-  string init_script = get_file_contents("automaton/examples/smartproto/common/coreinit.lua");
-  script.safe_script(init_script);
+  script.safe_script(get_file_contents("automaton/examples/smartproto/common/names.lua"));
+  script.safe_script(get_file_contents("automaton/examples/smartproto/common/coreinit.lua"));
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
@@ -138,7 +145,6 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // script.safe_script("n1 = nil; n2=nil; collectgarbage()", &sol::script_pass_on_error);
   LOG(DEBUG) << "Destroying lua state & objects";
 
   sim->simulation_stop();

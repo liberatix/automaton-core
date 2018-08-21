@@ -1,5 +1,10 @@
 -- coreinit.lua
 
+-- GLOBALS
+
+nodes = {}
+miners = {}
+
 -- HISTORY
 
 history_add("dump_logs()");
@@ -20,7 +25,7 @@ function blank(id)
 end
 
 function blockchain_node(id)
-  return node(
+  local n = node(
     id,
     {"automaton/examples/smartproto/blockchain/blockchain.proto"},
     {
@@ -30,6 +35,19 @@ function blockchain_node(id)
     },
     {"Block", "GetBlocks", "Blocks"}
   )
+
+  print(id)
+  _G[id] = {
+    set_mining_power = function(x)
+      n:script("MINE_ATTEMPTS=" .. x .. " return ''")
+    end,
+
+    mine_block = function(x)
+      n:script("mine_block(" .. x .. ")")
+    end
+  }
+
+  return n
 end
 
 function chat_node(id)
@@ -45,123 +63,6 @@ function chat_node(id)
     {"Hello", "Msg"}
   )
 end
-
--- NAMES FOR TEST NODE IDS
-
-names = {
-  "Alice",
-  "Bob",
-  "Charlie",
-  "Dave",
-  "Emily",
-  "Frank",
-  "Gary",
-  "Heather",
-  "Ivan",
-  "Jacob",
-  "Kyle",
-  "Larry",
-  "Mary",
-  "Nancy",
-  "Oscar",
-  "Paul",
-  "Rachel",
-  "Steven",
-  "Tom",
-  "Victor",
-  "Walter",
-  "Zach",
-
-  "Ace",
-  "Aaron",
-  "Adam",
-  "Alexander",
-  "Amanda",
-  "Amy",
-  "Andrew",
-  "Angela",
-  "Anna",
-  "Anthony",
-  "Ashley",
-  "Barbara",
-  "Benjamin",
-  "Betty",
-  "Brandon",
-  "Brenda",
-  "Brian",
-  "Carol",
-  "Charles",
-  "Christina",
-  "Christine",
-  "Christopher",
-  "Cynthia",
-  "Daniel",
-  "Deborah",
-  "Debra",
-  "Dennis",
-  "Donald",
-  "Donna",
-  "Edward",
-  "Elizabeth",
-  "Eric",
-  "George",
-  "Gregory",
-  "James",
-  "Jason",
-  "Jeffrey",
-  "Jennifer",
-  "Jessica",
-  "John",
-  "Jonathan",
-  "Jordan",
-  "Jose",
-  "Joseph",
-  "Joshua",
-  "Julie",
-  "Justin",
-  "Karen",
-  "Katherine",
-  "Kathleen",
-  "Kelly",
-  "Kenneth",
-  "Kevin",
-  "Kimberly",
-  "Laura",
-  "Linda",
-  "Lisa",
-  "Margaret",
-  "Maria",
-  "Mark",
-  "Matthew",
-  "Melissa",
-  "Michael",
-  "Michelle",
-  "Nathan",
-  "Nicholas",
-  "Nicole",
-  "Pamela",
-  "Patricia",
-  "Patrick",
-  "Rebecca",
-  "Richard",
-  "Robert",
-  "Ronald",
-  "Ryan",
-  "Samantha",
-  "Samuel",
-  "Sandra",
-  "Sarah",
-  "Scott",
-  "Sharon",
-  "Stephanie",
-  "Stephen",
-  "Susan",
-  "Thomas",
-  "Timothy",
-  "Tyler",
-  "William",
-  "Zachary",
-}
 
 -- NETWORK SIMULATION
 
@@ -220,37 +121,8 @@ function testnet(discovery, node_factory, num_nodes, num_peers)
   discovery(node_factory, num_nodes, num_peers)
 end
 
--- GLOBALS
-
-nodes = {}
-
 function dump_logs()
   for i = 1, #nodes do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
 end
-
---[[
-function chat_test()
-  setup_localhost(chat_node, 5, 1)
-end
-
-function blockchain_test()
-  setup_localhost(blockchain_node, 10, 1)
-end
-
-]]
-
---[[
-  Runs simulation with specific configuration.
-
-  cfg is a table which can have the following keys:
-
-  nodes
-  min_bandwidth
-  max_bandwidth
-  min_lag
-  max_lag
-  max_incoming_peers
-  max_outgoing_peers
-]]

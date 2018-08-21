@@ -21,11 +21,13 @@ using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 
 using std::chrono::system_clock;
+using std::future;
 using std::ios_base;
 using std::lock_guard;
 using std::make_unique;
 using std::mutex;
 using std::ofstream;
+using std::promise;
 using std::string;
 using std::unique_ptr;
 using std::vector;
@@ -116,8 +118,7 @@ node::node(std::string id,
   uint32_t script_id = 0;
   for (string lua_script : lua_scripts) {
     script_id++;
-    fresult("script " + std::to_string(script_id),
-        engine.safe_script(lua_script, &sol::script_pass_on_error));
+    fresult("script " + std::to_string(script_id), engine.safe_script(lua_script));
   }
 
   script_on_update = engine["update"];
@@ -313,14 +314,6 @@ void node::dump_logs(string html_file) {
   });
 }
 
-void node::script(const char* input) {
-  LOG(DEBUG) << "Calling script from node " << input;
-  string cmd{input};
-  sol::protected_function_result pfr = engine.safe_script(cmd, &sol::script_pass_on_error);
-  string output = pfr;
-  std::cout << output << std::endl;
-}
-
 void node::send_message(peer_id p_id, const core::data::msg& msg, uint32_t msg_id) {
   auto msg_schema_id = msg.get_schema_id();
   CHECK_GT(factory_to_wire.count(msg_schema_id), 0)
@@ -337,8 +330,6 @@ void node::send_message(peer_id p_id, const core::data::msg& msg, uint32_t msg_i
 }
 
 void node::s_on_blob_received(peer_id p_id, const string& blob) {
-  static uint32_t c = 0;
-  uint32_t cc = c++;
   auto wire_id = blob[0];
   if (script_on_msg.count(wire_id) != 1) {
     LOG(FATAL) << "Invalid wire msg_id sent to us!";
@@ -348,7 +339,7 @@ void node::s_on_blob_received(peer_id p_id, const string& blob) {
   auto msg_id = wire_to_factory[wire_id];
   msg* m = engine.get_factory().new_message_by_id(msg_id).release();
   m->deserialize_message(blob.substr(1));
-  add_task([this, wire_id, p_id, m, blob, cc]() -> string {
+  add_task([this, wire_id, p_id, m, blob]() -> string {
     auto r = fresult("on_" + m->get_message_type(), script_on_msg[wire_id](p_id, m));
     // delete m;
     return r;
