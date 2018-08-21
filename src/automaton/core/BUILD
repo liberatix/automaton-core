@@ -13,6 +13,7 @@ cc_binary(
     "//automaton/core/io",
     "//automaton/core/network",
     "//automaton/core/network:network_tcp",
+    "//automaton/core/network:network_zmq",
     "//automaton/core/network:simulated_connection",
     "//automaton/core/smartproto",
     "//automaton/core/state",
