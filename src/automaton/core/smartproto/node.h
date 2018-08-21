@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <functional>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -13,10 +14,10 @@
 #include "automaton/core/data/factory.h"
 #include "automaton/core/data/msg.h"
 #include "automaton/core/data/schema.h"
+#include "automaton/core/io/io.h"
 #include "automaton/core/network/acceptor.h"
 #include "automaton/core/network/connection.h"
 #include "automaton/core/script/engine.h"
-// #include "automaton/core/smartproto/peer.h"
 
 namespace automaton {
 namespace core {
@@ -65,7 +66,15 @@ class node: public network::connection::connection_handler,
 
   std::set<peer_id> list_connected_peers();
 
-  void script(const char* input);
+  // Execute a script which returns corresponding type
+  template<typename T>
+  void script(std::string command, std::promise<T>* result) {
+    add_task([this, command, result]() {
+      auto pfr = engine.safe_script(command);
+      result->set_value(pfr);
+      return "";
+    });
+  }
 
   uint32_t find_message_id(const char * name) {
     return engine.get_factory().get_schema_id(name);
