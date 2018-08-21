@@ -71,7 +71,9 @@ class node: public network::connection::connection_handler,
   void script(std::string command, std::promise<T>* result) {
     add_task([this, command, result]() {
       auto pfr = engine.safe_script(command);
-      result->set_value(pfr);
+      if (result != nullptr) {
+        result->set_value(pfr);
+      }
       return "";
     });
   }

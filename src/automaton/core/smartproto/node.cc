@@ -132,7 +132,7 @@ node::node(std::string id,
   worker = new std::thread([this]() {
     // LOG(DEBUG) << "Worker thread starting in " << nodeid;
     while (!worker_stop_signal) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
 
@@ -165,8 +165,15 @@ node::node(std::string id,
         try {
           string result = task();
           if (result.size() > 0) {
+            engine.script("for k,v in pairs(_G) do print(k .. ' = ' .. tostring(v)) end");
             LOG(FATAL) << "TASK FAILED: " << result;
           }
+        } catch (const std::exception& ex) {
+          LOG(FATAL) << "TASK FAILED: EXCEPTION1: " << ex.what();
+        } catch (std::exception& ex) {
+          LOG(FATAL) << "TASK FAILED: EXCEPTION2: " << ex.what();
+        } catch (std::string s) {
+          LOG(FATAL) << "TASK FAILED: EXCEPTION2: " << s;
         } catch (...) {
           LOG(FATAL) << "TASK FAILED: EXCEPTION DURING TASK EXECUTION!";
         }

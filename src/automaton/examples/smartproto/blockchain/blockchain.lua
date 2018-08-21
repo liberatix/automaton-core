@@ -1,4 +1,8 @@
+-- blockchain.lua
+
 nonce = {0}
+
+log("global", "test")
 
 current_message_id = 1
 -- node callback functions
