@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <utility>
 
@@ -83,6 +84,9 @@ simulation::~simulation() {
 }
 
 void simulation::simulation_start(uint64_t millisec_step) {
+  if (millisec_step == 0) {
+    return;
+  }
   running_mutex.lock();
   simulation_running = true;
   running_mutex.unlock();
@@ -182,7 +186,7 @@ void simulation::handle_event(const event& e) {
       new_event.destination = e.source;
       new_event.time_of_handling = sim->get_time() + source->get_lag();
       const connection_params& params = source->parameters;
-      connection_id cid;
+      connection_id cid = 0;
       if (acceptor_->get_handler()->on_requested(acceptor_, source_address, &cid)) {
         // LOG(DEBUG) << "accepted";
         new_event.type_ = event::type::accept;
@@ -244,24 +248,27 @@ void simulation::handle_event(const event& e) {
       } else {
         destination->reading_q_mutex.unlock();
       }
-      source->sending_q_mutex.lock();
-      if (source && source->sending.front().message.size() == source->sending.front().bytes_send) {
-        source->sending_q_mutex.unlock();
-        event new_event;
-        new_event.type_ = event::type::ack_received;
-        new_event.data = std::to_string(connection::error::no_error);
-        new_event.source = e.destination;
-        new_event.destination = e.source;
-        uint32_t t = sim->get_time();
-        uint32_t ts = destination->get_time_stamp();
-        new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + destination->get_lag();
-        destination->set_time_stamp(new_event.time_of_handling);
-        sim->push_event(new_event);
-      } else if (source && source->get_state() == connection::state::connected) {
-        source->sending_q_mutex.unlock();
-        source->handle_send();
-      } else {
-        source->sending_q_mutex.unlock();
+      if (source) {
+        source->sending_q_mutex.lock();
+        if (source->sending.front().message.size() == source->sending.front().bytes_send) {
+          source->sending_q_mutex.unlock();
+          event new_event;
+          new_event.type_ = event::type::ack_received;
+          new_event.data = std::to_string(connection::error::no_error);
+          new_event.source = e.destination;
+          new_event.destination = e.source;
+          uint32_t t = sim->get_time();
+          uint32_t ts = destination->get_time_stamp();
+          new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + destination->get_lag();
+          destination->set_time_stamp(new_event.time_of_handling);
+          sim->push_event(new_event);
+          source->sending_q_mutex.lock();
+        } else {
+          source->sending_q_mutex.unlock();
+        }
+        if (source->get_state() == connection::state::connected) {
+          source->handle_send();
+        }
       }
       // LOG(DEBUG) << "message 1";
       break;
@@ -302,11 +309,11 @@ void simulation::handle_event(const event& e) {
       simulated_connection* destination = sim->get_connection(e.destination);
       destination->sending_q_mutex.lock();
       if (destination && destination->sending.size()) {
-        uint32_t id = destination->sending.front().id;
+        uint32_t rid = destination->sending.front().id;
         destination->sending.pop();
         destination->sending_q_mutex.unlock();
         destination->handle_send();
-        destination->get_handler()->on_message_sent(destination->get_id(), id,
+        destination->get_handler()->on_message_sent(destination->get_id(), rid,
             static_cast<connection::error>(std::stoi(e.data)));
       } else {
         destination->sending_q_mutex.unlock();
@@ -319,16 +326,16 @@ void simulation::handle_event(const event& e) {
     default:
       break;
   }
-  // LOG(DEBUG) << "automaton/core// HANDLING";
+  // LOG(DEBUG) << "HANDLING";
 }
 
 int simulation::process(uint64_t time_) {
-  // // // LOG(DEBUG) << "process time: " << time_;
+  // LOG(DEBUG) << "process time: " << time_;
   int events_processed = 0;
   q_mutex.lock();
 
   auto current_time = get_time();
-  // // // LOG(DEBUG) << "Cur time: " << current_time << " process time: " << time_;
+  // LOG(DEBUG) << "Cur time: " << current_time << " process time: " << time_;
   while (current_time <= time_) {
     set_time(current_time);
     if (events.count(current_time)) {
@@ -365,28 +372,27 @@ bool simulation::is_queue_empty() {
 }
 
 void simulation::add_connection(simulated_connection* connection_) {
-  static uint32_t id = 0;
+  static uint32_t uid = 0;
   // TODO(kari): use unordered map
   if (connection_) {
     std::lock_guard<std::mutex> lock(connections_mutex);
     if (connection_->local_connection_id) {
       connections.erase(connection_->local_connection_id);
     }
-    connections[++id] = connection_;
-    connection_->local_connection_id = id;
+    connections[++uid] = connection_;
+    connection_->local_connection_id = uid;
   }
 }
 void simulation::remove_connection(uint32_t connection_id) {
   std::lock_guard<std::mutex> lock(connections_mutex);
   auto iterator_ = connections.find(connection_id);
   if (iterator_ != connections.end()) {
-    delete iterator_->second;
     connections.erase(iterator_);
   }
 }
-simulated_connection* simulation::get_connection(uint32_t id) {
+simulated_connection* simulation::get_connection(uint32_t cid) {
   std::lock_guard<std::mutex> lock(connections_mutex);
-  auto iterator_ = connections.find(id);
+  auto iterator_ = connections.find(cid);
   if (iterator_ == connections.end()) {
     return nullptr;
   }
@@ -408,7 +414,6 @@ void simulation::remove_acceptor(uint32_t address) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   auto iterator_ = acceptors.find(address);
   if (iterator_ != acceptors.end()) {
-    delete iterator_->second;
     acceptors.erase(iterator_);
   }
 }
@@ -442,7 +447,7 @@ simulated_connection::simulated_connection(connection_id id, const std::string& 
 }
 
 simulated_connection::~simulated_connection() {
-  LOG(DEBUG) << "Connection destructor";
+  LOG(DEBUG) << id << " Connection destructor";
 }
 
 bool simulated_connection::init() {
@@ -456,39 +461,50 @@ bool simulated_connection::init() {
   return true;
 }
 
-void simulated_connection::async_send(const std::string& message, uint32_t id = 0) {
+void simulated_connection::async_send(const std::string& message, uint32_t msg_id = 0) {
+  // LOG(DEBUG) << id << " <async_send>";
   if (message.size() < 1) {
-    LOG(ERROR) << "Send called but no message: id -> " << id;
+    LOG(ERROR) << "Send called but no message: id -> " << msg_id;
+    // LOG(DEBUG) << id << " </async_send>";
     return;
   }
   if (get_state() == disconnected) {
     LOG(ERROR) << "Cannot send message! Call connect first!";
+    // LOG(DEBUG) << id << " </async_send>";
     return;
   }
-  // LOG(DEBUG) << "<async_send>";
-  // LOG << "Send called with message <" + message + ">");
+  LOG(DEBUG) << "Send called with message <" << io::bin2hex(message) << ">";
   outgoing_packet packet;
   packet.message = message;
   packet.bytes_send = 0;
-  packet.id = id;
-  // LOG(DEBUG) << "pushing message <" << message << "> with id: " << id;
+  packet.id = msg_id;
+  LOG(DEBUG) << id << " pushing message <" << io::bin2hex(message) << "> with id: " << msg_id;
   sending_q_mutex.lock();
   sending.push(std::move(packet));
   sending_q_mutex.unlock();
   if (get_state() == connection::state::connected) {
     handle_send();
   }
-  // LOG(DEBUG) << "</async_send>";
+  // LOG(DEBUG) << id << " </async_send>";
 }
 
 void simulated_connection::handle_send() {
+  // LOG(DEBUG) << id << " <handle_send>";
+  static std::set<uint32_t> ids;
+  if (ids.find(id) != ids.end()) {
+    // LOG(DEBUG) << id << " </handle_send 0 >";
+    return;
+  } else {
+    ids.insert(id);
+  }
   sending_q_mutex.lock();
   /// nothing to send or waiting for ACK
   if (sending.empty() || sending.front().message.size() == sending.front().bytes_send) {
     sending_q_mutex.unlock();
+    ids.erase(id);
+    // LOG(DEBUG) << id << " </handle_send 1 >";
     return;
   }
-  // LOG(DEBUG) << "<handle_send>";
   simulation* sim = simulation::get_simulator();
   outgoing_packet packet = sending.front();
   sending_q_mutex.unlock();
@@ -511,11 +527,19 @@ void simulated_connection::handle_send() {
   new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
   set_time_stamp(new_event.time_of_handling);
   sim->push_event(new_event);
-  // LOG(DEBUG) << "</handle_send>";
+  ids.erase(id);
+  // LOG(DEBUG) << "</handle_send 2>";
 }
 
 void simulated_connection::handle_read() {
   // LOG(DEBUG) << "<handle_read>";
+  static std::set<uint32_t> ids;
+  if (ids.find(id) != ids.end()) {
+    // LOG(DEBUG) << id << " </handle_read 0>";
+    return;
+  } else {
+    ids.insert(id);
+  }
   reading_q_mutex.lock();
   recv_buf_mutex.lock();
   while (receive_buffer.size() && reading.size()) {
@@ -548,28 +572,28 @@ void simulated_connection::handle_read() {
   }
   recv_buf_mutex.unlock();
   reading_q_mutex.unlock();
-  // LOG(DEBUG) << "</handle_read>";
+  ids.erase(id);
+  // LOG(DEBUG) << id << " </handle_read 1>";
 }
 
-void simulated_connection::async_read(char* buffer, uint32_t buffer_size,
-    uint32_t num_bytes = 0, uint32_t id = 0) {
-  // LOG(DEBUG) << "<async_read>";
+void simulated_connection::async_read(char* buffer, uint32_t buffer_size, uint32_t num_bytes = 0, uint32_t rid = 0) {
+  // LOG(DEBUG) << id << " <async_read>";
   /**
     This function does not create event. Actual reading will happen when the
     other endpoint sends a message and it arrives (send event is handled and
     read event is created).
   */
   if (num_bytes > buffer_size) {
-    LOG(ERROR) << "ERROR: Buffer size " << buffer_size << " is smaller than needed (" <<
+    LOG(ERROR) << id << " ERROR: Buffer size " << buffer_size << " is smaller than needed (" <<
         num_bytes << ")! Reading aborted!";
     return;
   }
-  // logging("Setting buffers in connection: " + get_address());
+  LOG(DEBUG) << id << " Setting buffers in connection: " << get_address();
   incoming_packet packet;
   packet.buffer = buffer;
   packet.buffer_size = buffer_size;
   packet.expect_to_read = num_bytes;
-  packet.id = id;
+  packet.id = rid;
   reading_q_mutex.lock();
   reading.push(std::move(packet));
   reading_q_mutex.unlock();
@@ -580,7 +604,7 @@ void simulated_connection::async_read(char* buffer, uint32_t buffer_size,
   } else {
     recv_buf_mutex.unlock();
   }
-  // LOG(DEBUG) << "</async_read>";
+  // LOG(DEBUG) << id  << " </async_read>";
 }
 
 bool simulated_connection::parse_address(const std::string& address_, connection_params* params,
@@ -624,10 +648,10 @@ uint32_t simulated_connection::get_lag() const {
 
 void simulated_connection::connect() {
   if (!remote_address) {
-    LOG(ERROR) << "Cannot connect: No address to connect to!";
+    LOG(ERROR) << id << " Cannot connect: No address to connect to!";
     return;
   }
-  // LOG(DEBUG) << "<connect>";
+  // LOG(DEBUG) << id << " <connect>";
   connection_state = connection::state::connecting;
   simulation* sim = simulation::get_simulator();
   sim->add_connection(this);
@@ -640,11 +664,11 @@ void simulated_connection::connect() {
   new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
   set_time_stamp(new_event.time_of_handling);
   sim->push_event(new_event);
-  // LOG(DEBUG) << "</connect>";
+  // LOG(DEBUG) << id << " </connect>";
 }
 
 void simulated_connection::disconnect() {
-    // LOG(DEBUG) << "<disconnect>";
+    // LOG(DEBUG) << id << " <disconnect>";
     if (connection_state != connection::state::connected) {
       return;
     }
@@ -664,7 +688,7 @@ void simulated_connection::disconnect() {
     sim->remove_connection(local_connection_id);
     local_connection_id = 0;
     handler->on_disconnected(this->id);
-    // LOG(DEBUG) << "</disconnect>";
+    // LOG(DEBUG) << id << " </disconnect>";
 }
 
 connection::connection_handler* simulated_connection::get_handler() {
@@ -708,9 +732,8 @@ void simulated_connection::cancel_operations() {
 // ACCEPTOR
 
 simulated_acceptor::simulated_acceptor(const std::string& address_, acceptor::acceptor_handler* handler_,
-    connection::connection_handler* connections_handler):acceptor(handler_),
-    accepted_connections_handler(connections_handler), address(0), original_address(address_),
-    acceptor_state(acceptor::state::invalid_state) {
+    connection::connection_handler* connections_handler):acceptor(handler_), address(0), original_address(address_),
+    accepted_connections_handler(connections_handler), acceptor_state(acceptor::state::invalid_state) {
 }
 
 simulated_acceptor::~simulated_acceptor() {

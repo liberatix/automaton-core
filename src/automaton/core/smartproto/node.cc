@@ -587,9 +587,9 @@ bool node::address_parser(const string& s, string* protocol, string* address) {
   }
 }
 
-void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t id) {
+void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t mid) {
   LOG(DEBUG) << "RECEIVED: " << core::io::bin2hex(string(buffer, bytes_read)) << " from peer " << c;
-  switch (id) {
+  switch (mid) {
     case WAITING_HEADER: {
       if (bytes_read != HEADER_SIZE) {
         LOG(ERROR) << "Wrong header size received";
@@ -610,14 +610,17 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
         disconnect(c);
         return;
       } else {
-        lock_guard<mutex> lock(peers_mutex);
+        peers_mutex.lock();
         auto it = known_peers.find(c);
         if (it != known_peers.end() && it->second.connection && it->second.connection->get_state() ==
             core::network::connection::state::connected) {
+          auto connection_ = it->second.connection;
           LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " waits message with size " << message_size
-              << " from peer " << id;
-          it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
+              << " from peer " << c;
+          peers_mutex.unlock();
+          connection_->async_read(buffer, MAX_MESSAGE_SIZE, message_size, WAITING_MESSAGE);
         } else {
+        peers_mutex.unlock();
         s_on_error(c, "No such peer or peer disconnected!");
         disconnect(c);
         }
@@ -626,15 +629,17 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
     break;
     case WAITING_MESSAGE: {
       string blob = string(buffer, bytes_read);
-      lock_guard<mutex> lock(peers_mutex);
+      peers_mutex.lock();
       auto it = known_peers.find(c);
       if (it != known_peers.end() && it->second.connection && it->second.connection->get_state() ==
           core::network::connection::state::connected) {
         LOG(DEBUG) << (acceptor_ ? acceptor_->get_address() : "N/A") << " received message " <<
             core::io::bin2hex(blob) << " from peer " << c;
+        peers_mutex.unlock();
         it->second.connection->async_read(buffer, MAX_MESSAGE_SIZE, HEADER_SIZE, WAITING_HEADER);
         s_on_blob_received(c, blob);
       } else {
+        peers_mutex.unlock();
         s_on_error(c, "No such peer or peer disconnected!");
         disconnect(c);
       }
@@ -731,7 +736,7 @@ void node::on_connected(network::acceptor* a, network::connection* c, const stri
     return;
   }
   it->second.connection = std::shared_ptr<network::connection> (c);
-  LOG(DEBUG) << "Connected to " << address;
+  LOG(DEBUG) << "Connected to " << address << " now " << c->get_address();
   VLOG(9) << "UNLOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   peers_mutex.unlock();
 }

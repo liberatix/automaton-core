@@ -44,5 +44,6 @@ cc_library(
     ":network",
     "//automaton/core/io",
   ],
+  linkopts = ["-lpthread"],
   linkstatic=True,
 )
