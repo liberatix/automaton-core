@@ -1,7 +1,7 @@
 -- MINER
 
 -- turn miner off initially
-MINE_ATTEMPTS = 0
+MINE_ATTEMPTS = 1
 
 -- Increments nonce, expands nonce size if necessary
 function inc_nonce(n)
