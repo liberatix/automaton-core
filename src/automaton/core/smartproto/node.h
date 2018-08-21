@@ -37,9 +37,11 @@ class node: public network::connection::connection_handler,
     public network::acceptor::acceptor_handler {
  public:
   node(std::string id,
+       uint32_t update_time_slice,
        std::vector<std::string> schemas,
        std::vector<std::string> lua_scripts,
-       std::vector<std::string> wire_msgs);
+       std::vector<std::string> wire_msgs,
+       data::factory& factory);
   ~node();
 
   peer_info get_peer_info(peer_id id);
@@ -103,6 +105,8 @@ class node: public network::connection::connection_handler,
   sol::protected_function script_on_msg_sent;
   std::unordered_map<uint32_t, sol::protected_function> script_on_msg;
   sol::protected_function script_on_debug_html;
+
+  uint32_t update_time_slice;
 
   // Network
   std::shared_ptr<network::acceptor> acceptor_;
