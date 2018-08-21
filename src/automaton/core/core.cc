@@ -94,18 +94,11 @@ int main(int argc, char* argv[]) {
   node_type.set("dump_logs", &node::dump_logs);
   node_type.set("debug_html", &node::debug_html);
 
-  node_type.set("call", [](node& n, std::string command) {
-    std::promise<std::string> prom;
-    std::future<std::string> fut = prom.get_future();
-    n.script(command, &prom);
-    return fut.get();
-  });
-
   node_type.set("script", [](node& n, std::string command) {
     std::promise<sol::object> prom;
     std::future<sol::object> fut = prom.get_future();
     n.script(command, &prom);
-    fut.get();
+    return fut.get();
   });
 
   node_type.set("known_peers", [](node& n) {
