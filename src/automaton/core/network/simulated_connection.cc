@@ -233,7 +233,6 @@ void simulation::handle_event(const event& e) {
       2. if !remote_connection || remote_connection->get_state() != connection::state::connected
         --> broken_pipe (&& this is still connected; haven't received disconnect message yet)
       */
-      simulated_connection* source = sim->get_connection(e.source);
       simulated_connection* destination = sim->get_connection(e.destination);
       if (!destination || destination->get_state() != connection::state::connected) {
         LOG(ERROR) << "ERROR in handling send! Peer has disconnected or does not exist!";
@@ -251,8 +250,13 @@ void simulation::handle_event(const event& e) {
         destination->recv_buf_mutex.unlock();
         destination->reading_q_mutex.unlock();
       }
+      simulated_connection* source = sim->get_connection(e.source);
+      if (!source) {
+        // LOG(DEBUG) << "message 01";
+        break;
+      }
       source->sending_q_mutex.lock();
-      if (source && source->sending.front().message.size() == source->sending.front().bytes_send) {
+      if (source->sending.size() && source->sending.front().message.size() == source->sending.front().bytes_send) {
         source->sending_q_mutex.unlock();
         event new_event;
         new_event.type_ = event::type::ack_received;
