@@ -54,7 +54,7 @@ std::string event::to_string() const {
       break;
   }
   output << "time:" << time_of_handling << " / source:" << source << " / destination:" <<
-      destination << " / data:" << data;
+      destination << " / data:" << automaton::core::io::bin2hex(data);
   return output.str();
 }
 
@@ -240,35 +240,35 @@ void simulation::handle_event(const event& e) {
         // TODO(kari): broken pipe
         break;
       }
-      destination->receive_buffer.push(e.data);
       destination->reading_q_mutex.lock();
+      destination->recv_buf_mutex.lock();
+      destination->receive_buffer.push(e.data);
       if (destination->reading.size()) {
+        destination->recv_buf_mutex.unlock();
         destination->reading_q_mutex.unlock();
         destination->handle_read();
       } else {
+        destination->recv_buf_mutex.unlock();
         destination->reading_q_mutex.unlock();
       }
-      if (source) {
-        source->sending_q_mutex.lock();
-        if (source->sending.front().message.size() == source->sending.front().bytes_send) {
-          source->sending_q_mutex.unlock();
-          event new_event;
-          new_event.type_ = event::type::ack_received;
-          new_event.data = std::to_string(connection::error::no_error);
-          new_event.source = e.destination;
-          new_event.destination = e.source;
-          uint32_t t = sim->get_time();
-          uint32_t ts = destination->get_time_stamp();
-          new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + destination->get_lag();
-          destination->set_time_stamp(new_event.time_of_handling);
-          sim->push_event(new_event);
-          source->sending_q_mutex.lock();
-        } else {
-          source->sending_q_mutex.unlock();
-        }
-        if (source->get_state() == connection::state::connected) {
-          source->handle_send();
-        }
+      source->sending_q_mutex.lock();
+      if (source && source->sending.front().message.size() == source->sending.front().bytes_send) {
+        source->sending_q_mutex.unlock();
+        event new_event;
+        new_event.type_ = event::type::ack_received;
+        new_event.data = std::to_string(connection::error::no_error);
+        new_event.source = e.destination;
+        new_event.destination = e.source;
+        uint32_t t = sim->get_time();
+        uint32_t ts = destination->get_time_stamp();
+        new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + destination->get_lag();
+        destination->set_time_stamp(new_event.time_of_handling);
+        sim->push_event(new_event);
+      } else if (source && source->get_state() == connection::state::connected) {
+        source->sending_q_mutex.unlock();
+        source->handle_send();
+      } else {
+        source->sending_q_mutex.unlock();
       }
       // LOG(DEBUG) << "message 1";
       break;
@@ -506,7 +506,7 @@ void simulated_connection::handle_send() {
     return;
   }
   simulation* sim = simulation::get_simulator();
-  outgoing_packet packet = sending.front();
+  outgoing_packet& packet = sending.front();
   sending_q_mutex.unlock();
   event new_event;
   new_event.type_ = event::type::message;
@@ -708,6 +708,7 @@ uint32_t simulated_connection::get_time_stamp() const {
 }
 
 void simulated_connection::clear_queues() {
+  LOG(DEBUG) << id << " Clearing queues";
   std::lock_guard<std::mutex> sending_lock(sending_q_mutex);
   std::lock_guard<std::mutex> reading_lock(reading_q_mutex);
   std::lock_guard<std::mutex> recv_lock(recv_buf_mutex);
@@ -720,6 +721,7 @@ void simulated_connection::clear_queues() {
 }
 
 void simulated_connection::cancel_operations() {
+  LOG(DEBUG) << id << " Canceling operations";
   std::lock_guard<std::mutex> lock(sending_q_mutex);
   while (!sending.empty()) {
     handler->on_message_sent(this->id, sending.front().id, connection::error::closed_by_peer);
