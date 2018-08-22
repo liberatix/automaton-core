@@ -30,6 +30,8 @@ function debug_html()
       clr = "'#F5CBA7'"
     end
     title = "mined by " .. v.miner
+        .. "<br>HASH: " .. hex(k)
+        .. "<br>HEIGHT: " .. v.height
     s = string.format("{id: '%s', shape: 'box', label: '%s', color: %s, level: %d, title: '%s'}",
       to, to, clr, v.height, title)
     table.insert(n, s)

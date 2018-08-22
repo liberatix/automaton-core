@@ -1,7 +1,7 @@
 -- MINER
 
 -- turn miner off initially
-MINE_ATTEMPTS = 1
+MINE_ATTEMPTS = 100
 
 -- Increments nonce, expands nonce size if necessary
 function inc_nonce(n)
@@ -28,7 +28,11 @@ function nonce_str(n)
   return table.concat(s)
 end
 
-function get_target(difficulty)
+difficulty = {}
+difficulty.leadingZeros = 2
+difficulty.prefix = "FFFFFF"
+
+function get_target()
   return bin(string.rep("00", difficulty.leadingZeros) .. difficulty.prefix ..
     string.rep("00", 32-difficulty.leadingZeros-3))
 end

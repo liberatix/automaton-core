@@ -2,19 +2,20 @@
 
 nonce = {0}
 
-log("global", "test")
-
 current_message_id = 1
+
+last_hash = GENESIS_HASH
+
 -- node callback functions
 function update(time)
-  sendBlock(1, GENESIS_HASH)
-  -- log("update", string.format("Update called at %d", time))
-  log("update", string.format("UPDATE STARTED for node %s", node_id))
-  log("Blockchain", "Height: " .. tostring(#blockchain))
-  log("Blockchain", "Last Hash: " .. tostring(hex(blockchain[#blockchain] or GENESIS_HASH)))
+  local cur_hash = blockchain[#blockchain] or GENESIS_HASH
+  if cur_hash ~= last_hash then
+    last_hash = cur_hash
+    log("update", "Last hash changed to " .. hex(cur_hash))
+  end
 
-  local prev_hash = blockchain[#blockchain] or GENESIS_HASH
-  local found, block = mine(nodeid, prev_hash, #blockchain+1, nonce)
+  local found, block = mine(nodeid, cur_hash, #blockchain+1, nonce)
+
   -- if a block is mined call broadcast to all peers
   if found then
     on_Block(-1, block)
@@ -33,12 +34,6 @@ function pid(id)
 end
 
 function sent(peer_id, msg_id, success)
-  -- print "GOT TO SENT"
-  -- print "printing the inputs"
-  -- print ("peer_id: ", peer_id)
-  -- print (" msg_id: " .. msg_id)
-  -- pritn (" succsess: " .. success)
-  -- print ("inputs printed")
   if success then
     log(pid(peer_id), "Successfully sent message id: " .. tostring(msg_id))
   else
@@ -46,39 +41,6 @@ function sent(peer_id, msg_id, success)
     log(pid(peer_id), "Error sending message id: " .. tostring(msg_id))
   end
 end
-
-function disconnected(peer_id)
-  log(pid(peer_id), "Disconnected (in script)")
-end
-
-
--- mining helper
-
--- states
-STATE = {}
-STATE.HANDSHAKE = 1
-STATE.BEHIND = 2
-STATE.AHEAD = 3
-STATE.DISCONECTED = 4
-STATE.NOT_CONNECTED = 5
-STATE.IN_CONSENSUS = 6
-
--- block state after validation
-BLOCK = {}
-BLOCK.VALID = 1
-BLOCK.INVALID = 2
-BLOCK.DUPLICATE = 3
-BLOCK.NO_PARENT = 4
-
-GENESIS_HASH = sha3("automaton")
-
-peers = {}
-blocks = {}
-blockchain = {}
-
-difficulty = {}
-difficulty.leadingZeros = 1
-difficulty.prefix = "03FFFF"
 
 function blockHash(block)
   blockdata = tostring(block.miner) .. tostring(block.prev_hash) .. tostring(block.height) .. tostring(block.nonce);
@@ -93,7 +55,7 @@ end
 function validateBlock(block)
   -- get the block hash and target difficulty
   hash = blockHash(block)
-  local target = get_target(difficulty)
+  local target = get_target()
 
   log("validateBlock", "validating block: ")
   log_block("validateBlock", block)
@@ -142,7 +104,7 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
     log_block(pid(peer_id), no_blocks)
     send(peer_id, no_blocks, current_message_id)
   else
-    log_block("CRASH " .. pid(peer_id), blocks[blockHash])
+    log_block(pid(peer_id), blocks[blockHash])
     local block = Block()
     block.miner = blocks[blockHash].miner
     block.prev_hash = blocks[blockHash].prev_hash
@@ -159,9 +121,6 @@ function connected(peer_id)
   peers[peer_id].state = STATE.HANDSHAKE
   log(pid(peer_id), "STATE: HANDSHAKE")
 
-  --b = Block()
-  --b.miner = "Ace"
-  --send(1, b, 0) -- send (peer_id, message, mesage_id)
   -- peer -> {IP = "0.0.0.0", state = STATE.HANDSHAKE, sent_block_hash = nil received_block = nil}},
   -- save peer to peer list -- set peer state
   -- send highest block or create and send block with height 0 to indicate we have no blocks
@@ -170,7 +129,6 @@ function connected(peer_id)
     sendBlock(peer_id, blockchain[#blockchain])
     peers[peer_id].sent_block_hash = blockchain[#blockchain]
   else
-    sendBlock(peer_id, GENESIS_HASH)
     sendBlock(peer_id, GENESIS_HASH)
     peers[peer_id].sent_block_hash = GENESIS_HASH
   end
