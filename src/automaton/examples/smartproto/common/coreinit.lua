@@ -4,7 +4,8 @@
 
 nodes = {}
 miners = {}
-
+connections_graph_nodes = {}
+connections_graph_edges = {}
 -- HISTORY
 
 
@@ -23,6 +24,8 @@ history_add("testnet(manual, blockchain_node, 0, 0)")
 
 history_add("dump_logs()");
 history_add("testnet(localhost, blockchain_node, 100, 1)")
+
+history_add("dump_connections_graph()");
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
@@ -87,7 +90,7 @@ end
 function simulation(node_factory, NODES, PEERS)
   for i = 1, NODES do
     print(sim_bind(i))
-    nodes[i] = node_factory(names[i])
+    nodes[i] = add_node(node_factory, i)
     nodes[i]:listen(sim_bind(i))
   end
 
@@ -95,7 +98,7 @@ function simulation(node_factory, NODES, PEERS)
     for j = 1, PEERS do
       a = ((i + j - 1) % NODES) + 1;
       print(sim_addr(a))
-      peer_id = nodes[i]:add_peer(sim_addr(a))
+      peer_id = add_peer(i, sim_addr(a), a)
       nodes[i]:connect(peer_id)
     end
   end
@@ -113,7 +116,7 @@ end
 function localhost(node_factory, NODES, PEERS)
   -- create nodes and start listening
   for i = 1, NODES do
-    nodes[i] = node_factory(names[i])
+    nodes[i] = add_node(node_factory, i)
     nodes[i]:listen(tcp_addr(i))
   end
 
@@ -121,7 +124,7 @@ function localhost(node_factory, NODES, PEERS)
   for i = 1, NODES do
     for j = 1, PEERS do
       a = (i + j - 1) % NODES + 1
-      peer_id = nodes[i]:add_peer(tcp_addr(a))
+      peer_id = add_peer(i, tcp_addr(a), a)
       nodes[i]:connect(peer_id)
     end
   end
@@ -150,7 +153,7 @@ function manual(node_factory, nn, PEERS)
 
   -- create nodes and start listening
   for i = 1, #manual_listeners do
-    nodes[nIndex + i] = node_factory(names[nIndex + i])
+    nodes[nIndex + i] = add_node(node_factory, nIndex + i)
     nodes[nIndex + i]:listen(manual_listeners[i])
   end
 
@@ -158,7 +161,7 @@ function manual(node_factory, nn, PEERS)
   for i = 1, NODES do
     for j = 1, PEERS do
       a = (i + j - 1) % #remote_peers + 1
-      peer_id = nodes[nIndex + i]:add_peer(remote_peers[a])
+      peer_id = add_peer(nIndex + i, remote_peers[a], a)
       nodes[nIndex + i]:connect(peer_id)
     end
   end
@@ -168,8 +171,29 @@ function testnet(discovery, node_factory, num_nodes, num_peers)
   discovery(node_factory, num_nodes, num_peers)
 end
 
+function add_node(node_factory, node_id)
+  local name = names[node_id]
+  local new_node = node_factory(name)
+  local s = string.format("{id: '%s', shape: 'box', label: '%s'}", node_id, name)
+  table.insert(connections_graph_nodes, s)
+  return new_node
+end
+
+function add_peer(node_id, address, pid)
+  local peer_id = nodes[node_id]:add_peer(address)
+  local s = string.format("{from: '%s', to: '%s', arrows:'to'}", node_id, pid)
+  table.insert(connections_graph_edges, s)
+  return peer_id
+end
+
 function dump_logs()
   for i in pairs(nodes) do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
+end
+
+function dump_connections_graph()
+  file = io.open ("logs/connections_graph.html", "w+")
+  file:write(create_graph_html())
+  file:close()
 end

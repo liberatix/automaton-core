@@ -139,6 +139,7 @@ int main(int argc, char* argv[]) {
   cli.print(automaton_ascii_logo.c_str());
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/names.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/coreinit.lua"));
+  script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
 
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
