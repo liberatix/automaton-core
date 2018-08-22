@@ -41,6 +41,7 @@ using automaton::core::io::bin2hex;
 using automaton::core::script::engine;
 
 using std::unique_ptr;
+using std::make_unique;
 
 protobuf_factory factory;
 
@@ -165,7 +166,7 @@ int main() {
   auto proto_schema = new protobuf_schema(proto_contents);
   factory.import_schema(proto_schema, "", "");
 
-  engine script;
+  engine script(factory);
 
   auto add_req_id = factory.get_schema_id("AddRequest");
   auto add_rep_id = factory.get_schema_id("AddResponse");
