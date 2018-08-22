@@ -1,10 +1,13 @@
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
+#include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/script/engine.h"
 
 #include "gtest/gtest.h"
 #include "cryptlib.h"  // NOLINT
 #include "hex.h"  // NOLINT
+
+using automaton::core::data::protobuf::protobuf_factory;
 
 namespace automaton {
 namespace core {
@@ -37,7 +40,8 @@ TEST_F(test_script, module_registration) {
         "47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E"},
   };
 
-  script::engine lua;
+  protobuf_factory data_factory;
+  script::engine lua(data_factory);
   lua.bind_core();
 
   for (auto test : tests) {
