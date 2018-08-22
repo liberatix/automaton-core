@@ -407,6 +407,9 @@ void tcp_init() {
     LOG(DEBUG) << "asio_io_service starting...";
     try {
       asio_io_service.run();
+    } catch (const std::exception& ex) {
+      LOG(ERROR) << el::base::debug::StackTrace();
+      LOG(FATAL) << "ASIO THREAD EXCEPTION: " << ex.what();
     } catch (...) {
       LOG(FATAL) << "EXCEPTION!!!!";
     }

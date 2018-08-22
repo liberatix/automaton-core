@@ -1,5 +1,7 @@
 -- NAMES FOR TEST NODE IDS
 
+nIndex = 0
+
 names = {
   "Alice",
   "Bob",

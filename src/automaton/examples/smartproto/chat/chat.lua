@@ -40,7 +40,7 @@ function on_Msg(peer_id, m)
 end
 
 function update(timestamp)
-  if math.random(100) < 5 then
+  if math.random(1000) < 5 then
     m = Msg()
     msg_index = msg_index + 1
     local idx = ((msg_index - 1) % #msg_contents) + 1
