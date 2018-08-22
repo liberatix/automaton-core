@@ -8,9 +8,14 @@ miners = {}
 -- HISTORY
 
 
-history_add("testnet(simulation, blockchain_node, 10, 1)")
 history_add("Alice.set_mining_power(0)")
 history_add("testnet(localhost, chat_node, 5, 1)")
+history_add("testnet(localhost, chat_node, 10, 1)")
+
+history_add("testnet(simulation, blockchain_node, 3, 1)")
+history_add("testnet(simulation, blockchain_node, 10, 1)")
+
+history_add("testnet(simulation, chat_node, 3, 1)")
 
 history_add("set_listeners(5001, 5050)")
 history_add("set_listeners(5051, 5100) add_peers('127.0.0.1', 5001, 5050) nIndex = 10")
