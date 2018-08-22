@@ -139,6 +139,7 @@ int main(int argc, char* argv[]) {
   cli.print(automaton_ascii_logo.c_str());
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/names.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/coreinit.lua"));
+  script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
 
   // Start dump_logs thread.
   std::mutex logger_mutex;
