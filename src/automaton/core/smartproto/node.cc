@@ -75,12 +75,16 @@ std::string node::debug_html() {
 }
 
 node::node(std::string id,
+           uint32_t update_time_slice,
            vector<string> schemas,
            vector<string> lua_scripts,
-           vector<string> wire_msgs)
+           vector<string> wire_msgs,
+           data::factory& factory)
     : nodeid(id)
+    , update_time_slice(update_time_slice)
     , peer_ids(0)
-    , acceptor_(nullptr) {
+    , acceptor_(nullptr)
+    , engine(factory) {
   LOG(DEBUG) << "Node constructor called";
 
   for (auto schema_content : schemas) {
@@ -132,7 +136,7 @@ node::node(std::string id,
   worker = new std::thread([this]() {
     // LOG(DEBUG) << "Worker thread starting in " << nodeid;
     while (!worker_stop_signal) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(this->update_time_slice));
       auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::system_clock::now().time_since_epoch()).count();
 
@@ -165,8 +169,15 @@ node::node(std::string id,
         try {
           string result = task();
           if (result.size() > 0) {
+            engine.script("for k,v in pairs(_G) do print(k .. ' = ' .. tostring(v)) end");
             LOG(FATAL) << "TASK FAILED: " << result;
           }
+        } catch (const std::exception& ex) {
+          LOG(FATAL) << "TASK FAILED: EXCEPTION1: " << ex.what();
+        } catch (std::exception& ex) {
+          LOG(FATAL) << "TASK FAILED: EXCEPTION2: " << ex.what();
+        } catch (std::string s) {
+          LOG(FATAL) << "TASK FAILED: EXCEPTION2: " << s;
         } catch (...) {
           LOG(FATAL) << "TASK FAILED: EXCEPTION DURING TASK EXECUTION!";
         }

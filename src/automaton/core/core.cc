@@ -7,12 +7,16 @@
 
 #include "automaton/core/network/tcp_implementation.h"
 #include "automaton/core/cli/cli.h"
+#include "automaton/core/data/factory.h"
+#include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/network/simulated_connection.h"
 #include "automaton/core/script/engine.h"
 #include "automaton/core/smartproto/node.h"
 
+using automaton::core::data::factory;
+using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 using automaton::core::data::schema;
 using automaton::core::io::get_file_contents;
@@ -50,10 +54,14 @@ int main(int argc, char* argv[]) {
   string automaton_ascii_logo(automaton_ascii_logo_cstr);
   string_replace(&automaton_ascii_logo, "@", "\x1b[38;5;");
 
+  vector<unique_ptr<factory>> factories;
+
 {
   automaton::core::cli::cli cli;
 
-  engine script;
+  auto core_factory = make_unique<protobuf_factory>();
+  engine script(*core_factory);
+  factories.push_back(std::move(core_factory));
   script.bind_core();
 
   // Bind smartproto::node class
@@ -61,7 +69,8 @@ int main(int argc, char* argv[]) {
 
   node_type.set(sol::call_constructor,
     sol::factories(
-    [](string id,
+    [&factories](string id,
+       uint32_t update_time_slice,
        vector<string> schema_file_names,
        vector<string> script_file_names,
        vector<string> msgs) -> unique_ptr<node> {
@@ -76,7 +85,11 @@ int main(int argc, char* argv[]) {
         script_contents.push_back(get_file_contents(script_file_name.c_str()));
       }
 
-      return make_unique<node>(id, schemas_content, script_contents, msgs);
+      auto core_factory = make_unique<protobuf_factory>();
+      auto core_ptr = core_factory.get();
+      factories.push_back(std::move(core_factory));
+      return make_unique<node>(
+          id, update_time_slice, schemas_content, script_contents, msgs, *core_ptr);
     }));
 
   // Bind this node to its own Lua state.

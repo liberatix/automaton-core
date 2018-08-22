@@ -9,10 +9,7 @@ cc_library(
     "engine.cc",
   ]),
   hdrs = glob(["**/*.h"]),
-  deps = select({
-      "//conditions:osx": ["@luajit//:luajit"],
-      "//conditions:default": ["@lua//:liblua"],
-    }) +
+  deps = 
     [
       "@sol//:sol",
       "//automaton/core/crypto",
