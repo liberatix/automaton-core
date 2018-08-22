@@ -122,8 +122,14 @@ function localhost(node_factory, NODES, PEERS)
 
   -- connect to peers
   for i = 1, NODES do
+    local r_peers = {}
     for j = 1, PEERS do
-      a = (i + j - 1) % NODES + 1
+      -- a = (i + j - 1) % NODES + 1
+      repeat
+        a = math.random(NODES)
+      until (a ~= i) and (r_peers[a] == nil)
+      r_peers[a] = true
+
       peer_id = add_peer(i, tcp_addr(a), a)
       nodes[i]:connect(peer_id)
     end
@@ -159,8 +165,13 @@ function manual(node_factory, nn, PEERS)
 
   -- connect to peers
   for i = 1, NODES do
+    local r_peers = {}
     for j = 1, PEERS do
-      a = (i + j - 1) % #remote_peers + 1
+      repeat
+        a = math.random(#remote_peers)
+      until r_peers[a] == nil
+      r_peers[a] = true
+
       peer_id = add_peer(nIndex + i, remote_peers[a], a)
       nodes[nIndex + i]:connect(peer_id)
     end
