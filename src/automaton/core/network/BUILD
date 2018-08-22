@@ -58,5 +58,9 @@ cc_library(
     ":network",
     "//automaton/core/io",
   ],
+  linkopts = select({
+    "//conditions:linux": ["-lpthread",],
+    "//conditions:default": [],
+  }),
   linkstatic=True,
 )

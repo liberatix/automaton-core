@@ -9,10 +9,19 @@ miners = {}
 
 history_add("dump_logs()");
 
-history_add("testnet(simulation, blockchain_node, 10, 1)")
 history_add("Alice.set_mining_power(0)")
+
+history_add("testnet(localhost, blockchain_node, 10, 1)")
 history_add("testnet(localhost, blockchain_node, 1, 0)")
+
+history_add("testnet(localhost, chat_node, 3, 1)")
 history_add("testnet(localhost, chat_node, 5, 1)")
+history_add("testnet(localhost, chat_node, 10, 1)")
+
+history_add("testnet(simulation, blockchain_node, 3, 1)")
+history_add("testnet(simulation, blockchain_node, 10, 1)")
+
+history_add("testnet(simulation, chat_node, 3, 1)")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 

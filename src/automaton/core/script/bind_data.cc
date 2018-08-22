@@ -31,7 +31,7 @@ void engine::bind_data() {
           if (fi.is_repeated) {
             auto n = m.get_repeated_field_size(tag_id);
             sol::table result = create_table();
-            for (auto i = 0; i < n; i++) {
+            for (uint32_t i = 0; i < n; i++) {
               result.add(m.get_repeated_int32(tag_id, i));
             }
             return sol::make_object(L, result);
@@ -43,7 +43,7 @@ void engine::bind_data() {
           if (fi.is_repeated) {
             auto n = m.get_repeated_field_size(tag_id);
             sol::table result = create_table();
-            for (auto i = 0; i < n; i++) {
+            for (uint32_t i = 0; i < n; i++) {
               result.add(m.get_repeated_int64(tag_id, i));
             }
             return sol::make_object(L, result);
@@ -55,7 +55,7 @@ void engine::bind_data() {
           if (fi.is_repeated) {
             auto n = m.get_repeated_field_size(tag_id);
             sol::table result = create_table();
-            for (auto i = 0; i < n; i++) {
+            for (uint32_t i = 0; i < n; i++) {
               result.add(m.get_repeated_uint32(tag_id, i));
             }
             return sol::make_object(L, result);
@@ -67,7 +67,7 @@ void engine::bind_data() {
           if (fi.is_repeated) {
             auto n = m.get_repeated_field_size(tag_id);
             sol::table result = create_table();
-            for (auto i = 0; i < n; i++) {
+            for (uint32_t i = 0; i < n; i++) {
               result.add(m.get_repeated_uint64(tag_id, i));
             }
             return result;
@@ -79,7 +79,7 @@ void engine::bind_data() {
           if (fi.is_repeated) {
             auto n = m.get_repeated_field_size(tag_id);
             sol::table result = create_table();
-            for (auto i = 0; i < n; i++) {
+            for (uint32_t i = 0; i < n; i++) {
               result.add(m.get_repeated_blob(tag_id, i));
             }
             return sol::make_object(L, result);
@@ -91,7 +91,7 @@ void engine::bind_data() {
           if (fi.is_repeated) {
             auto n = m.get_repeated_field_size(tag_id);
             sol::table result = create_table();
-            for (auto i = 0; i < n; i++) {
+            for (uint32_t i = 0; i < n; i++) {
               result.add(m.get_repeated_message(tag_id, i));
             }
             return sol::make_object(L, result);
