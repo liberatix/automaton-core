@@ -41,7 +41,7 @@ class node: public network::connection::connection_handler,
        std::vector<std::string> schemas,
        std::vector<std::string> lua_scripts,
        std::vector<std::string> wire_msgs,
-       data::factory& factory);
+       data::factory& factory); // NOLINT
   ~node();
 
   peer_info get_peer_info(peer_id id);
