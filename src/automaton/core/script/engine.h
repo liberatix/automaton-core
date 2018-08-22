@@ -20,7 +20,7 @@ namespace script {
 */
 class engine : public sol::state {
  public:
-  engine(data::factory& data_factory);
+  explicit engine(data::factory& data_factory); // NOLINT
   ~engine();
 
   void bind_core() {
