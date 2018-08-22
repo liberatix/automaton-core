@@ -42,7 +42,7 @@ function blockchain_node(id)
       "automaton/examples/smartproto/blockchain/miner.lua",
       "automaton/examples/smartproto/blockchain/blockchain.lua"
     },
-    {"Block", "GetBlocks", "Blocks"}
+    {"Hello", "Block", "GetBlocks", "Blocks"}
   )
 
   print(id)
