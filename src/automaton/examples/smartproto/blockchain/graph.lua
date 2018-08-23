@@ -25,9 +25,9 @@ function debug_html()
     from = hashstr(v.prev_hash)
     -- check if this is in current blockchain
     if k == blockchain[v.height] then
-      clr = "'#ABEBC6'"
+      clr = "'#cce0ff', font: {face:'Play'}"
     else
-      clr = "'#F5CBA7'"
+      clr = "'#f2e6d9', font: {color:'#333', face:'Play'}"
     end
     title = "mined by " .. v.miner
         .. "<br>HASH: " .. hex(k)

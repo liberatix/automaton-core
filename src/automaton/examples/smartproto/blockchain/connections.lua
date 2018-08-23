@@ -5,6 +5,13 @@
 conn = {}
 conn[0] = { name="ME!" }
 
+function pid(peer_id)
+  if conn[peer_id] ~= nil then
+    return string.format("CONN%d[%s]", peer_id, conn[peer_id].name)
+  end
+  return "N/A"
+end
+
 function connected(peer_id)
   log("connections", "CONNECTED TO " .. tostring(peer_id))
   conn[peer_id] = { name = "N/A" }

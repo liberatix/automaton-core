@@ -37,3 +37,11 @@ function get_block(hash)
   end
   return 
 end
+
+function update_peers()
+  for k, v in pairs(peers) do
+    if v.state == STATE.HANDSHAKE then
+      handshake(k)
+    end
+  end
+end

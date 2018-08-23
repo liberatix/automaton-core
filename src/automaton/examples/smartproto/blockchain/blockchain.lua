@@ -1,10 +1,8 @@
 -- blockchain.lua
 
-current_message_id = 1
+last_hash = cur_hash()
 
-last_hash = GENESIS_HASH
-
--- node callback functions
+-- update is called occasionally by the node
 function update(time)
   local hash = cur_hash()
   if hash ~= last_hash then
@@ -16,23 +14,11 @@ function update(time)
 
   -- if a block is mined call broadcast to all peers
   if found then
-    -- print("Found block")
     on_Block(0, block)
   end
 
   -- for each peer call the necesery function
-  for k, v in pairs(peers) do
-    if v.state == STATE.HANDSHAKE then
-      handshake(k)
-    end
-  end
-end
-
-function pid(peer_id)
-  if conn[peer_id] ~= nil then
-    return string.format("CONN%d[%s]", peer_id, conn[peer_id].name)
-  end
-  return "N/A"
+  update_peers()
 end
 
 function sent(peer_id, msg_id, success)
@@ -45,7 +31,12 @@ function sent(peer_id, msg_id, success)
 end
 
 function blockHash(block)
-  blockdata = tostring(block.miner) .. tostring(block.prev_hash) .. tostring(block.height) .. tostring(block.nonce);
+  local a
+  a = block.miner
+  a = block.prev_hash
+  a = block.height
+  a = block.nonce
+  blockdata = tostring(block.miner) .. tostring(block.prev_hash) .. tostring(block.height) .. tostring(block.nonce)
   return sha3(blockdata)
 end
 
@@ -89,29 +80,26 @@ function validateBlock(block)
   end
 end
 
-function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesis give proper hash
-  -- TODO(Samir): Implement block sending to other peers, Check if the block is received
-  --print ("sending block " .. hex(blockHash))
+current_message_id = 1
 
+function sendBlock(peer_id, block_hash)
   current_message_id = current_message_id + 1
-  -- log(pid(peer_id), "Sending the following  block to this peer -- " .. tostring(current_message_id))
-  if blockHash == GENESIS_HASH then
-    local no_blocks = Block()
-    no_blocks.height = 0
-    no_blocks.miner = "No miner"
-    no_blocks.prev_hash = GENESIS_HASH
-    no_blocks.nonce = ""
-    log_block(pid(peer_id), no_blocks)
-    send(peer_id, no_blocks, current_message_id)
-  else
-    log_block(pid(peer_id), blocks[blockHash])
-    local block = Block()
-    block.miner = blocks[blockHash].miner
-    block.prev_hash = blocks[blockHash].prev_hash
-    block.height = blocks[blockHash].height
-    block.nonce = blocks[blockHash].nonce
-    send(peer_id, block, current_message_id)
+  log(pid(peer_id), "SEND | " .. hex(block_hash))
+
+  -- Get block by hash and check if it's valid
+  local block = get_block(block_hash)
+  if block == nil then
+    log("", "Trying to send invalid block with hash " .. hex(block_hash))
+    return
   end
+
+  -- Convert block to Block protocol message
+  local block_msg = Block()
+  block_msg.miner = block.miner
+  block_msg.prev_hash = block.prev_hash
+  block_msg.height = block.height
+  block_msg.nonce = block.nonce
+  send(peer_id, block_msg, current_message_id)
 end
 
 function peer_connected(peer_id)
@@ -140,13 +128,7 @@ function on_Block(peer_id, block)
     log("ERRORS", "on_Block called with block = nil!!!")
     return
   end
-  if block.height == 0 then
-    log(pid(peer_id), "Received a block with height 0 (This peer has no blocks)")
-  else
-    log_block("on_Block", block)
-    log_block(pid(peer_id), block)
-  end
-  --log(pid(peer_id), "Received a block: " .. tostring(msg_id))
+
   -- If this is the first block from a newly connect peer
   if peers[peer_id] ~= nil and peers[peer_id].received_block == nil then
     log("on_Block", " First block from peer: " .. peer_id)
@@ -162,6 +144,7 @@ function on_Block(peer_id, block)
   -- Validate, save and broadcast
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
+  log(pid(peer_id), "RECV | " .. hex(hash))
   -- log("on_Block", " Block Validity: " .. block_validity)
   -- log("validateBlock", " Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
@@ -215,12 +198,6 @@ function gossip(from, block_hash)
       end
   --end
   end
-end
-
-function onBlocks(peer_id, msg)
-end
-
-function onGetBlocks(peer_id, msg)
 end
 
 function handshake(peer_id)
