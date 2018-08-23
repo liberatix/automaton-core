@@ -253,13 +253,9 @@ function collect_stats()
     print(names[i])
     local hash = _G[names[i]].get_hash()
     local height = _G[names[i]].get_height(hash);
-    print(height)
     stats[height] = stats[height] or {}
-    print(stats[height])
     stats[height][hash] = stats[height][hash] or {}
-    print(stats[height][hash])
     stats[height][hash][nodes] = stats[height][hash][nodes] or {}
-    print(stats[height][hash][nodes])
     table.insert(stats[height][hash][nodes], names[i])
   end
 end
