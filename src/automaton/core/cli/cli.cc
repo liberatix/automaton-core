@@ -36,11 +36,11 @@ Replxx::completions_t hook_completion(std::string const& context, int index, voi
   Replxx::completions_t completions;
 
   std::string prefix {context.substr(index)};
-	for (auto const& e : examples) {
-		if (e.compare(0, prefix.size(), prefix) == 0) {
-			completions.emplace_back(e.c_str());
-		}
-	}
+  for (auto const& e : examples) {
+    if (e.compare(0, prefix.size(), prefix) == 0) {
+      completions.emplace_back(e.c_str());
+    }
+  }
 
   return completions;
 }
@@ -49,21 +49,21 @@ Replxx::completions_t hook_completion(std::string const& context, int index, voi
 Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& c, void* data) {
   Replxx::hints_t hints;
 
-	// only show hint if prefix is at least 'n' chars long
-	// or if prefix begins with a specific character
-	std::string prefix {context.substr(index)};
-	if (prefix.size() >= 1 || (! prefix.empty() && prefix.at(0) == '.')) {
-		for (auto const& e : examples) {
-			if (e.compare(0, prefix.size(), prefix) == 0) {
-				hints.emplace_back(e.substr(prefix.size()).c_str());
-			}
-		}
-	}
+  // only show hint if prefix is at least 'n' chars long
+  // or if prefix begins with a specific character
+  std::string prefix {context.substr(index)};
+  if (prefix.size() >= 1 || (! prefix.empty() && prefix.at(0) == '.')) {
+    for (auto const& e : examples) {
+      if (e.compare(0, prefix.size(), prefix) == 0) {
+        hints.emplace_back(e.substr(prefix.size()).c_str());
+      }
+    }
+  }
 
-	// set hint color to green if single match found
-	if (hints.size() == 1) {
-		c = Replxx::Color::GREEN;
-	}
+  // set hint color to green if single match found
+  if (hints.size() == 1) {
+    c = Replxx::Color::GREEN;
+  }
 
   return hints;
 }
