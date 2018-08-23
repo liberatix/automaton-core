@@ -24,9 +24,9 @@ history_add("testnet(manual, blockchain_node, 0, 0)")
 
 history_add("dump_logs()");
 history_add("testnet(localhost, blockchain_node, 20, 1)")
-history_add("testnet(localhost, blockchain_node, 100, 1)")
+-- history_add("testnet(localhost, blockchain_node, 100, 1)")
 
-history_add("dump_connections_graph()");
+-- history_add("dump_connections_graph()");
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
@@ -49,7 +49,7 @@ function blockchain_node(id)
     {"Hello", "Block", "GetBlocks", "Blocks"}
   )
 
-  print(id)
+  -- print(id)
   _G[id] = {
     set_mining_power = function(x)
       n:script("MINE_ATTEMPTS=" .. x .. " return ''")
@@ -57,6 +57,18 @@ function blockchain_node(id)
 
     get_mining_power = function()
       n:script("return tostring(MINE_ATTEMPTS)");
+    end,
+
+    get_hash = function()
+      local hash = n:script("return hex(cur_hash())")
+      print(id .. " hash:: " .. hash)
+      return hash
+    end,
+
+    get_height = function(hash)
+      local h = n:script("return tostring(get_block(bin(\"" .. hash .. "\")).height)")
+      print(id .. " @ " .. hash .. " @ height " .. h)
+      return h
     end
 
     -- mine_block = function(x)
@@ -208,14 +220,31 @@ function add_peer(node_id, address, pid)
 end
 
 function dump_logs()
-  dump_connections_graph()
   for i in pairs(nodes) do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
+  collect_stats()
 end
 
 function dump_connections_graph()
   file = io.open ("logs/connections_graph.html", "w+")
   file:write(create_graph_html())
   file:close()
+end
+
+function collect_stats()
+  stats = {}
+  for i in pairs(nodes) do
+    print(names[i])
+    local hash = _G[names[i]].get_hash()
+    local height = _G[names[i]].get_height(hash);
+    print(height)
+    stats[height] = stats[height] or {}
+    print(stats[height])
+    stats[height][hash] = stats[height][hash] or {}
+    print(stats[height][hash])
+    stats[height][hash][nodes] = stats[height][hash][nodes] or {}
+    print(stats[height][hash][nodes])
+    table.insert(stats[height][hash][nodes], names[i])
+  end
 end
