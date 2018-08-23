@@ -52,7 +52,7 @@ Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& 
   // only show hint if prefix is at least 'n' chars long
   // or if prefix begins with a specific character
   std::string prefix {context.substr(index)};
-  if (prefix.size() >= 1 || (! prefix.empty() && prefix.at(0) == '.')) {
+  if (prefix.size() >= 1 || (!prefix.empty() && prefix.at(0) == '.')) {
     for (auto const& e : examples) {
       if (e.compare(0, prefix.size(), prefix) == 0) {
         hints.emplace_back(e.substr(prefix.size()).c_str());
