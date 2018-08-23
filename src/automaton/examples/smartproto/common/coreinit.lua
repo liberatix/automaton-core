@@ -21,8 +21,8 @@ history_add("testnet(simulation, blockchain_node, 10, 1)")
 
 history_add("testnet(simulation, chat_node, 3, 1)")
 
-history_add("set_listeners(5001, 5050)")
-history_add("set_listeners(5051, 5100) add_peers('127.0.0.1', 5001, 5050) nIndex = 10")
+history_add("set_listeners('127.0.0.1', 5001, 5050)")
+history_add("set_listeners('127.0.0.1', 5051, 5100) add_peers('127.0.0.1', 5001, 5050) nIndex = 50")
 history_add("testnet(manual, blockchain_node, 0, 0)")
 
 history_add("dump_logs()");
@@ -30,6 +30,7 @@ history_add("dump_logs()");
 history_add("dump_connections_graph()");
 history_add("testnet(localhost, blockchain_node, 100, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 4)")
+history_add("testnet(localhost, blockchain_node, 20, 1)")
 
 history_add("testnet(localhost, chat_node, 5, 1)")
 
@@ -62,6 +63,18 @@ function blockchain_node(id)
 
     get_mining_power = function()
       n:script("return tostring(MINE_ATTEMPTS)");
+    end,
+
+    get_hash = function()
+      local hash = n:script("return hex(cur_hash())")
+      print(id .. " hash:: " .. hash)
+      return hash
+    end,
+
+    get_height = function(hash)
+      local h = n:script("return tostring(get_block(bin(\"" .. hash .. "\")).height)")
+      print(id .. " @ " .. hash .. " @ height " .. h)
+      return h
     end
 
     -- mine_block = function(x)
@@ -160,10 +173,10 @@ end
 manual_listeners = {}
 remote_peers = {}
 
-function set_listeners(s, e)
+function set_listeners(address, s, e)
   manual_listeners = {}
   for port = s, e do
-    table.insert(manual_listeners, string.format("tcp://127.0.0.1:%d", port))
+    table.insert(manual_listeners, string.format("tcp://%s:%d", address, port))
   end
 end
 
@@ -224,6 +237,7 @@ function dump_logs()
   for i in pairs(nodes) do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
+  collect_stats()
 end
 
 function dump_connections_graph()
@@ -232,6 +246,19 @@ function dump_connections_graph()
   file:close()
 end
 
+
+function collect_stats()
+  stats = {}
+  for i in pairs(nodes) do
+    print(names[i])
+    local hash = _G[names[i]].get_hash()
+    local height = _G[names[i]].get_height(hash);
+    stats[height] = stats[height] or {}
+    stats[height][hash] = stats[height][hash] or {}
+    stats[height][hash][nodes] = stats[height][hash][nodes] or {}
+    table.insert(stats[height][hash][nodes], names[i])
+  end
+end
 function set_mining_power(n)
   for i in pairs(nodes) do
     nodes[i]:call("MINE_ATTEMPTS=" .. tostring(n))
