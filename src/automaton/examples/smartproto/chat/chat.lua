@@ -1,3 +1,6 @@
+-- chat.lue
+
+math.randomseed(os.time())
 
 global_seq = 1
 
@@ -5,23 +8,17 @@ function gossip(peer_id, msg)
   for k, v in pairs(peers) do
     if k ~= 0 and k ~= peer_id then
       global_seq = global_seq + 1
-      log("sent", string.format("Sending to %s (%d)", peers[k].name, global_seq))
       mm = msg
       mm.global_sequence = global_seq
       send(k, mm, global_seq)
-      if math.random(1000) < 0 then
-        log("sent", "ATTEMPTING DISCONNECT BEFORE")
-        disconnect(k)
-        log("sent", "ATTEMPTING DISCONNECT AFTER")
-      end
     end
   end
 end
 
 function sent(peer_id, msg_id, success)
-  log("sent",
-    string.format("Sent to %s (%d), success: %s", peers[peer_id].name, msg_id, tostring(success))
-  )
+  -- log("sent",
+  --   string.format("Sent to %s (%d), success: %s", peers[peer_id].name, msg_id, tostring(success))
+  -- )
 end
 
 msgs = {}
@@ -39,8 +36,12 @@ function on_Msg(peer_id, m)
   end
 end
 
+wait = 100
+
 function update(timestamp)
-  if math.random(1000) < 5 then
+  wait = wait + 1
+  if wait >= 30 then
+    wait = 0
     m = Msg()
     msg_index = msg_index + 1
     local idx = ((msg_index - 1) % #msg_contents) + 1

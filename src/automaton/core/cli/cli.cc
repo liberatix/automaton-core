@@ -25,6 +25,7 @@ std::vector<std::string> examples {
   "blockchain_node",
   "testnet()",
   "set_mining_power",
+  "get_mining_power",
   "Alice",
   "Bob",
   "Charlie",

@@ -6,6 +6,9 @@ nodes = {}
 miners = {}
 connections_graph_nodes = {}
 connections_graph_edges = {}
+
+ring_order = true
+
 -- HISTORY
 
 
@@ -23,10 +26,13 @@ history_add("set_listeners('127.0.0.1', 5051, 5100) add_peers('127.0.0.1', 5001,
 history_add("testnet(manual, blockchain_node, 0, 0)")
 
 history_add("dump_logs()");
-history_add("testnet(localhost, blockchain_node, 20, 1)")
--- history_add("testnet(localhost, blockchain_node, 100, 1)")
 
--- history_add("dump_connections_graph()");
+history_add("dump_connections_graph()");
+history_add("testnet(localhost, blockchain_node, 100, 1)")
+history_add("testnet(localhost, blockchain_node, 100, 4)")
+history_add("testnet(localhost, blockchain_node, 20, 1)")
+
+history_add("testnet(localhost, chat_node, 5, 1)")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
@@ -37,7 +43,7 @@ end
 function blockchain_node(id)
   local n = node(
     id,
-    100,
+    20,
     {"automaton/examples/smartproto/blockchain/blockchain.proto"},
     {
       "automaton/examples/smartproto/blockchain/connections.lua",
@@ -82,7 +88,7 @@ end
 function chat_node(id)
   return node(
     id,
-    100,
+    20,
     {
       "automaton/examples/smartproto/chat/chat.proto"
     },
@@ -97,24 +103,31 @@ end
 -- NETWORK SIMULATION DISCOVERY
 
 function sim_bind(i)
-  return string.format("sim://5:500:%d", i)
+  return string.format("sim://100:10000:%d", i)
 end
 
 function sim_addr(i)
-  return string.format("sim://150:1000:500:%d", i)
+  return string.format("sim://1:20:10000:%d", i)
 end
 
 function simulation(node_factory, NODES, PEERS)
   for i = 1, NODES do
-    print(sim_bind(i))
+    -- print(sim_bind(i))
     nodes[i] = add_node(node_factory, i)
     nodes[i]:listen(sim_bind(i))
   end
 
   for i = 1, NODES do
     for j = 1, PEERS do
-      a = ((i + j - 1) % NODES) + 1;
-      print(sim_addr(a))
+      if ring_order then
+        a = (i + j - 1) % NODES + 1
+      else
+        repeat
+          a = math.random(NODES)
+        until (a ~= i) and (r_peers[a] == nil)
+        r_peers[a] = true
+      end
+      -- print(sim_addr(a))
       peer_id = add_peer(i, sim_addr(a), a)
       nodes[i]:connect(peer_id)
     end
@@ -141,14 +154,14 @@ function localhost(node_factory, NODES, PEERS)
   for i = 1, NODES do
     local r_peers = {}
     for j = 1, PEERS do
-      a = (i + j - 1) % NODES + 1
-      --[[
-      repeat
-        a = math.random(NODES)
-      until (a ~= i) and (r_peers[a] == nil)
-      r_peers[a] = true
-      ]]
-
+      if ring_order then
+        a = (i + j - 1) % NODES + 1
+      else
+        repeat
+          a = math.random(NODES)
+        until (a ~= i) and (r_peers[a] == nil)
+        r_peers[a] = true
+      end
       peer_id = add_peer(i, tcp_addr(a), a)
       nodes[i]:connect(peer_id)
     end
@@ -220,6 +233,7 @@ function add_peer(node_id, address, pid)
 end
 
 function dump_logs()
+  dump_connections_graph()
   for i in pairs(nodes) do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
@@ -231,6 +245,7 @@ function dump_connections_graph()
   file:write(create_graph_html())
   file:close()
 end
+
 
 function collect_stats()
   stats = {}
@@ -247,4 +262,18 @@ function collect_stats()
     print(stats[height][hash][nodes])
     table.insert(stats[height][hash][nodes], names[i])
   end
+end
+function set_mining_power(n)
+  for i in pairs(nodes) do
+    nodes[i]:call("MINE_ATTEMPTS=" .. tostring(n))
+  end
+end
+
+function get_mining_power()
+  s = {}
+  for i in pairs(nodes) do
+    pwr = nodes[i]:script("return tostring(MINE_ATTEMPTS)")
+    table.insert(s, pwr)
+  end
+  print(table.concat(s, ", "))
 end
