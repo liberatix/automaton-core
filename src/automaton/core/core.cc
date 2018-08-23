@@ -141,6 +141,29 @@ int main(int argc, char* argv[]) {
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/coreinit.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
 
+  // Start dump_logs thread.
+  std::mutex logger_mutex;
+  bool stop_logger = false;
+  std::thread logger([&]() {
+    while (!stop_logger) {
+      // Dump logs once per second.
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      logger_mutex.lock();
+      try {
+        sol::protected_function_result pfr;
+        pfr = script.safe_script("dump_logs()");
+        if (!pfr.valid()) {
+          sol::error err = pfr;
+          std::cout << "\n" << err.what() << "\n";
+          break;
+        }
+      } catch (...) {
+        LOG(FATAL) << "Exception in logger";
+      }
+      logger_mutex.unlock();
+    }
+  });
+
   while (1) {
     // auto input = cli.input("\x1b[38;5;15m\x1b[1m 🄰 \x1b[0m ");
     auto input = cli.input("\x1b[38;5;15m\x1b[1m|A|\x1b[0m ");
@@ -152,12 +175,18 @@ int main(int argc, char* argv[]) {
     string cmd{input};
     cli.history_add(cmd.c_str());
 
-    sol::protected_function_result pfr = script.safe_script(cmd, &sol::script_pass_on_error);
+    logger_mutex.lock();
+    sol::protected_function_result pfr = script.safe_script(cmd);
+    logger_mutex.unlock();
+
     if (!pfr.valid()) {
       sol::error err = pfr;
       std::cout << "\n" << err.what() << "\n";
     }
   }
+
+  stop_logger = true;
+  logger.join();
 
   LOG(DEBUG) << "Destroying lua state & objects";
 
