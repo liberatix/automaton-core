@@ -1,7 +1,13 @@
--- MINER
+-- miner.lua
 
--- turn miner off initially
+-- miner attempts per update
 MINE_ATTEMPTS = 100
+
+nonce = {0}
+
+difficulty = {}
+difficulty.leadingZeros = 1
+difficulty.prefix = "3FFFFF"
 
 -- Increments nonce, expands nonce size if necessary
 function inc_nonce(n)
@@ -28,10 +34,6 @@ function nonce_str(n)
   return table.concat(s)
 end
 
-difficulty = {}
-difficulty.leadingZeros = 2
-difficulty.prefix = "FFFFFF"
-
 function get_target()
   return bin(string.rep("00", difficulty.leadingZeros) .. difficulty.prefix ..
     string.rep("00", 32-difficulty.leadingZeros-3))
@@ -51,8 +53,9 @@ function mine_block(block_data, nonce, target_hash, attempts)
 end
 
 -- Takes in block with miner, prev_hash, height
---
 function mine(miner, prev_hash, height, nonce, attempts)
+  -- if true then return false end
+
   local target = get_target(difficulty)
   local block_data = tostring(miner) .. tostring(prev_hash) .. tostring(height)
   -- mine_block
