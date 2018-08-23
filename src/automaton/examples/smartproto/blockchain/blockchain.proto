@@ -1,5 +1,16 @@
 syntax = "proto3";
 
+message Hello {
+  // Peer unique ID
+  string name = 1;
+
+  // Hash of last block
+  bytes last_hash = 2;
+
+  // Height of last block.
+  uint64 height = 3;
+}
+
 message Block {
   // Address of the miner
   bytes miner = 1;
@@ -25,9 +36,4 @@ message GetBlocks {
 message Blocks {
   // List of block headers from the peer's current blockchain
   repeated Block block = 1;
-}
-
-message R {
-  repeated uint64 f1 = 1;
-  repeated bytes f2 = 2;
 }
