@@ -69,8 +69,7 @@ class node: public network::connection::connection_handler,
   std::set<peer_id> list_connected_peers();
 
   // Execute a script which returns corresponding type
-  template<typename T>
-  void script(std::string command, std::promise<T>* result) {
+  void script(std::string command, std::promise<std::string>* result) {
     add_task([this, command, result]() {
       auto pfr = engine.safe_script(command);
       if (result != nullptr) {

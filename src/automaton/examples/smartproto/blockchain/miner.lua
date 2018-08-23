@@ -1,13 +1,13 @@
 -- miner.lua
 
 -- miner attempts per update
-MINE_ATTEMPTS = 100
+MINE_ATTEMPTS = 1
 
 nonce = {0}
 
 difficulty = {}
 difficulty.leadingZeros = 1
-difficulty.prefix = "3FFFFF"
+difficulty.prefix = "0FFFFF"
 
 -- Increments nonce, expands nonce size if necessary
 function inc_nonce(n)
