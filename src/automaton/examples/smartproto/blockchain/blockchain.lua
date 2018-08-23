@@ -1,24 +1,23 @@
 -- blockchain.lua
 
-nonce = {0}
-
 current_message_id = 1
 
 last_hash = GENESIS_HASH
 
 -- node callback functions
 function update(time)
-  local cur_hash = blockchain[#blockchain] or GENESIS_HASH
-  if cur_hash ~= last_hash then
-    last_hash = cur_hash
-    log("update", "Last hash changed to " .. hex(cur_hash))
+  local hash = cur_hash()
+  if hash ~= last_hash then
+    last_hash = hash
+    log("update", "Last hash changed to " .. hex(last_hash))
   end
 
-  local found, block = mine(nodeid, cur_hash, #blockchain+1, nonce)
+  local found, block = mine(nodeid, hash, #blockchain+1, nonce)
 
   -- if a block is mined call broadcast to all peers
   if found then
-    on_Block(-1, block)
+    -- print("Found block")
+    on_Block(0, block)
   end
 
   -- for each peer call the necesery function
@@ -29,13 +28,16 @@ function update(time)
   end
 end
 
-function pid(id)
-  return "PEER " .. tostring(id)
+function pid(peer_id)
+  if conn[peer_id] ~= nil then
+    return string.format("CONN%d[%s]", peer_id, conn[peer_id].name)
+  end
+  return "N/A"
 end
 
 function sent(peer_id, msg_id, success)
   if success then
-    log(pid(peer_id), "Successfully sent message id: " .. tostring(msg_id))
+    -- log(pid(peer_id), "Successfully sent message id: " .. tostring(msg_id))
   else
     peers[peer_id] = nil
     log(pid(peer_id), "Error sending message id: " .. tostring(msg_id))
@@ -57,34 +59,32 @@ function validateBlock(block)
   hash = blockHash(block)
   local target = get_target()
 
-  log("validateBlock", "validating block: ")
-  log_block("validateBlock", block)
-
   -- Check if we already have the block
   if blocks[hash] ~= nil then
-    log("validateBlock", "DUPLICATE")
+    log_block("validateBlock", block, "DUPLICATE")
     return BLOCK.DUPLICATE
   -- Check if hash is greater than difficulty
   elseif hash > target then
-    log("validateBlock", "In validateBlock, target > hash")
+    log_block("validateBlock", block, "INVALID target > hash")
     return BLOCK.INVALID
   -- block height can't be less than one
   elseif block.height < 1 then
-    log("validateBlock", "INVALID")
+    log_block("validateBlock", block, "INVALID height < 1")
     return BLOCK.INVALID
   -- The block should have its predecessor in blocks unless it is the first block
   elseif block.prev_hash ~= GENESIS_HASH and blocks[block.prev_hash] == nil then
-    log("validateBlock", "NO_PARENT")
+    log_block("validateBlock", block, "NO_PARENT")
     return BLOCK.NO_PARENT
   -- 1. If this is the first block, it needs to have GENESIS_HASH as prev_hash.
   -- 2. If it is not the first block, check if the height of
   --    the block with hash prev_hash is the height of this
   elseif block.height == 1 and block.prev_hash ~= GENESIS_HASH
       or block.height > 1 and blocks[block.prev_hash].height ~= block.height-1 then
+    log_block("validateBlock", block, "INVALID 2")
     log("validateBlock", "INVALID 2")
     return BLOCK.INVALID
   else
-    log("validateBlock", "VALID")
+    log_block("validateBlock", block, "VALID")
     return BLOCK.VALID
   end
 end
@@ -94,7 +94,7 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
   --print ("sending block " .. hex(blockHash))
 
   current_message_id = current_message_id + 1
-  log(pid(peer_id), "Sending the following  block to this peer -- " .. tostring(current_message_id))
+  -- log(pid(peer_id), "Sending the following  block to this peer -- " .. tostring(current_message_id))
   if blockHash == GENESIS_HASH then
     local no_blocks = Block()
     no_blocks.height = 0
@@ -114,7 +114,7 @@ function sendBlock(peer_id, blockHash) -- TODO(Samir): Use sendBlock, for genesi
   end
 end
 
-function connected(peer_id)
+function peer_connected(peer_id)
   log("connected", "Connected to " .. tostring(peer_id))
   log(pid(peer_id), "Connected!")
   peers[peer_id] = {}
@@ -136,17 +136,14 @@ end
 
 
 function on_Block(peer_id, block)
-  log("on_Block", "Received a block from: " .. pid(peer_id))
   if block == nil then
-    log("on_Block", "WARRNING!!!!! The block is == nil ")
+    log("ERRORS", "on_Block called with block = nil!!!")
     return
   end
   if block.height == 0 then
-    log("on_Block", " Block height 0 (the peer has no blocks)")
     log(pid(peer_id), "Received a block with height 0 (This peer has no blocks)")
   else
     log_block("on_Block", block)
-    log(pid(peer_id), "Received the following block from this peer: ")
     log_block(pid(peer_id), block)
   end
   --log(pid(peer_id), "Received a block: " .. tostring(msg_id))
@@ -165,17 +162,17 @@ function on_Block(peer_id, block)
   -- Validate, save and broadcast
   local block_validity = validateBlock(block)
   local hash = blockHash(block)
-  log("on_Block", " Block Validity: " .. block_validity)
-  log("validateBlock", " Block Validity: " .. block_validity)
+  -- log("on_Block", " Block Validity: " .. block_validity)
+  -- log("validateBlock", " Block Validity: " .. block_validity)
   if block_validity == BLOCK.VALID  then
-    log("on_Block", " Valid block added to blocks")
+    -- log("on_Block", " Valid block added to blocks")
     blocks[hash] = {
       miner = block.miner,
       prev_hash = block.prev_hash,
       height = block.height,
       nonce = block.nonce
     }
-    shout(peer_id, hash)
+    gossip(peer_id, hash)
     --Add the block to the head of the blockchain if possobile
     --! if #blockchain == 0 or block.prev_hash == blockchain[#blockchain] then
     --!   print "block added to the longest chain"
@@ -206,14 +203,11 @@ function on_Block(peer_id, block)
   end
 end
 
-function shout(from, block_hash)
-  log("shout", "shouting, from = " .. tostring(from))
-  --print(tprint(peers))
+function gossip(from, block_hash)
   for k, v in pairs(peers) do
     -- TODO(Samir): Decide to which peer states we should send the block
     --if v.state == STATE.IN_CONSENSUS then
       if k ~= from then
-        log("shout", "Sending to peer: " .. tostring(k))
         --print(blocks[block_hash])
         -- current_message_id = current_message_id+1
         -- send(k, blocks[block_hash], current_message_id)
@@ -230,16 +224,13 @@ function onGetBlocks(peer_id, msg)
 end
 
 function handshake(peer_id)
-  --print ("start handshake with peer_id: " .. peer_id)
-  -- print(peers[peer_id].received_block.miner)
-  -- print(peers[peer_id].received_block.height)
-  -- print(tprint(peers[peer_id]))
   -- Check if peer exists in peers
   if peer_id <= 0 or peers[peer_id] == nil then
     log("handshake", "ERROR(Samir 301): in handshake,"
     .. "peer_id needs to be possitive number and peers[peer_id] should not be nil")
     return
   end
+
   if peers[peer_id].state == STATE.HANDSHAKE and peers[peer_id].received_block ~= nil then
     --print "we have sent and recieved block"
     -- if block headers are the same
@@ -250,9 +241,6 @@ function handshake(peer_id)
       -- send all blocks from begining
     -- else get blocks, validate and save until consesnsus is reached
   end
-
-
-
 
   -- if peers[peer_id].STATE == STATE.HANDSHAKE and peers[peer_id].sent_block_hash == nil then
   --   if #blockchain == 0 then
@@ -268,9 +256,11 @@ function handshake(peer_id)
   -- end
 end
 
-function log_block(identifer, block)
-  log(identifer, " height: " .. tostring(block.height))
-  log(identifer, " Hash: " .. hex(blockHash(block)))
-  log(identifer, " prev_hash: " .. hex(tostring(block.prev_hash)))
-  log(identifer, " miner: " .. hex(tostring(block.miner)))
+function log_block(identifer, block, extra)
+  log(identifer,
+    string.format("%s | %04d | %12s | %s",
+      hex(blockHash(block)),
+      block.height,
+      block.miner,
+      extra))
 end
