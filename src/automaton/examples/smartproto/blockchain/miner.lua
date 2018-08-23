@@ -1,5 +1,16 @@
 -- miner.lua
 
+-- call miner on each update
+function update(time)
+  local hash = cur_hash()
+  local found, block = mine(nodeid, hash, #blockchain+1, nonce)
+  if found then
+    log_block("miner", block, "MINED")
+    on_Block(0, block)
+  end
+  process_delayed_blocks()
+end
+
 -- miner attempts per update
 MINE_ATTEMPTS = 1
 
@@ -41,8 +52,8 @@ end
 
 function mine_block(block_data, nonce, target_hash, attempts)
   for i = 1, attempts do
-    block_hash = sha3(block_data .. nonce_str(nonce))
-    if block_hash <= target_hash then
+    hash = sha3(block_data .. nonce_str(nonce))
+    if hash <= target_hash then
       return true
     else
       inc_nonce(nonce)
@@ -70,4 +81,14 @@ function mine(miner, prev_hash, height, nonce, attempts)
   end
 
   return false
+end
+
+function block_hash(block)
+  local a
+  a = block.miner
+  a = block.prev_hash
+  a = block.height
+  a = block.nonce
+  blockdata = tostring(block.miner) .. tostring(block.prev_hash) .. tostring(block.height) .. tostring(block.nonce)
+  return sha3(blockdata)
 end

@@ -33,6 +33,8 @@ history_add("testnet(localhost, blockchain_node, 100, 4)")
 history_add("testnet(localhost, blockchain_node, 20, 1)")
 
 history_add("testnet(localhost, chat_node, 5, 1)")
+history_add("testnet(localhost, blockchain_node, 100, 1)")
+history_add("collect_stats()")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
@@ -43,7 +45,7 @@ end
 function blockchain_node(id)
   local n = node(
     id,
-    20,
+    10,
     {"automaton/examples/smartproto/blockchain/blockchain.proto"},
     {
       "automaton/examples/smartproto/blockchain/connections.lua",
@@ -65,17 +67,9 @@ function blockchain_node(id)
       n:script("return tostring(MINE_ATTEMPTS)");
     end,
 
-    get_hash = function()
-      local hash = n:script("return hex(cur_hash())")
-      print(id .. " hash:: " .. hash)
-      return hash
+    get_stats = function()
+      return n:script("return node_stats()")
     end,
-
-    get_height = function(hash)
-      local h = n:script("return tostring(get_block(bin(\"" .. hash .. "\")).height)")
-      print(id .. " @ " .. hash .. " @ height " .. h)
-      return h
-    end
 
     -- mine_block = function(x)
     --   n:script("mine_block_from_hash(" .. x .. ")")
@@ -88,7 +82,7 @@ end
 function chat_node(id)
   return node(
     id,
-    20,
+    10,
     {
       "automaton/examples/smartproto/chat/chat.proto"
     },
@@ -237,7 +231,7 @@ function dump_logs()
   for i in pairs(nodes) do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
-  collect_stats()
+  -- collect_stats()
 end
 
 function dump_connections_graph()
@@ -246,22 +240,27 @@ function dump_connections_graph()
   file:close()
 end
 
-
 function collect_stats()
-  stats = {}
+  all_stats = {}
   for i in pairs(nodes) do
-    print(names[i])
-    local hash = _G[names[i]].get_hash()
-    local height = _G[names[i]].get_height(hash);
-    stats[height] = stats[height] or {}
-    stats[height][hash] = stats[height][hash] or {}
-    stats[height][hash][nodes] = stats[height][hash][nodes] or {}
-    table.insert(stats[height][hash][nodes], names[i])
+    local name = names[i]
+    local stats = _G[names[i]].get_stats();
+    print(name, stats)
+    table.insert(all_stats, {n = name, s = stats})
   end
 end
+
 function set_mining_power(n)
   for i in pairs(nodes) do
     nodes[i]:call("MINE_ATTEMPTS=" .. tostring(n))
+  end
+end
+
+function set_lag(min_lag, max_lag)
+  for i in pairs(nodes) do
+    nodes[i]:call(
+      "MIN_LAG=" .. tostring(min_lag) ..
+      "; MAX_LAG=" .. tostring(max_lag))
   end
 end
 

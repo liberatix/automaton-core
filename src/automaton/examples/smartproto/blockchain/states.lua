@@ -1,11 +1,11 @@
 -- peer states
-STATE = {}
-STATE.HANDSHAKE = 1
-STATE.BEHIND = 2
-STATE.AHEAD = 3
-STATE.DISCONECTED = 4
-STATE.NOT_CONNECTED = 5
-STATE.IN_CONSENSUS = 6
+-- STATE = {}
+-- STATE.HANDSHAKE = 1
+-- STATE.BEHIND = 2
+-- STATE.AHEAD = 3
+-- STATE.DISCONECTED = 4
+-- STATE.NOT_CONNECTED = 5
+-- STATE.IN_CONSENSUS = 6
 
 -- block validation results
 BLOCK = {}
@@ -19,6 +19,12 @@ GENESIS_HASH = sha3("automaton")
 peers = {}
 blocks = {}
 blockchain = {}
+
+function node_stats()
+  local hash = cur_hash()
+  local block = get_block(hash)
+  return hex(hash) .. "," .. tostring(block.height)
+end
 
 function cur_hash()
   return blockchain[#blockchain] or GENESIS_HASH
@@ -38,10 +44,11 @@ function get_block(hash)
   return 
 end
 
-function update_peers()
-  for k, v in pairs(peers) do
-    if v.state == STATE.HANDSHAKE then
-      handshake(k)
-    end
-  end
+function log_block(identifer, block, extra)
+  log(identifer,
+    string.format("%s | %4d | %12s | %s",
+      hex(block_hash(block)),
+      block.height,
+      block.miner,
+      extra))
 end
