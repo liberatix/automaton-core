@@ -33,8 +33,9 @@ history_add("testnet(localhost, blockchain_node, 100, 4)")
 history_add("testnet(localhost, blockchain_node, 20, 1)")
 
 history_add("testnet(localhost, chat_node, 5, 1)")
-history_add("testnet(localhost, blockchain_node, 100, 1)")
-history_add("collect_stats()")
+
+history_add("testnet(localhost, blockchain_node, 20, 1)")
+history_add("collect_states()")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
@@ -71,9 +72,9 @@ function blockchain_node(id)
       return n:script("return node_stats()")
     end,
 
-    -- mine_block = function(x)
-    --   n:script("mine_block_from_hash(" .. x .. ")")
-    -- end
+    disconnect_all = function()
+      n:call("disconnect_all()")
+    end,
   }
 
   return n
@@ -231,23 +232,12 @@ function dump_logs()
   for i in pairs(nodes) do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
-  -- collect_stats()
 end
 
 function dump_connections_graph()
-  file = io.open ("logs/connections_graph.html", "w+")
+  file = io.open("logs/connections_graph.html", "w+")
   file:write(create_graph_html())
   file:close()
-end
-
-function collect_stats()
-  all_stats = {}
-  for i in pairs(nodes) do
-    local name = names[i]
-    local stats = _G[names[i]].get_stats();
-    print(name, stats)
-    table.insert(all_stats, {n = name, s = stats})
-  end
 end
 
 function set_mining_power(n)

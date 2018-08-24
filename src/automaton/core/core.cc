@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/names.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/coreinit.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
+  script.safe_script(get_file_contents("automaton/examples/smartproto/common/show_states.lua"));
 
   // Start dump_logs thread.
   std::mutex logger_mutex;
