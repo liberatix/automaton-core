@@ -17,9 +17,9 @@ end
 
 GENESIS_HASH = sha3("automaton")
 
-function fmt_node(hash)
-  local fmt = "{id:'%s', label:'%s'}"
-  return string.format(fmt, hash, hash:sub(-8))
+function fmt_node(hash, names)
+  local fmt = "{id:'%s', label:'%s\\n%d nodes'}"
+  return string.format(fmt, hash, hash:sub(-8), #names)
 end
 
 function dump_node_states(n)
@@ -29,21 +29,38 @@ function dump_node_states(n)
   local edges = {}
   local prev_block = {}
   local added = {}
+  local block_names = {}
 
   local gen_hash = hex(GENESIS_HASH)
-  table.insert(node_blocks, fmt_node(gen_hash))
+  table.insert(node_blocks, fmt_node(gen_hash, {}))
 
+  -- gather blocks that each node has
   for s1,state in pairs(n) do
+    -- only show the last N blocks from each node
     local f = false
     while #state.b > 20 do
       table.remove(state.b, 1)
       f = true
     end
     if f then table.insert(state.b, 1, "...") end
+
+    for k,v in pairs(state.b) do
+      if block_names[v] == nil then
+        block_names[v] = {}
+      end
+      table.insert(block_names[v], state.n)
+    end
+  end
+
+  for s1,state in pairs(n) do
     for k,v in pairs(state.b) do
       if added[v] == nil then
         added[v] = true
-        table.insert(node_blocks, fmt_node(v))
+        if block_names[v] == nil then
+          print("WAT?! " .. v)
+          block_names[v] = {}
+        end
+        table.insert(node_blocks, fmt_node(v, block_names[v]))
         if k > 1 then
           prev_block[v] = state.b[k-1]
         else

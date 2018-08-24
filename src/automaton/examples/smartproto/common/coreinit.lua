@@ -46,7 +46,7 @@ end
 function blockchain_node(id)
   local n = node(
     id,
-    10,
+    5,
     {"automaton/examples/smartproto/blockchain/blockchain.proto"},
     {
       "automaton/examples/smartproto/blockchain/connections.lua",
