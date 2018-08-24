@@ -39,8 +39,26 @@ function debug_html()
     table.insert(e, s)
   end
 
+  collect_balances()
+  local balances_html = {}
+  for k, v in pairs(balances) do
+    -- print(k .. " -> " .. v)
+    local s = string.format([[
+    <tr>
+      <td>%s</td>
+      <td>%d</td>
+    </tr>
+    ]], k, v);
+    -- print(s)
+    table.insert(balances_html, s)
+  end
+
   local html =
 [[
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
@@ -66,7 +84,7 @@ function debug_html()
   ]);
   // create an array with edges
   var edges = new vis.DataSet([
-]]  
+]]
 ..
 
   table.concat(e, ",\n")
@@ -109,7 +127,37 @@ function debug_html()
     physics: false
   };
   var network = new vis.Network(container, data, options);
+  $(document).ready( function () {
+    $('#balances').DataTable({
+        "scrollY":        "400",
+        "scrollCollapse": true,
+        "paging":         false,
+        "searching":      false,
+    });
+  } );
 </script>
+<font size="2" face="Courier New" >
+<style>
+table {
+  text-align: center;
+  border: 1px solid #c5cbd6;
+}
+
+</style>
+<table id="balances" class="display compact">
+  <thead>
+    <tr>
+      <th>Miner</th>
+      <th>Number of blocks</th>
+    </tr>
+  </thead>
+  <tbody>
+    ]]
+    .. table.concat(balances_html, "\n") ..
+    [[
+  </tbody>
+</table>
+</font>
 ]]
 
   return html;

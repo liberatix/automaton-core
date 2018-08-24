@@ -19,6 +19,7 @@ GENESIS_HASH = sha3("automaton")
 peers = {}
 blocks = {}
 blockchain = {}
+balances = {}
 
 function node_stats()
   local hashes = {}
@@ -26,6 +27,13 @@ function node_stats()
     table.insert(hashes, hex(b))
   end
   return table.concat(hashes, "\n")
+end
+
+function collect_balances()
+  for i = 1, #blockchain do
+    local block = get_block(blockchain[i])
+    balances[block.miner] = (balances[block.miner] or 0 ) + 1
+  end
 end
 
 function cur_hash()
@@ -43,7 +51,7 @@ function get_block(hash)
       nonce = ""
     }
   end
-  return 
+  return
 end
 
 function log_block(identifer, block, extra)
