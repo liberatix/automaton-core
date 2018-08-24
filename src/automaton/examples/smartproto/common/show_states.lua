@@ -56,10 +56,6 @@ function dump_node_states(n)
     for k,v in pairs(state.b) do
       if added[v] == nil then
         added[v] = true
-        if block_names[v] == nil then
-          print("WAT?! " .. v)
-          block_names[v] = {}
-        end
         table.insert(node_blocks, fmt_node(v, block_names[v]))
         if k > 1 then
           prev_block[v] = state.b[k-1]
