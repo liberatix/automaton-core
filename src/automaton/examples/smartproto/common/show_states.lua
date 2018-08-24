@@ -6,7 +6,6 @@ function collect_states()
     local name = names[i]
     local blocks_string = _G[names[i]].get_stats();
     local blocks = {}
-    -- print(name, blocks_string)
     for block in string.gmatch(blocks_string, "%S+") do
       table.insert(blocks, block)
     end
@@ -78,8 +77,8 @@ function dump_node_states(n)
 <html>
 <head>
 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../js/vis.min.js"></script>
+<link href="../js/vis.min.css" rel="stylesheet" type="text/css" />
 
 <style type="text/css">
   body {
