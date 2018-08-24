@@ -1,3 +1,5 @@
+-- graph.lua
+
 -- GRAPH VISUALIZATION OF BLOCK TREE
 
 function hashstr(h)
