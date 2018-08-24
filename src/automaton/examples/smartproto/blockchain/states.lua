@@ -1,4 +1,4 @@
--- peer states
+-- states
 -- STATE = {}
 -- STATE.HANDSHAKE = 1
 -- STATE.BEHIND = 2
@@ -21,9 +21,11 @@ blocks = {}
 blockchain = {}
 
 function node_stats()
-  local hash = cur_hash()
-  local block = get_block(hash)
-  return hex(hash) .. "," .. tostring(block.height)
+  local hashes = {}
+  for k,b in pairs(blockchain) do
+    table.insert(hashes, hex(b))
+  end
+  return table.concat(hashes, "\n")
 end
 
 function cur_hash()

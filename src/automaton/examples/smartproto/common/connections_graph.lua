@@ -1,3 +1,5 @@
+-- connections_graph.lua
+
 function create_graph_html ()
   local html = [[
 <html>
