@@ -69,13 +69,13 @@ class simulation {
   /**
     Map storing created connections.
   */
-  std::unordered_map<uint32_t, simulated_connection*> connections;
+  std::unordered_map<uint32_t, std::shared_ptr<connection> > connections;
   std::mutex connections_mutex;
 
   /**
     Map storing created acceptors where the key is the address.
   */
-  std::unordered_map<uint32_t, simulated_acceptor*> acceptors;
+  std::unordered_map<uint32_t, std::shared_ptr<acceptor> > acceptors;
   std::mutex acceptors_mutex;
 
   /**
@@ -140,11 +140,11 @@ class simulation {
     Process all events from simulation_time to the given time.
   */
   int process(uint64_t time);
-  void add_connection(simulated_connection* connection_);
-  simulated_connection* get_connection(uint32_t connection_index);
+  void add_connection(std::shared_ptr<connection> connection_);
+  std::shared_ptr<connection> get_connection(uint32_t connection_index);
   void remove_connection(uint32_t connection_id);
-  void add_acceptor(uint32_t address, simulated_acceptor* acceptor_);
-  simulated_acceptor* get_acceptor(uint32_t address);
+  void add_acceptor(uint32_t address, std::shared_ptr<acceptor> acceptor_);
+  std::shared_ptr<acceptor> get_acceptor(uint32_t address);
   void remove_acceptor(uint32_t address);
 
   // DEBUG
@@ -152,7 +152,7 @@ class simulation {
   void print_connections();
 };
 
-class simulated_connection: public connection {
+class simulated_connection: public connection, public std::enable_shared_from_this<simulated_connection> {
  public:
   uint32_t remote_address;
   uint32_t local_connection_id;
@@ -239,7 +239,7 @@ class simulated_connection: public connection {
   mutable std::mutex state_mutex;
 };
 
-class simulated_acceptor: public acceptor {
+class simulated_acceptor: public acceptor, public std::enable_shared_from_this<simulated_acceptor> {
  public:
   uint32_t address;
   std::string original_address;

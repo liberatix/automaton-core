@@ -96,11 +96,11 @@ class connection {
     function. The function returns object from the specified class. If no such
     class type was registered, NULL will be returned.
   */
-  static connection* create(const std::string& type, connection_id id, const std::string& address,
+  static std::shared_ptr<connection> create(const std::string& type, connection_id id, const std::string& address,
       connection_handler* handler);
 
-  typedef connection* (*factory_function)(connection_id id, const std::string& address,
-      connection_handler* handler);
+  typedef std::shared_ptr<connection>
+      (*factory_function)(connection_id id, const std::string& address, connection_handler* handler);
 
   /**
     Function that is used to register how an object from child class will be

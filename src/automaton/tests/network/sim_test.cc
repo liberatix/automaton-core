@@ -7,7 +7,7 @@
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 
-std::map<uint32_t, automaton::core::network::connection*> connections;
+std::map<uint32_t, std::shared_ptr<automaton::core::network::connection> > connections;
 
 int counter = 100;
 static uint32_t cids = 0;
@@ -17,9 +17,7 @@ uint32_t get_new_id() {
   std::lock_guard<std::mutex> lock(ids_mutex);
   return ++cids;
 }
-// bool passed = true;
-char* bufferA = new char[256];
-char* bufferB = new char[256];
+
 char* bufferC = new char[256];
 
 automaton::core::network::simulation* sim = nullptr;
@@ -59,19 +57,19 @@ class lis_handler: public acceptor::acceptor_handler {
  public:
   // TODO(kari): Add constructor that accepts needed options
   // (vector connections, max ...)
-  bool on_requested(acceptor* a, const std::string& address, uint32_t* pid) {
+  bool on_requested(std::shared_ptr<acceptor> a, const std::string& address, uint32_t* pid) {
   //  EXPECT_EQ(address, address_a);
     *pid = get_new_id();
     LOG(INFO) << "Connection request from: " << address << ". Accepting...";
     return true;
   }
-  void on_connected(acceptor* a, connection* c, const std::string& address) {
+  void on_connected(std::shared_ptr<acceptor> a, std::shared_ptr<connection> c, const std::string& address) {
     LOG(INFO) << "Accepted connection from: " << address;
     connections[c->get_id()] = c;
     char* buffer = new char[256];
     c->async_read(buffer, 256, 0);
   }
-  void on_error(acceptor* a, connection::error e) {
+  void on_error(std::shared_ptr<acceptor> a, connection::error e) {
     LOG(ERROR) << std::to_string(e);
   }
 };
@@ -79,7 +77,7 @@ class lis_handler: public acceptor::acceptor_handler {
 handler handlerC, handlerA;
 
 void func() {
-  connection* connection_c = connection::create("sim", get_new_id(), "100:1000:10:1", &handlerC);
+  std::shared_ptr<connection> connection_c = connection::create("sim", get_new_id(), "100:1000:10:1", &handlerC);
   if (connection_c->init()) {
     connections[connection_c->get_id()] = connection_c;
     LOG(DEBUG) << "Connection init was successful!";
@@ -110,9 +108,8 @@ void func() {
 
 int main() {
   sim = automaton::core::network::simulation::get_simulator();
-  LOG(DEBUG) << "HERE";
   lis_handler lis_handler;
-  acceptor* acceptorB = acceptor::create("sim", "1:10:1", &lis_handler, &handlerA);
+  std::shared_ptr<acceptor> acceptorB = acceptor::create("sim", "1:10:1", &lis_handler, &handlerA);
   if (acceptorB->init()) {
     LOG(DEBUG) << "Acceptor init was successful!";
     acceptorB->start_accepting();
@@ -125,5 +122,7 @@ int main() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   t.join();
+  delete [] bufferC;
+  connections.clear();
   return 0;
 }

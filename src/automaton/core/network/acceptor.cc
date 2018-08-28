@@ -6,7 +6,7 @@ namespace network {
 
 acceptor::acceptor(acceptor::acceptor_handler* handler_):handler(handler_) {}
 
-acceptor* acceptor::create(const std::string& type,
+std::shared_ptr<acceptor> acceptor::create(const std::string& type,
     const std::string& address, acceptor::acceptor_handler* handler_,
     connection::connection_handler* connections_handler) {
   auto it = acceptor_factory.find(type);
