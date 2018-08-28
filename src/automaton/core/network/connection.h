@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_NETWORK_CONNECTION_H_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <thread>
 

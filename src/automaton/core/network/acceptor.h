@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_NETWORK_ACCEPTOR_H_
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include "automaton/core/network/connection.h"

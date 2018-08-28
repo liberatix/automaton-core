@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_NETWORK_SIMULATED_CONNECTION_H_
 
 #include <mutex>
+#include <memory>
 #include <string>
 #include <queue>
 #include <vector>
