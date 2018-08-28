@@ -174,8 +174,6 @@ node::node(std::string id,
           }
         } catch (const std::exception& ex) {
           LOG(FATAL) << "TASK FAILED: EXCEPTION1: " << ex.what();
-        } catch (std::exception& ex) {
-          LOG(FATAL) << "TASK FAILED: EXCEPTION2: " << ex.what();
         } catch (std::string s) {
           LOG(FATAL) << "TASK FAILED: EXCEPTION2: " << s;
         } catch (...) {
