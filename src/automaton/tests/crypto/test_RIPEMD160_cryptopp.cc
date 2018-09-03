@@ -1,6 +1,6 @@
 #include <string>
-#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/RIPEMD160_cryptopp.h"
+#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/io/io.h"
 #include "cryptlib.h"  // NOLINT
 #include "ripemd.h"  // NOLINT

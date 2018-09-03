@@ -1,6 +1,6 @@
 #include <string>
-#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/SHA512_cryptopp.h"
+#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/io/io.h"
 #include "cryptlib.h"  // NOLINT
 #include "sha.h"  // NOLINT
@@ -8,8 +8,8 @@
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
 
-using automaton::core::crypto::hash_transformation;
 using automaton::core::crypto::cryptopp::SHA512_cryptopp;
+using automaton::core::crypto::hash_transformation;
 using automaton::core::io::bin2hex;
 
 TEST(SHA512_cryptopp, calculate_digest) {

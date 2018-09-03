@@ -1,14 +1,14 @@
 #include <string>
 #include <vector>
-#include "automaton/core/crypto/digital_signature.h"
 #include "automaton/core/crypto/cryptopp/secp256k1_cryptopp.h"
-#include "gtest/gtest.h"
+#include "automaton/core/crypto/digital_signature.h"
 #include "automaton/core/io/io.h"
+#include "gtest/gtest.h"
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
 
-using automaton::core::crypto::digital_signature;
 using automaton::core::crypto::cryptopp::secp256k1_cryptopp;
+using automaton::core::crypto::digital_signature;
 using automaton::core::io::bin2hex;
 
 void decode_from_hex(std::string &encoded, std::string &decoded) {   // NOLINT

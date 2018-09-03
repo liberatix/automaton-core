@@ -1,6 +1,6 @@
 #include <string>
-#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/SHA3_256_cryptopp.h"
+#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/io/io.h"
 #include "cryptlib.h"  // NOLINT
 #include "sha.h"  // NOLINT
