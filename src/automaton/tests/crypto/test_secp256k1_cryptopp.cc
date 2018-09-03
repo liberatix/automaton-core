@@ -36,7 +36,7 @@ TEST(secp256k1_cryptopp, gen_public_key) {
     decode_from_hex(test[i][0], pr_key_decoded);
     tester->gen_public_key(reinterpret_cast<const uint8_t*>(pr_key_decoded.data()), public_key);
 
-    std::string result((char*)public_key, tester->public_key_size());
+    std::string result(reinterpret_cast<char*>(public_key), tester->public_key_size());
     EXPECT_EQ(bin2hex(result), test[i][1]);
   }
 }

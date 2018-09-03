@@ -12,19 +12,6 @@ using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
 using automaton::core::io::bin2hex;
 
-// Helper function to convert bytes to hex values
-// Each byte is converted to 2 hex values, encoding the left and
-// right 4 bits of each byte.
-static std::string toHex(uint8_t * digest, size_t size) {
-  CryptoPP::HexEncoder encoder;
-  std::string output;
-  encoder.Attach(new CryptoPP::StringSink(output));
-  encoder.Put(digest, size);
-  encoder.MessageEnd();
-  return output;
-}
-
-
 TEST(SHA256_cryptopp, calculate_digest) {
   SHA256_cryptopp hasher;
   size_t digest_size = hasher.digest_size();
@@ -49,7 +36,8 @@ TEST(SHA256_cryptopp, calculate_digest) {
   for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
-    EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
+    std::string result(reinterpret_cast<char*>(digest), digest_size);
+    EXPECT_EQ(bin2hex(result), test[i][1]);
   }
 
   delete[] digest;
@@ -68,8 +56,8 @@ TEST(SHA256_cryptopp, update_and_finish) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);
-  EXPECT_EQ(toHex(digest, digest_size),
-      "50E72A0E26442FE2552DC3938AC58658228C0CBFB1D2CA872AE435266FCD055E");
+  std::string result(reinterpret_cast<char*>(digest), digest_size);
+  EXPECT_EQ(bin2hex(result), "50E72A0E26442FE2552DC3938AC58658228C0CBFB1D2CA872AE435266FCD055E");
 
   // Try to hash a new string to see if everything restarted as intended
   const uint8_t* a = reinterpret_cast<const uint8_t*>("a");
@@ -79,8 +67,8 @@ TEST(SHA256_cryptopp, update_and_finish) {
   hasher.update(b, 1);
   hasher.update(c, 1);
   hasher.final(digest);
-  EXPECT_EQ(toHex(digest, digest_size),
-      "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
+  std::string result2(reinterpret_cast<char*>(digest), digest_size);
+  EXPECT_EQ(bin2hex(result2), "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
 
   delete[] digest;
 }

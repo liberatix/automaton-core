@@ -37,7 +37,7 @@ TEST(keccak_256_cryptopp, calculate_digest) {
   for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
-    std::string result((char*) digest, digest_size);
+    std::string result(reinterpret_cast<char*>(digest), digest_size);
     EXPECT_EQ(bin2hex(result), test[i][1]);
   }
 
@@ -60,7 +60,7 @@ TEST(keccak_256_cryptopp, update_and_finish) {
   }
   hasher.final(digest);
 
-  std::string result((char*) digest, digest_size);
+  std::string result(reinterpret_cast<char*>(digest), digest_size);
   EXPECT_EQ(bin2hex(result), EXP1);
 
   // Try to hash a new string to see if everything restarted as intended
@@ -74,7 +74,7 @@ TEST(keccak_256_cryptopp, update_and_finish) {
   hasher.update(c, 1);
   hasher.final(digest);
 
-  std::string result2((char*) digest, digest_size);
+  std::string result2(reinterpret_cast<char*>(digest), digest_size);
   EXPECT_EQ(bin2hex(result2), EXP2);
 
   delete[] digest;

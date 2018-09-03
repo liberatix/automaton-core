@@ -39,7 +39,7 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
     hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
 
-    std::string result((char*) digest, digest_size);
+    std::string result(reinterpret_cast<char*>(digest), digest_size);
     EXPECT_EQ(bin2hex(result), test[i][1]);
   }
 
@@ -58,7 +58,7 @@ TEST(SHA256_cryptopp, update_and_finish) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);
-  std::string result((char*) digest, digest_size);
+  std::string result((reinterpret_cast<char*>(digest), digest_size);
   EXPECT_EQ(bin2hex(result), "52783243C1697BDBE16D37F97F68F08325DC1528");
 
   // Try to hash a new string to see if everything restarted as intended
@@ -69,7 +69,7 @@ TEST(SHA256_cryptopp, update_and_finish) {
   hasher.update(b, 1);
   hasher.update(c, 1);
   hasher.final(digest);
-  std::string result2((char*) digest, digest_size);
+  std::string result2(reinterpret_cast<char*>(digest), digest_size);
   EXPECT_EQ(bin2hex(result2), "8EB208F7E05D987A9B044A8E98C6B087F15A0BFC");
   delete[] digest;
 }
