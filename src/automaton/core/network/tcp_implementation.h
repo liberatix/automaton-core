@@ -45,7 +45,7 @@ int max_connections = 8;
 /**
   Class that represents a connection with a remote peer.
 */
-class tcp_connection: public connection {
+class tcp_connection: public connection, public std::enable_shared_from_this<tcp_connection> {
  public:
   /**
     Constructor that will be used when this class is registered.
@@ -55,8 +55,7 @@ class tcp_connection: public connection {
   /**
     Constructor that will be used from the acceptor.
   */
-  tcp_connection(connection_id id, const std::string& address_,
-      const boost::asio::ip::tcp::socket& socket_,
+  tcp_connection(connection_id id, const std::string& address_, const boost::asio::ip::tcp::socket& socket_,
       connection_handler* handler_);
 
   /**
@@ -117,7 +116,7 @@ class tcp_connection: public connection {
   void set_state(connection::state new_state);
 };
 
-class tcp_acceptor:public acceptor {
+class tcp_acceptor:public acceptor, public std::enable_shared_from_this<tcp_acceptor> {
  public:
   /**
     Constructor. Connections_handler will be passed to the connection

@@ -40,8 +40,8 @@ static bool tcp_initialized = false;
 
 // Connection functions
 
-tcp_connection::tcp_connection(connection_id id, const std::string& address_, connection_handler*
-    handler_):connection(id, handler_), asio_socket{asio_io_service},
+tcp_connection::tcp_connection(connection_id id, const std::string& address_, connection_handler* handler_):
+    connection(id, handler_), asio_socket{asio_io_service},
     connection_state(connection::state::invalid_state), address(address_) {
   LOG(DEBUG) << "Connection constructor " << address;
   if (!tcp_initialized) {
@@ -84,6 +84,7 @@ tcp_connection::~tcp_connection() {
   if (boost_error_code) {
     LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
   }
+  LOG(DEBUG) << "/ Connection destructor";
 }
 
 bool tcp_connection::init() {
@@ -116,20 +117,24 @@ void tcp_connection::connect() {
     std::lock_guard<std::mutex> lock(connection_mutex);
     if (get_state() == connection::state::disconnected) {
       set_state(connection::state::connecting);
+      std::shared_ptr<tcp_connection> self = shared_from_this();
+      connection_handler* c_handler = handler;
+      connection_id cid = id;
+      std::string addr = address;
       asio_socket.async_connect(asio_endpoint,
-          [this](const boost::system::error_code& boost_error_code) {
+          [self, c_handler, cid, addr](const boost::system::error_code& boost_error_code) {
             if (boost_error_code) {
-              disconnect();
+              self->disconnect();
               // set_state(connection::state::disconnected);
-              LOG(ERROR) << address << " -> " <<  boost_error_code.message();
+              LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
               if (boost_error_code == boost::asio::error::connection_refused) {
-                handler->on_error(id, connection::error::connection_refused);
+                c_handler->on_error(cid, connection::error::connection_refused);
               } else {
-                handler->on_error(id, connection::error::unknown);
+                c_handler->on_error(cid, connection::error::unknown);
               }
             } else {
-              set_state(connection::state::connected);
-              handler->on_connected(id);
+              self->set_state(connection::state::connected);
+              c_handler->on_connected(cid);
             }
       });
     }
@@ -144,27 +149,31 @@ void tcp_connection::async_send(const std::string& msg, uint32_t message_id) {
   if (tcp_initialized && asio_socket.is_open() && msg.size() > 0) {
     // LOG(DEBUG) << "ASYNC SEND MSG ID" << message_id << " data: " << io::bin2hex(msg);
     std::string* message = new std::string(msg);
+    std::shared_ptr<tcp_connection> self = shared_from_this();
+    connection_handler* c_handler = handler;
+    connection_id cid = id;
+    std::string addr = address;
     asio_socket.async_write_some(boost::asio::buffer(*message),
-        [this, message_id, message](const boost::system::error_code& boost_error_code,
+        [self, c_handler, cid, addr, message_id, message](const boost::system::error_code& boost_error_code,
         size_t bytes_transferred) {
       // LOG(DEBUG) << "ASYNC SEND CALLBACK " << bytes_transferred;
       if (boost_error_code) {
-        LOG(ERROR) << address << " -> " <<  boost_error_code.message();
+        LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
         if (boost_error_code == boost::asio::error::broken_pipe) {
-          handler->on_message_sent(id, message_id, connection::error::closed_by_peer);
+          c_handler->on_message_sent(cid, message_id, connection::error::closed_by_peer);
           // TODO(kari): ?? handle
-          disconnect();
+          self->disconnect();
         } else if (boost_error_code == boost::asio::error::operation_aborted) {
-          handler->on_message_sent(id, message_id, connection::error::closed_by_peer);
+          c_handler->on_message_sent(cid, message_id, connection::error::closed_by_peer);
         } else {
-          handler->on_message_sent(id, message_id, connection::error::unknown);
+          c_handler->on_message_sent(cid, message_id, connection::error::unknown);
         }
        // if (bytes_transferred < message.size())
       } else {
         // LOG(DEBUG)
         //     << "SUCCESSFULLY SENT MESSAGE WITH "
         //     << message->size() << " BYTES TO " << id << " msg_id " << message_id;
-        handler->on_message_sent(id, message_id, connection::error::no_error);
+        c_handler->on_message_sent(cid, message_id, connection::error::no_error);
       }
       delete message;
     });
@@ -182,41 +191,50 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
     uint32_t num_bytes, uint32_t read_id) {
   if (tcp_initialized && asio_socket.is_open()) {
     if (num_bytes == 0) {
+      std::shared_ptr<tcp_connection> self = shared_from_this();
+      connection_handler* c_handler = handler;
+      connection_id cid = id;
+      std::string addr = address;
       asio_socket.async_read_some(boost::asio::buffer(buffer, buffer_size),
-          [this, buffer, read_id](const boost::system::error_code& boost_error_code,
+          [self, c_handler, cid, addr, buffer, read_id](const boost::system::error_code& boost_error_code,
           size_t bytes_transferred) {
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
-            disconnect();
+            self->disconnect();
             return;
           } else if (boost_error_code == boost::asio::error::operation_aborted) {
             return;
           } else {
-            LOG(ERROR) << address << " -> " <<  boost_error_code.message();
-            handler->on_error(id, connection::error::unknown);
+            LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
+            c_handler->on_error(cid, connection::error::unknown);
             // TODO(kari): what errors and when should read be called?
           }
         } else {
-          handler->on_message_received(id, buffer, bytes_transferred, read_id);
+          c_handler->on_message_received(cid, buffer, bytes_transferred, read_id);
         }
       });
     } else {
+        std::shared_ptr<tcp_connection> self = shared_from_this();
+        connection_handler* c_handler = handler;
+        connection_id cid = id;
+        std::string addr = address;
         boost::asio::async_read(asio_socket, boost::asio::buffer(buffer, buffer_size),
           boost::asio::transfer_exactly(num_bytes),
-          [this, buffer, read_id](const boost::system::error_code& boost_error_code, size_t bytes_transferred) {
+          [self, c_handler, addr, cid, buffer, read_id](const boost::system::error_code& boost_error_code,
+              size_t bytes_transferred) {
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
-            disconnect();
+            self->disconnect();
             return;
           } else if (boost_error_code == boost::asio::error::operation_aborted) {
             return;
           } else {
-            LOG(ERROR) << address << " -> " <<  boost_error_code.message();
-            handler->on_error(id, connection::error::unknown);
+            LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
+            c_handler->on_error(cid, connection::error::unknown);
             // TODO(kari): what errors and when should read be called?
           }
         } else {
-          handler->on_message_received(id, buffer, bytes_transferred, read_id);
+          c_handler->on_message_received(cid, buffer, bytes_transferred, read_id);
         }
       });
     }
@@ -299,6 +317,7 @@ tcp_acceptor::~tcp_acceptor() {
       LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
   }
+  LOG(DEBUG) << "/ Acceptor destructor";
 }
 
 bool tcp_acceptor::init() {
@@ -335,42 +354,55 @@ bool tcp_acceptor::init() {
 void tcp_acceptor::start_accepting() {
   if (tcp_initialized && asio_acceptor.is_open()) {
     set_state(acceptor::state::accepting);
-    asio_acceptor.async_accept(asio_io_service, [this]
+    std::shared_ptr<tcp_acceptor> self = shared_from_this();
+    acceptor_handler* a_handler = handler;
+    connection::connection_handler* ac_handler = accepted_connections_handler;
+    asio_acceptor.async_accept(asio_io_service, [self, a_handler, ac_handler]
         (const boost::system::error_code& boost_error_code, boost::asio::ip::tcp::socket socket_) {
+       LOG(DEBUG) << "async_accept";
        if (!boost_error_code) {
+         LOG(DEBUG) << "async_accept -> no error";
           boost::asio::ip::tcp::endpoint remote_endpoint = socket_.remote_endpoint();
           std::string remote_address = (remote_endpoint.address()).to_string() +
               ":" + std::to_string(remote_endpoint.port());
           connection_id id = 0;
-          bool accepted = handler->on_requested(this, remote_address, &id);
+          LOG(DEBUG) << "async_accept calling on_requested conn";
+          bool accepted = a_handler->on_requested(std::shared_ptr<tcp_acceptor>(self), remote_address, &id);
           if (accepted) {
-            tcp_connection* new_con = new tcp_connection(id, remote_address,
-                socket_, accepted_connections_handler);
-            handler->on_connected(this, new_con, remote_address);
-            if (accepted_connections_handler) {
-              accepted_connections_handler->on_connected(id);
+            LOG(DEBUG) << "async_accept ACCEPTED";
+            std::shared_ptr<connection> new_con(new tcp_connection(id, remote_address, socket_, ac_handler));
+            LOG(DEBUG) << "async_accept calling on_connected acc";
+            a_handler->on_connected(std::shared_ptr<tcp_acceptor>(self), new_con, remote_address);
+            if (ac_handler) {
+              LOG(DEBUG) << "async_accept calling on_connected conn";
+              ac_handler->on_connected(id);
             }
           }
-          start_accepting();
+          LOG(DEBUG) << "async_accept calling start_accepting";
+          self->start_accepting();
         } else {
-          set_state(acceptor::state::not_accepting);
+          LOG(DEBUG) << "async_accept -> error";
+          self->set_state(acceptor::state::not_accepting);
           // TODO(kari): Handle errors
           if (boost_error_code == boost::asio::error::operation_aborted) {
+            LOG(DEBUG) << "end of async_accept 0";
             return;
           }
           LOG(ERROR) << boost_error_code.message();
-          handler->on_error(this, connection::error::unknown);
+          LOG(DEBUG) << "async_accept calling on_error";
+          a_handler->on_error(std::shared_ptr<tcp_acceptor>(self), connection::error::unknown);
           // TODO(kari): start listen again? depends on the errors
           // start_accepting();
         }
+        LOG(DEBUG) << "end of async_accept";
       });
   } else if (!tcp_initialized) {
     LOG(ERROR) <<  "Not initialized";
-    handler->on_error(this, connection::error::unknown);
+    handler->on_error(shared_from_this(), connection::error::unknown);
     // TODO(kari): what to do here? needs to be connected
   } else {
     LOG(ERROR) <<  "Acceptor closed";
-    handler->on_error(this, connection::error::closed_by_peer);
+    handler->on_error(shared_from_this(), connection::error::closed_by_peer);
   }
 }
 
@@ -395,13 +427,14 @@ void tcp_init() {
     return;
   }
   connection::register_connection_type("tcp",
-    [](connection_id id, const std::string& address, connection::connection_handler* handler) -> connection* {
-      return new tcp_connection(id, address, handler);
+    [](connection_id id, const std::string& address, connection::connection_handler* handler) ->
+        std::shared_ptr<connection> {
+      return std::shared_ptr<connection>(new tcp_connection(id, address, handler));
     });
   acceptor::register_acceptor_type("tcp",
     [](const std::string& address, acceptor::acceptor_handler* handler_,
-    connection::connection_handler* connections_handler_) -> acceptor* {
-      return new tcp_acceptor(address, handler_, connections_handler_);
+    connection::connection_handler* connections_handler_) -> std::shared_ptr<acceptor> {
+      return std::shared_ptr<acceptor>(new tcp_acceptor(address, handler_, connections_handler_));
     });
   worker_thread = new std::thread([]() {
     LOG(DEBUG) << "asio_io_service starting...";
@@ -427,8 +460,7 @@ void tcp_release() {
   tcp_initialized = false;
 }
 
-void parse_address(const std::string& address, std::string* result_addr,
-  std::string* result_port) {
+void parse_address(const std::string& address, std::string* result_addr, std::string* result_port) {
   std::regex rgx_ip("((?:\\d+\\.)+\\d+|(?:[0-9a-f]+:)+[0-9a-f]+):(\\d+)");
   std::smatch match;
   if (std::regex_match(address.begin(), address.end(), match, rgx_ip) &&
