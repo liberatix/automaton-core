@@ -30,6 +30,7 @@ function node_stats()
 end
 
 function collect_balances()
+  balances = {}
   for i = 1, #blockchain do
     local block = get_block(blockchain[i])
     balances[block.miner] = (balances[block.miner] or 0 ) + 1

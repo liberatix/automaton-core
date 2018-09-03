@@ -1,16 +1,18 @@
--- chat.lue
+-- chat.lua
 
+-- initialize protocol
+msgs = {}
+msg_index = 0
+global_seq = 0
 math.randomseed(os.time())
 
-global_seq = 1
-
+-- gossip - sends to everyone but the specified peer_id
 function gossip(peer_id, msg)
   for k, v in pairs(peers) do
     if k ~= 0 and k ~= peer_id then
+      log("sending", peers[peer_id].name .. " -> " .. msg.msg)
       global_seq = global_seq + 1
-      mm = msg
-      mm.global_sequence = global_seq
-      send(k, mm, global_seq)
+      send(k, msg, global_seq)
     end
   end
 end
@@ -21,12 +23,10 @@ function sent(peer_id, msg_id, success)
   -- )
 end
 
-msgs = {}
-msg_index = 0
-
 function on_Msg(peer_id, m)
   hash = hex(sha3(m.author .. m.msg))
-  msg = string.format("<%s>: %s [FROM %s] [%s]", m.author, m.msg, peers[peer_id].name, hash)
+  msg = string.format("<%s>: %s [FROM %s] [%s]",
+      m.author, m.msg, peers[peer_id].name, hash)
   if msgs[hash] == nil then
     msgs[hash] = m.msg
     log("CHAT", msg)
@@ -36,17 +36,16 @@ function on_Msg(peer_id, m)
   end
 end
 
-wait = 100
-
+-- wait a bit between generating and sending chat messages
+wait = math.random(200,1000)
 function update(timestamp)
-  wait = wait + 1
-  if wait >= 30 then
-    wait = 0
+  wait = wait - 1
+  if wait <= 0 then
+    wait = math.random(200,1000)
     m = Msg()
     msg_index = msg_index + 1
     local idx = ((msg_index - 1) % #msg_contents) + 1
 
-    m.hash = sha3(nodeid .. tostring(msg_index))
     m.sequence = msg_index
     m.author = nodeid;
     m.msg = msg_contents[idx] .. " (" .. tostring(msg_index) .. ")"

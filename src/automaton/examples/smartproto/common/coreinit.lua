@@ -11,7 +11,7 @@ ring_order = true
 
 -- HISTORY
 
-
+--[[
 history_add("Alice.set_mining_power(0)")
 history_add("testnet(localhost, chat_node, 5, 1)")
 history_add("testnet(localhost, chat_node, 10, 1)")
@@ -35,7 +35,14 @@ history_add("testnet(localhost, blockchain_node, 20, 1)")
 history_add("testnet(localhost, chat_node, 5, 1)")
 
 history_add("testnet(localhost, blockchain_node, 20, 1)")
-history_add("collect_states()")
+
+]]
+
+history_add("set_lag(50, 100)")
+history_add("testnet(localhost, chat_node, 5, 1)")
+history_add("testnet(localhost, blockchain_node, 100, 1)")
+history_add("testnet(localhost, blockchain_node, 100, 2)")
+history_add("testnet(simulation, blockchain_node, 200, 1)")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
@@ -46,7 +53,7 @@ end
 function blockchain_node(id)
   local n = node(
     id,
-    5,
+    2,
     {"automaton/examples/smartproto/blockchain/blockchain.proto"},
     {
       "automaton/examples/smartproto/blockchain/connections.lua",
@@ -60,6 +67,8 @@ function blockchain_node(id)
 
   -- print(id)
   _G[id] = {
+    node_type = "blockchain",
+
     set_mining_power = function(x)
       n:script("MINE_ATTEMPTS=" .. x .. " return ''")
     end,
@@ -75,13 +84,17 @@ function blockchain_node(id)
     disconnect_all = function()
       n:call("disconnect_all()")
     end,
+
+    connect = function(peer_id)
+      n:call("connect("..tostring(peer_id)..")")
+    end,
   }
 
   return n
 end
 
 function chat_node(id)
-  return node(
+  local n = node(
     id,
     10,
     {
@@ -93,6 +106,20 @@ function chat_node(id)
       "automaton/examples/smartproto/chat/chat.lua"},
     {"Hello", "Msg"}
   )
+
+  _G[id] = {
+    node_type = "chat",
+
+    disconnect_all = function()
+      n:call("disconnect_all()")
+    end,
+
+    connect = function(peer_id)
+      n:call("connect("..tostring(peer_id)..")")
+    end,
+  }
+
+  return n
 end
 
 -- NETWORK SIMULATION DISCOVERY
@@ -232,6 +259,7 @@ function dump_logs()
   for i in pairs(nodes) do
     nodes[i]:dump_logs(string.format("logs/N%03d-%s.html", i, names[i]))
   end
+  collect_states()
 end
 
 function dump_connections_graph()
@@ -261,4 +289,12 @@ function get_mining_power()
     table.insert(s, pwr)
   end
   print(table.concat(s, ", "))
+end
+
+function random_topology()
+  ring_order = false
+end
+
+function start_mining()
+  set_mining_power(1)
 end
