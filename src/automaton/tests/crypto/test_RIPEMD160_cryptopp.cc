@@ -1,6 +1,7 @@
 #include <string>
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/RIPEMD160_cryptopp.h"
+#include "automaton/core/io/io.h"
 #include "cryptlib.h"  // NOLINT
 #include "ripemd.h"  // NOLINT
 #include "gtest/gtest.h"  // NOLINT
@@ -9,18 +10,7 @@
 
 using automaton::core::crypto::cryptopp::RIPEMD160_cryptopp;
 using automaton::core::crypto::hash_transformation;
-
-// Helper function to convert bytes to hex values
-// Each byte is converted to 2 hex values, encoding the left and
-// right 4 bits of each byte.
-static std::string toHex(uint8_t * digest, size_t size) {
-  CryptoPP::HexEncoder encoder;
-  std::string output;
-  encoder.Attach(new CryptoPP::StringSink(output));
-  encoder.Put(digest, size);
-  encoder.MessageEnd();
-  return output;
-}
+using automaton::core::io::bin2hex;
 
 TEST(RIPEMD160_cryptopp, calculate_digest) {
   RIPEMD160_cryptopp hasher;
@@ -48,7 +38,9 @@ TEST(RIPEMD160_cryptopp, calculate_digest) {
   for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
-    EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
+
+    std::string result((char*) digest, digest_size);
+    EXPECT_EQ(bin2hex(result), test[i][1]);
   }
 
   delete[] digest;
@@ -66,8 +58,8 @@ TEST(SHA256_cryptopp, update_and_finish) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);
-  EXPECT_EQ(toHex(digest, digest_size),
-      "52783243C1697BDBE16D37F97F68F08325DC1528");
+  std::string result((char*) digest, digest_size);
+  EXPECT_EQ(bin2hex(result), "52783243C1697BDBE16D37F97F68F08325DC1528");
 
   // Try to hash a new string to see if everything restarted as intended
   const uint8_t* a = reinterpret_cast<const uint8_t*>("a");
@@ -77,9 +69,8 @@ TEST(SHA256_cryptopp, update_and_finish) {
   hasher.update(b, 1);
   hasher.update(c, 1);
   hasher.final(digest);
-  EXPECT_EQ(toHex(digest, digest_size),
-      "8EB208F7E05D987A9B044A8E98C6B087F15A0BFC");
-
+  std::string result2((char*) digest, digest_size);
+  EXPECT_EQ(bin2hex(result2), "8EB208F7E05D987A9B044A8E98C6B087F15A0BFC");
   delete[] digest;
 }
 

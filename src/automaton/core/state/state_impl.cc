@@ -8,7 +8,7 @@
 #include <set>
 #include <utility>
 #include "automaton/core/crypto/hash_transformation.h"
- #include "automaton/core/io/io.h"
+#include "automaton/core/io/io.h"
 
 
 namespace automaton {
@@ -16,15 +16,6 @@ namespace core {
 namespace state {
 
 typedef std::basic_string<uint8_t> ustring;
-
-static std::string tohex(std::string s) {
-  std::stringstream ss;
-  for (uint32_t i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) <<
-        std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
-  }
-  return ss.str();
-}
 
 state_impl::state_impl(crypto::hash_transformation* hasher) {
   nodes.push_back(state_impl::node());
@@ -165,7 +156,7 @@ void state_impl::delete_node_tree(const std::string& path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].value == "") {
     std::stringstream msg;
-    msg << "No set node at path: " << tohex(path);
+    msg << "No set node at path: " << io::bin2hex(path);
     //  LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
@@ -217,7 +208,7 @@ void state_impl::erase(const std::string& path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].value == "") {
     std::stringstream msg;
-    msg << "No set node at path: " << tohex(path);
+    msg << "No set node at path: " << io::bin2hex(path);
     //  LOG(ERROR) << msg.str() << '\n' << el::base::debug::StackTrace();
     throw std::out_of_range(msg.str());
   }
@@ -337,11 +328,11 @@ uint32_t state_impl::hash_size() {
 
 void state_impl::print_subtrie(std::string path, std::string formated_path) {
   std::cout << formated_path << " prefix: " <<
-      tohex(nodes[get_node_index(path)].prefix) << " value: " << get(path)
-      << " hash: " << tohex(get_node_hash(path)) << std::endl << std::endl;
+      io::bin2hex(nodes[get_node_index(path)].prefix) << " value: " << get(path)
+      << " hash: " << io::bin2hex(get_node_hash(path)) << std::endl << std::endl;
   std::vector<std::string> children = get_node_children(path);
   for (auto i : children) {
-    print_subtrie(path + i, formated_path + "/" + tohex(i));
+    print_subtrie(path + i, formated_path + "/" + io::bin2hex(i));
   }
 }
 uint32_t state_impl::size() {

@@ -1,6 +1,7 @@
 #include <string>
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/SHA3_256_cryptopp.h"
+#include "automaton/core/io/io.h"
 #include "cryptlib.h"  // NOLINT
 #include "sha.h"  // NOLINT
 #include "gtest/gtest.h"  // NOLINT
@@ -9,6 +10,7 @@
 
 using automaton::core::crypto::cryptopp::SHA3_256_cryptopp;
 using automaton::core::crypto::hash_transformation;
+using automaton::core::io::bin2hex;
 
 // Helper function to convert bytes to hex values
 // Each byte is converted to 2 hex values, encoding the left and

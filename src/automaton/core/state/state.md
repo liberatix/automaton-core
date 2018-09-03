@@ -259,13 +259,6 @@ std::random_device rand_engine;
 
 const uint32_t TEST_KEYS_NUMBER = 100000;
 
-string tohex(string s) {
-  stringstream ss;
-  for (int i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << ((int)s[i] & 0xff);
-  }
-  return ss.str();
-}
 
 int main()
 {
@@ -284,14 +277,14 @@ int main()
     hash.append((const char *)&x, sizeof(x));
 
     if (i % 10 == 0) {
-      cout << "adding " << tohex(hash) << endl;
+      cout << "adding " << io::bin2hex(hash) << endl;
     }
     s.set(hash, hash);
 
     // std::cout << std::hex << std::setw(8) << std::setfill('0') << x;
   }
 
-  cout << tohex(hash) << endl;
+  cout << io::bin2hex(hash) << endl;
 
   cout << "done." << endl;
   return 0;

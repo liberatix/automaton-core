@@ -1,6 +1,7 @@
 #include <string>
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/Keccak_256_cryptopp.h"
+#include "automaton/core/io/io.h"
 #include "cryptlib.h"  // NOLINT
 #include "keccak.h"  // NOLINT
 #include "gtest/gtest.h"  // NOLINT
@@ -9,18 +10,7 @@
 
 using automaton::core::crypto::cryptopp::Keccak_256_cryptopp;
 using automaton::core::crypto::hash_transformation;
-
-// Helper function to convert bytes to hex values
-// Each byte is converted to 2 hex values, encoding the left and
-// right 4 bits of each byte.
-static std::string toHex(uint8_t * digest, size_t size) {
-  CryptoPP::HexEncoder encoder;
-  std::string output;
-  encoder.Attach(new CryptoPP::StringSink(output));
-  encoder.Put(digest, size);
-  encoder.MessageEnd();
-  return output;
-}
+using automaton::core::io::bin2hex;
 
 TEST(keccak_256_cryptopp, calculate_digest) {
   Keccak_256_cryptopp hasher;
@@ -47,7 +37,8 @@ TEST(keccak_256_cryptopp, calculate_digest) {
   for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
-    EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
+    std::string result((char*) digest, digest_size);
+    EXPECT_EQ(bin2hex(result), test[i][1]);
   }
 
   delete[] digest;
@@ -69,7 +60,8 @@ TEST(keccak_256_cryptopp, update_and_finish) {
   }
   hasher.final(digest);
 
-  EXPECT_EQ(toHex(digest, digest_size), EXP1);
+  std::string result((char*) digest, digest_size);
+  EXPECT_EQ(bin2hex(result), EXP1);
 
   // Try to hash a new string to see if everything restarted as intended
   const uint8_t* a = reinterpret_cast<const uint8_t*>("a");
@@ -82,7 +74,8 @@ TEST(keccak_256_cryptopp, update_and_finish) {
   hasher.update(c, 1);
   hasher.final(digest);
 
-  EXPECT_EQ(toHex(digest, digest_size), EXP2);
+  std::string result2((char*) digest, digest_size);
+  EXPECT_EQ(bin2hex(result2), EXP2);
 
   delete[] digest;
 }
