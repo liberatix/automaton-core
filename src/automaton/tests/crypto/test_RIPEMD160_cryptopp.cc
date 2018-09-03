@@ -58,7 +58,7 @@ TEST(SHA256_cryptopp, update_and_finish) {
     hasher.update(p_test_input, len);
   }
   hasher.final(digest);
-  std::string result((reinterpret_cast<char*>(digest), digest_size);
+  std::string result(reinterpret_cast<char*>(digest), digest_size);
   EXPECT_EQ(bin2hex(result), "52783243C1697BDBE16D37F97F68F08325DC1528");
 
   // Try to hash a new string to see if everything restarted as intended
