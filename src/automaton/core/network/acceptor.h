@@ -2,6 +2,7 @@
 #define AUTOMATON_CORE_NETWORK_ACCEPTOR_H_
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include "automaton/core/network/connection.h"
@@ -33,9 +34,10 @@ class acceptor {
     virtual ~acceptor_handler() {}
     // IDEA(kari): return string (schema message with connection params) instead
     // of bool
-    virtual bool on_requested(acceptor* a, const std::string& address, connection_id* id) = 0;
-    virtual void on_connected(acceptor* a, connection* c, const std::string& address) = 0;
-    virtual void on_error(acceptor* a, connection::error e) = 0;
+    virtual bool on_requested(std::shared_ptr<acceptor> a, const std::string& address, connection_id* id) = 0;
+    virtual void on_connected(std::shared_ptr<acceptor> a, std::shared_ptr<connection> c,
+        const std::string& address) = 0;
+    virtual void on_error(std::shared_ptr<acceptor> a, connection::error e) = 0;
   };
   virtual ~acceptor() {}
 
@@ -58,11 +60,10 @@ class acceptor {
     function. The function returns object from the specified class. If no such
     class type was registered, NULL will be returned.
   */
-  static acceptor* create(const std::string& type, const std::string& address,
-      acceptor_handler* handler_, connection::connection_handler*
-      connections_handler);
+  static std::shared_ptr<acceptor> create(const std::string& type, const std::string& address,
+      acceptor_handler* handler_, connection::connection_handler* connections_handler);
 
-  typedef acceptor* (*factory_function)(const std::string& address, acceptor_handler* handler_,
+  typedef std::shared_ptr<acceptor> (*factory_function)(const std::string& address, acceptor_handler* handler_,
       connection::connection_handler* connections_handler);
 
   /**

@@ -1,7 +1,7 @@
 -- Keeps track of the currently connected peers
 
 peers = {}
-peers[0] = { name="ME!" }
+peers[0] = { name = "ME!" }
 
 function connected(peer_id)
   log("connections", "CONNECTED TO " .. tostring(peer_id))
@@ -17,6 +17,6 @@ function disconnected(peer_id)
 end
 
 function on_Hello(peer_id, m)
-  log("HELLO", "Hello from peer " .. tostring(peer_id) .. " name: " .. m.name)
+  log("on_Hello", "Hello from " .. m.name)
   peers[peer_id].name = m.name
 end

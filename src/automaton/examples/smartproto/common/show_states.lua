@@ -4,20 +4,24 @@ function collect_states()
   local states = {}
   for i in pairs(nodes) do
     local name = names[i]
-    local blocks_string = _G[names[i]].get_stats();
-    local blocks = {}
-    for block in string.gmatch(blocks_string, "%S+") do
-      table.insert(blocks, block)
+    if _G[name].node_type == "blockchain" then
+      local blocks_string = _G[names[i]].get_stats();
+      local blocks = {}
+      for block in string.gmatch(blocks_string, "%S+") do
+        table.insert(blocks, block)
+      end
+      table.insert(states, {n = name, b = blocks})
     end
-    table.insert(states, {n = name, b = blocks})
   end
-  dump_node_states(states)
+  if #states > 0 then
+    dump_node_states(states)
+  end
 end
 
 GENESIS_HASH = sha3("automaton")
 
 function fmt_node(hash, names)
-  local fmt = "{id:'%s', label:'%s\\n%d nodes'}"
+  local fmt = "{id:'%s', label:'%s\\n%d nodes', font: {face:'Play'}, shape: 'box'}"
   return string.format(fmt, hash, hash:sub(-8), #names)
 end
 
@@ -31,13 +35,15 @@ function dump_node_states(n)
   local block_names = {}
 
   local gen_hash = hex(GENESIS_HASH)
-  table.insert(node_blocks, fmt_node(gen_hash, {}))
+  table.insert(node_blocks,
+    string.format("{id: '%s', shape: 'box', label: 'GENESIS', color: '#D2B4DE'}", gen_hash)
+  )
 
   -- gather blocks that each node has
   for s1,state in pairs(n) do
     -- only show the last N blocks from each node
     local f = false
-    while #state.b > 20 do
+    while #state.b > 1000 do
       table.remove(state.b, 1)
       f = true
     end

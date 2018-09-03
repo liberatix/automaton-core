@@ -116,3 +116,7 @@ names = {
   "William",
   "Zachary",
 }
+
+for i = 1,10000 do
+  table.insert(names, "ID_" .. tostring(i))
+end

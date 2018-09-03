@@ -68,11 +68,11 @@ simulation* simulation::simulator = NULL;
 simulation::simulation():simulation_time(0), simulation_running(false) {
   connection::register_connection_type("sim", [](connection_id id, const std::string& address,
       connection::connection_handler* handler) {
-    return reinterpret_cast<connection*>(new simulated_connection(id, address, handler));
+    return std::shared_ptr<connection>(new simulated_connection(id, address, handler));
   });
   acceptor::register_acceptor_type("sim", [](const std::string& address, acceptor::acceptor_handler* handler_,
       connection::connection_handler* connections_handler_) {
-    return reinterpret_cast<acceptor*>(new simulated_acceptor(address, handler_, connections_handler_));
+    return std::shared_ptr<acceptor>(new simulated_acceptor(address, handler_, connections_handler_));
   });
   /// Makes connection id = 0 invalid
   // connections.push_back(nullptr);
@@ -139,13 +139,13 @@ void simulation::handle_event(const event& e) {
         delete connection fron map. NOTE: Maybe it is better not to delete events
         so proper errors could be passed (operation cancelled, broken_pipe, etc.)
       */
-      simulated_connection* destination = sim->get_connection(e.destination);
+      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
+          sim->get_connection(e.destination));
       if (!destination) {  // state == disconnected should never happen
         LOG(INFO) << "Event disconnect but remote peer has already disconnected or does not exist";
         return;
       } else if (destination->get_state() == connection::state::connecting) {
-        LOG(INFO) << "Event disconnect but peer is not connected yet! This situation is not "
-            "handled right now!";
+        LOG(INFO) << "Event disconnect but peer is not connected yet! This situation is not handled right now!";
         return;
       }
       LOG(INFO) << "Other peer closed connection in: " << destination->get_address();
@@ -169,8 +169,10 @@ void simulation::handle_event(const event& e) {
         on_connect in acceptor's handler is called. If the connections is
         refused, new event type refuse is created.
       **/
-      simulated_connection* source = sim->get_connection(e.source);
-      simulated_acceptor* acceptor_ = sim->get_acceptor(e.destination);
+      std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(
+          sim->get_connection(e.source));
+      std::shared_ptr<simulated_acceptor> acceptor_ = std::dynamic_pointer_cast<simulated_acceptor>(
+          sim->get_acceptor(e.destination));
       if (!source) {
         LOG(ERROR) << "Connection request from unexisting peer: " << e.source;
         break;
@@ -197,8 +199,8 @@ void simulation::handle_event(const event& e) {
         std::string new_addr =
             std::to_string(params.min_lag) + ":" + std::to_string(params.max_lag) + ":" +
             std::to_string(acceptor_->parameters.bandwidth) + ":0";
-        simulated_connection* new_connection =
-            new simulated_connection(cid, new_addr, acceptor_->accepted_connections_handler);
+        std::shared_ptr<simulated_connection> new_connection(
+            new simulated_connection(cid, new_addr, acceptor_->accepted_connections_handler));
         if (new_connection->init()) {
           sim->add_connection(new_connection);
           source->parameters.bandwidth = new_connection->parameters.bandwidth =
@@ -233,7 +235,8 @@ void simulation::handle_event(const event& e) {
       2. if !remote_connection || remote_connection->get_state() != connection::state::connected
         --> broken_pipe (&& this is still connected; haven't received disconnect message yet)
       */
-      simulated_connection* destination = sim->get_connection(e.destination);
+      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
+          sim->get_connection(e.destination));
       if (!destination || destination->get_state() != connection::state::connected) {
         LOG(ERROR) << "ERROR in handling send! Peer has disconnected or does not exist!";
         // TODO(kari): broken pipe
@@ -250,7 +253,8 @@ void simulation::handle_event(const event& e) {
         destination->recv_buf_mutex.unlock();
         destination->reading_q_mutex.unlock();
       }
-      simulated_connection* source = sim->get_connection(e.source);
+      std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(
+          sim->get_connection(e.source));
       if (!source) {
         // LOG(DEBUG) << "message 01";
         break;
@@ -279,7 +283,8 @@ void simulation::handle_event(const event& e) {
     }
     case event::type::accept: {
       // LOG(DEBUG) << "accept 0";
-      simulated_connection* destination = sim->get_connection(e.destination);
+      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
+          sim->get_connection(e.destination));
       if (!destination) {
         // new event error
         // LOG(DEBUG) << "accept 2";
@@ -292,7 +297,8 @@ void simulation::handle_event(const event& e) {
       break;
     }
     case event::type::refuse: {
-      simulated_connection* destination = sim->get_connection(e.destination);
+      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
+          sim->get_connection(e.destination));
       // LOG(DEBUG) << "refuse 0";
       if (!destination) {
         // new event error
@@ -310,7 +316,8 @@ void simulation::handle_event(const event& e) {
       // if (connection_->connection_state == connection::state::disconnected) {
       //   // TODO(kari): Possible: broken_pipe, operation_cancelled
       // }
-      simulated_connection* destination = sim->get_connection(e.destination);
+      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
+          sim->get_connection(e.destination));
       destination->sending_q_mutex.lock();
       if (destination && destination->sending.size()) {
         uint32_t rid = destination->sending.front().id;
@@ -330,7 +337,7 @@ void simulation::handle_event(const event& e) {
     default:
       break;
   }
-  // LOG(DEBUG) << "HANDLING";
+  // LOG(DEBUG) << "/ HANDLING";
 }
 
 int simulation::process(uint64_t time_) {
@@ -375,16 +382,20 @@ bool simulation::is_queue_empty() {
   return events.empty();
 }
 
-void simulation::add_connection(simulated_connection* connection_) {
+void simulation::add_connection(std::shared_ptr<connection> connection_) {
   static uint32_t uid = 0;
   // TODO(kari): use unordered map
   if (connection_) {
     std::lock_guard<std::mutex> lock(connections_mutex);
-    if (connection_->local_connection_id) {
-      connections.erase(connection_->local_connection_id);
+    auto lid = std::dynamic_pointer_cast<simulated_connection>(connection_)->local_connection_id;
+    if (lid) {
+      auto it = connections.find(lid);
+      if (it != connections.end() && it->second != connection_) {
+        connections.erase(it);
+      }
     }
     connections[++uid] = connection_;
-    connection_->local_connection_id = uid;
+    std::dynamic_pointer_cast<simulated_connection>(connection_)->local_connection_id = uid;
   }
 }
 void simulation::remove_connection(uint32_t connection_id) {
@@ -394,19 +405,19 @@ void simulation::remove_connection(uint32_t connection_id) {
     connections.erase(iterator_);
   }
 }
-simulated_connection* simulation::get_connection(uint32_t cid) {
+std::shared_ptr<connection> simulation::get_connection(uint32_t cid) {
   std::lock_guard<std::mutex> lock(connections_mutex);
   auto iterator_ = connections.find(cid);
   if (iterator_ == connections.end()) {
     return nullptr;
   }
-  return iterator_->second;
+  return std::shared_ptr<connection>(iterator_->second);
 }
-void simulation::add_acceptor(uint32_t address, simulated_acceptor* acceptor_) {
+void simulation::add_acceptor(uint32_t address, std::shared_ptr<acceptor> acceptor_) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   acceptors[address] = acceptor_;
 }
-simulated_acceptor* simulation::get_acceptor(uint32_t address) {
+std::shared_ptr<acceptor> simulation::get_acceptor(uint32_t address) {
   std::lock_guard<std::mutex> lock(acceptors_mutex);
   auto iterator_ = acceptors.find(address);
   if (iterator_ == acceptors.end()) {
@@ -452,6 +463,7 @@ simulated_connection::simulated_connection(connection_id id, const std::string& 
 
 simulated_connection::~simulated_connection() {
   LOG(DEBUG) << id << " Connection destructor";
+  LOG(DEBUG) << id << "/ Connection destructor";
 }
 
 bool simulated_connection::init() {
@@ -477,12 +489,12 @@ void simulated_connection::async_send(const std::string& message, uint32_t msg_i
     // LOG(DEBUG) << id << " </async_send>";
     return;
   }
-  LOG(DEBUG) << "Send called with message <" << io::bin2hex(message) << ">";
+  // LOG(DEBUG) << "Send called with message <" << io::bin2hex(message) << ">";
   outgoing_packet packet;
   packet.message = message;
   packet.bytes_send = 0;
   packet.id = msg_id;
-  LOG(DEBUG) << id << " pushing message <" << io::bin2hex(message) << "> with id: " << msg_id;
+  // LOG(DEBUG) << id << " pushing message <" << io::bin2hex(message) << "> with id: " << msg_id;
   sending_q_mutex.lock();
   sending.push(std::move(packet));
   sending_q_mutex.unlock();
@@ -592,7 +604,7 @@ void simulated_connection::async_read(char* buffer, uint32_t buffer_size, uint32
         num_bytes << ")! Reading aborted!";
     return;
   }
-  LOG(DEBUG) << id << " Setting buffers in connection: " << get_address();
+  //  LOG(DEBUG) << id << " Setting buffers in connection: " << get_address();
   incoming_packet packet;
   packet.buffer = buffer;
   packet.buffer_size = buffer_size;
@@ -658,7 +670,7 @@ void simulated_connection::connect() {
   // LOG(DEBUG) << id << " <connect>";
   connection_state = connection::state::connecting;
   simulation* sim = simulation::get_simulator();
-  sim->add_connection(this);
+  sim->add_connection(shared_from_this());
   event new_event;
   new_event.type_ = event::type::connection_request;
   new_event.source = local_connection_id;
@@ -744,6 +756,7 @@ simulated_acceptor::simulated_acceptor(const std::string& address_, acceptor::ac
 
 simulated_acceptor::~simulated_acceptor() {
   LOG(DEBUG) << "Acceptor destructor";
+  LOG(DEBUG) << "/ Acceptor destructor";
 }
 
 bool simulated_acceptor::init() {
@@ -752,7 +765,7 @@ bool simulated_acceptor::init() {
       LOG(ERROR) << "ERROR: Acceptor creation failed! Acceptor address should be > 0";
       return false;
     } else {
-      simulation::get_simulator()->add_acceptor(address, this);
+      simulation::get_simulator()->add_acceptor(address, shared_from_this());
     }
   } else {
     LOG(ERROR) << "ERROR: Acceptor creation failed! Could not resolve address and parameters in: "

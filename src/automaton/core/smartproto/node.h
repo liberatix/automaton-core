@@ -151,12 +151,12 @@ class node: public network::connection::connection_handler,
 
   void on_error(peer_id c, network::connection::error e);
 
-  bool on_requested(network::acceptor* a, const std::string& address, peer_id* id);
+  bool on_requested(std::shared_ptr<network::acceptor> a, const std::string& address, peer_id* id);
 
-  void on_connected(network::acceptor* a, network::connection* c,
+  void on_connected(std::shared_ptr<network::acceptor> a, std::shared_ptr<network::connection> c,
       const std::string& address);
 
-  void on_error(network::acceptor* a, network::connection::error e);
+  void on_error(std::shared_ptr<network::acceptor> a, network::connection::error e);
 
   // Script handler functions
   void s_on_blob_received(peer_id id, const std::string& blob);

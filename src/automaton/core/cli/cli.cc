@@ -31,6 +31,8 @@ std::vector<std::string> examples {
   "Charlie",
   "Dave",
   "Emily",
+  "random_topology()",
+  "start_mining()",
 };
 
 Replxx::completions_t hook_completion(std::string const& context, int index, void* data) {
@@ -53,7 +55,7 @@ Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& 
   // only show hint if prefix is at least 'n' chars long
   // or if prefix begins with a specific character
   std::string prefix {context.substr(index)};
-  if (prefix.size() >= 1 || (!prefix.empty() && prefix.at(0) == '.')) {
+  if (prefix.size() >= 1) {
     for (auto const& e : examples) {
       if (e.compare(0, prefix.size(), prefix) == 0) {
         hints.emplace_back(e.substr(prefix.size()).c_str());
@@ -64,6 +66,8 @@ Replxx::hints_t hook_hint(std::string const& context, int index, Replxx::Color& 
   // set hint color to green if single match found
   if (hints.size() == 1) {
     c = Replxx::Color::GREEN;
+  } else {
+    c = Replxx::Color::YELLOW;
   }
 
   return hints;
