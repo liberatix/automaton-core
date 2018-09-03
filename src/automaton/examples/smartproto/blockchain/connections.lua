@@ -12,6 +12,11 @@ function pid(peer_id)
   return "N/A"
 end
 
+function peer_connected(peer_id)
+  -- Send all current blocks, so that we have consensus
+  send_blocks(peer_id, 1)
+end
+
 function connected(peer_id)
   log("connections", "CONNECTED TO " .. tostring(peer_id))
   conn[peer_id] = { name = "N/A" }

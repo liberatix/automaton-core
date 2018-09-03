@@ -63,7 +63,11 @@ function create_graph_html()
         roundness: 0.4
       }
     },
-    physics: true
+    physics: {
+      stabilization: {
+        iterations: 500
+      }
+    }
   };
   var network = new vis.Network(container, data, options);
 </script>

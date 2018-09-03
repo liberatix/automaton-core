@@ -38,7 +38,7 @@ namespace smartproto {
 
 // TODO(kari): Make buffers in connection shared_ptr
 
-static const uint32_t MAX_MESSAGE_SIZE = 64 * 1024;  // Maximum size of message in bytes
+static const uint32_t MAX_MESSAGE_SIZE = 1 * 1024;  // Maximum size of message in bytes
 static const uint32_t HEADER_SIZE = 3;
 static const uint32_t WAITING_HEADER = 1;
 static const uint32_t WAITING_MESSAGE = 2;

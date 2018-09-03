@@ -163,6 +163,8 @@ int main(int argc, char* argv[]) {
           std::cout << "\n" << err.what() << "\n";
           break;
         }
+      } catch (std::exception& e) {
+        LOG(FATAL) << "Exception in logger: " << e.what();
       } catch (...) {
         LOG(FATAL) << "Exception in logger";
       }

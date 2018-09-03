@@ -7,23 +7,21 @@
 --    or it is block#1 with prev_hash equal to GENESIS_HASH
 function validate(block)
   if block == nil then
-    log("validate", "validate called with block = nil!!!")
+    log("validate", "validate called with block=nil")
     return BLOCK.INVALID
   end
-
   -- get the block hash and target difficulty
-  hash = block_hash(block)
+  local hash = block_hash(block)
   local target = get_target()
-
   -- Check if we already have the block
   if blocks[hash] ~= nil then
     log_block("validate", block, "DUPLICATE")
     return BLOCK.DUPLICATE
-  -- Check if hash is greater than difficulty
+  -- Check difficulty
   elseif hash > target then
     log_block("validate", block, "INVALID target > hash")
     return BLOCK.INVALID
-  -- block height can't be less than one
+  -- Check block height is a positive integer
   elseif block.height < 1 then
     log_block("validate", block, "INVALID height < 1")
     return BLOCK.INVALID
@@ -44,18 +42,13 @@ function validate(block)
   end
 end
 
-function peer_connected(peer_id)
-  -- Send all current blocks, so that we have consensus
-  send_blocks(peer_id, 1)
-end
-
 function on_Block(peer_id, block)
   -- Validate, save and broadcast
   local block_validity = validate(block)
   local hash = block_hash(block)
   log(pid(peer_id), "RECV | " .. hex(hash))
   if block_validity == BLOCK.VALID  then
-    -- log("on_Block", " Valid block added to blocks")
+    -- Block is valid, store it
     blocks[hash] = {
       miner = block.miner,
       prev_hash = block.prev_hash,
@@ -64,9 +57,9 @@ function on_Block(peer_id, block)
     }
     -- Check if we get a longer chain. Does not matter if it is the main or alternative.
     if block.height == #blockchain+1 then
-      -- We are sure that this is the head of the longest chain
+      -- We are sure that this is the head of the longest chain.
       blockchain[#blockchain+1] = hash
-      -- Check if blocks[block.prev_hash] is part of the main chain and replace if necesery
+      -- Check if blocks[block.prev_hash] is part of the main chain and replace if necessary.
       local block_index = (#blockchain)-1
       local longest_chain_hash = block.prev_hash
       while block_index >= 1 and (blockchain[block_index] ~= longest_chain_hash) do

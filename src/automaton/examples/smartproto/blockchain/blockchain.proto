@@ -3,12 +3,6 @@ syntax = "proto3";
 message Hello {
   // Peer unique ID
   string name = 1;
-
-  // Hash of last block
-  bytes last_hash = 2;
-
-  // Height of last block.
-  uint64 height = 3;
 }
 
 message Block {
