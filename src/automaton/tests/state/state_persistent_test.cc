@@ -2,25 +2,17 @@
 #include <vector>
 #include <utility>
 #include <stack>
-#include "gtest/gtest.h"
-#include "automaton/core/state/state_persistent.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
-#include "automaton/core/storage/persistent_blobstore.h"
 #include "automaton/core/io/io.h"
+#include "automaton/core/state/state_persistent.h"
+#include "automaton/core/storage/persistent_blobstore.h"
+#include "gtest/gtest.h"
 
 using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
+using automaton::core::io::bin2hex;
 using automaton::core::state::state_persistent;
 using automaton::core::storage::blobstore;
-
-static std::string tohex(std::string s) {
-  std::stringstream ss;
-  for (unsigned int i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) <<
-        std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
-  }
-  return ss.str();
-}
 
 TEST(state_persistent, set_and_get) {
   std::vector<std::pair<std::string, std::string> > tests;
@@ -120,8 +112,8 @@ TEST(state_persistent, node_hash_add_erase) {
 
       if (data != state.get(key)) {
         std::cout << "Setting " << i << " fails at " << j << std::endl;
-        std::cout << "Setting key " << tohex(keys.top())
-          << " fails " << tohex(key) << std::endl;
+        std::cout << "Setting key " << bin2hex(keys.top())
+          << " fails " << bin2hex(key) << std::endl;
         throw "!!!";
       }
     }
@@ -142,8 +134,8 @@ TEST(state_persistent, node_hash_add_erase) {
         if (data != state.get(key)) {
           std::cout << "Deleting " << (key_count - i) << " fails at "
               << j << std::endl;
-          std::cout << "Deleting key " << tohex(keys.top())
-            << " fails " << tohex(key) << std::endl;
+          std::cout << "Deleting key " << bin2hex(keys.top())
+            << " fails " << bin2hex(key) << std::endl;
           throw std::domain_error("!!!");
         }
       }

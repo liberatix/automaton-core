@@ -2,12 +2,14 @@
 #include <vector>
 #include <utility>
 #include <stack>
-#include "gtest/gtest.h"
-#include "automaton/core/state/state_impl.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
+#include "automaton/core/io/io.h"
+#include "automaton/core/state/state_impl.h"
+#include "gtest/gtest.h"
 
 using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
+using automaton::core::io::bin2hex;
 using automaton::core::state::state_impl;
 
 TEST(state_impl, set_and_get) {
@@ -63,15 +65,6 @@ TEST(state_impl, set_delete_and_get) {
   }
 }
 
-static std::string tohex(std::string s) {
-  std::stringstream ss;
-  for (uint32_t i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) <<
-        std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
-  }
-  return ss.str();
-}
-
 std::string hash_key(int i) {
   uint8_t digest32[32];
   hash_transformation* hasher = new SHA256_cryptopp();
@@ -110,8 +103,8 @@ TEST(state_impl, node_hash_add_erase) {
 
       if (data != state.get(key)) {
         std::cout << "Setting " << i << " fails at " << j << std::endl;
-        std::cout << "Setting key " << tohex(keys.top())
-          << " fails " << tohex(key) << std::endl;
+        std::cout << "Setting key " << bin2hex(keys.top())
+          << " fails " << bin2hex(key) << std::endl;
         throw "!!!";
       }
     }
@@ -133,8 +126,8 @@ TEST(state_impl, node_hash_add_erase) {
         if (data != state.get(key)) {
           std::cout << "Deleting " << (key_count - i) << " fails at "
               << j << std::endl;
-          std::cout << "Deleting key " << tohex(keys.top())
-            << " fails " << tohex(key) << std::endl;
+          std::cout << "Deleting key " << bin2hex(keys.top())
+            << " fails " << bin2hex(key) << std::endl;
           throw std::domain_error("!!!");
         }
       }
