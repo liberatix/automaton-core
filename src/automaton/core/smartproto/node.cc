@@ -21,6 +21,7 @@ using automaton::core::data::protobuf::protobuf_factory;
 using automaton::core::data::protobuf::protobuf_schema;
 
 using automaton::core::network::acceptor;
+using automaton::core::network::acceptor_id;
 using automaton::core::network::connection;
 
 using std::chrono::system_clock;
@@ -84,10 +85,10 @@ node::node(std::string id,
            vector<string> wire_msgs,
            data::factory& factory)
     : nodeid(id)
-    , update_time_slice(update_time_slice)
     , peer_ids(0)
-    , acceptor_(nullptr)
-    , engine(factory) {
+    , engine(factory)
+    , update_time_slice(update_time_slice)
+    , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
 
   for (auto schema_content : schemas) {
@@ -465,7 +466,7 @@ bool node::set_acceptor(const char* address) {
       LOG(DEBUG) << "Address was not parsed!";
       return false;
     }
-    new_acceptor = std::shared_ptr<acceptor>(acceptor::create(protocol, addr, this, this));
+    new_acceptor = std::shared_ptr<acceptor>(acceptor::create(protocol, 1, addr, this, this));
     if (new_acceptor && !new_acceptor->init()) {
       LOG(DEBUG) << "Acceptor initialization failed! Acceptor was not created!" << address;
       return false;
@@ -691,13 +692,13 @@ void node::on_disconnected(peer_id c) {
   }
 }
 
-void node::on_error(peer_id c, network::connection::error e) {
+void node::on_connection_error(peer_id c, network::connection::error e) {
   LOG(DEBUG) << c << " -> on_error " << e;
   s_on_error(c, "Connection error " + std::to_string(e));
   disconnect(c);
 }
 
-bool node::on_requested(std::shared_ptr<network::acceptor> a, const string& address, peer_id* id) {
+bool node::on_requested(acceptor_id a, const string& address, peer_id* id) {
   LOG(DEBUG) << "Requested connection to " << acceptor_->get_address() << " from " << address;
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   lock_guard<mutex> lock(peers_mutex);
@@ -719,10 +720,11 @@ bool node::on_requested(std::shared_ptr<network::acceptor> a, const string& addr
   return true;
 }
 
-void node::on_connected(std::shared_ptr<network::acceptor> a, std::shared_ptr<network::connection> c,
+void node::on_connected(acceptor_id a, std::shared_ptr<network::connection> c,
     const string& address) {
   peer_id id = c->get_id();
-  LOG(DEBUG) << "Connected in acceptor " << a->get_address() << " peer with id " << id << " (" << address << ')';
+  LOG(DEBUG) << "Connected in acceptor " << acceptor_->get_address() << " peer with id " <<
+      id << " (" << address << ')';
   VLOG(9) << "LOCK " << this << " " << (acceptor_ ? acceptor_->get_address() : "N/A") << " addr " << address;
   peers_mutex.lock();
   auto it = known_peers.find(id);
@@ -738,8 +740,8 @@ void node::on_connected(std::shared_ptr<network::acceptor> a, std::shared_ptr<ne
   peers_mutex.unlock();
 }
 
-void node::on_error(std::shared_ptr<network::acceptor> a, network::connection::error e)  {
-  LOG(DEBUG) << a->get_address() << " -> on_error in acceptor";
+void node::on_acceptor_error(acceptor_id a, network::connection::error e)  {
+  LOG(DEBUG) << acceptor_->get_address() << " -> on_error in acceptor";
 }
 
 }  // namespace smartproto

@@ -17,7 +17,7 @@ std::shared_ptr<connection> connection::create(const std::string& type, connecti
   }
 }
 
-uint32_t connection::get_id() {
+connection_id connection::get_id() {
   return id;
 }
 

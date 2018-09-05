@@ -7,6 +7,7 @@
 using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::core::network::connection_id;
+using automaton::core::network::acceptor_id;
 
 const char* address_a = "127.0.0.1:12333";
 const char* address_b = "127.0.0.1:12366";
@@ -50,7 +51,7 @@ class handler: public connection::connection_handler {
   void on_disconnected(connection_id c) {
     LOG(INFO) << "Disconnected with: " << c;
   }
-  void on_error(connection_id c, connection::error e) {
+  void on_connection_error(connection_id c, connection::error e) {
     if (e == connection::no_error) {
       return;
     }
@@ -62,19 +63,19 @@ class lis_handler: public acceptor::acceptor_handler {
  public:
   // TODO(kari): Add constructor that accepts needed options
   // (vector connections, max ...)
-  bool on_requested(std::shared_ptr<acceptor> a, const std::string& address, uint32_t* pid) {
+  bool on_requested(acceptor_id a, const std::string& address, uint32_t* pid) {
   //  EXPECT_EQ(address, address_a);
     *pid = get_new_id();
     LOG(INFO) << "Connection request from: " << address << ". Accepting...";
     return true;
   }
-  void on_connected(std::shared_ptr<acceptor> a, std::shared_ptr<connection> c, const std::string& address) {
+  void on_connected(acceptor_id a, std::shared_ptr<connection> c, const std::string& address) {
     LOG(INFO) << "Accepted connection from: " << address;
     connections[c->get_id()] = c;
     char* buffer = new char[256];
     c->async_read(buffer, 256, 0);
   }
-  void on_error(std::shared_ptr<acceptor> a, connection::error e) {
+  void on_acceptor_error(acceptor_id a, connection::error e) {
     LOG(ERROR) << "Acceptor ERROR " << std::to_string(e);
   }
 };
@@ -92,21 +93,20 @@ void func() {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     connection_c -> async_send("C0", 3);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    automaton::core::network::tcp_release();
-    // connection_c -> async_send("C1", 4);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // connection_c -> async_send("C2", 5);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    // connection_c -> disconnect();
-    // connection_c -> connect();
-    // connection_c -> async_read(bufferC, 256, 0);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // connection_c -> async_send("C3", 6);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // connection_c -> async_send("C4", 7);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // connection_c -> async_send("C5", 8);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    connection_c -> async_send("C1", 4);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    connection_c -> async_send("C2", 5);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    connection_c -> disconnect();
+    connection_c -> connect();
+    connection_c -> async_read(bufferC, 256, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    connection_c -> async_send("C3", 6);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    connection_c -> async_send("C4", 7);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    connection_c -> async_send("C5", 8);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   } else {
     LOG(ERROR) << "Connection init failed!";
   }
@@ -115,7 +115,7 @@ void func() {
 int main() {
   automaton::core::network::tcp_init();
   lis_handler lis_handler;
-  std::shared_ptr<acceptor> acceptorB = acceptor::create("tcp", address_a, &lis_handler, &handlerA);
+  std::shared_ptr<acceptor> acceptorB = acceptor::create("tcp", 1, address_a, &lis_handler, &handlerA);
   if (acceptorB->init()) {
     LOG(DEBUG) << "Acceptor init was successful!";
     acceptorB->start_accepting();
@@ -125,11 +125,10 @@ int main() {
   }
   std::thread t(func);
 
-  char r; std::cin >> r;
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
   t.join();
-//  automaton::core::network::tcp_release();
+  automaton::core::network::tcp_release();
   delete [] bufferC;
   connections.clear();
-  LOG(DEBUG) << acceptorB.use_count() << " -> " << acceptorB->get_state();
   return 0;
 }
