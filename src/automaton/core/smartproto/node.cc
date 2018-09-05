@@ -6,6 +6,7 @@
 #include <ios>
 #include <iostream>
 #include <regex>
+#include <sstream>
 #include <thread>
 #include <utility>
 
@@ -14,6 +15,8 @@
 #include "automaton/core/io/io.h"
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
+
+using automaton::core::common::status;
 
 using automaton::core::data::msg;
 using automaton::core::data::schema;
@@ -646,11 +649,11 @@ void node::on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uin
   }
 }
 
-void node::on_message_sent(peer_id c, uint32_t id, network::connection::error e) {
+void node::on_message_sent(peer_id c, uint32_t id, const common::status& s) {
   LOG(DEBUG) << "Message to peer " << c << " with msg_id " << id << " was sent " <<
-      (e == network::connection::error::no_error ? "successfully" : "unsuccessfully");
-  add_task([this, c, id, e]() -> string {
-    return fresult("sent", script_on_msg_sent(c, id, e == network::connection::error::no_error));
+      (s.code == status::OK ? "successfully" : "unsuccessfully");
+  add_task([this, c, id, s]() -> string {
+    return fresult("sent", script_on_msg_sent(c, id, s.code == status::OK));
   });
 }
 
@@ -692,9 +695,11 @@ void node::on_disconnected(peer_id c) {
   }
 }
 
-void node::on_connection_error(peer_id c, network::connection::error e) {
-  LOG(DEBUG) << c << " -> on_error " << e;
-  s_on_error(c, "Connection error " + std::to_string(e));
+void node::on_connection_error(peer_id c, const common::status& s) {
+  LOG(DEBUG) << c << " -> on_error " << s;
+  std::stringstream ss;
+  ss << "Connection error:: " << s;
+  s_on_error(c, ss.str());
   disconnect(c);
 }
 
@@ -740,8 +745,8 @@ void node::on_connected(acceptor_id a, std::shared_ptr<network::connection> c,
   peers_mutex.unlock();
 }
 
-void node::on_acceptor_error(acceptor_id a, network::connection::error e)  {
-  LOG(DEBUG) << acceptor_->get_address() << " -> on_error in acceptor";
+void node::on_acceptor_error(acceptor_id a, const common::status& s)  {
+  LOG(DEBUG) << acceptor_->get_address() << " -> on_error in acceptor:: " << s;
 }
 
 }  // namespace smartproto

@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "automaton/core/common/status.h"
 #include "automaton/core/network/connection.h"
 
 namespace automaton {
@@ -38,7 +39,7 @@ class acceptor {
     // of bool
     virtual bool on_requested(acceptor_id a, const std::string& address, connection_id* id) = 0;
     virtual void on_connected(acceptor_id a, std::shared_ptr<connection> c, const std::string& address) = 0;
-    virtual void on_acceptor_error(acceptor_id a, connection::error e) = 0;
+    virtual void on_acceptor_error(acceptor_id a, const common::status& s) = 0;
   };
   virtual ~acceptor() {}
 

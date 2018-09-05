@@ -11,6 +11,8 @@
 
 #include "automaton/core/io/io.h"
 
+using automaton::core::common::status;
+
 namespace automaton {
 namespace core {
 namespace network {
@@ -263,7 +265,6 @@ void simulation::handle_event(const event& e) {
         source->sending_q_mutex.unlock();
         event new_event;
         new_event.type_ = event::type::ack_received;
-        new_event.data = std::to_string(connection::error::no_error);
         new_event.source = e.destination;
         new_event.destination = e.source;
         uint32_t t = sim->get_time();
@@ -305,7 +306,7 @@ void simulation::handle_event(const event& e) {
         break;
       }
       destination->set_state(connection::state::disconnected);
-      destination->get_handler()->on_connection_error(destination->get_id(), connection::error::connection_refused);
+      destination->get_handler()->on_connection_error(destination->get_id(), status::internal("Connection refused!"));
       destination->cancel_operations();
       destination->clear_queues();
       // LOG(DEBUG) << "refuse 1";
@@ -323,8 +324,7 @@ void simulation::handle_event(const event& e) {
         destination->sending.pop();
         destination->sending_q_mutex.unlock();
         destination->handle_send();
-        destination->get_handler()->on_message_sent(destination->get_id(), rid,
-            static_cast<connection::error>(std::stoi(e.data)));
+        destination->get_handler()->on_message_sent(destination->get_id(), rid, status::ok());
       } else {
         destination->sending_q_mutex.unlock();
       }
@@ -739,7 +739,7 @@ void simulated_connection::cancel_operations() {
   LOG(DEBUG) << id << " Canceling operations";
   std::lock_guard<std::mutex> lock(sending_q_mutex);
   while (!sending.empty()) {
-    handler->on_message_sent(this->id, sending.front().id, connection::error::closed_by_peer);
+    handler->on_message_sent(this->id, sending.front().id, status::aborted("Operation cancelled!"));
     sending.pop();
   }
   // TODO(kari): Check what error gives if read is cancelled
