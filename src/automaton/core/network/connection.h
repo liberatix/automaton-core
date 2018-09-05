@@ -6,6 +6,8 @@
 #include <string>
 #include <thread>
 
+#include "automaton/core/common/status.h"
+
 namespace automaton {
 namespace core {
 namespace network {
@@ -34,20 +36,6 @@ class connection {
   };
 
   /**
-    TODO(kari)
-  */
-  enum error {
-    no_error = 0,
-    unknown = 1,
-    invalid_address = 2,
-    closed_by_peer = 3,
-    connection_refused = 4,
-    timed_out = 5,
-    broken_pipe = 6,
-    not_connected = 7,
-  };
-
-  /**
     Handler class used to inform the client for events.
       - on_message_received will be invoked when message from remote peer was
         received; it passes the connection, representing from which peer was the
@@ -65,10 +53,10 @@ class connection {
    public:
     virtual ~connection_handler() {}
     virtual void on_message_received(connection_id c, char* buffer, uint32_t bytes_read, uint32_t id) = 0;
-    virtual void on_message_sent(connection_id c, uint32_t id, connection::error e) = 0;
+    virtual void on_message_sent(connection_id c, uint32_t id, const common::status& s) = 0;
     virtual void on_connected(connection_id c) = 0;
     virtual void on_disconnected(connection_id c) = 0;
-    virtual void on_connection_error(connection_id c, connection::error e) = 0;
+    virtual void on_connection_error(connection_id c, const common::status& s) = 0;
   };
   virtual ~connection() {}
 

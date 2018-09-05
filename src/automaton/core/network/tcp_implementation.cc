@@ -2,11 +2,14 @@
 
 #include <mutex>
 #include <regex>
+#include <sstream>
 #include <thread>
 
 #include <boost/asio/read.hpp>
 
 #include "automaton/core/io/io.h"
+
+using automaton::core::common::status;
 
 namespace automaton {
 namespace core {
@@ -126,11 +129,7 @@ void tcp_connection::connect() {
               self->disconnect();
               // set_state(connection::state::disconnected);
               LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
-              if (boost_error_code == boost::asio::error::connection_refused) {
-                c_handler->on_connection_error(cid, connection::error::connection_refused);
-              } else {
-                c_handler->on_connection_error(cid, connection::error::unknown);
-              }
+              c_handler->on_connection_error(cid, status::unknown(boost_error_code.message()));
             } else {
               self->set_state(connection::state::connected);
               c_handler->on_connected(cid);
@@ -138,8 +137,10 @@ void tcp_connection::connect() {
       });
     }
   } else {
-    LOG(ERROR) << address << " -> " <<  "Not initialized! tcp_init() must be called first";
-    handler->on_connection_error(id, connection::error::unknown);
+    std::stringstream s;
+    s << address << " -> " <<  "Not initialized! tcp_init() must be called first";
+    LOG(ERROR) << s.str();
+    handler->on_connection_error(id, status::unknown(s.str()));
     // TODO(kari): what to do here? needs to be connected
   }
 }
@@ -159,30 +160,30 @@ void tcp_connection::async_send(const std::string& msg, uint32_t message_id) {
       if (boost_error_code) {
         LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
         if (boost_error_code == boost::asio::error::broken_pipe) {
-          c_handler->on_message_sent(cid, message_id, connection::error::closed_by_peer);
+          c_handler->on_message_sent(cid, message_id, status::aborted(boost_error_code.message()));
           // TODO(kari): ?? handle
           self->disconnect();
         } else if (boost_error_code == boost::asio::error::operation_aborted) {
-          c_handler->on_message_sent(cid, message_id, connection::error::closed_by_peer);
+          c_handler->on_message_sent(cid, message_id, status::aborted("Operation cancelled!"));
         } else {
-          c_handler->on_message_sent(cid, message_id, connection::error::unknown);
+          c_handler->on_message_sent(cid, message_id, status::unknown(boost_error_code.message()));
         }
        // if (bytes_transferred < message.size())
       } else {
         // LOG(DEBUG)
         //     << "SUCCESSFULLY SENT MESSAGE WITH "
         //     << message->size() << " BYTES TO " << id << " msg_id " << message_id;
-        c_handler->on_message_sent(cid, message_id, connection::error::no_error);
+        c_handler->on_message_sent(cid, message_id, status::ok());
       }
       delete message;
     });
   } else if (!tcp_initialized) {
     LOG(ERROR) << address << " -> " <<  "Not initialized";
-    handler->on_message_sent(id, message_id, connection::error::unknown);
+    handler->on_message_sent(id, message_id, status::internal("Not initialized"));
     // TODO(kari): what to do here? needs to be connected
   } else {
     LOG(ERROR) << address << " -> " <<  "Socket closed or not yet connected";
-    handler->on_message_sent(id, message_id, connection::error::closed_by_peer);
+    handler->on_message_sent(id, message_id, status::internal("Socket closed or not yet connected"));
   }
 }
 
@@ -205,7 +206,7 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
             return;
           } else {
             LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
-            c_handler->on_connection_error(cid, connection::error::unknown);
+            c_handler->on_connection_error(cid, status::unknown(boost_error_code.message()));
             // TODO(kari): what errors and when should read be called?
           }
         } else {
@@ -229,7 +230,7 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
             return;
           } else {
             LOG(ERROR) << addr << " -> " <<  boost_error_code.message();
-            c_handler->on_connection_error(cid, connection::error::unknown);
+            c_handler->on_connection_error(cid, status::unknown(boost_error_code.message()));
             // TODO(kari): what errors and when should read be called?
           }
         } else {
@@ -239,11 +240,11 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
     }
   } else if (!tcp_initialized) {
     LOG(ERROR) << address << " -> " <<  "Not initialized";
-    handler->on_connection_error(id, connection::error::unknown);
+    handler->on_connection_error(id, status::internal("Not initialized"));
     // TODO(kari): what to do here? needs to be connected
   } else {
     LOG(ERROR) << address << " -> " <<  "Socket closed";
-    handler->on_connection_error(id, connection::error::closed_by_peer);
+    handler->on_connection_error(id, status::internal("Socket closed"));
   }
 }
 
@@ -388,7 +389,7 @@ void tcp_acceptor::start_accepting() {
           }
           LOG(ERROR) << boost_error_code.message();
           // LOG(DEBUG) << "async_accept calling on_error";
-          a_handler->on_acceptor_error(self->get_id(), connection::error::unknown);
+          a_handler->on_acceptor_error(self->get_id(), status::unknown(boost_error_code.message()));
           // TODO(kari): start listen again? depends on the errors
           // start_accepting();
         }
@@ -396,11 +397,11 @@ void tcp_acceptor::start_accepting() {
       });
   } else if (!tcp_initialized) {
     LOG(ERROR) <<  "Not initialized";
-    handler->on_acceptor_error(id, connection::error::unknown);
+    handler->on_acceptor_error(id, status::internal("Not initialized"));
     // TODO(kari): what to do here? needs to be connected
   } else {
     LOG(ERROR) <<  "Acceptor closed";
-    handler->on_acceptor_error(id, connection::error::closed_by_peer);
+    handler->on_acceptor_error(id, status::internal("Acceptor closed!"));
   }
 }
 

@@ -8,6 +8,7 @@ using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::core::network::connection_id;
 using automaton::core::network::acceptor_id;
+using automaton::core::common::status;
 
 std::map<uint32_t, std::shared_ptr<automaton::core::network::connection> > connections;
 
@@ -33,25 +34,24 @@ class handler: public connection::connection_handler {
     }
     connections[c]->async_read(buffer, 256, 0);
   }
-  void on_message_sent(connection_id c, uint32_t mid, connection::error e) {
-    if (e) {
-      LOG(INFO) << "Message with id " << std::to_string(mid) << " was NOT sent to " <<
-          c << "\nError " << std::to_string(e) << " occured";
+  void on_message_sent(connection_id c, uint32_t mid, const status& s) {
+    if (s.code != status::OK) {
+      LOG(INFO) << "Message with id " << std::to_string(mid) << " was NOT sent to " << c << " :: ERROR: " << s;
     } else {
       LOG(INFO) << "Message with id " << std::to_string(mid) << " was successfully sent to " << c;
     }
   }
   void on_connected(connection_id c) {
-    LOG(INFO) << "Connected with: " + c;
+    LOG(INFO) << "Connected with: " << c;
   }
   void on_disconnected(connection_id c) {
-    LOG(INFO) << "Disconnected with: " + c;
+    LOG(INFO) << "Disconnected with: " << c;
   }
-  void on_connection_error(connection_id c, connection::error e) {
-    if (e == connection::no_error) {
+  void on_connection_error(connection_id c, const status& s) {
+    if (s.code == status::OK) {
       return;
     }
-    LOG(ERROR) << std::to_string(e) << " (connection " << c << ")";
+    LOG(ERROR) << s << " (connection " << c << ")";
   }
 };
 
@@ -71,15 +71,15 @@ class lis_handler: public acceptor::acceptor_handler {
     char* buffer = new char[256];
     c->async_read(buffer, 256, 0);
   }
-  void on_acceptor_error(acceptor_id a, connection::error e) {
-    LOG(ERROR) << std::to_string(e);
+  void on_acceptor_error(acceptor_id a, const status& s) {
+    LOG(ERROR) << s;
   }
 };
 
 handler handlerC, handlerA;
 
 void func() {
-  std::shared_ptr<connection> connection_c = connection::create("sim", get_new_id(), "100:1000:10:1", &handlerC);
+  std::shared_ptr<connection> connection_c = connection::create("sim", get_new_id(), "10:100:10:1", &handlerC);
   if (connection_c->init()) {
     connections[connection_c->get_id()] = connection_c;
     LOG(DEBUG) << "Connection init was successful!";

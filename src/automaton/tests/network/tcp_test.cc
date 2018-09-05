@@ -8,6 +8,7 @@ using automaton::core::network::acceptor;
 using automaton::core::network::connection;
 using automaton::core::network::connection_id;
 using automaton::core::network::acceptor_id;
+using automaton::core::common::status;
 
 const char* address_a = "127.0.0.1:12333";
 const char* address_b = "127.0.0.1:12366";
@@ -37,10 +38,9 @@ class handler: public connection::connection_handler {
     }
     connections[c]->async_read(buffer, 256, 0);
   }
-  void on_message_sent(connection_id c, uint32_t mid, connection::error e) {
-    if (e) {
-      LOG(INFO) << "Message with id " << std::to_string(mid) << " was NOT sent to " <<
-          c << "\nError " << std::to_string(e) << " occured";
+  void on_message_sent(connection_id c, uint32_t mid, const status& s) {
+    if (s.code != status::OK) {
+      LOG(INFO) << "Message with id " << std::to_string(mid) << " was NOT sent to " << c << "\nERROR: " << s;
     } else {
       LOG(INFO) << "Message with id " << std::to_string(mid) << " was successfully sent to " << c;
     }
@@ -51,11 +51,11 @@ class handler: public connection::connection_handler {
   void on_disconnected(connection_id c) {
     LOG(INFO) << "Disconnected with: " << c;
   }
-  void on_connection_error(connection_id c, connection::error e) {
-    if (e == connection::no_error) {
+  void on_connection_error(connection_id c, const status& s) {
+    if (s.code == status::OK) {
       return;
     }
-    LOG(ERROR) << std::to_string(e) << " (connection " << c << ")";
+    LOG(ERROR) << s << " (connection " << c << ")";
   }
 };
 
@@ -75,8 +75,8 @@ class lis_handler: public acceptor::acceptor_handler {
     char* buffer = new char[256];
     c->async_read(buffer, 256, 0);
   }
-  void on_acceptor_error(acceptor_id a, connection::error e) {
-    LOG(ERROR) << "Acceptor ERROR " << std::to_string(e);
+  void on_acceptor_error(acceptor_id a, const status& s) {
+    LOG(ERROR) << "Acceptor ERROR " << s;
   }
 };
 

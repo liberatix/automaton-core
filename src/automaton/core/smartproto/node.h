@@ -143,20 +143,20 @@ class node: public network::connection::connection_handler,
 
   void on_message_received(peer_id c, char* buffer, uint32_t bytes_read, uint32_t id);
 
-  void on_message_sent(peer_id c, uint32_t id, network::connection::error e);
+  void on_message_sent(peer_id c, uint32_t id, const common::status& s);
 
   void on_connected(peer_id c);
 
   void on_disconnected(peer_id c);
 
-  void on_connection_error(peer_id c, network::connection::error e);
+  void on_connection_error(peer_id c, const common::status& s);
 
   bool on_requested(network::acceptor_id a, const std::string& address, peer_id* id);
 
   void on_connected(network::acceptor_id a, std::shared_ptr<network::connection> c,
       const std::string& address);
 
-  void on_acceptor_error(network::acceptor_id a, network::connection::error e);
+  void on_acceptor_error(network::acceptor_id a, const common::status& s);
 
   // Script handler functions
   void s_on_blob_received(peer_id id, const std::string& blob);
