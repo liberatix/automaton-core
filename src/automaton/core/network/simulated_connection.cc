@@ -461,8 +461,8 @@ simulated_connection::simulated_connection(connection_id id, const std::string& 
 }
 
 simulated_connection::~simulated_connection() {
-  LOG(DEBUG) << id << " Connection destructor";
-  LOG(DEBUG) << id << "/ Connection destructor";
+  // LOG(DEBUG) << id << " Connection destructor";
+  // LOG(DEBUG) << id << "/ Connection destructor";
 }
 
 bool simulated_connection::init() {
@@ -755,8 +755,8 @@ simulated_acceptor::simulated_acceptor(acceptor_id id, const std::string& addres
 }
 
 simulated_acceptor::~simulated_acceptor() {
-  LOG(DEBUG) << "Acceptor destructor";
-  LOG(DEBUG) << "/ Acceptor destructor";
+  // LOG(DEBUG) << "Acceptor destructor";
+  // LOG(DEBUG) << "/ Acceptor destructor";
 }
 
 bool simulated_acceptor::init() {
