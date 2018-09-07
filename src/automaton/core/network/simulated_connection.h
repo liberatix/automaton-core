@@ -47,7 +47,7 @@ struct event {
   std::string to_string() const;
 };
 
-// this could be protobuf message
+// these could be protobuf messages
 struct connection_params {
   uint32_t min_lag;
   uint32_t max_lag;
@@ -62,13 +62,12 @@ struct acceptor_params {
 };
 
 /**
-  Singleton class running the simulation. Stores created acceptors,
-  connections, events and simulation time.
+  Singleton class running the simulation. Stores created acceptors, connections, events and simulation time.
 */
 class simulation {
  private:
   /**
-    Map storing created connections.
+    Map storing created connections. Ids are unique for the simulation.
   */
   std::unordered_map<uint32_t, std::shared_ptr<connection> > connections;
   std::mutex connections_mutex;
@@ -80,11 +79,10 @@ class simulation {
   std::mutex acceptors_mutex;
 
   /**
-    Priority queue storing the events that need to be handled. Lower time of
-    handlig means higher priority. If equal, lower event id (created earlier)
-    means higher priority.
+    Priority queue storing the events that need to be handled. Lower time of handlig means higher priority. If equal,
+    lower event id (created earlier) means higher priority.
   */
-  std::unordered_map<uint64_t, std::vector<event>> events;
+  std::unordered_map<uint64_t, std::vector<event> > events;
   std::mutex q_mutex;
 
   /**
@@ -100,8 +98,7 @@ class simulation {
   simulation();
 
   /**
-    Function that handles the events from the queue. It is called from
-    process().
+    Function that handles the events from the queue. It is called from process().
   */
   void handle_event(const event& event_);
 
@@ -117,6 +114,11 @@ class simulation {
  public:
   ~simulation();
 
+  // TODO(kari): Make it work on exactly millisec_step milliseconds.
+  /**
+    If called, process will be invoked every *millisec_step* milliseconds + the process time. New thread is started.
+    Simulation_stop should be called so the thread can be stopped and joined.
+  */
   void simulation_start(uint64_t millisec_step);
 
   void simulation_stop();
@@ -135,17 +137,24 @@ class simulation {
   /** Returns current simulation time */
   uint64_t get_time();
 
+  /** Checks if the event queue is empty. */
   bool is_queue_empty();
 
   /**
     Process all events from simulation_time to the given time.
   */
-  int process(uint64_t time);
+  uint32_t process(uint64_t time);
+
   void add_connection(std::shared_ptr<connection> connection_);
+
   std::shared_ptr<connection> get_connection(uint32_t connection_index);
+
   void remove_connection(uint32_t connection_id);
+
   void add_acceptor(uint32_t address, std::shared_ptr<acceptor> acceptor_);
+
   std::shared_ptr<acceptor> get_acceptor(uint32_t address);
+
   void remove_acceptor(uint32_t address);
 
   // DEBUG
@@ -158,7 +167,7 @@ class simulated_connection: public connection, public std::enable_shared_from_th
   uint32_t remote_address;
   uint32_t local_connection_id;
   uint32_t remote_connection_id;
-  // TODO(kari): better names for these structs
+
   struct incoming_packet {
     char* buffer;
     uint32_t buffer_size;
@@ -167,6 +176,7 @@ class simulated_connection: public connection, public std::enable_shared_from_th
     uint32_t bytes_read;
     incoming_packet();
   };
+
   struct outgoing_packet {
     std::string message;
     uint32_t bytes_send;
@@ -247,7 +257,7 @@ class simulated_acceptor: public acceptor, public std::enable_shared_from_this<s
   acceptor_params parameters;
   connection::connection_handler* accepted_connections_handler;
 
-  simulated_acceptor(const std::string& address_, acceptor::acceptor_handler*
+  simulated_acceptor(acceptor_id id, const std::string& address_, acceptor::acceptor_handler*
       handler_, connection::connection_handler* accepted_connections_handler);
 
   ~simulated_acceptor();

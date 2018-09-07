@@ -12,6 +12,9 @@ cc_library(
     "acceptor.h",
     "connection.h",
   ],
+  deps = [
+    "//automaton/core/common:status",
+  ],
   linkstatic=True,
 )
 

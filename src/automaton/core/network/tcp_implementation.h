@@ -123,7 +123,7 @@ class tcp_acceptor:public acceptor, public std::enable_shared_from_this<tcp_acce
     constructor when new connection is accepted and created. It will also be
     used to call its on_connected() method.
   */
-  tcp_acceptor(const std::string& address, acceptor_handler* handler_,
+  tcp_acceptor(acceptor_id id, const std::string& address, acceptor_handler* handler_,
       connection::connection_handler* connections_handler);
 
   /**
