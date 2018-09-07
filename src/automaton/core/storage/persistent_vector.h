@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_STORAGE_PERSSITENT_VECTOR_H__
-#define AUTOMATON_CORE_STORAGE_PERSSITENT_VECTOR_H__
+#ifndef AUTOMATON_CORE_STORAGE_PERSISTENT_VECTOR_H__
+#define AUTOMATON_CORE_STORAGE_PERSISTENT_VECTOR_H__
 
 #include <string>
 #include "automaton/core/storage/persistent_storage.h"
@@ -62,4 +62,4 @@ size_t persistent_vector<T>::size() const {
 
 
 
-#endif  // AUTOMATON_CORE_STORAGE_PERSSITENT_VECTOR_H__
+#endif  // AUTOMATON_CORE_STORAGE_PERSISTENT_VECTOR_H__
