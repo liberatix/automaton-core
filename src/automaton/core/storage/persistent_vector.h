@@ -1,6 +1,7 @@
 #ifndef AUTOMATON_CORE_STORAGE_PERSSITENT_VECTOR_H__
 #define AUTOMATON_CORE_STORAGE_PERSSITENT_VECTOR_H__
 
+#include <string>
 #include "automaton/core/storage/persistent_storage.h"
 
 namespace automaton {
@@ -13,11 +14,8 @@ namespace storage {
 template<typename T>
 class persistent_vector : protected persistent_storage {
  public:
-  
   T& operator[](size_t n);
   void push_back(const T& val);
-  
-
   bool map_file(std::string path);
   size_t size() const;
  private:

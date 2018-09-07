@@ -1,7 +1,7 @@
 #include "automaton/core/storage/persistent_storage.h"
-#include <string>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem.hpp>
+#include <string>
 
 
 namespace automaton {
@@ -62,8 +62,6 @@ bool persistent_storage::map_file(std::string path, size_t object_sz) {
     mmf.open(file_path, boost::iostreams::mapped_file::mapmode::readwrite);
     storage = reinterpret_cast<uint8_t*>(mmf.data());
     capacity = mmf.size();
-
-    //memcpy(&header_version, storage, sizeof(uint64_t));
     header = reinterpret_cast<uint64_t*>(storage);
     header_version = header[0];
   } else {

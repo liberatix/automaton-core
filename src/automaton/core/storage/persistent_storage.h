@@ -43,7 +43,8 @@ class persistent_storage {
 
   */
   bool mapped();
- protected: 
+
+ protected:
   uint64_t header_version;
   uint64_t cur_version;
   /**
@@ -52,6 +53,7 @@ class persistent_storage {
     header[8-15] = Can be used by derived classes to store necessary information
   */
   uint64_t* header;
+
  private:
   uint8_t* storage;
   boost::iostreams::mapped_file mmf;
