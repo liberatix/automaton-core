@@ -61,19 +61,19 @@ tcp_connection::tcp_connection(connection_id id, const std::string& addr,
 }
 
 tcp_connection::~tcp_connection() {
-  LOG(DEBUG) << "Connection destructor";
+  //LOG(DEBUG) << "Connection destructor";
   connection_mutex.lock();
   set_state(connection::state::disconnected);
   if (asio_socket.is_open()) {
     boost::system::error_code boost_error_code_shut;
     asio_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, boost_error_code_shut);
     if (boost_error_code_shut) {
-      LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
+      //LOG(DEBUG) << address << " -> " <<  boost_error_code_shut.message();
     }
     boost::system::error_code boost_error_code_close;
     asio_socket.close(boost_error_code_close);
     if (boost_error_code_close) {
-      LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+      //LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
     connection_mutex.unlock();
   } else {
@@ -82,9 +82,9 @@ tcp_connection::~tcp_connection() {
   boost::system::error_code boost_error_code;
   asio_socket.release(boost_error_code);
   if (boost_error_code) {
-    LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
+    //LOG(DEBUG) << address << " -> " <<  boost_error_code.message();
   }
-  LOG(DEBUG) << "/ Connection destructor";
+  //LOG(DEBUG) << "/ Connection destructor";
 }
 
 bool tcp_connection::init() {
@@ -304,20 +304,20 @@ tcp_acceptor::tcp_acceptor(const std::string& address, acceptor_handler*
 }
 
 tcp_acceptor::~tcp_acceptor() {
-  LOG(DEBUG) << "Acceptor destructor";
+  //LOG(DEBUG) << "Acceptor destructor";
   if (asio_acceptor.is_open()) {
     boost::system::error_code boost_error_code_close;
     asio_acceptor.close(boost_error_code_close);
     if (boost_error_code_close) {
-      LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+      //LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
     boost::system::error_code boost_error_code_release;
     asio_acceptor.release(boost_error_code_release);
     if (boost_error_code_release) {
-      LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
+      //LOG(DEBUG) << address << " -> " <<  boost_error_code_close.message();
     }
   }
-  LOG(DEBUG) << "/ Acceptor destructor";
+  //LOG(DEBUG) << "/ Acceptor destructor";
 }
 
 bool tcp_acceptor::init() {

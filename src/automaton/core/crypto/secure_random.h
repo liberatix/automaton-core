@@ -18,7 +18,7 @@ class secure_random {
   // Generate random array of bytes.
   // Instantiate a class using the registered function in the factory.
   // IN:  size:       The size of the memblock block in bytes.
-  // OUT: memblock:   Memory location to save teh random bytes.
+  // OUT: memblock:   Memory location to save the random bytes.
   virtual void block(uint8_t * memblock, size_t size) = 0;
 
   // Generate random array of byte
