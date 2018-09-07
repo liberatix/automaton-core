@@ -56,10 +56,8 @@ class persistent_blobstore : public blobstore{
   size_t header_size;
   uint64_t cur_version = 10000;
   uint64_t header_version;
-
   std::string file_path;
   uint64_t next_free = 0;
-  // capacity of storage in 4byte chunks (size in bytes/4)
   uint64_t capacity;
   // TODO(Samir): Handle free locations.
   // One option is to use heap with the free locations stored by size

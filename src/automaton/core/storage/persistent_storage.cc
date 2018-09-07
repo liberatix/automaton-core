@@ -9,8 +9,7 @@ namespace core {
 namespace storage {
 
   persistent_storage::persistent_storage()
-    : next_free(0)
-    , capacity(0)
+    : capacity(0)
     , header_size(1024)
     , cur_version(10000)
     , is_mapped(false) {
@@ -63,8 +62,8 @@ bool persistent_storage::map_file(std::string path, size_t object_sz) {
     mmf.open(file_path, boost::iostreams::mapped_file::mapmode::readwrite);
     storage = reinterpret_cast<uint8_t*>(mmf.data());
     capacity = mmf.size();
-
-    memcpy(&header_version, storage, sizeof(uint64_t));
+    header = reinterpret_cast<uint64_t*>(storage);
+    header_version = header[0];
   } else {
     boost::iostreams::mapped_file_params new_mmf(file_path);
     new_mmf.flags = boost::iostreams::mapped_file::mapmode::readwrite;
@@ -74,12 +73,19 @@ bool persistent_storage::map_file(std::string path, size_t object_sz) {
     mmf.open(new_mmf);
     // write the version to the header of the new file
     storage = reinterpret_cast<uint8_t*>(mmf.data());
-    uint64_t* header = reinterpret_cast<uint64_t*>(storage);
+    header = reinterpret_cast<uint64_t*>(storage);
+    memset(header, 0, header_size);
     header_version = cur_version;
-    *header = header_version;
+    header[0] = header_version;
   }
+  header = reinterpret_cast<uint64_t*>(storage);
+  header_version = header[0];
   is_mapped = true;
   return true;
+}
+
+bool persistent_storage::mapped() {
+  return is_mapped;
 }
 
 void persistent_storage::close_mapped_file() {
