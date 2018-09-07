@@ -22,7 +22,6 @@ class persistent_vector : protected persistent_storage {
   size_t next_free;
 };
 
-
 template<typename T>
 inline T & persistent_vector<T>::operator[](size_t n) {
   if (!mapped()) {
@@ -54,12 +53,8 @@ size_t persistent_vector<T>::size() const {
   return next_free;
 }
 
-
-
 }  // namespace storage
 }  // namespace core
 }  // namespace automaton
-
-
 
 #endif  // AUTOMATON_CORE_STORAGE_PERSISTENT_VECTOR_H__

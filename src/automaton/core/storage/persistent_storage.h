@@ -40,7 +40,6 @@ class persistent_storage {
 
   /**
     Returns true if file is successfully mapped
-
   */
   bool mapped();
 

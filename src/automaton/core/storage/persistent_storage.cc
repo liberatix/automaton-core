@@ -88,7 +88,6 @@ bool persistent_storage::mapped() {
   return is_mapped;
 }
 
-
 void persistent_storage::close_mapped_file() {
   mmf.close();
   is_mapped = false;
