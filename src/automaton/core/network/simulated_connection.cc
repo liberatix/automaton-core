@@ -19,46 +19,46 @@ namespace network {
 
 // TODO(kari): Make thread safe.
 
-event::event() {
-  type_ = event::type::undefined;
-  time_of_handling = 0;
-  source = 0;
-  destination = 0;
-  data = "";
-}
-
-std::string event::to_string() const {
-  std::stringstream output;
-  switch (type_) {
-    case event::type::undefined:
-      output << "event: none / ";
-      break;
-    case event::type::disconnect:
-      output << "event: disconnect / ";
-      break;
-    case event::type::connection_request:
-      output << "event: connection_request / ";
-      break;
-    case event::type::message:
-      output << "event: message / ";
-      break;
-    case event::type::accept:
-      output << "event: accept / ";
-      break;
-    case event::type::refuse:
-      output << "event: refuse / ";
-      break;
-    case event::type::ack_received:
-      output << "event: ack_received / ";
-      break;
-    case event::type::error:
-      output << "event: error / ";
-      break;
-  }
-  output << "time:" << time_of_handling << " / source:" << source << " / destination:" <<
-      destination << " / data:" << automaton::core::io::bin2hex(data);
-  return output.str();
-}
+// event::event() {
+//   type_ = event::type::undefined;
+//   time_of_handling = 0;
+//   source = 0;
+//   destination = 0;
+//   data = "";
+// }
+//
+// std::string event::to_string() const {
+//   std::stringstream output;
+//   switch (type_) {
+//     case event::type::undefined:
+//       output << "event: none / ";
+//       break;
+//     case event::type::disconnect:
+//       output << "event: disconnect / ";
+//       break;
+//     case event::type::connection_request:
+//       output << "event: connection_request / ";
+//       break;
+//     case event::type::message:
+//       output << "event: message / ";
+//       break;
+//     case event::type::accept:
+//       output << "event: accept / ";
+//       break;
+//     case event::type::refuse:
+//       output << "event: refuse / ";
+//       break;
+//     case event::type::ack_received:
+//       output << "event: ack_received / ";
+//       break;
+//     case event::type::error:
+//       output << "event: error / ";
+//       break;
+//   }
+//   output << "time:" << time_of_handling << " / source:" << source << " / destination:" <<
+//       destination << " / data:" << automaton::core::io::bin2hex(data);
+//   return output.str();
+// }
 
 connection_params::connection_params():min_lag(0), max_lag(0), bandwidth(0) {}
 acceptor_params::acceptor_params():max_connections(0), bandwidth(0) {}
@@ -114,9 +114,14 @@ void simulation::simulation_stop() {
   running_thread.join();
 }
 
-void simulation::push_event(const event& event_) {
-  std::lock_guard<std::mutex> lock(q_mutex);
-  events[event_.time_of_handling].push_back(event_);
+// void simulation::push_event(const event& event_) {
+//   std::lock_guard<std::mutex> lock(q_mutex);
+//   events[event_.time_of_handling].push_back(event_);
+// }
+
+void simulation::add_task(uint64_t tm, std::function<void()> task) {
+  std::lock_guard<std::mutex> lock(tasks_mutex);
+  tasks[tm].push_back(task);
 }
 
 simulation* simulation::get_simulator() {
@@ -126,240 +131,237 @@ simulation* simulation::get_simulator() {
   return simulator = new simulation();
 }
 
-void simulation::handle_event(const event& e) {
-  // LOG(DEBUG) << "HANDLING: " + e.to_string();
+// void simulation::handle_event(const event& e) {
+//   // LOG(DEBUG) << "HANDLING: " + e.to_string();
+//   simulation* sim = simulation::get_simulator();
+// }
+
+
+void simulation::handle_disconnect(uint32_t dest) {
+  // LOG(DEBUG) << "disconnect 0";
+  /**
+    This event is created when the other endpoint has called disconnect().
+    Sets connection state to disconnected.
+    TODO(kari): If possible delete related events in the queue and
+    delete connection fron map. NOTE: Maybe it is better not to delete events
+    so proper errors could be passed (operation cancelled, broken_pipe, etc.)
+  */
   simulation* sim = simulation::get_simulator();
-  switch (e.type_) {
-    case event::type::disconnect: {
-      // LOG(DEBUG) << "disconnect 0";
-      /**
-        This event is created when the other endpoint has called disconnect().
-        Sets connection state to disconnected.
-        TODO(kari): If possible delete related events in the queue and
-        delete connection fron map. NOTE: Maybe it is better not to delete events
-        so proper errors could be passed (operation cancelled, broken_pipe, etc.)
-      */
-      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
-          sim->get_connection(e.destination));
-      if (!destination) {  // state == disconnected should never happen
-        LOG(INFO) << "Event disconnect but remote peer has already disconnected or does not exist";
-        return;
-      } else if (destination->get_state() == connection::state::connecting) {
-        LOG(INFO) << "Event disconnect but peer is not connected yet! This situation is not handled right now!";
-        return;
-      }
-      LOG(INFO) << "Other peer closed connection in: " << destination->get_address();
-      destination->set_state(connection::state::disconnected);
-      destination->get_handler()->on_disconnected(destination->get_id());
-      // TODO(kari): Clear queues and call handlers with error, delete connection ids
-      destination->remote_connection_id = 0;
-      destination->cancel_operations();
-      destination->clear_queues();
-      sim->remove_connection(destination->local_connection_id);
-      destination->local_connection_id = 0;
-      // LOG(DEBUG) << "disconnect 1";
-      break;
-    }
-    case event::type::connection_request: {
-        // LOG(DEBUG) << "attempt 0";
-      /**
-        This event is created when the other endpoint has called connect(). On_requested is called
-        and if it returns true, new event with type accept is created, new connection is created
-        from this endpoint to the other, the new connection's state is set to connected and
-        on_connect in acceptor's handler is called. If the connections is
-        refused, new event type refuse is created.
-      **/
-      std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(
-          sim->get_connection(e.source));
-      std::shared_ptr<simulated_acceptor> acceptor_ = std::dynamic_pointer_cast<simulated_acceptor>(
-          sim->get_acceptor(e.destination));
-      if (!source) {
-        LOG(ERROR) << "Connection request from unexisting peer: " << e.source;
-        break;
-      }
-      if (!acceptor_ || acceptor_->get_state() != acceptor::state::accepting) {
-        LOG(ERROR) << "No such peer: " << e.destination;
-        // TODO(kari): error no such peer /
-        // new_event.type_ = event::type::error;
-        break;
-      }
-      std::string source_address = source->get_address();
-      event new_event;
-      new_event.destination = e.source;
-      new_event.time_of_handling = sim->get_time() + source->get_lag();
-      const connection_params& params = source->parameters;
-      connection_id cid = 0;
-        // LOG(DEBUG) << "accepted";
-      if (acceptor_->get_handler()->on_requested(acceptor_->get_id(), source_address, &cid)) {
-        new_event.type_ = event::type::accept;
-        /**
-          Remote address of the other connection is 0 which means connect to that address is not
-          possible.
-        */
-        std::string new_addr =
-            std::to_string(params.min_lag) + ":" + std::to_string(params.max_lag) + ":" +
-            std::to_string(acceptor_->parameters.bandwidth) + ":0";
-        std::shared_ptr<simulated_connection> new_connection(
-            new simulated_connection(cid, new_addr, acceptor_->accepted_connections_handler));
-        if (new_connection->init()) {
-          sim->add_connection(new_connection);
-          source->parameters.bandwidth = new_connection->parameters.bandwidth =
-              source->parameters.bandwidth <= new_connection->parameters.bandwidth ?
-              source->parameters.bandwidth : new_connection->parameters.bandwidth;
-          source->remote_connection_id = new_connection->local_connection_id;
-          new_connection->set_state(connection::state::connected);
-          new_connection->remote_connection_id = source->local_connection_id;
-          new_connection->set_time_stamp(new_event.time_of_handling);
-          acceptor_->get_handler()->on_connected(acceptor_->get_id(), std::shared_ptr<connection>(new_connection),
-              source_address);
-          new_connection->get_handler()->on_connected(cid);
-        } else {
-          LOG(ERROR) << "Error while initializing connection";
-        }
-      } else {
-        // LOG(DEBUG) << "refused";
-        new_event.type_ = event::type::refuse;
-      }
-      sim->push_event(new_event);
-      // LOG(DEBUG) << "attempt 1.2";
-      break;
-    }
-    case event::type::message: {
-      // LOG(DEBUG) << "message 0";
-      /**
-        This is when the message is received from connection in remote.
-      */
-      /**
-      TODO(kari):
-      1. if connection_->state == disconnected --> operation cancelled / closed by peer;
-       remote connection won't be able to send ack to connection and needs to call on_disconnect
-      2. if !remote_connection || remote_connection->get_state() != connection::state::connected
-        --> broken_pipe (&& this is still connected; haven't received disconnect message yet)
-      */
-      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
-          sim->get_connection(e.destination));
-      if (!destination || destination->get_state() != connection::state::connected) {
-        LOG(ERROR) << "ERROR in handling send! Peer has disconnected or does not exist!";
-        // TODO(kari): broken pipe
-        break;
-      }
-      destination->reading_q_mutex.lock();
-      destination->recv_buf_mutex.lock();
-      destination->receive_buffer.push(e.data);
-      if (destination->reading.size()) {
-        destination->recv_buf_mutex.unlock();
-        destination->reading_q_mutex.unlock();
-        destination->handle_read();
-      } else {
-        destination->recv_buf_mutex.unlock();
-        destination->reading_q_mutex.unlock();
-      }
-      std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(
-          sim->get_connection(e.source));
-      if (!source) {
-        // LOG(DEBUG) << "message 01";
-        break;
-      }
-      source->sending_q_mutex.lock();
-      if (source->sending.size() && source->sending.front().message.size() == source->sending.front().bytes_send) {
-        source->sending_q_mutex.unlock();
-        event new_event;
-        new_event.type_ = event::type::ack_received;
-        new_event.source = e.destination;
-        new_event.destination = e.source;
-        uint32_t t = sim->get_time();
-        uint32_t ts = destination->get_time_stamp();
-        new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + destination->get_lag();
-        destination->set_time_stamp(new_event.time_of_handling);
-        sim->push_event(new_event);
-      } else if (source && source->get_state() == connection::state::connected) {
-        source->sending_q_mutex.unlock();
-        source->handle_send();
-      } else {
-        source->sending_q_mutex.unlock();
-      }
-      // LOG(DEBUG) << "message 1";
-      break;
-    }
-    case event::type::accept: {
-      // LOG(DEBUG) << "accept 0";
-      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
-          sim->get_connection(e.destination));
-      if (!destination) {
-        // new event error
-        // LOG(DEBUG) << "accept 2";
-        break;
-      }
-      destination->set_state(connection::state::connected);
-      destination->get_handler()->on_connected(destination->get_id());
-      destination->handle_send();
-      // LOG(DEBUG) << "accept 1";
-      break;
-    }
-    case event::type::refuse: {
-      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
-          sim->get_connection(e.destination));
-      // LOG(DEBUG) << "refuse 0";
-      if (!destination) {
-        // new event error
-        // LOG(DEBUG) << "refuse 2";
-        break;
-      }
-      destination->set_state(connection::state::disconnected);
-      destination->get_handler()->on_connection_error(destination->get_id(), status::internal("Connection refused!"));
-      destination->cancel_operations();
-      destination->clear_queues();
-      // LOG(DEBUG) << "refuse 1";
-      break;
-    }
-    case event::type::ack_received: {
-      // if (connection_->connection_state == connection::state::disconnected) {
-      //   // TODO(kari): Possible: broken_pipe, operation_cancelled
-      // }
-      std::shared_ptr<simulated_connection> destination = std::dynamic_pointer_cast<simulated_connection>(
-          sim->get_connection(e.destination));
-      destination->sending_q_mutex.lock();
-      if (destination && destination->sending.size()) {
-        uint32_t rid = destination->sending.front().id;
-        destination->sending.pop();
-        destination->sending_q_mutex.unlock();
-        destination->handle_send();
-        destination->get_handler()->on_message_sent(destination->get_id(), rid, status::ok());
-      } else {
-        destination->sending_q_mutex.unlock();
-      }
-      break;
-    }
-    case event::type::error: {
-      break;
-    }
-    default:
-      break;
+  std::shared_ptr<simulated_connection> destination =
+      std::dynamic_pointer_cast<simulated_connection>(sim->get_connection(dest));
+  if (!destination) {  // state == disconnected should never happen
+    LOG(INFO) << "Event disconnect but remote peer has already disconnected or does not exist";
+    return;
+  } else if (destination->get_state() == connection::state::connecting) {
+    LOG(INFO) << "Event disconnect but peer is not connected yet! This situation is not handled right now!";
+    return;
   }
-  // LOG(DEBUG) << "/ HANDLING";
+  LOG(INFO) << "Other peer closed connection in: " << destination->get_address();
+  destination->set_state(connection::state::disconnected);
+  sim->add_task(sim->get_time() + 1, [destination](){
+    destination->get_handler()->on_disconnected(destination->get_id());
+  });
+  // TODO(kari): Clear queues and call handlers with error, delete connection ids
+  destination->remote_connection_id = 0;
+  sim->add_task(sim->get_time() + 1, [destination](){
+    destination->cancel_operations();
+    destination->clear_queues();
+  });
+  sim->remove_connection(destination->local_connection_id);
+  destination->local_connection_id = 0;
+  // LOG(DEBUG) << "disconnect 1";
+}
+void simulation::handle_request(uint32_t src, uint32_t dest) {
+  // LOG(DEBUG) << "attempt 0";
+  /**
+  This event is created when the other endpoint has called connect(). On_requested is called
+  and if it returns true, new event with type accept is created, new connection is created
+  from this endpoint to the other, the new connection's state is set to connected and
+  on_connect in acceptor's handler is called. If the connections is
+  refused, new event type refuse is created.
+  **/
+  simulation* sim = simulation::get_simulator();
+  std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(
+      sim->get_connection(src));
+  std::shared_ptr<simulated_acceptor> acceptor_ = std::dynamic_pointer_cast<simulated_acceptor>(
+      sim->get_acceptor(dest));
+  if (!source) {
+    LOG(ERROR) << "Connection request from unexisting peer: " << src;
+  }
+  if (!acceptor_ || acceptor_->get_state() != acceptor::state::accepting) {
+    LOG(ERROR) << "No such peer: " << dest;
+    // TODO(kari): error no such peer /
+    // new_event.type_ = event::type::error;
+  }
+  std::string source_address = source->get_address();
+  uint64_t time_of_handling = sim->get_time() + source->get_lag() + 1;
+  connection_id cid = 0;
+  if (acceptor_->get_handler()->on_requested(acceptor_->get_id(), source_address, &cid)) {
+    // LOG(DEBUG) << "accepted";
+    const connection_params& params = source->parameters;
+    /**
+    Remote address of the other connection is 0 which means connect to that address is not
+    possible.
+    */
+    std::string new_addr = std::to_string(params.min_lag) + ":" + std::to_string(params.max_lag) + ":" +
+        std::to_string(acceptor_->parameters.bandwidth) + ":0";
+    std::shared_ptr<simulated_connection> new_connection(
+        new simulated_connection(cid, new_addr, acceptor_->accepted_connections_handler));
+    if (new_connection->init()) {
+      sim->add_connection(new_connection);
+      source->parameters.bandwidth = new_connection->parameters.bandwidth =
+      source->parameters.bandwidth <= new_connection->parameters.bandwidth ?
+      source->parameters.bandwidth : new_connection->parameters.bandwidth;
+      source->remote_connection_id = new_connection->local_connection_id;
+      new_connection->set_state(connection::state::connected);
+      new_connection->remote_connection_id = source->local_connection_id;
+      new_connection->set_time_stamp(time_of_handling);
+      sim->add_task(sim->get_time() + 1, [new_connection, cid](){
+        new_connection->get_handler()->on_connected(cid);
+      });
+      sim->add_task(sim->get_time() + 1, [acceptor_, new_connection, source_address](){
+        acceptor_->get_handler()->on_connected(acceptor_->get_id(), std::shared_ptr<connection>(new_connection),
+          source_address);
+      });
+      sim->add_task(time_of_handling, std::bind(handle_accept, src));
+    } else {
+      LOG(ERROR) << "Error while initializing connection";
+    }
+  } else {
+    // LOG(DEBUG) << "refused";
+    sim->add_task(time_of_handling, std::bind(handle_refuse, src));
+  }
+}
+void simulation::handle_message(uint32_t src, uint32_t dest, const std::string& msg) {
+  // LOG(DEBUG) << "message 0";
+  /**
+    This is when the message is received from connection in remote.
+  */
+  /**
+  TODO(kari):
+  1. if connection_->state == disconnected --> operation cancelled / closed by peer;
+   remote connection won't be able to send ack to connection and needs to call on_disconnect
+  2. if !remote_connection || remote_connection->get_state() != connection::state::connected
+    --> broken_pipe (&& this is still connected; haven't received disconnect message yet)
+  */
+  simulation* sim = simulation::get_simulator();
+  std::shared_ptr<simulated_connection> destination =
+      std::dynamic_pointer_cast<simulated_connection>(sim->get_connection(dest));
+  if (!destination || destination->get_state() != connection::state::connected) {
+    LOG(ERROR) << "ERROR in handling send! Peer has disconnected or does not exist!";
+    // TODO(kari): broken pipe
+    return;
+  }
+  destination->reading_q_mutex.lock();
+  destination->recv_buf_mutex.lock();
+  destination->receive_buffer.push(msg);
+  if (destination->reading.size()) {
+    sim->add_task(sim->get_time() + 1, std::bind(&simulated_connection::handle_read, destination));
+  }
+  destination->recv_buf_mutex.unlock();
+  destination->reading_q_mutex.unlock();
+  std::shared_ptr<simulated_connection> source =
+      std::dynamic_pointer_cast<simulated_connection>(sim->get_connection(src));
+  if (!source) {
+    // LOG(DEBUG) << "message 01";
+    return;
+  }
+  source->sending_q_mutex.lock();
+  if (source->sending.size() && source->sending.front().message.size() == source->sending.front().bytes_send) {
+    source->sending_q_mutex.unlock();
+    uint32_t t = sim->get_time();
+    uint32_t ts = destination->get_time_stamp();
+    uint64_t time_of_handling = (t > ts ? t : ts) + 1 + destination->get_lag();
+    destination->set_time_stamp(time_of_handling);
+    sim->add_task(time_of_handling, std::bind(handle_ack, src));
+  } else if (source && source->get_state() == connection::state::connected) {
+    sim->add_task(sim->get_time() + 1, std::bind(&simulated_connection::handle_send, source));
+  }
+  source->sending_q_mutex.unlock();
+  // LOG(DEBUG) << "message 1";
+  return;
+}
+void simulation::handle_accept(uint32_t dest) {
+  simulation* sim = simulation::get_simulator();
+  std::shared_ptr<simulated_connection> destination =
+      std::dynamic_pointer_cast<simulated_connection>(sim->get_connection(dest));
+  if (!destination) {
+    // new event error
+    return;
+  }
+  destination->set_state(connection::state::connected);
+  sim->add_task(sim->get_time() + 1, [destination](){
+    destination->handle_send();
+  });
+  sim->add_task(sim->get_time() + 1, [destination](){
+    destination->get_handler()->on_connected(destination->get_id());
+  });
+}
+void simulation::handle_refuse(uint32_t dest) {
+  simulation* sim = simulation::get_simulator();
+  std::shared_ptr<simulated_connection> destination =
+      std::dynamic_pointer_cast<simulated_connection>(sim->get_connection(dest));
+  // LOG(DEBUG) << "refuse 0";
+  if (!destination) {
+    // new event error
+    // LOG(DEBUG) << "refuse 2";
+    return;
+  }
+  destination->set_state(connection::state::disconnected);
+  sim->add_task(sim->get_time() + 1, [destination](){
+    destination->cancel_operations();
+    destination->clear_queues();
+  });
+  sim->add_task(sim->get_time() + 1, [destination](){
+    destination->get_handler()->on_connection_error(destination->get_id(), status::internal("Connection refused!"));
+  });
+  // LOG(DEBUG) << "refuse 1";
+}
+void simulation::handle_ack(uint32_t dest) {
+  // LOG(DEBUG) << "<handle_ack>";
+  simulation* sim = simulation::get_simulator();
+  // if (connection_->connection_state == connection::state::disconnected) {
+  //   // TODO(kari): Possible: broken_pipe, operation_cancelled
+  // }
+  std::shared_ptr<simulated_connection> destination =
+      std::dynamic_pointer_cast<simulated_connection>(sim->get_connection(dest));
+
+  if (destination) {
+    destination->sending_q_mutex.lock();
+    if (destination->sending.size()) {
+      uint32_t rid = destination->sending.front().id;
+      destination->sending.pop();
+      sim->add_task(sim->get_time() + 1, [destination, rid](){
+        destination->get_handler()->on_message_sent(destination->get_id(), rid, status::ok());
+      });
+      sim->add_task(sim->get_time() + 1, std::bind(&simulated_connection::handle_send, destination));
+    }
+    destination->sending_q_mutex.unlock();
+  }
 }
 
 uint32_t simulation::process(uint64_t time_) {
   // LOG(DEBUG) << "process time: " << time_;
   int events_processed = 0;
-  q_mutex.lock();
+  tasks_mutex.lock();
 
   auto current_time = get_time();
   // LOG(DEBUG) << "Cur time: " << current_time << " process time: " << time_;
   while (current_time <= time_) {
     set_time(current_time);
-    if (events.count(current_time)) {
-      for (auto& e : events.at(current_time)) {
+    if (tasks.count(current_time)) {
+      // LOG(DEBUG) << "PROCESSING TIME: " << current_time;
+      for (auto& t : tasks.at(current_time)) {
         events_processed++;
-        q_mutex.unlock();
-        handle_event(e);
-        q_mutex.lock();
+        tasks_mutex.unlock();
+        t();
+        tasks_mutex.lock();
       }
-      events.erase(current_time);
+      tasks.erase(current_time);
     }
     current_time++;
   }
-  q_mutex.unlock();
+  tasks_mutex.unlock();
   return events_processed;
 }
 
@@ -377,8 +379,8 @@ void simulation::set_time(uint64_t time_) {
 }
 
 bool simulation::is_queue_empty() {
-  std::lock_guard<std::mutex> lock(q_mutex);
-  return events.empty();
+  std::lock_guard<std::mutex> lock(tasks_mutex);
+  return tasks.empty();
 }
 
 void simulation::add_connection(std::shared_ptr<connection> connection_) {
@@ -498,66 +500,50 @@ void simulated_connection::async_send(const std::string& message, uint32_t msg_i
   sending.push(std::move(packet));
   sending_q_mutex.unlock();
   if (get_state() == connection::state::connected) {
-    handle_send();
+    simulation* sim = simulation::get_simulator();
+    sim->add_task(sim->get_time() + 1, std::bind(&simulated_connection::handle_send, this));
   }
   // LOG(DEBUG) << id << " </async_send>";
 }
 
 void simulated_connection::handle_send() {
   // LOG(DEBUG) << id << " <handle_send>";
-  static std::set<uint32_t> ids;
-  if (ids.find(id) != ids.end()) {
-    // LOG(DEBUG) << id << " </handle_send 0 >";
-    return;
-  } else {
-    ids.insert(id);
-  }
   sending_q_mutex.lock();
   /// nothing to send or waiting for ACK
   if (sending.empty() || sending.front().message.size() == sending.front().bytes_send) {
     sending_q_mutex.unlock();
-    ids.erase(id);
     // LOG(DEBUG) << id << " </handle_send 1 >";
     return;
   }
   simulation* sim = simulation::get_simulator();
   outgoing_packet& packet = sending.front();
   sending_q_mutex.unlock();
-  event new_event;
-  new_event.type_ = event::type::message;
-  new_event.source = local_connection_id;
-  new_event.destination = remote_connection_id;
+  std::string message = "";
   if (parameters.bandwidth >= (packet.message.size() - packet.bytes_send)) {
     if (!packet.bytes_send) {
-      new_event.data = packet.message;
+      message = packet.message;
     } else {
-      new_event.data = packet.message.substr(packet.bytes_send);
+      message = packet.message.substr(packet.bytes_send);
     }
   } else {
-      new_event.data = packet.message.substr(packet.bytes_send, parameters.bandwidth);
+      message = packet.message.substr(packet.bytes_send, parameters.bandwidth);
   }
-  packet.bytes_send += new_event.data.size();
+  packet.bytes_send += message.size();
   uint32_t t = sim->get_time();
   uint32_t ts = get_time_stamp();
-  new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
-  set_time_stamp(new_event.time_of_handling);
-  sim->push_event(new_event);
-  ids.erase(id);
+  uint64_t time_of_handling = (t > ts ? t : ts) + 1 + get_lag();
+  set_time_stamp(time_of_handling);
+  sim->add_task(time_of_handling,
+      std::bind(simulation::handle_message, local_connection_id, remote_connection_id, message));
   // LOG(DEBUG) << "</handle_send 2>";
 }
 
 void simulated_connection::handle_read() {
   // LOG(DEBUG) << "<handle_read>";
-  static std::set<uint32_t> ids;
-  if (ids.find(id) != ids.end()) {
-    // LOG(DEBUG) << id << " </handle_read 0>";
-    return;
-  } else {
-    ids.insert(id);
-  }
+  simulation* sim = simulation::get_simulator();
   reading_q_mutex.lock();
   recv_buf_mutex.lock();
-  while (receive_buffer.size() && reading.size()) {
+  if (receive_buffer.size() && reading.size()) {
     incoming_packet& packet = reading.front();
     bool read_some = packet.expect_to_read == 0;
     uint32_t max_to_read = read_some ? packet.buffer_size : packet.expect_to_read;
@@ -575,19 +561,17 @@ void simulated_connection::handle_read() {
       }
     }
     if (read_some || packet.bytes_read == packet.expect_to_read) {
-      // TODO(kari): use T top = std::move(q.front()); q.pop();
       incoming_packet packet = std::move(reading.front());
       reading.pop();
-      recv_buf_mutex.unlock();
-      reading_q_mutex.unlock();
-      handler->on_message_received(this->id, packet.buffer, packet.bytes_read, packet.id);
-      reading_q_mutex.lock();
-      recv_buf_mutex.lock();
+      auto self = shared_from_this();
+      sim->add_task(sim->get_time() + 1, [sim, self, packet]() {
+        sim->add_task(sim->get_time() + 1, std::bind(&simulated_connection::handle_read, self));
+        self->handler->on_message_received(self->id, packet.buffer, packet.bytes_read, packet.id);
+      });
     }
   }
   recv_buf_mutex.unlock();
   reading_q_mutex.unlock();
-  ids.erase(id);
   // LOG(DEBUG) << id << " </handle_read 1>";
 }
 
@@ -598,6 +582,7 @@ void simulated_connection::async_read(char* buffer, uint32_t buffer_size, uint32
     other endpoint sends a message and it arrives (send event is handled and
     read event is created).
   */
+  simulation* sim = simulation::get_simulator();
   if (num_bytes > buffer_size) {
     LOG(ERROR) << id << " ERROR: Buffer size " << buffer_size << " is smaller than needed (" <<
         num_bytes << ")! Reading aborted!";
@@ -614,11 +599,9 @@ void simulated_connection::async_read(char* buffer, uint32_t buffer_size, uint32
   reading_q_mutex.unlock();
   recv_buf_mutex.lock();
   if (receive_buffer.size()) {
-    recv_buf_mutex.unlock();
-    handle_read();
-  } else {
-    recv_buf_mutex.unlock();
+    sim->add_task(sim->get_time() + 1, std::bind(&simulated_connection::handle_read, this));
   }
+  recv_buf_mutex.unlock();
   // LOG(DEBUG) << id  << " </async_read>";
 }
 
@@ -670,15 +653,11 @@ void simulated_connection::connect() {
   connection_state = connection::state::connecting;
   simulation* sim = simulation::get_simulator();
   sim->add_connection(shared_from_this());
-  event new_event;
-  new_event.type_ = event::type::connection_request;
-  new_event.source = local_connection_id;
-  new_event.destination = remote_address;
   uint32_t t = sim->get_time();
   uint32_t ts = get_time_stamp();
-  new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
-  set_time_stamp(new_event.time_of_handling);
-  sim->push_event(new_event);
+  uint64_t time_of_handling = (t > ts ? t : ts) + 1 + get_lag();
+  set_time_stamp(time_of_handling);
+  sim->add_task(time_of_handling, std::bind(simulation::handle_request, local_connection_id, remote_address));
   // LOG(DEBUG) << id << " </connect>";
 }
 
@@ -689,20 +668,20 @@ void simulated_connection::disconnect() {
     }
     connection_state = connection::state::disconnected;
     simulation* sim = simulation::get_simulator();
-    event new_event;
-    new_event.type_ = event::type::disconnect;
-    new_event.destination = remote_connection_id;
     uint32_t t = sim->get_time();
     uint32_t ts = get_time_stamp();
-    new_event.time_of_handling = (t > ts + 1 ? t : ts + 1) + get_lag();
-    set_time_stamp(new_event.time_of_handling);
-    sim->push_event(new_event);
+    uint64_t time_of_handling = (t > ts ? t : ts) + 1 + get_lag();
+    set_time_stamp(time_of_handling);
     remote_connection_id = 0;
-    cancel_operations();
-    clear_queues();
     sim->remove_connection(local_connection_id);
     local_connection_id = 0;
-    handler->on_disconnected(this->id);
+    auto self = shared_from_this();
+    sim->add_task(sim->get_time() + 1, [self](){
+      self->cancel_operations();
+      self->clear_queues();
+    });
+    sim->add_task(sim->get_time() + 1, std::bind(&connection_handler::on_disconnected, handler, id));
+    sim->add_task(time_of_handling, std::bind(simulation::handle_disconnect, remote_connection_id));
     // LOG(DEBUG) << id << " </disconnect>";
 }
 
@@ -737,9 +716,11 @@ void simulated_connection::clear_queues() {
 
 void simulated_connection::cancel_operations() {
   LOG(DEBUG) << id << " Canceling operations";
+  simulation* sim = simulation::get_simulator();
   std::lock_guard<std::mutex> lock(sending_q_mutex);
   while (!sending.empty()) {
-    handler->on_message_sent(this->id, sending.front().id, status::aborted("Operation cancelled!"));
+    sim->add_task(sim->get_time() + 1, std::bind(&connection_handler::on_message_sent, handler,
+        this->id, sending.front().id, status::aborted("Operation cancelled!")));
     sending.pop();
   }
   // TODO(kari): Check what error gives if read is cancelled

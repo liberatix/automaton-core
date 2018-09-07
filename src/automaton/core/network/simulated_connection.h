@@ -7,6 +7,7 @@
 #include <queue>
 #include <vector>
 #include <unordered_map>
+#include <functional>
 #include <utility>
 
 #include "automaton/core/network/acceptor.h"
@@ -26,26 +27,26 @@ class simulated_acceptor;
 
 // this could be protobuf message
 // TODO(kari): Shrink it
-struct event {
-  enum type {
-    undefined = 0,
-    disconnect = 1,
-    connection_request = 2,
-    message = 3,
-    accept = 4,
-    refuse = 5,
-    ack_received = 6,
-    error = 7
-  };
-  type type_;
-  /// uint64_t time_created;
-  uint64_t time_of_handling;
-  uint32_t source;
-  uint32_t destination;
-  std::string data;
-  event();
-  std::string to_string() const;
-};
+// struct event {
+//   enum type {
+//     undefined = 0,
+//     disconnect = 1,
+//     connection_request = 2,
+//     message = 3,
+//     accept = 4,
+//     refuse = 5,
+//     ack_received = 6,
+//     error = 7
+//   };
+//   type type_;
+//   /// uint64_t time_created;
+//   uint64_t time_of_handling;
+//   uint32_t source;
+//   uint32_t destination;
+//   std::string data;
+//   event();
+//   std::string to_string() const;
+// };
 
 // these could be protobuf messages
 struct connection_params {
@@ -82,8 +83,10 @@ class simulation {
     Priority queue storing the events that need to be handled. Lower time of handlig means higher priority. If equal,
     lower event id (created earlier) means higher priority.
   */
-  std::unordered_map<uint64_t, std::vector<event> > events;
-  std::mutex q_mutex;
+  // std::unordered_map<uint64_t, std::vector<event> > events;
+  // std::mutex q_mutex;
+  std::mutex tasks_mutex;
+  std::unordered_map<uint64_t, std::vector<std::function<void()> > > tasks;
 
   /**
     Simulation time. On create is 0.
@@ -100,7 +103,7 @@ class simulation {
   /**
     Function that handles the events from the queue. It is called from process().
   */
-  void handle_event(const event& event_);
+  // void handle_event(const event& event_);
 
   /**
     Update the simulation time.
@@ -132,7 +135,9 @@ class simulation {
     Add event to the event queue. It is called from connection
     functions(connect, send, etc.) or from handle_event
   */
-  void push_event(const event& event_);
+  // void push_event(const event& event_);
+
+  void add_task(uint64_t tm, std::function<void()> task);
 
   /** Returns current simulation time */
   uint64_t get_time();
@@ -156,6 +161,13 @@ class simulation {
   std::shared_ptr<acceptor> get_acceptor(uint32_t address);
 
   void remove_acceptor(uint32_t address);
+
+  static void handle_disconnect(uint32_t dest);
+  static void handle_request(uint32_t src, uint32_t dest);
+  static void handle_message(uint32_t source, uint32_t destination, const std::string& message);
+  static void handle_accept(uint32_t dest);
+  static void handle_refuse(uint32_t dest);
+  static void handle_ack(uint32_t dest);
 
   // DEBUG
   void print_q();
@@ -210,7 +222,6 @@ class simulated_connection: public connection, public std::enable_shared_from_th
   void async_read(char* buffer, uint32_t buffer_size, uint32_t num_bytes, uint32_t id);
 
   void handle_read();
-
   void handle_send();
 
   state get_state() const;
