@@ -73,11 +73,6 @@ void simulation::simulation_stop() {
   running_thread.join();
 }
 
-// void simulation::push_event(const event& event_) {
-//   std::lock_guard<std::mutex> lock(q_mutex);
-//   events[event_.time_of_handling].push_back(event_);
-// }
-
 void simulation::add_task(uint64_t tm, std::function<void()> task) {
   std::lock_guard<std::mutex> lock(tasks_mutex);
   tasks[tm].push_back(task);
