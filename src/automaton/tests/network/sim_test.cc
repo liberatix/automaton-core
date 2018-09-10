@@ -23,7 +23,7 @@ uint32_t get_new_id() {
 
 char* bufferC = new char[256];
 
-automaton::core::network::simulation* sim = nullptr;
+std::shared_ptr<automaton::core::network::simulation> sim;
 class handler: public connection::connection_handler {
  public:
   void on_message_received(connection_id c, char* buffer, uint32_t bytes_read, uint32_t mid) {

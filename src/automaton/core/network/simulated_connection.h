@@ -25,29 +25,6 @@ class simulated_acceptor;
   Connection address: (min lag):(max lag):(bandwidth):(remote address)
 */
 
-// this could be protobuf message
-// TODO(kari): Shrink it
-// struct event {
-//   enum type {
-//     undefined = 0,
-//     disconnect = 1,
-//     connection_request = 2,
-//     message = 3,
-//     accept = 4,
-//     refuse = 5,
-//     ack_received = 6,
-//     error = 7
-//   };
-//   type type_;
-//   /// uint64_t time_created;
-//   uint64_t time_of_handling;
-//   uint32_t source;
-//   uint32_t destination;
-//   std::string data;
-//   event();
-//   std::string to_string() const;
-// };
-
 // these could be protobuf messages
 struct connection_params {
   uint32_t min_lag;
@@ -63,7 +40,7 @@ struct acceptor_params {
 };
 
 /**
-  Singleton class running the simulation. Stores created acceptors, connections, events and simulation time.
+  Singleton class running the simulation. Stores created acceptors, connections and simulation time. Handle event queue.
 */
 class simulation {
  private:
@@ -80,11 +57,9 @@ class simulation {
   std::mutex acceptors_mutex;
 
   /**
-    Priority queue storing the events that need to be handled. Lower time of handlig means higher priority. If equal,
-    lower event id (created earlier) means higher priority.
+    Priority queue storing the events that need to be handled at specific time. Lower time means higher priority.
+    If equal, FIFO.
   */
-  // std::unordered_map<uint64_t, std::vector<event> > events;
-  // std::mutex q_mutex;
   std::mutex tasks_mutex;
   std::unordered_map<uint64_t, std::vector<std::function<void()> > > tasks;
 
@@ -94,20 +69,13 @@ class simulation {
   uint64_t simulation_time;
   std::mutex time_mutex;
 
-  /** The simulation instance. */
-  static simulation* simulator;
+  /** The simulation instance.*/
+  static std::shared_ptr<simulation> simulator;
 
   // Constructor.
   simulation();
 
-  /**
-    Function that handles the events from the queue. It is called from process().
-  */
-  // void handle_event(const event& event_);
-
-  /**
-    Update the simulation time.
-  */
+  /** Update the simulation time.*/
   void set_time(uint64_t time);
 
   bool simulation_running;
@@ -124,25 +92,23 @@ class simulation {
   */
   void simulation_start(uint64_t millisec_step);
 
+  // TODO(kari): Move this to simulation destructor.
+  /**
+    Stops the simulation and joins the process thread. Needs to be called at the end of the program.
+  */
   void simulation_stop();
 
   /**
     Returns pointer to the simulation instance;
   */
-  static simulation* get_simulator();
-
-  /**
-    Add event to the event queue. It is called from connection
-    functions(connect, send, etc.) or from handle_event
-  */
-  // void push_event(const event& event_);
+  static std::shared_ptr<simulation> get_simulator();
 
   void add_task(uint64_t tm, std::function<void()> task);
 
   /** Returns current simulation time */
   uint64_t get_time();
 
-  /** Checks if the event queue is empty. */
+  /** Checks if the event/task queue is empty. */
   bool is_queue_empty();
 
   /**
@@ -150,28 +116,31 @@ class simulation {
   */
   uint32_t process(uint64_t time);
 
+  // NOTE: This should be called only from simulation and simulated_connection. Should not be public but it is for now.
   void add_connection(std::shared_ptr<connection> connection_);
 
-  std::shared_ptr<connection> get_connection(uint32_t connection_index);
+  std::shared_ptr<connection> get_connection(uint32_t connection_id);
 
   void remove_connection(uint32_t connection_id);
 
+  // NOTE: This is called only from acceptor. Should not be public but it is for now.
   void add_acceptor(uint32_t address, std::shared_ptr<acceptor> acceptor_);
 
   std::shared_ptr<acceptor> get_acceptor(uint32_t address);
 
   void remove_acceptor(uint32_t address);
 
-  static void handle_disconnect(uint32_t dest);
-  static void handle_request(uint32_t src, uint32_t dest);
-  static void handle_message(uint32_t source, uint32_t destination, const std::string& message);
-  static void handle_accept(uint32_t dest);
-  static void handle_refuse(uint32_t dest);
-  static void handle_ack(uint32_t dest);
+  void handle_disconnect(uint32_t dest);
 
-  // DEBUG
-  void print_q();
-  void print_connections();
+  void handle_request(uint32_t src, uint32_t dest);
+
+  void handle_message(uint32_t source, uint32_t destination, const std::string& message);
+
+  void handle_accept(uint32_t dest);
+
+  void handle_refuse(uint32_t dest);
+
+  void handle_ack(uint32_t dest, const automaton::core::common::status& s);
 };
 
 class simulated_connection: public connection, public std::enable_shared_from_this<simulated_connection> {
