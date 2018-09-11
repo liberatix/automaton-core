@@ -89,7 +89,7 @@ class digital_signature {
   virtual bool verify(const uint8_t * public_key,
                       const uint8_t * message,
                       const size_t msg_len,
-                      uint8_t * signature) = 0; 
+                      uint8_t * signature) = 0;
 
   virtual ~digital_signature() {}
 };

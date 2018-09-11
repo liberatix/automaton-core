@@ -62,7 +62,8 @@ void engine::bind_crypto() {
   });
 
   // ECDSA functions
-  set_function("secp256k1_sign", [&](const std::string& pr_key, const std::string& msg) -> std::string {
+  set_function("secp256k1_sign", [&](const std::string& pr_key,
+                const std::string& msg) -> std::string {
     uint8_t signature[64];
     secp256k1->sign(reinterpret_cast<const uint8_t*>(pr_key.data()),
                     reinterpret_cast<const uint8_t*>(msg.data()),
@@ -82,7 +83,8 @@ void engine::bind_crypto() {
     return secp256k1->verify(reinterpret_cast<const uint8_t*>(pub_key.data()),
                              reinterpret_cast<const uint8_t*>(msg.data()),
                              msg.size(),
-                             reinterpret_cast<uint8_t*>(&(signature[0]))); // TODO(Samir): Fix the const away casting
+                             // TODO(Samir): Fix the const away casting
+                             reinterpret_cast<uint8_t*>(&(signature[0])));
   });
 }
 
