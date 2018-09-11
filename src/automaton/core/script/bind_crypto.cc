@@ -84,7 +84,7 @@ void engine::bind_crypto() {
                              reinterpret_cast<const uint8_t*>(msg.data()),
                              msg.size(),
                              // TODO(Samir): Fix the const away casting
-                             (uint8_t*)(&(signature[0]))); // NOLINT
+                             const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(signature.data()))); // NOLINT
   });
 }
 
