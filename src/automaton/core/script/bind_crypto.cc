@@ -64,7 +64,7 @@ void engine::bind_crypto() {
   // ECDSA functions
   set_function("secp256k1_sign", [&](const std::string& pr_key, const std::string& msg) -> std::string {
     uint8_t signature[64];
-    secp256k1->sign(reinterpret_cast<const uint8_t*>(hex2bin(pr_key).data()),
+    secp256k1->sign(reinterpret_cast<const uint8_t*>(pr_key.data()),
                     reinterpret_cast<const uint8_t*>(msg.data()),
                     msg.size(),
                     signature);
@@ -73,13 +73,13 @@ void engine::bind_crypto() {
 
   set_function("secp256k1_gen_public_key", [&](const std::string& pr_key) -> std::string {
     uint8_t public_key[33];
-    secp256k1->gen_public_key(reinterpret_cast<const uint8_t*>(hex2bin(pr_key).data()), public_key);
+    secp256k1->gen_public_key(reinterpret_cast<const uint8_t*>(pr_key.data()), public_key);
     return std::string((char*)public_key, secp256k1->public_key_size()); // NOLINT
   });
   // TODO(Samir): signature should be const
   set_function("secp256k1_verify", [&](const std::string& pub_key,const std::string& msg,
               std::string& signature) -> bool {
-    return secp256k1->verify(reinterpret_cast<const uint8_t*>(hex2bin(pub_key).data()),
+    return secp256k1->verify(reinterpret_cast<const uint8_t*>(pub_key.data()),
                              reinterpret_cast<const uint8_t*>(msg.data()),
                              msg.size(),
                              reinterpret_cast<uint8_t*>(&(signature[0]))); // TODO(Samir): Fix the const away casting
