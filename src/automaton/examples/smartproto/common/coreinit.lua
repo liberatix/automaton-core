@@ -125,11 +125,11 @@ end
 -- NETWORK SIMULATION DISCOVERY
 
 function sim_bind(i)
-  return string.format("sim://100:10000:%d", i)
+  return string.format("sim://10:800:%d", i)
 end
 
 function sim_addr(i)
-  return string.format("sim://1:20:10000:%d", i)
+  return string.format("sim://1:10:800:%d", i)
 end
 
 function simulation(node_factory, NODES, PEERS)

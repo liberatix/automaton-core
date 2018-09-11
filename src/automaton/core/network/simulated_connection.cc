@@ -125,10 +125,8 @@ void simulation::handle_request(uint32_t src, uint32_t dest) {
   on_connect in acceptor's handler is called. If the connections is
   refused, new event type refuse is created.
   **/
-  std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(
-      get_connection(src));
-  std::shared_ptr<simulated_acceptor> acceptor_ = std::dynamic_pointer_cast<simulated_acceptor>(
-      get_acceptor(dest));
+  std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(get_connection(src));
+  std::shared_ptr<simulated_acceptor> acceptor_ = std::dynamic_pointer_cast<simulated_acceptor>(get_acceptor(dest));
   if (!source) {
     LOG(ERROR) << "Connection request from unexisting peer: " << src;
     // TODO(kari): accept/refuse and then error
@@ -180,8 +178,7 @@ void simulation::handle_message(uint32_t src, uint32_t dest, const std::string& 
   // LOG(DEBUG) << "message 0";
   std::shared_ptr<simulated_connection> destination =
       std::dynamic_pointer_cast<simulated_connection>(get_connection(dest));
-  std::shared_ptr<simulated_connection> source =
-      std::dynamic_pointer_cast<simulated_connection>(get_connection(src));
+  std::shared_ptr<simulated_connection> source = std::dynamic_pointer_cast<simulated_connection>(get_connection(src));
   if (!destination || destination->get_state() != connection::state::connected) {
     LOG(ERROR) << "ERROR in handling send! Peer has disconnected or does not exist!";
     if (source) {
