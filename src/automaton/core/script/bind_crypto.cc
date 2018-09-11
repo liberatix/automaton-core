@@ -78,7 +78,7 @@ void engine::bind_crypto() {
     return std::string((char*)public_key, secp256k1->public_key_size()); // NOLINT
   });
   // TODO(Samir): signature should be const
-  set_function("secp256k1_verify", [&](const std::string& pub_key,const std::string& msg,
+  set_function("secp256k1_verify", [&](const std::string& pub_key,const std::string& msg, 
               const std::string& signature) -> bool {
     return secp256k1->verify(reinterpret_cast<const uint8_t*>(pub_key.data()),
                              reinterpret_cast<const uint8_t*>(msg.data()),
