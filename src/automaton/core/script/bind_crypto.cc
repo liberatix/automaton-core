@@ -79,7 +79,7 @@ void engine::bind_crypto() {
   });
   // TODO(Samir): signature should be const
   set_function("secp256k1_verify", [&](const std::string& pub_key,const std::string& msg,
-              std::string& signature) -> bool {
+              const std::string& signature) -> bool {
     return secp256k1->verify(reinterpret_cast<const uint8_t*>(pub_key.data()),
                              reinterpret_cast<const uint8_t*>(msg.data()),
                              msg.size(),
