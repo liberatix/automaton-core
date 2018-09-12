@@ -98,7 +98,7 @@ bool secp256k1_cryptopp::verify(
     const uint8_t * public_key,
     const uint8_t * message,
     const size_t msg_len,
-    uint8_t * signature) {
+    const uint8_t * signature) {
   CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
 
   std::string input(reinterpret_cast<const char*>(public_key),
