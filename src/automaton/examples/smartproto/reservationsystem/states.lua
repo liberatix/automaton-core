@@ -13,4 +13,12 @@ end
 private_key = sha256(nodeid)
 public_key = secp256k1_gen_public_key(private_key)
 validators[public_key] = 1
-validators["size"] = 1
+
+
+function table_length(t)
+  local count = 0
+  for _ in pairs(t) do
+    count = count + 1
+  end
+  return count
+end

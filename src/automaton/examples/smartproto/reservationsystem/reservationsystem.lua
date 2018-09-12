@@ -1,6 +1,5 @@
 function update(time)
-  -- print("======== SIZE " .. tostring(validators["size"]) )
-  if validators["size"] == TOTAL_VALIDATORS then
+  if table_length(validators) == TOTAL_VALIDATORS then
   end
 end
 
@@ -8,20 +7,26 @@ function sent(peer_id, msg_id, success)
 end
 
 function on_RegisterValidators(peer_id, msg)
-  local size = validators["size"]
+  log("on_RegisterValidators", "call by peer: " .. tostring(peer_id))
+  local new_validator = false
   for k,v in pairs(msg.public_key) do
     if validators[v] == nil then
-      -- print(nodeid .. " RECEIVED " .. hex(v))
+      log("new validator from ", nodeid .. " RECEIVED " .. hex(v))
       validators[v] = 1
-      validators["size"] = validators["size"] + 1
+      new_validator = true
     end
   end
-  if size < validators["size"] then
+  if new_validator then
     gossip(peer_id, validators_msg())
-  end
-  if validators["size"] == TOTAL_VALIDATORS then
-    for k in pairs(validators) then
-      -- TODO(NOW): put all validators in a table validators_sorted and sort them
+    if table_length(validators) == TOTAL_VALIDATORS then
+      for k, v in pairs(validators) do
+        table.insert(validators_sorted, k)
+      end
+      table.sort(validators_sorted)
+      --log("total_validators ", validators_sorted)
+      for i,n in ipairs(validators_sorted) do
+        log("validators ", tostring(i) .. ": " .. hex(n))
+      end
     end
   end
 end
