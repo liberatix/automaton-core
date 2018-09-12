@@ -85,14 +85,13 @@ void engine::bind_crypto() {
     secp256k1->gen_public_key(reinterpret_cast<const uint8_t*>(pr_key.data()), public_key);
     return std::string(reinterpret_cast<char*>(public_key), secp256k1->public_key_size());
   });
-  // TODO(Samir): signature should be const
+
   set_function("secp256k1_verify", [&](const std::string& pub_key, const std::string& msg,
               const std::string& signature) -> bool {
     return secp256k1->verify(reinterpret_cast<const uint8_t*>(pub_key.data()),
                              reinterpret_cast<const uint8_t*>(msg.data()),
                              msg.size(),
-                             // TODO(Samir): Fix the const away casting
-                             const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(signature.data()))); // NOLINT
+                             reinterpret_cast<const uint8_t*>(signature.data()));
   });
 }
 
