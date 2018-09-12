@@ -43,11 +43,36 @@ history_add("testnet(localhost, chat_node, 5, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 2)")
 history_add("testnet(simulation, blockchain_node, 200, 1)")
+history_add("testnet(localhost, reservation_system_node, 20, 2)")
+history_add("testnet(simulation, reservation_system_node, 20, 2)")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
 function blank(id)
   return node(id, {}, {}, {})
+end
+
+function reservation_system_node(id)
+  local n = node(
+    id,
+    20,
+    {"automaton/examples/smartproto/reservationsystem/reservationsystem.proto"},
+    {
+      "automaton/examples/smartproto/reservationsystem/connections.lua",
+      "automaton/examples/smartproto/reservationsystem/reservationsystem.lua",
+    },
+    {"RegisterValidators", "CancelReservation", "CreateReservation", "StateTransition"}
+  )
+
+  -- print(id)
+  _G[id] = {
+    node_type = "reservation_system_node",
+
+    connect = function(peer_id)
+      n:call("connect("..tostring(peer_id)..")")
+    end,
+  }
+  return n
 end
 
 function blockchain_node(id)

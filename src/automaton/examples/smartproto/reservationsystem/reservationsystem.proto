@@ -1,3 +1,5 @@
+syntax = "proto3";
+
 // Reservation System Smart Protocol Example
 
 // Handshake / Initial Validator Setup
@@ -25,7 +27,7 @@ message StateTransition {
 // Reservation System
 
 message CreateReservation {
-  repeating uint32 room_id = 1;
+  repeated uint32 room_id = 1;
   uint32 start_day = 2;
   uint32 end_day = 3;
   bytes client_public_key = 4;
@@ -34,13 +36,9 @@ message CreateReservation {
 }
 
 message CancelReservation {
-  repeating uint32 room_id = 1;
+  repeated uint32 room_id = 1;
   uint32 start_day = 2;
   uint32 end_day = 3;
   bytes client_public_key = 4;
   bytes client_signature = 5;
 }
-
-
-
-
