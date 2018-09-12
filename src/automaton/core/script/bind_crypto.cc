@@ -4,6 +4,7 @@
 #include "automaton/core/crypto/cryptopp/RIPEMD160_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/secp256k1_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/secure_random_cryptopp.h"
+#include "automaton/core/crypto/cryptopp/secure_random_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA3_256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA512_cryptopp.h"
@@ -30,6 +31,14 @@ void engine::bind_crypto() {
   sha3.reset(new SHA3_256_cryptopp());
   keccak256.reset(new Keccak_256_cryptopp());
   secp256k1.reset(new secp256k1_cryptopp());
+  random.reset(new secure_random_cryptopp());
+
+  set_function("rand", [&](size_t size) {
+    CHECK_LT(size, 1024);
+    uint8_t buf[1024];
+    random->block(&buf[0], size);
+    return std::string((char*)buf, size);
+  });
 
   set_function("ripemd160", [&](const std::string& s) -> std::string {
     uint8_t digest[20];
