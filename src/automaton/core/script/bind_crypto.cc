@@ -4,7 +4,6 @@
 #include "automaton/core/crypto/cryptopp/RIPEMD160_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/secp256k1_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/secure_random_cryptopp.h"
-#include "automaton/core/crypto/cryptopp/secure_random_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA3_256_cryptopp.h"
 #include "automaton/core/crypto/cryptopp/SHA512_cryptopp.h"
@@ -37,37 +36,37 @@ void engine::bind_crypto() {
     CHECK_LT(size, 1024);
     uint8_t buf[1024];
     random->block(&buf[0], size);
-    return std::string((char*)buf, size);
+    return std::string(reinterpret_cast<char*>(buf), size);
   });
 
   set_function("ripemd160", [&](const std::string& s) -> std::string {
     uint8_t digest[20];
     ripemd160->calculate_digest(reinterpret_cast<const uint8_t*>(s.data()), s.size(), digest);
-    return std::string((char*)digest, 20); // NOLINT
+    return std::string(reinterpret_cast<char*>(digest), 20);
   });
 
   set_function("sha512", [&](const std::string& s) -> std::string {
     uint8_t digest[64];
     sha512->calculate_digest(reinterpret_cast<const uint8_t*>(s.data()), s.size(), digest);
-    return std::string((char*)digest, 64); // NOLINT
+    return std::string(reinterpret_cast<char*>(digest), 64);
   });
 
   set_function("sha256", [&](const std::string& s) -> std::string {
     uint8_t digest[32];
     sha256->calculate_digest(reinterpret_cast<const uint8_t*>(s.data()), s.size(), digest);
-    return std::string((char*)digest, 32); // NOLINT
+    return std::string(reinterpret_cast<char*>(digest), 32);
   });
 
   set_function("sha3", [&](const std::string& s) -> std::string {
     uint8_t digest[32];
     sha3->calculate_digest(reinterpret_cast<const uint8_t*>(s.data()), s.size(), digest);
-    return std::string((char*)digest, 32); // NOLINT
+    return std::string(reinterpret_cast<char*>(digest), 32);
   });
 
   set_function("keccak256", [&](const std::string& s) -> std::string {
     uint8_t digest[32];
     keccak256->calculate_digest(reinterpret_cast<const uint8_t*>(s.data()), s.size(), digest);
-    return std::string((char*)digest, 32); // NOLINT
+    return std::string(reinterpret_cast<char*>(digest), 32);
   });
 
   // ECDSA functions
@@ -78,13 +77,13 @@ void engine::bind_crypto() {
                     reinterpret_cast<const uint8_t*>(msg.data()),
                     msg.size(),
                     signature);
-    return std::string((char*)signature, secp256k1->signature_size()); // NOLINT
+    return std::string(reinterpret_cast<char*>(signature), secp256k1->signature_size());
   });
 
   set_function("secp256k1_gen_public_key", [&](const std::string& pr_key) -> std::string {
     uint8_t public_key[33];
     secp256k1->gen_public_key(reinterpret_cast<const uint8_t*>(pr_key.data()), public_key);
-    return std::string((char*)public_key, secp256k1->public_key_size()); // NOLINT
+    return std::string(reinterpret_cast<char*>(public_key), secp256k1->public_key_size());
   });
   // TODO(Samir): signature should be const
   set_function("secp256k1_verify", [&](const std::string& pub_key, const std::string& msg,
