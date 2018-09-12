@@ -29,6 +29,7 @@ cc_test(
     deps = [
       "//automaton/core/crypto",
       "//automaton/core/crypto/cryptopp",
+      "//automaton/core/io",
       "@gtest//:gtest_main",
     ],
 )
@@ -40,6 +41,7 @@ cc_test(
     deps = [
       "//automaton/core/crypto",
       "//automaton/core/crypto/cryptopp",
+      "//automaton/core/io",
       "@gtest//:gtest_main",
     ],
 )
@@ -51,6 +53,7 @@ cc_test(
     deps = [
       "//automaton/core/crypto",
       "//automaton/core/crypto/cryptopp",
+      "//automaton/core/io",
       "@gtest//:gtest_main",
     ],
 )
@@ -62,6 +65,7 @@ cc_test(
     deps = [
       "//automaton/core/crypto",
       "//automaton/core/crypto/cryptopp",
+      "//automaton/core/io",
       "@gtest//:gtest_main",
     ],
 )
@@ -73,6 +77,7 @@ cc_test(
     deps = [
       "//automaton/core/crypto",
       "//automaton/core/crypto/cryptopp",
+      "//automaton/core/io",
       "@gtest//:gtest_main",
     ],
 )
@@ -84,6 +89,7 @@ cc_test(
     deps = [
       "//automaton/core/crypto",
       "//automaton/core/crypto/cryptopp",
+      "//automaton/core/io",
       "@gtest//:gtest_main",
     ],
 )

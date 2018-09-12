@@ -2,25 +2,18 @@
 #include <vector>
 #include <utility>
 #include <stack>
-#include "gtest/gtest.h"
-#include "automaton/core/state/state_persistent.h"
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
-#include "automaton/core/storage/persistent_blobstore.h"
 #include "automaton/core/io/io.h"
+#include "automaton/core/state/state_persistent.h"
+#include "automaton/core/storage/persistent_blobstore.h"
+#include "gtest/gtest.h"
 
 using automaton::core::crypto::cryptopp::SHA256_cryptopp;
 using automaton::core::crypto::hash_transformation;
+using automaton::core::io::bin2hex;
 using automaton::core::state::state_persistent;
 using automaton::core::storage::blobstore;
-
-static std::string tohex(std::string s) {
-  std::stringstream ss;
-  for (unsigned int i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) <<
-        std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
-  }
-  return ss.str();
-}
+using automaton::core::storage::persistent_blobstore;
 
 TEST(state_persistent, set_and_get) {
   std::vector<std::pair<std::string, std::string> > tests;
@@ -36,7 +29,8 @@ TEST(state_persistent, set_and_get) {
   tests.push_back(std::make_pair("tramva", "7"));
 
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
+  bs.map_file("mapped_file.txt");
   state_persistent state(hasher, &bs);
 
   // For each node added, check if the previous nodes are still correct
@@ -64,7 +58,7 @@ TEST(state_persistent, set_delete_and_get) {
   tests.push_back(std::make_pair("tramva", "7"));
 
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
 
   state_persistent state(hasher, &bs);
   // add all nodes
@@ -96,7 +90,7 @@ TEST(state_persistent, node_hash_add_erase) {
 
 
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent state(hasher, &bs);
 
   // Add keys/values to the state and add the root hash into a stack.
@@ -120,8 +114,8 @@ TEST(state_persistent, node_hash_add_erase) {
 
       if (data != state.get(key)) {
         std::cout << "Setting " << i << " fails at " << j << std::endl;
-        std::cout << "Setting key " << tohex(keys.top())
-          << " fails " << tohex(key) << std::endl;
+        std::cout << "Setting key " << bin2hex(keys.top())
+          << " fails " << bin2hex(key) << std::endl;
         throw "!!!";
       }
     }
@@ -142,8 +136,8 @@ TEST(state_persistent, node_hash_add_erase) {
         if (data != state.get(key)) {
           std::cout << "Deleting " << (key_count - i) << " fails at "
               << j << std::endl;
-          std::cout << "Deleting key " << tohex(keys.top())
-            << " fails " << tohex(key) << std::endl;
+          std::cout << "Deleting key " << bin2hex(keys.top())
+            << " fails " << bin2hex(key) << std::endl;
           throw std::domain_error("!!!");
         }
       }
@@ -164,7 +158,7 @@ TEST(state_persistent, node_hash_add_erase) {
 
 TEST(state_persistent, insert_and_delete_expect_blank) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent state(hasher, &bs);
 
   state.set("a", "1");
@@ -181,14 +175,14 @@ TEST(state_persistent, insert_and_delete_expect_blank) {
 
 TEST(state_persistent, get_node_hash) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent s(hasher, &bs);
   EXPECT_EQ(s.get_node_hash(""), "");
 }
 
 TEST(state_persistent, commit_changes) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("a", "1");
   s.set("b", "2");
@@ -200,7 +194,7 @@ TEST(state_persistent, commit_changes) {
 
 TEST(state_persistent, discard_changes) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("a", "1");
   s.set("b", "2");
@@ -212,7 +206,7 @@ TEST(state_persistent, discard_changes) {
 
 TEST(state_persistent, delete_node_tree) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("aa", "1");
   s.set("aaa", "2");
@@ -228,7 +222,7 @@ TEST(state_persistent, delete_node_tree) {
 // their location.
 TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent s(hasher, &bs);
   s.set("aa", "1");
   s.set("aaa", "2");
@@ -272,7 +266,7 @@ TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node
 
 TEST(dummy_state, using_deleted_locations) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  blobstore bs;
+  persistent_blobstore bs;
   state_persistent s(hasher, &bs);
 
   s.set("a", "1");

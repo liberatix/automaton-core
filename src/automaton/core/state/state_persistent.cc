@@ -16,15 +16,6 @@ namespace state {
 
 typedef std::basic_string<unsigned char> ustring;
 
-static std::string tohex(std::string s) {
-  std::stringstream ss;
-  for (uint32_t i = 0; i < s.size(); i++) {
-    ss << std::hex << std::uppercase << std::setw(2) <<
-        std::setfill('0') << (static_cast<int>(s[i]) & 0xff);
-  }
-  return ss.str();
-}
-
 state_persistent::state_persistent(crypto::hash_transformation* hasher, storage::blobstore* bs)
   :bs(bs) {
   bs->store(0, nullptr);
@@ -163,7 +154,7 @@ void state_persistent::delete_node_tree(const std::string& path) {
   // TODO(Samir): Implement delete subtrie ( subtrie of node with value only? )
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].get_value(bs) == "") {
-    throw std::out_of_range("No set node at path: " + tohex(path));
+    throw std::out_of_range("No set node at path: " + io::bin2hex(path));
   }
   backup_nodes(nodes[cur_node].get_parent(bs));
   subtrie_mark_free(cur_node);
@@ -217,7 +208,7 @@ void state_persistent::delete_node_tree(const std::string& path) {
 void state_persistent::erase(const std::string& path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].get_value(bs) == "") {
-    throw std::out_of_range("No set node at path: " + tohex(path));
+    throw std::out_of_range("No set node at path: " + io::bin2hex(path));
   }
 
   backup_nodes(cur_node);
@@ -339,11 +330,11 @@ uint32_t state_persistent::hash_size() {
 
 void state_persistent::print_subtrie(std::string path, std::string formated_path) {
   std::cout << formated_path << " prefix: " <<
-      tohex(nodes[get_node_index(path)].get_prefix(bs)) << " value: " << get(path)
-      << " hash: " << tohex(get_node_hash(path)) << std::endl << std::endl;
+      io::bin2hex(nodes[get_node_index(path)].get_prefix(bs)) << " value: " << get(path)
+      << " hash: " << io::bin2hex(get_node_hash(path)) << std::endl << std::endl;
   std::vector<std::string> children = get_node_children(path);
   for (auto i : children) {
-    print_subtrie(path + i, formated_path + "/" + tohex(i));
+    print_subtrie(path + i, formated_path + "/" + io::bin2hex(i));
   }
 }
 

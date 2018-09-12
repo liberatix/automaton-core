@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "automaton/core/crypto/digital_signature.h"
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/data/factory.h"
 
@@ -59,6 +60,8 @@ class engine : public sol::state {
   std::unique_ptr<crypto::hash_transformation> sha256;
   std::unique_ptr<crypto::hash_transformation> sha3;
   std::unique_ptr<crypto::hash_transformation> keccak256;
+  // Crypto ECDSA functions
+  std::unique_ptr<crypto::digital_signature> secp256k1;
 };
 
 }  // namespace script

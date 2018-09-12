@@ -11,6 +11,8 @@
 
 #include "automaton/core/io/io.h"
 
+using automaton::core::common::status;
+
 namespace automaton {
 namespace core {
 namespace network {
@@ -70,17 +72,15 @@ simulation::simulation():simulation_time(0), simulation_running(false) {
       connection::connection_handler* handler) {
     return std::shared_ptr<connection>(new simulated_connection(id, address, handler));
   });
-  acceptor::register_acceptor_type("sim", [](const std::string& address, acceptor::acceptor_handler* handler_,
-      connection::connection_handler* connections_handler_) {
-    return std::shared_ptr<acceptor>(new simulated_acceptor(address, handler_, connections_handler_));
+  acceptor::register_acceptor_type("sim", [](acceptor_id id, const std::string& address,
+      acceptor::acceptor_handler* handler, connection::connection_handler* connections_handler) {
+    return std::shared_ptr<acceptor>(new simulated_acceptor(id, address, handler, connections_handler));
   });
-  /// Makes connection id = 0 invalid
-  // connections.push_back(nullptr);
   std::srand(816405263);
 }
 
 simulation::~simulation() {
-  LOG(DEBUG) << "Simulation destructor";
+  // LOG(DEBUG) << "Simulation destructor";
 }
 
 void simulation::simulation_start(uint64_t millisec_step) {
@@ -189,8 +189,8 @@ void simulation::handle_event(const event& e) {
       new_event.time_of_handling = sim->get_time() + source->get_lag();
       const connection_params& params = source->parameters;
       connection_id cid = 0;
-      if (acceptor_->get_handler()->on_requested(acceptor_, source_address, &cid)) {
         // LOG(DEBUG) << "accepted";
+      if (acceptor_->get_handler()->on_requested(acceptor_->get_id(), source_address, &cid)) {
         new_event.type_ = event::type::accept;
         /**
           Remote address of the other connection is 0 which means connect to that address is not
@@ -210,7 +210,8 @@ void simulation::handle_event(const event& e) {
           new_connection->set_state(connection::state::connected);
           new_connection->remote_connection_id = source->local_connection_id;
           new_connection->set_time_stamp(new_event.time_of_handling);
-          acceptor_->get_handler()->on_connected(acceptor_, new_connection, source_address);
+          acceptor_->get_handler()->on_connected(acceptor_->get_id(), std::shared_ptr<connection>(new_connection),
+              source_address);
           new_connection->get_handler()->on_connected(cid);
         } else {
           LOG(ERROR) << "Error while initializing connection";
@@ -264,7 +265,6 @@ void simulation::handle_event(const event& e) {
         source->sending_q_mutex.unlock();
         event new_event;
         new_event.type_ = event::type::ack_received;
-        new_event.data = std::to_string(connection::error::no_error);
         new_event.source = e.destination;
         new_event.destination = e.source;
         uint32_t t = sim->get_time();
@@ -306,7 +306,7 @@ void simulation::handle_event(const event& e) {
         break;
       }
       destination->set_state(connection::state::disconnected);
-      destination->get_handler()->on_error(destination->get_id(), connection::error::connection_refused);
+      destination->get_handler()->on_connection_error(destination->get_id(), status::internal("Connection refused!"));
       destination->cancel_operations();
       destination->clear_queues();
       // LOG(DEBUG) << "refuse 1";
@@ -324,8 +324,7 @@ void simulation::handle_event(const event& e) {
         destination->sending.pop();
         destination->sending_q_mutex.unlock();
         destination->handle_send();
-        destination->get_handler()->on_message_sent(destination->get_id(), rid,
-            static_cast<connection::error>(std::stoi(e.data)));
+        destination->get_handler()->on_message_sent(destination->get_id(), rid, status::ok());
       } else {
         destination->sending_q_mutex.unlock();
       }
@@ -340,7 +339,7 @@ void simulation::handle_event(const event& e) {
   // LOG(DEBUG) << "/ HANDLING";
 }
 
-int simulation::process(uint64_t time_) {
+uint32_t simulation::process(uint64_t time_) {
   // LOG(DEBUG) << "process time: " << time_;
   int events_processed = 0;
   q_mutex.lock();
@@ -462,8 +461,8 @@ simulated_connection::simulated_connection(connection_id id, const std::string& 
 }
 
 simulated_connection::~simulated_connection() {
-  LOG(DEBUG) << id << " Connection destructor";
-  LOG(DEBUG) << id << "/ Connection destructor";
+  // LOG(DEBUG) << id << " Connection destructor";
+  // LOG(DEBUG) << id << "/ Connection destructor";
 }
 
 bool simulated_connection::init() {
@@ -740,7 +739,7 @@ void simulated_connection::cancel_operations() {
   LOG(DEBUG) << id << " Canceling operations";
   std::lock_guard<std::mutex> lock(sending_q_mutex);
   while (!sending.empty()) {
-    handler->on_message_sent(this->id, sending.front().id, connection::error::closed_by_peer);
+    handler->on_message_sent(this->id, sending.front().id, status::aborted("Operation cancelled!"));
     sending.pop();
   }
   // TODO(kari): Check what error gives if read is cancelled
@@ -749,14 +748,15 @@ void simulated_connection::cancel_operations() {
 
 // ACCEPTOR
 
-simulated_acceptor::simulated_acceptor(const std::string& address_, acceptor::acceptor_handler* handler_,
-    connection::connection_handler* connections_handler):acceptor(handler_), address(0), original_address(address_),
+simulated_acceptor::simulated_acceptor(acceptor_id id, const std::string& address_,
+    acceptor::acceptor_handler* handler, connection::connection_handler* connections_handler):
+    acceptor(id, handler), address(0), original_address(address_),
     accepted_connections_handler(connections_handler), acceptor_state(acceptor::state::invalid_state) {
 }
 
 simulated_acceptor::~simulated_acceptor() {
-  LOG(DEBUG) << "Acceptor destructor";
-  LOG(DEBUG) << "/ Acceptor destructor";
+  // LOG(DEBUG) << "Acceptor destructor";
+  // LOG(DEBUG) << "/ Acceptor destructor";
 }
 
 bool simulated_acceptor::init() {
@@ -768,8 +768,7 @@ bool simulated_acceptor::init() {
       simulation::get_simulator()->add_acceptor(address, shared_from_this());
     }
   } else {
-    LOG(ERROR) << "ERROR: Acceptor creation failed! Could not resolve address and parameters in: "
-        << original_address;
+    LOG(ERROR) << "ERROR: Acceptor creation failed! Could not resolve address and parameters in: " << original_address;
     return false;
   }
   set_state(acceptor::state::not_accepting);

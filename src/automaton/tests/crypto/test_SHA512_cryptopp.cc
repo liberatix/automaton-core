@@ -1,26 +1,16 @@
 #include <string>
-#include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/crypto/cryptopp/SHA512_cryptopp.h"
+#include "automaton/core/crypto/hash_transformation.h"
+#include "automaton/core/io/io.h"
 #include "cryptlib.h"  // NOLINT
 #include "sha.h"  // NOLINT
 #include "gtest/gtest.h"  // NOLINT
 #include "hex.h"  // NOLINT
 #include "filters.h"  // NOLINT
 
-using automaton::core::crypto::hash_transformation;
 using automaton::core::crypto::cryptopp::SHA512_cryptopp;
-
-// Helper function to convert bytes to hex values
-// Each byte is converted to 2 hex values, encoding the left and
-// right 4 bits of each byte.
-static std::string toHex(uint8_t * digest, size_t size) {
-  CryptoPP::HexEncoder encoder;
-  std::string output;
-  encoder.Attach(new CryptoPP::StringSink(output));
-  encoder.Put(digest, size);
-  encoder.MessageEnd();
-  return output;
-}
+using automaton::core::crypto::hash_transformation;
+using automaton::core::io::bin2hex;
 
 TEST(SHA512_cryptopp, calculate_digest) {
   SHA512_cryptopp hasher;
@@ -54,7 +44,8 @@ TEST(SHA512_cryptopp, calculate_digest) {
   for (uint32_t i = 0; i < test_cases; i++) {
     hasher.calculate_digest(reinterpret_cast<const uint8_t*>(test[i][0].data()),
         test[i][0].length(), digest);
-    EXPECT_EQ(toHex(digest, digest_size), test[i][1]);
+    std::string result(reinterpret_cast<char*>(digest), digest_size);
+    EXPECT_EQ(bin2hex(result), test[i][1]);
   }
 
   delete[] digest;
@@ -77,7 +68,8 @@ TEST(SHA512_cryptopp, update_and_finish) {
   }
   hasher.final(digest);
 
-  EXPECT_EQ(toHex(digest, digest_size), EXP1);
+  std::string result(reinterpret_cast<char*>(digest), digest_size);
+  EXPECT_EQ(bin2hex(result), EXP1);
 
   // Try to hash a new string to see if everything restarted as intended
   const uint8_t* a = reinterpret_cast<const uint8_t*>("a");
@@ -91,7 +83,8 @@ TEST(SHA512_cryptopp, update_and_finish) {
   hasher.update(c, 1);
   hasher.final(digest);
 
-  EXPECT_EQ(toHex(digest, digest_size), EXP2);
+  std::string result2(reinterpret_cast<char*>(digest), digest_size);
+  EXPECT_EQ(bin2hex(result2), EXP2);
 
   delete[] digest;
 }

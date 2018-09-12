@@ -5,11 +5,14 @@
 #include <memory>
 #include <string>
 
+#include "automaton/core/common/status.h"
 #include "automaton/core/network/connection.h"
 
 namespace automaton {
 namespace core {
 namespace network {
+
+typedef uint32_t acceptor_id;
 
 // Class that is used to listen for and accept incoming connections. (Server)
 class acceptor {
@@ -34,10 +37,9 @@ class acceptor {
     virtual ~acceptor_handler() {}
     // IDEA(kari): return string (schema message with connection params) instead
     // of bool
-    virtual bool on_requested(std::shared_ptr<acceptor> a, const std::string& address, connection_id* id) = 0;
-    virtual void on_connected(std::shared_ptr<acceptor> a, std::shared_ptr<connection> c,
-        const std::string& address) = 0;
-    virtual void on_error(std::shared_ptr<acceptor> a, connection::error e) = 0;
+    virtual bool on_requested(acceptor_id a, const std::string& address, connection_id* id) = 0;
+    virtual void on_connected(acceptor_id a, std::shared_ptr<connection> c, const std::string& address) = 0;
+    virtual void on_acceptor_error(acceptor_id a, const common::status& s) = 0;
   };
   virtual ~acceptor() {}
 
@@ -54,17 +56,18 @@ class acceptor {
 
   virtual acceptor::state get_state() const = 0;
 
+  acceptor_id get_id();
   /**
     Function that is used to create objects from a specified child class.
     The child class should first be registered using register_acceptor_type
     function. The function returns object from the specified class. If no such
     class type was registered, NULL will be returned.
   */
-  static std::shared_ptr<acceptor> create(const std::string& type, const std::string& address,
+  static std::shared_ptr<acceptor> create(const std::string& type, acceptor_id id, const std::string& address,
       acceptor_handler* handler_, connection::connection_handler* connections_handler);
 
-  typedef std::shared_ptr<acceptor> (*factory_function)(const std::string& address, acceptor_handler* handler_,
-      connection::connection_handler* connections_handler);
+  typedef std::shared_ptr<acceptor> (*factory_function)(acceptor_id id, const std::string& address,
+      acceptor_handler* handler_, connection::connection_handler* connections_handler);
 
   /**
     Function that is used to register how an object from child class will be
@@ -78,7 +81,7 @@ class acceptor {
 
  protected:
   /** Class constructor. */
-  explicit acceptor(acceptor_handler* handler_);
+  acceptor(acceptor_id id, acceptor_handler* handler_);
 
   /**
     Handler object that must be set so the client could be informed for events.
@@ -87,6 +90,7 @@ class acceptor {
     connection that was made or an error that happend.
   */
   acceptor_handler* handler;
+  acceptor_id id;
 
  private:
   /**
