@@ -20,7 +20,7 @@ end
 function update_state(time)
   if #pending_reservations + #pending_cancellations > 0 then
     if our_slot == (epoch % TOTAL_VALIDATORS + 1) then
-      epoch = epoc + 1;
+      epoch = epoch + 1;
       st = StateTransition()
       st.epoch = epoch;
       for _, r in ipairs(pending_reservations) do

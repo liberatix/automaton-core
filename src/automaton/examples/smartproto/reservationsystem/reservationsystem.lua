@@ -1,7 +1,27 @@
+-- reservationsystem.lua
+
+-- create reservtion timer
+cr_timer = math.random(100, 1000)
+
 function update(time)
   if table_length(validators) == TOTAL_VALIDATORS then
-    update_sate(time)
+    update_state(time)
   end
+
+  cr_timer = cr_timer - 1
+  if cr_timer <= 0 then
+    create_random_reservation()
+    cr_timer = math.random(200, 1000)
+  end
+end
+
+function create_random_reservation()
+  tx = create_tx("create",
+      { math.random(1, ROOM_COUNT) },
+      math.random(1, DAYS / 2),
+      math.random(DAYS / 2 + 1, DAYS),
+      public_key)
+  on_CreateReservation(0, tx)
 end
 
 function sent(peer_id, msg_id, success)
@@ -49,6 +69,8 @@ function on_StateTransition(peer_id, state_transition)
 
 end
 
+msg_hash = {}
+
 function on_CreateReservation(peer_id, reservation)
   if not is_valid_signature(reservation) then
     return
@@ -71,9 +93,13 @@ function on_CreateReservation(peer_id, reservation)
   --   end
   -- end
 
-
-  table.insert(pending_reservations, reservation)
-  gossip(peer_id, reservation)
+  hash = sha3(reservation:serialize())
+  if not msg_hash[hash] then
+    msg_hash[hash] = true
+    log("on_CreateReservation", tostring(peer_id) .. reservation:to_json())
+    table.insert(pending_reservations, reservation)
+    gossip(peer_id, reservation)
+  end
 end
 
 function on_CancelReservation(peer_id, cancellation)
@@ -97,8 +123,12 @@ function on_CancelReservation(peer_id, cancellation)
   --   end
   -- end
 
-  table.insert(pending_cancellations, cancellation)
-  gossip(peer_id, cancellation)
+  hash = sha3(cancellation:serialize())
+  if not msg_hash[hash] then
+    msg_hash[hash] = true
+    table.insert(pending_cancellations, cancellation)
+    gossip(peer_id, cancellation)
+  end
 end
 
 function create_tx(tx_type, rooms, start_day, end_day, client_public_key)
