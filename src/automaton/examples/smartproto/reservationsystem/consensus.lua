@@ -26,11 +26,11 @@ function update_state(time)
 
       -- TODO: filter out invalid transactions
 
-      for i, r in pairs(pending_reservations) do
+      for _, r in ipairs(pending_reservations) do
         st.reservations = r
       end
 
-      for i, c in pairs(pending_cancellations) do
+      for _, c in ipairs(pending_cancellations) do
         st.cancellations = c
       end
 
