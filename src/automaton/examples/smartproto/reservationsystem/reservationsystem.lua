@@ -36,15 +36,6 @@ function on_RegisterValidators(peer_id, msg)
   end
 end
 
--- message StateTransition {
---   //  validator_number * rounds
---   uint64 epoch = 1;
---   repeated CreateReservation reservations = 2;
---   repeated CancelReservation cancellations = 3;
---   // sign(epoch, reservations, cancellations) with the key of the validator
---   bytes signature = 4;
--- }
-
 function on_StateTransition(peer_id, state_transition)
   -- validate state_transition
   -- apply changes
