@@ -10,6 +10,7 @@ mempool = {}
 validators = {}
 validators_sorted = {}
 peers = {}
+msg_hash = {}
 
 for i = 1, ROOM_COUNT do
   rooms[i] = {}
