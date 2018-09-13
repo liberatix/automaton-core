@@ -37,6 +37,10 @@ function update_state(time)
       to_sign = st:serialize()
       st.signature = secp256k1_sign(private_key, to_sign)
       broadcast(st)
+
+      -- Reset mempool
+      pending_reservations = {}
+      pending_cancellations = {}
     end
   end
 end
