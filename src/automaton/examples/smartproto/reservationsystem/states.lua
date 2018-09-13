@@ -1,19 +1,31 @@
 ROOM_COUNT = 5
 DAYS = 30
-rooms = {}
 TOTAL_VALIDATORS = 20
+
+rooms = {}
+-- room_local is representation of the reserved rooms in the mempool
+-- not including the reserved rooms in the state
+rooms_local = {}
+mempool = {}
 validators = {}
 validators_sorted = {}
 peers = {}
 
 for i = 1, ROOM_COUNT do
   rooms[i] = {}
+  rooms_local[i] = {}
 end
 
 private_key = sha256(nodeid)
 public_key = secp256k1_gen_public_key(private_key)
 validators[public_key] = 1
 
+-- Check if reservation or cancelation TX has a valid signature
+function is_valid_signature(tx)
+  local msg = table.concat(tx.room_id, "")
+  msg = msg .. tostring(tx.start_day) .. tostring(tx.end_day)
+  return secp256k1_verify(tx.client_public_key, msg, tx.client_signature)
+end
 
 function table_length(t)
   local count = 0
@@ -21,4 +33,20 @@ function table_length(t)
     count = count + 1
   end
   return count
+end
+
+function table_to_json(t)
+  -- TODO: ints should not be saved as strings
+  local json = "{"
+  for k,v in pairs(t) do
+    json = json .. '"' .. k .. '"' .. ":"
+    if type(v) == "table" then
+      json = json .. table_to_json(v) .. ","
+    else
+      json = json .. '"' .. v .. '",'
+    end
+  end
+  json = json:sub(1, -2)
+  json = json .. "}"
+  return json
 end

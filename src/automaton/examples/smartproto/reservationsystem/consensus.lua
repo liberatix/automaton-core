@@ -27,11 +27,15 @@ function update_state(time)
       -- TODO: filter out invalid transactions
 
       for _, r in ipairs(pending_reservations) do
-        st.reservations = r
+        if not conflicting_reservation(pending_reservations) then
+          st.reservations = r
+        end
       end
 
       for _, c in ipairs(pending_cancellations) do
-        st.cancellations = c
+        if not conflicting_cancelation(pending_reservations) then
+          st.cancellations = c
+        end
       end
 
       to_sign = st:serialize()
@@ -43,4 +47,32 @@ function update_state(time)
       pending_cancellations = {}
     end
   end
+end
+
+function conflicting_reservation(reservation)
+  for _,v in pairs(reservation.room_id) do
+    if rooms[v] == nil then
+      return true
+    end
+    for i = reservation.start_day, reservation.end_day do
+      if rooms_local[v][i] then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+function conflicting_cancelation(reservation)
+  for _,v in pairs(cancellation.room_id) do
+    if rooms[v] == nil then
+      return true
+    end
+    for i = cancellation.start_day, cancellation.end_day do
+      if rooms[v][i] ~= cancellation.client_public_key then
+        return true
+      end
+    end
+  end
+  return false
 end
