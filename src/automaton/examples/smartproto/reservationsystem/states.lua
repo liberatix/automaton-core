@@ -3,6 +3,8 @@ DAYS = 30
 TOTAL_VALIDATORS = 20
 
 rooms = {}
+-- room_local is representation of the reserved rooms in the mempool
+-- not including the reserved rooms in the state
 rooms_local = {}
 mempool = {}
 validators = {}
@@ -18,6 +20,7 @@ private_key = sha256(nodeid)
 public_key = secp256k1_gen_public_key(private_key)
 validators[public_key] = 1
 
+-- Check if reservation or cancelation TX has a valid signature
 function is_valid_signature(tx)
   local msg = table.concat(tx.room_id, "")
   msg = msg .. tostring(tx.start_day) .. tostring(tx.end_day)

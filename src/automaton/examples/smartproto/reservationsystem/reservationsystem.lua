@@ -40,8 +40,6 @@ function on_StateTransition(peer_id, state_transition)
 
 end
 
--- TODO(all): rooms_local must be equal to rooms after every state transition
-
 function on_CreateReservation(peer_id, reservation)
   if not is_valid_signature(reservation) then
     return
@@ -50,19 +48,22 @@ function on_CreateReservation(peer_id, reservation)
     if rooms[v] == nil then
       return
     end
-    for i = reservation.start_day, reservation.end_day do
-      if rooms_local[v][i] then
-        return
-      end
-    end
+    -- Check if there is conflicting reservation in pending_reservations
+    -- for i = reservation.start_day, reservation.end_day do
+    --   if rooms_local[v][i] then
+    --     return
+    --   end
+    -- end
   end
+  -- Mark pending reservation
+  -- for _,v in pairs(reservation.room_id) do
+  --   for i = reservation.start_day, reservation.end_day do
+  --     rooms_local[v][i] = reservation.client_public_key
+  --   end
+  -- end
 
-  for _,v in pairs(reservation.room_id) do
-    for i = reservation.start_day, reservation.end_day do
-      rooms_local[v][i] = reservation.client_public_key
-    end
-  end
-  table.insert(mempool, reservation)
+
+  table.insert(pending_reservations, reservation)
   gossip(peer_id, reservation)
 end
 
@@ -74,19 +75,20 @@ function on_CancelReservation(peer_id, cancellation)
     if rooms[v] == nil then
       return
     end
-    for i = cancellation.start_day, cancellation.end_day do
-      if rooms_local[v][i] ~= cancellation.client_public_key then
-        return
-      end
-    end
+    -- for i = cancellation.start_day, cancellation.end_day do
+    --   if rooms_local[v][i] ~= cancellation.client_public_key then
+    --     return
+    --   end
+    -- end
   end
+  -- Check if there is conflicting reservation in pending reservations
+  -- for _,v in pairs(cancellation.room_id) do
+  --   for i = cancellation.start_day, cancellation.end_day do
+  --     rooms_local[v][i] = nil
+  --   end
+  -- end
 
-  for _,v in pairs(cancellation.room_id) do
-    for i = cancellation.start_day, cancellation.end_day do
-      rooms_local[v][i] = nil
-    end
-  end
-  table.insert(mempool, cancellation)
+  table.insert(pending_cancellations, cancellation)
   gossip(peer_id, cancellation)
 end
 
@@ -117,7 +119,7 @@ function debug_html()
 end
 
 function tests()
-  
+
 end
 
 
