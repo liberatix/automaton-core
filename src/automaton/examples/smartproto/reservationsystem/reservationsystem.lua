@@ -1,5 +1,6 @@
 function update(time)
   if table_length(validators) == TOTAL_VALIDATORS then
+    update_sate(time)
   end
 end
 
@@ -25,7 +26,11 @@ function on_RegisterValidators(peer_id, msg)
       table.sort(validators_sorted)
       --log("total_validators ", validators_sorted)
       for i,n in ipairs(validators_sorted) do
-        log("validators ", tostring(i) .. ": " .. hex(n))
+        log("validators", tostring(i) .. ": " .. hex(n))
+        if public_key == n then
+          our_slot = i
+          log("validators", tostring(i) .. " IS OUR SLOT!")
+        end
       end
     end
   end
