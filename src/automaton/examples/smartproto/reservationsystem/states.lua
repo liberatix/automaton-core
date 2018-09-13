@@ -31,3 +31,19 @@ function table_length(t)
   end
   return count
 end
+
+function table_to_json(t)
+  -- TODO: ints should not be saved as strings
+  local json = "{"
+  for k,v in pairs(t) do
+    json = json .. '"' .. k .. '"' .. ":"
+    if type(v) == "table" then
+      json = json .. table_to_json(v) .. ","
+    else
+      json = json .. '"' .. v .. '",'
+    end
+  end
+  json = json:sub(1, -2)
+  json = json .. "}"
+  return json
+end
