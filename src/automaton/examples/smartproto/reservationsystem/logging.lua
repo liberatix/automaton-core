@@ -14,19 +14,6 @@ function log_CancelReservation(r)
     .. " SIG: " .. hex(r.client_signature)
 end
 
---[[
-
-message StateTransition {
-  //  validator_number * rounds
-  uint64 epoch = 1;
-  repeated CreateReservation reservations = 2;
-  repeated CancelReservation cancellations = 3;
-  // sign(epoch, reservations, cancellations) with the key of the validator
-  bytes signature = 4;
-}
-
-]]
-
 function log_StateTransition(st)
   out = {}
   local reservations = st.reservations
