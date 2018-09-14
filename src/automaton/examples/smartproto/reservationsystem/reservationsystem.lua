@@ -16,10 +16,12 @@ function update(time)
 end
 
 function create_random_reservation()
+  local start_day = math.random(1, DAYS)
+  local end_day = math.min(DAYS, start_day + math.random(0, 4))
   tx = create_tx("create",
       { math.random(1, ROOM_COUNT) },
-      math.random(1, DAYS / 2),
-      math.random(DAYS / 2 + 1, DAYS),
+      start_day,
+      end_day,
       public_key)
   on_CreateReservation(0, tx)
 end
@@ -69,7 +71,7 @@ function on_StateTransition(peer_id, state_transition)
   if valid_transition(state_transition) then
     log("on_StateTransition", "VALID!")
     apply_transition(state_transition)
-    broadcast(peer_id, state_transition)
+    gossip(peer_id, state_transition)
   else
     log("on_StateTransition", "INVALID!")
   end
@@ -315,7 +317,7 @@ function debug_html()
       var note = document.getElementById("noteID");
       if(over) {
       	table_cell.className += " selected";
-          note.innerHTML = table_cell.innerHTML;
+          note.innerHTML = table_cell.id;
       	note.style = "visibility:visible";
       }
       else {
@@ -338,7 +340,7 @@ function get_room_html(room_number)
       table_html = table_html .. "</tr><tr>"
     end
     if rooms[room_number][i] then
-      table_html = table_html .. "<td class=\"busy\" id=" .. rooms[room_number][i] .. ">" .. tostring(i) .. "</td>"
+      table_html = table_html .. "<td class=\"busy\" id=" .. hex(rooms[room_number][i]) .. ">" .. tostring(i) .. "</td>"
     else
       table_html = table_html .. "<td>" .. tostring(i) .. "</td>"
     end
