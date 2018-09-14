@@ -1,6 +1,6 @@
 current_message_id = 1
 function connected(peer_id)
-  peers[peer_id] = { status = "connected" }
+  peers[peer_id] = { status = "connected", name = "N/A" .. tostring(peer_id) }
   send(peer_id, validators_msg(), current_message_id)
   current_message_id = current_message_id + 1
 end
@@ -11,17 +11,9 @@ end
 
 function gossip(peer_id, msg)
   for k,v in pairs(peers) do
-    if k ~= peer_id and v.status == "connected" then
+    if k ~= 0 and k ~= peer_id and v.status == "connected" then
       send(k, msg, current_message_id)
       current_message_id = current_message_id + 1
     end
   end
-end
-
-function validators_msg()
-  local m = RegisterValidators()
-  for k in pairs(validators) do
-    m.public_key = k
-  end
-  return m
 end

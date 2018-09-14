@@ -4,8 +4,21 @@ syntax = "proto3";
 
 // Handshake / Initial Validator Setup
 
-message RegisterValidators {
-  repeated bytes public_key = 1;
+message Validator {
+  // Participant's public key
+  bytes public_key = 1;
+
+  // Participant's human readable name
+  string name = 2;
+
+  // Participant's signature of their human readable name
+  bytes signature = 3;
+}
+
+// Validator list is being shared amongst peers until they all have the full validator set
+message Hello {
+  string name = 1;
+  repeated Validator validators = 2;
 }
 
 // Consensus
