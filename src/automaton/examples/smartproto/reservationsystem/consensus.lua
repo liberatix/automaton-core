@@ -23,9 +23,6 @@ function update_state(time)
       epoch = epoch + 1;
       st = StateTransition()
       st.epoch = epoch;
-
-      -- TODO: filter out invalid transactions
-
       for _, r in ipairs(pending_reservations) do
         if not conflicting_reservation(pending_reservations) then
           st.reservations = r
@@ -40,11 +37,12 @@ function update_state(time)
 
       to_sign = st:serialize()
       st.signature = secp256k1_sign(private_key, to_sign)
-      broadcast(st)
 
       -- Reset mempool
       pending_reservations = {}
       pending_cancellations = {}
+      
+      on_StateTransition(0, st)
     end
   end
 end

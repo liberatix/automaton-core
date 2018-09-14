@@ -57,7 +57,9 @@ function on_RegisterValidators(peer_id, msg)
 end
 
 function on_StateTransition(peer_id, state_transition)
-
+  -- validate state_transition
+  -- apply changes
+  -- broadcast(peer_id, state_transition)
 end
 
 msg_hash = {}
