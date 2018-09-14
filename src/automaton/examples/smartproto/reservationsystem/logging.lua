@@ -31,7 +31,7 @@ function log_StateTransition(st)
   out = {}
   local reservations = st.reservations
   local cancellations = st.cancellations
-  table.insert(out, "EPOCH: " .. tostring(epoch)
+  table.insert(out, "EPOCH: " .. tostring(st.epoch)
     .. " RESERVATIONS: " .. #reservations
     .. " CANCELLATIONS: " .. #cancellations)
 

@@ -64,11 +64,14 @@ end
 --   bytes signature = 4;
 -- }
 function on_StateTransition(peer_id, state_transition)
+  log("on_StateTransition", "peer_id:" .. tostring(peer_id)) -- log the state transition
   log("on_StateTransition", log_StateTransition(state_transition)) -- log the state transition
   if valid_transition(state_transition) then
     log("on_StateTransition", "VALID!")
     apply_transition(state_transition)
     broadcast(peer_id, state_transition)
+  else
+    log("on_StateTransition", "INVALID!")
   end
 end
 
@@ -135,9 +138,10 @@ function valid_transition(st)
   end
 
   local signature = st.signature
-  st.signature = nil
+  st.signature = ""
   local serialized = st:serialize()
-  local state_valid = secp256k1_verify(validators_sorted[st.epoch % TOTAL_VALIDATORS + 1], st, signature)
+  log("signing", "serialized: " .. hex(serialized))
+  local state_valid = secp256k1_verify(validators_sorted[epoch % TOTAL_VALIDATORS + 1], serialized, signature)
   st.signature = signature
 
   return state_valid
