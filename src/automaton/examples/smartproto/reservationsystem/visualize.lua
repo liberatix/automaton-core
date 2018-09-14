@@ -114,7 +114,9 @@ function get_room_html(room_number)
       table_html = table_html .. "</tr><tr>"
     end
     if rooms[room_number][i] then
-      table_html = table_html .. "<td class=\"busy\" id=" .. hex(rooms[room_number][i]) .. ">" .. tostring(i) .. "</td>"
+      table_html = table_html .. "<td class=\"busy\" id='"
+        .. validators[rooms[room_number][i]] .. " | "
+        .. hex(rooms[room_number][i]) .. "'>" .. tostring(i) .. "</td>"
     else
       table_html = table_html .. "<td>" .. tostring(i) .. "</td>"
     end
