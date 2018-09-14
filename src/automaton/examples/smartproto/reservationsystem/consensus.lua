@@ -37,9 +37,9 @@ function update_state(time)
         end
       end
 
-      for _, c in ipairs(pending_cancelations) do
+      for _, c in ipairs(pending_cancellations) do
         if not conflicting_cancelation(c) then
-          st.cancelations = c
+          st.cancellations = c
           for _,v in pairs(c.room_id) do
             for i = c.start_day, c.end_day do
               rooms_local[v][i] = nil
