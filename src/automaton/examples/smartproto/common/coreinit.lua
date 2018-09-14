@@ -44,7 +44,7 @@ history_add("testnet(localhost, blockchain_node, 100, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 2)")
 history_add("testnet(simulation, blockchain_node, 200, 1)")
 history_add("testnet(localhost, reservation_system_node, 20, 2)")
-history_add("testnet(simulation, reservation_system_node, 20, 2)")
+-- history_add("testnet(simulation, reservation_system_node, 20, 2)")
 
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
