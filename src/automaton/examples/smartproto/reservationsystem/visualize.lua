@@ -1,25 +1,32 @@
 -- visualize.lua
 
 function debug_html()
-  local html = ""
+  local html = "<div class='tablewrap'>"
   for i = 1, ROOM_COUNT do
     html = html .. get_room_html(i)
   end
   html = html .. [[
+  </div>
   <div id="noteID", class="note">Tooltip text</div>
   <br />
   <style>
   .busy {
-  	margin: 10px;
-      padding: 5px;
-      background: #d5c7d5;
-      color: black
+  	margin: 8px;
+    padding: 4px;
+    background: #d5c7d5;
+    color: black
+  }
+  .calendar {
+    float: left;
+  }
+  .tablewrap {
+    height: 100%;
   }
   .selected {
-  	margin: 10px;
-      padding: 5px;
-      background: #58b7bf;
-      color: black
+    margin: 8px;
+    padding: 4px;
+    background: #58b7bf;
+    color: black
   }
   table {
   	width: 300px;
@@ -30,34 +37,34 @@ function debug_html()
     align: left;
     text-align: center;
     border: "0";
-    margin: 16px;
+    margin: 10px;
     cursor: pointer;
   }
   caption {
-  	align: "center";
-      text-align: center;
-      font-size: 25px;
-      border: "0";
-      margin: 0;
-      background: #7dc2c8;
-      cursor: default;
+    align: "center";
+    text-align: center;
+    font-size: 18px;
+    border: "0";
+    margin: 0;
+    background: #7dc2c8;
+    cursor: default;
   }
   td {
-  	margin: 10px;
-      padding: 5px;
+    margin: 8px;
+    padding: 4px;
   }
   .note {
-  	visibility: hidden;
-      font-family: Verdana, sans-serif;
-      font-size: 18px;
-      background: #edf6f6;
-      align: right;
-      text-align: center;
-      border: "0";
-      margin: 0;
-      position: absolute;
-      top: 150px;
-      left: 35%;
+    visibility: hidden;
+    font-family: Verdana, sans-serif;
+    font-size: 18px;
+    background: #edf6f6;
+    align: right;
+    text-align: center;
+    border: "0";
+    margin: 0;
+    position: absolute;
+    top: 0;
+    left: 500px;
   }
   </style>
   <script>

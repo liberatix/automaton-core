@@ -1,6 +1,6 @@
 -- states.lua
 
-ROOM_COUNT = 5
+ROOM_COUNT = 4
 DAYS = 30
 TOTAL_VALIDATORS = 20
 

@@ -65,7 +65,7 @@ function conflicting_reservation(reservation)
   return false
 end
 
-function conflicting_cancellation(reservation)
+function conflicting_cancellation(cancellation)
   for _,v in pairs(cancellation.room_id) do
     if rooms[v] == nil then
       return true
