@@ -66,7 +66,7 @@ end
 function on_StateTransition(peer_id, state_transition)
   -- validate state_transition
 
-  --log("Got state transition", state_str) -- log the state transition
+  log("on_StateTransition", log_StateTransition(state_transition)) -- log the state transition
   -- apply changes
   -- broadcast(peer_id, state_transition)
 end

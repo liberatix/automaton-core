@@ -62,6 +62,7 @@ function reservation_system_node(id)
       "automaton/examples/smartproto/reservationsystem/states.lua",
       "automaton/examples/smartproto/reservationsystem/consensus.lua",
       "automaton/examples/smartproto/reservationsystem/reservationsystem.lua",
+      "automaton/examples/smartproto/reservationsystem/logging.lua",
     },
     {"RegisterValidators", "CancelReservation", "CreateReservation", "StateTransition"}
   )
