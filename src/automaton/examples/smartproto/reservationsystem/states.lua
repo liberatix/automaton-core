@@ -22,9 +22,9 @@ public_key = secp256k1_gen_public_key(private_key)
 validators[public_key] = 1
 
 -- Check if reservation or cancelation TX has a valid signature
-function is_valid_signature(tx)
+function is_valid_signature(tx, type)
   local msg = table.concat(tx.room_id, "")
-  msg = msg .. tostring(tx.start_day) .. tostring(tx.end_day)
+  msg = type .. msg .. tostring(tx.start_day) .. tostring(tx.end_day)
   return secp256k1_verify(tx.client_public_key, msg, tx.client_signature)
 end
 
