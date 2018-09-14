@@ -32,7 +32,7 @@ function on_RegisterValidators(peer_id, msg)
   local new_validator = false
   for k,v in pairs(msg.public_key) do
     if validators[v] == nil then
-      log("new validator from ", nodeid .. " RECEIVED " .. hex(v))
+      log("new_validator_from ", nodeid .. " RECEIVED " .. hex(v))
       validators[v] = 1
       new_validator = true
     end
@@ -64,11 +64,87 @@ end
 --   bytes signature = 4;
 -- }
 function on_StateTransition(peer_id, state_transition)
-  -- validate state_transition
-
+  log("on_StateTransition", "peer_id:" .. tostring(peer_id)) -- log the state transition
   log("on_StateTransition", log_StateTransition(state_transition)) -- log the state transition
-  -- apply changes
-  -- broadcast(peer_id, state_transition)
+  if valid_transition(state_transition) then
+    log("on_StateTransition", "VALID!")
+    apply_transition(state_transition)
+    broadcast(peer_id, state_transition)
+  else
+    log("on_StateTransition", "INVALID!")
+  end
+end
+
+function apply_transition(st)
+  epoch = epoch + 1
+
+  for _,r in ipairs(st.reservations) do
+    for _,v in ipairs(r.room_id) do
+      for i = r.start_day, r.end_day do
+        rooms[v][i] = r.client_public_key
+        pending_reservations[r.client_signature] = nil
+      end
+    end
+  end
+
+  for _,c in ipairs(st.cancellations) do
+    for _,v in ipairs(c.room_id) do
+      for i = c.start_day, c.end_day do
+        rooms[v][i] = nil
+        pending_cancellations[c.client_signature] = nil
+      end
+    end
+  end
+
+end
+
+
+
+function valid_transition(st)
+  if st.epoch ~= epoch + 1 then
+    return false
+  end
+  for i = 1, ROOM_COUNT do
+    rooms_local[i] = {}
+  end
+  for _,r in ipairs(st.reservations) do
+    if not is_valid_signature(r) then
+      return false
+    end
+    if not conflicting_reservation(r) then
+      for _,v in pairs(r.room_id) do
+        for i = r.start_day, r.end_day do
+          rooms_local[v][i] = r.client_public_key
+        end
+      end
+    else
+      return false
+    end
+  end
+
+  for _,c in ipairs(st.cancellations) do
+    if not is_valid_signature(c) then
+      return false
+    end
+    if not conflicting_cancellation(c) then
+      for _,v in pairs(c.room_id) do
+        for i = c.start_day, c.end_day do
+          rooms_local[v][i] = nil
+        end
+      end
+    else
+      return false
+    end
+  end
+
+  local signature = st.signature
+  st.signature = ""
+  local serialized = st:serialize()
+  log("signing", "serialized: " .. hex(serialized))
+  local state_valid = secp256k1_verify(validators_sorted[epoch % TOTAL_VALIDATORS + 1], serialized, signature)
+  st.signature = signature
+
+  return state_valid
 end
 
 msg_hash = {}
@@ -99,7 +175,7 @@ function on_CreateReservation(peer_id, reservation)
   if not msg_hash[hash] then
     msg_hash[hash] = true
     log("on_CreateReservation", tostring(peer_id) .. reservation:to_json())
-    table.insert(pending_reservations, reservation)
+    pending_reservations[reservation.client_signature] = reservation
     gossip(peer_id, reservation)
   end
 end
@@ -128,7 +204,7 @@ function on_CancelReservation(peer_id, cancellation)
   hash = sha3(cancellation:serialize())
   if not msg_hash[hash] then
     msg_hash[hash] = true
-    table.insert(pending_cancellations, cancellation)
+    pending_cancellations[cancellation.client_signature] = cancellation
     gossip(peer_id, cancellation)
   end
 end
