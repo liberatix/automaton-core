@@ -1,6 +1,9 @@
 -- consensus.lua
 epoch = 0
 
+-- Minimum number of transactions in a state transition
+MIN_TRANSACTIONS = 1
+
 pending_reservations = {}
 pending_cancellations = {}
 
@@ -42,7 +45,7 @@ function update_state(time)
         end
       end
 
-      if modified >= 3 then
+      if modified >= MIN_TRANSACTIONS then
         -- Reset mempool
         pending_reservations = {}
         pending_cancellations = {}
