@@ -9,7 +9,8 @@ function broadcast(msg)
 end
 
 function update_state(time)
-  if not (is_table_empty(pending_reservations) and is_table_empty(pending_cancellations))  then
+  local modified = 0
+  if not (is_table_empty(pending_reservations) and is_table_empty(pending_cancellations)) then
     if our_slot == (epoch % TOTAL_VALIDATORS + 1) then
       for i = 1, ROOM_COUNT do
         rooms_local[i] = {}
@@ -19,6 +20,7 @@ function update_state(time)
       st.epoch = epoch+1;
       for _, r in pairs(pending_reservations) do
         if not conflicting_reservation(r) then
+          modified = modified + 1
           st.reservations = r
           for _,v in pairs(r.room_id) do
             for i = r.start_day, r.end_day do
@@ -30,23 +32,25 @@ function update_state(time)
 
       for _, c in pairs(pending_cancellations) do
         if not conflicting_cancellation(c) then
+          modified = modified + 1
           st.cancellations = c
           for _,v in pairs(c.room_id) do
             for i = c.start_day, c.end_day do
-              rooms_local[v][i] = nil
+              rooms_local[v][i] = "cancelled"
             end
           end
         end
       end
 
-      to_sign = st:serialize()
-      st.signature = secp256k1_sign(private_key, to_sign)
+      if modified >= 3 then
+        -- Reset mempool
+        pending_reservations = {}
+        pending_cancellations = {}
+        to_sign = st:serialize()
+        st.signature = secp256k1_sign(private_key, to_sign)
 
-      -- Reset mempool
-      pending_reservations = {}
-      pending_cancellations = {}
-
-      on_StateTransition(0, st)
+        on_StateTransition(0, st)
+      end
     end
   end
 end
@@ -71,10 +75,21 @@ function conflicting_cancellation(cancellation)
       return true
     end
     for i = cancellation.start_day, cancellation.end_day do
-      if rooms[v][i] ~= cancellation.client_public_key or
-        rooms_local[v][i] ~= cancellation.client_public_key then
-        return true
+      local key = cancellation.client_public_key
+      if not ((rooms[v][i] == key and rooms_local[v][i] == nil)
+              or (rooms_local[v][i] == key)) then
+           return true
       end
+      -- if local_rooms[v][i] == key then
+      --   -- do nothing / continue
+      -- elseif rooms[v][i] == key and canceled then
+      --   return true
+      -- end      
+
+      -- if (local_rooms[v][i] != key and rooms[v][i] ~= cancellation.client_public_key)
+      --   or rooms_local[v][i] == "cancelled" then
+      --   return true
+      -- end
     end
   end
   return false

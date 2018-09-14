@@ -177,6 +177,7 @@ function on_CancelReservation(peer_id, cancellation)
   --   end
   -- end
 
+  log("on_CancelReservation", tostring(peer_id) .. cancellation:to_json())
   pending_cancellations[cancellation.client_signature] = cancellation
   gossip(peer_id, cancellation)
 end

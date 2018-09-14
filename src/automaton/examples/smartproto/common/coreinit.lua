@@ -43,6 +43,10 @@ history_add("testnet(localhost, chat_node, 5, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 2)")
 history_add("testnet(simulation, blockchain_node, 200, 1)")
+
+history_add("Alice.reserve(1,4,4)")
+history_add("Alice.cancel(1,3,5)")
+history_add("Alice.reserve(1,1,16)")
 history_add("testnet(localhost, reservation_system_node, 20, 2)")
 -- history_add("testnet(simulation, reservation_system_node, 20, 2)")
 
