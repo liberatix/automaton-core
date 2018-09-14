@@ -40,6 +40,7 @@ function update_state(time)
       end
 
       to_sign = st:serialize()
+      log("signing", "to_sign " .. hex(to_sign))
       st.signature = secp256k1_sign(private_key, to_sign)
 
       -- Reset mempool
