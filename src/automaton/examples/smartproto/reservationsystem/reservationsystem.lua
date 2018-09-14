@@ -64,8 +64,9 @@ end
 --   bytes signature = 4;
 -- }
 function on_StateTransition(peer_id, state_transition)
-  -- in validate check if epoch on block == epoch+1 and if the person signing it corresponds to this epoch
+  log("on_StateTransition", log_StateTransition(state_transition)) -- log the state transition
   if valid_transition(state_transition) then
+    log("on_StateTransition", "VALID!")
     apply_transition(state_transition)
     broadcast(peer_id, state_transition)
   end
@@ -97,7 +98,7 @@ end
 
 
 function valid_transition(st)
-  if st.epoch != epoch + 1 then
+  if st.epoch ~= epoch + 1 then
     return false
   end
   for i = 1, ROOM_COUNT do
@@ -138,7 +139,7 @@ function valid_transition(st)
   local serialized = st:serialize()
   local state_valid = secp256k1_verify(validators_sorted[st.epoch % TOTAL_VALIDATORS + 1], st, signature)
   st.signature = signature
-  log("Block_validity:", state_valid)
+
   return state_valid
 end
 
@@ -249,15 +250,15 @@ function debug_html()
   }
   table {
   	width: 300px;
-      height: 300px;
-      font-family: Verdana, sans-serif;
-      font-size: 18px;
-      background: #edf6f6;
-      align: left;
-      text-align: center;
-      border: "0";
-      margin: 0;
-      cursor: pointer;
+    height: 300px;
+    font-family: Verdana, sans-serif;
+    font-size: 18px;
+    background: #edf6f6;
+    align: left;
+    text-align: center;
+    border: "0";
+    margin: 16px;
+    cursor: pointer;
   }
   caption {
   	align: "center";
@@ -326,21 +327,19 @@ function get_room_html(room_number)
   local table_html = [[
   <table class="calendar">
     <caption>ROOM ]] .. tostring(room_number) .. [[</caption>
+    <tr>
   ]]
   for i = 1, DAYS do
-    if math.mod(i, 5) == 0 then
-      table_html = table_html .. "</tr>"
+    if (i - 1) % 5 == 0 then
+      table_html = table_html .. "</tr><tr>"
     end
     if rooms[room_number][i] then
       table_html = table_html .. "<td class=\"busy\" id=" .. rooms[room_number][i] .. ">" .. tostring(i) .. "</td>"
     else
       table_html = table_html .. "<td>" .. tostring(i) .. "</td>"
     end
-    if math.mod(i, 5) == 0 then
-      table_html = table_html .. "</tr>"
-    end
   end
-  table_html = table_html .. "</table>"
+  table_html = table_html .. "</tr></table>"
   return table_html
 end
 
