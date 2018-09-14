@@ -3,6 +3,8 @@
 -- create reservtion timer
 cr_timer = math.random(100, 1000)
 
+random_reservations = false
+
 function update(time)
   if table_length(validators) == TOTAL_VALIDATORS then
     update_state(time)
@@ -10,7 +12,9 @@ function update(time)
 
   cr_timer = cr_timer - 1
   if cr_timer <= 0 then
-    -- create_random_reservation()
+    if random_reservations then
+      create_random_reservation()
+    end
     cr_timer = math.random(200, 1000)
   end
 end

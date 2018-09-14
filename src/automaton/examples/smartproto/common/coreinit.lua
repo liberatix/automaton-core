@@ -44,6 +44,9 @@ history_add("testnet(localhost, blockchain_node, 100, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 2)")
 history_add("testnet(simulation, blockchain_node, 200, 1)")
 
+history_add("start_random_reservations()")
+history_add("stop_random_reservations()")
+
 history_add("Alice.reserve(1,4,4)")
 history_add("Alice.cancel(1,3,5)")
 history_add("Alice.reserve(1,1,16)")
@@ -343,4 +346,16 @@ end
 
 function start_mining()
   set_mining_power(1)
+end
+
+function start_random_reservations()
+  for i in pairs(nodes) do
+    nodes[i]:call("random_reservations = true")
+  end
+end
+
+function stop_random_reservations()
+  for i in pairs(nodes) do
+    nodes[i]:call("random_reservations = false")
+  end
 end

@@ -33,6 +33,8 @@ std::vector<std::string> examples {
   "Emily",
   "random_topology()",
   "start_mining()",
+  "start_random_reservations()",
+  "stop_random_reservations()",
 };
 
 Replxx::completions_t hook_completion(std::string const& context, int index, void* data) {
