@@ -44,8 +44,8 @@ function update_state(time)
       st.signature = secp256k1_sign(private_key, to_sign)
 
       -- Reset mempool
-      -- pending_reservations = {}
-      -- pending_cancellations = {}
+      pending_reservations = {}
+      pending_cancellations = {}
 
       on_StateTransition(0, st)
     end

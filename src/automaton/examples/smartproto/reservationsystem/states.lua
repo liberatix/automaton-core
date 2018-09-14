@@ -1,3 +1,5 @@
+-- states.lua
+
 ROOM_COUNT = 5
 DAYS = 30
 TOTAL_VALIDATORS = 20
@@ -7,19 +9,14 @@ rooms = {}
 -- not including the reserved rooms in the state
 rooms_local = {}
 mempool = {}
-validators = {}
-validators_sorted = {}
 peers = {}
+peers[0] = { status = "disconnected", name = "Us" }
 msg_hash = {}
 
 for i = 1, ROOM_COUNT do
   rooms[i] = {}
   rooms_local[i] = {}
 end
-
-private_key = sha256(nodeid)
-public_key = secp256k1_gen_public_key(private_key)
-validators[public_key] = 1
 
 -- Check if reservation or cancelation TX has a valid signature
 function is_valid_signature(tx, type)
