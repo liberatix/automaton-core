@@ -76,6 +76,18 @@ function reservation_system_node(id)
     connect = function(peer_id)
       n:call("connect("..tostring(peer_id)..")")
     end,
+
+    reserve = function(room_id, start_day, end_day)
+      n:call("reserve(" .. tostring(room_id) .. ","
+        .. tostring(start_day) .. ","
+        .. tostring(end_day) .. ")")
+    end,
+
+    cancel = function(room_id, start_day, end_day)
+      n:call("cancel(" .. tostring(room_id) .. ","
+        .. tostring(start_day) .. ","
+        .. tostring(end_day) .. ")")
+    end
   }
   return n
 end

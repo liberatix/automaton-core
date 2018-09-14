@@ -40,7 +40,6 @@ function update_state(time)
       end
 
       to_sign = st:serialize()
-      log("signing", "to_sign " .. hex(to_sign))
       st.signature = secp256k1_sign(private_key, to_sign)
 
       -- Reset mempool
@@ -66,7 +65,7 @@ function conflicting_reservation(reservation)
   return false
 end
 
-function conflicting_cancellation(reservation)
+function conflicting_cancellation(cancellation)
   for _,v in pairs(cancellation.room_id) do
     if rooms[v] == nil then
       return true

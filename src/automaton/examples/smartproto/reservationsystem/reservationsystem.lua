@@ -10,7 +10,7 @@ function update(time)
 
   cr_timer = cr_timer - 1
   if cr_timer <= 0 then
-    create_random_reservation()
+    -- create_random_reservation()
     cr_timer = math.random(200, 1000)
   end
 end
@@ -24,6 +24,24 @@ function create_random_reservation()
       end_day,
       public_key)
   on_CreateReservation(0, tx)
+end
+
+function reserve(room_id, start_day, end_day)
+  tx = create_tx("create",
+      { room_id },
+      start_day,
+      end_day,
+      public_key)
+  on_CreateReservation(0, tx)
+end
+
+function cancel(room_id, start_day, end_day)
+  tx = create_tx("cancel",
+      { room_id },
+      start_day,
+      end_day,
+      public_key)
+  on_CancelReservation(0, tx)
 end
 
 function sent(peer_id, msg_id, success)
@@ -104,7 +122,6 @@ function valid_transition(st)
   local signature = st.signature
   st.signature = ""
   local serialized = st:serialize()
-  log("signing", "serialized: " .. hex(serialized))
   local state_valid = secp256k1_verify(validators_sorted[epoch % TOTAL_VALIDATORS + 1], serialized, signature)
   st.signature = signature
   return state_valid
