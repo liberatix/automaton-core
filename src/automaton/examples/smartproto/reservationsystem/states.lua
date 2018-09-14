@@ -36,6 +36,10 @@ function table_length(t)
   return count
 end
 
+function is_table_empty(t)
+  return next(t) == nil
+end
+
 function table_to_json(t)
   -- TODO: ints should not be saved as strings
   local json = "{"
