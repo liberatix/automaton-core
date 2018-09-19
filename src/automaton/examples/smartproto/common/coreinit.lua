@@ -44,10 +44,59 @@ history_add("testnet(localhost, blockchain_node, 100, 1)")
 history_add("testnet(localhost, blockchain_node, 100, 2)")
 history_add("testnet(simulation, blockchain_node, 200, 1)")
 
+history_add("start_random_reservations()")
+history_add("stop_random_reservations()")
+
+history_add("Alice.reserve(1,4,4)")
+history_add("Alice.cancel(1,3,5)")
+history_add("Alice.reserve(1,1,16)")
+history_add("testnet(localhost, reservation_system_node, 20, 2)")
+-- history_add("testnet(simulation, reservation_system_node, 20, 2)")
+
 -- SMART PROTOCOLS FACTORY FUNCTIONS
 
 function blank(id)
   return node(id, {}, {}, {})
+end
+
+function reservation_system_node(id)
+  local n = node(
+    id,
+    20,
+    {"automaton/examples/smartproto/reservationsystem/reservationsystem.proto"},
+    {
+      "automaton/examples/smartproto/reservationsystem/connections.lua",
+      "automaton/examples/smartproto/reservationsystem/states.lua",
+      "automaton/examples/smartproto/reservationsystem/consensus.lua",
+      "automaton/examples/smartproto/reservationsystem/reservationsystem.lua",
+      "automaton/examples/smartproto/reservationsystem/logging.lua",
+      "automaton/examples/smartproto/reservationsystem/validators.lua",
+      "automaton/examples/smartproto/reservationsystem/visualize.lua",
+    },
+    {"Hello", "CancelReservation", "CreateReservation", "StateTransition"}
+  )
+
+  -- print(id)
+  _G[id] = {
+    node_type = "reservation_system_node",
+
+    connect = function(peer_id)
+      n:call("connect("..tostring(peer_id)..")")
+    end,
+
+    reserve = function(room_id, start_day, end_day)
+      n:call("reserve(" .. tostring(room_id) .. ","
+        .. tostring(start_day) .. ","
+        .. tostring(end_day) .. ")")
+    end,
+
+    cancel = function(room_id, start_day, end_day)
+      n:call("cancel(" .. tostring(room_id) .. ","
+        .. tostring(start_day) .. ","
+        .. tostring(end_day) .. ")")
+    end
+  }
+  return n
 end
 
 function blockchain_node(id)
@@ -297,4 +346,16 @@ end
 
 function start_mining()
   set_mining_power(1)
+end
+
+function start_random_reservations()
+  for i in pairs(nodes) do
+    nodes[i]:call("random_reservations = true")
+  end
+end
+
+function stop_random_reservations()
+  for i in pairs(nodes) do
+    nodes[i]:call("random_reservations = false")
+  end
 end

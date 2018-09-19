@@ -261,7 +261,7 @@ void node::dump_logs(string html_file) {
     f << R"(
 <html>
 <head>
-
+<meta charset="utf-8"/>
 <script type="text/javascript" src="../js/vis.min.js"></script>
 <link href="../js/vis.min.css" rel="stylesheet" type="text/css" />
 

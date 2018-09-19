@@ -56,7 +56,7 @@ void ed25519_orlp::sign_deterministic(const uint8_t * private_key,
 bool ed25519_orlp::verify(const uint8_t * public_key,
                           const uint8_t * message,
                           const size_t msg_len,
-                          uint8_t * signature) {
+                          const uint8_t * signature) {
   return ed25519_verify(signature, message, msg_len, public_key);
 }
 

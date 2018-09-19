@@ -37,7 +37,7 @@ class secp256k1_cryptopp : public digital_signature {
   bool verify(const uint8_t * public_key,
               const uint8_t * message,
               const size_t msg_len,
-              uint8_t * signature);
+              const uint8_t * signature);
 };
 
 }  // namespace cryptopp
