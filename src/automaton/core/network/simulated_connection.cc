@@ -164,6 +164,12 @@ void simulation::handle_request(uint32_t src, uint32_t dest) {
       add_task(get_time() + 1, [new_connection, cid](){
         new_connection->get_handler()->on_connected(cid);
       });
+      add_task(get_time() + 1, [new_connection](){
+        new_connection->handle_read();
+      });
+      add_task(get_time() + 1, [new_connection](){
+        new_connection->handle_send();
+      });
       add_task(time_of_handling, std::bind(&simulation::handle_accept, this, src));
     } else {
       LOG(ERROR) << "Error while initializing connection";
@@ -227,6 +233,9 @@ void simulation::handle_accept(uint32_t dest) {
   destination->set_state(connection::state::connected);
   add_task(get_time() + 1, [destination](){
     destination->get_handler()->on_connected(destination->get_id());
+  });
+  add_task(get_time() + 1, [destination](){
+    destination->handle_read();
   });
   add_task(get_time() + 1, [destination](){
     destination->handle_send();
@@ -384,6 +393,8 @@ simulated_connection::simulated_connection(connection_id id, const std::string& 
 }
 
 simulated_connection::~simulated_connection() {
+  std::cout << id << " LOCAL ID: " << local_connection_id << " READ: " << reading.size() << " RECV BUF: " <<
+      receive_buffer.size() << std::endl;
 }
 
 bool simulated_connection::init() {
@@ -427,6 +438,9 @@ void simulated_connection::async_send(const std::string& message, uint32_t msg_i
 
 void simulated_connection::handle_send() {
   // LOG(DEBUG) << id << " <handle_send>";
+  if (get_state() != connection::state::connected) {
+    return;
+  }
   sending_q_mutex.lock();
   /// nothing to send or waiting for ACK
   if (sending.empty() || sending.front().message.size() == sending.front().bytes_send) {
@@ -459,6 +473,11 @@ void simulated_connection::handle_send() {
 
 void simulated_connection::handle_read() {
   // LOG(DEBUG) << "<handle_read>";
+  std::cout << id << " local ID " << local_connection_id << " read sz " << reading.size() << " rcv sz "
+      << receive_buffer.size() << std::endl;
+  if (get_state() != connection::state::connected) {
+    return;
+  }
   std::shared_ptr<simulation> sim = simulation::get_simulator();
   reading_q_mutex.lock();
   recv_buf_mutex.lock();
@@ -495,12 +514,13 @@ void simulated_connection::handle_read() {
 }
 
 void simulated_connection::async_read(char* buffer, uint32_t buffer_size, uint32_t num_bytes = 0, uint32_t rid = 0) {
-  // LOG(DEBUG) << id << " <async_read>";
+  std::cout << id << " local id " << local_connection_id << " async_read called" << std::endl;
   /**
     This function does not create event. Actual reading will happen when the
     other endpoint sends a message and it arrives (send event is handled and
     read event is created).
   */
+  // TODO(kari): If disconnected, return
   std::shared_ptr<simulation> sim = simulation::get_simulator();
   if (num_bytes > buffer_size) {
     LOG(ERROR) << id << " ERROR: Buffer size " << buffer_size << " is smaller than needed (" <<
@@ -518,8 +538,13 @@ void simulated_connection::async_read(char* buffer, uint32_t buffer_size, uint32
   reading_q_mutex.unlock();
   recv_buf_mutex.lock();
   if (receive_buffer.size()) {
+    std::cout << "handle added" << std::endl;
     sim->add_task(sim->get_time() + 1, std::bind(&simulated_connection::handle_read, this));
   }
+  reading_q_mutex.lock();
+  std::cout << id  << " local:  " << local_connection_id << " SIZES read & receive " << reading.size() << " and " <<
+      receive_buffer.size() << std::endl;
+  reading_q_mutex.unlock();
   recv_buf_mutex.unlock();
   // LOG(DEBUG) << id  << " </async_read>";
 }
@@ -591,7 +616,6 @@ void simulated_connection::disconnect() {
     uint32_t ts = get_time_stamp();
     uint64_t time_of_handling = (t > ts ? t : ts) + 1 + get_lag();
     set_time_stamp(time_of_handling);
-    remote_connection_id = 0;
     sim->remove_connection(local_connection_id);
     local_connection_id = 0;
     auto self = shared_from_this();
@@ -602,6 +626,7 @@ void simulated_connection::disconnect() {
     sim->add_task(sim->get_time() + 1, std::bind(&connection::connection_handler::on_disconnected, handler, id));
     // LOG(DEBUG) << id << " </disconnect>";
     sim->add_task(time_of_handling, std::bind(&simulation::handle_disconnect, sim, remote_connection_id));
+    remote_connection_id = 0;
 }
 
 connection::connection_handler* simulated_connection::get_handler() {
