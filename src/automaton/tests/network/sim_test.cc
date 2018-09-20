@@ -23,7 +23,7 @@ uint32_t get_new_id() {
 
 char* bufferC = new char[256];
 
-automaton::core::network::simulation* sim = nullptr;
+std::shared_ptr<automaton::core::network::simulation> sim;
 class handler: public connection::connection_handler {
  public:
   void on_message_received(connection_id c, char* buffer, uint32_t bytes_read, uint32_t mid) {
@@ -87,21 +87,21 @@ void func() {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     connection_c -> async_read(bufferC, 256, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    connection_c -> async_send("C0", 3);
+    connection_c -> async_send("C0", 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    connection_c -> async_send("C1", 4);
+    connection_c -> async_send("C1", 2);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    connection_c -> async_send("C2", 5);
+    connection_c -> async_send("C2", 3);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     connection_c -> disconnect();
     connection_c -> connect();
     connection_c -> async_read(bufferC, 256, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    connection_c -> async_send("C3", 6);
+    connection_c -> async_send("C3", 4);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    connection_c -> async_send("C4", 7);
+    connection_c -> async_send("C4", 5);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    connection_c -> async_send("C5", 8);
+    connection_c -> async_send("C5", 6);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   } else {
     LOG(ERROR) << "Connection init failed!";

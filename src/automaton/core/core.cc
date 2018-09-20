@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
   automaton::core::network::tcp_init();
 
-  automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
+  std::shared_ptr<automaton::core::network::simulation> sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(100);
   cli.print(automaton_ascii_logo.c_str());
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/names.lua"));
@@ -199,7 +199,6 @@ int main(int argc, char* argv[]) {
   LOG(DEBUG) << "Destroying lua state & objects";
 
   sim->simulation_stop();
-  delete sim;
 }
 
   LOG(DEBUG) << "tcp_release";

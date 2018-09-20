@@ -725,8 +725,7 @@ bool node::on_requested(acceptor_id a, const string& address, peer_id* id) {
   return true;
 }
 
-void node::on_connected(acceptor_id a, std::shared_ptr<network::connection> c,
-    const string& address) {
+void node::on_connected(acceptor_id a, std::shared_ptr<network::connection> c, const string& address) {
   peer_id id = c->get_id();
   LOG(DEBUG) << "Connected in acceptor " << acceptor_->get_address() << " peer with id " <<
       id << " (" << address << ')';
