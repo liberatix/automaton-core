@@ -221,7 +221,7 @@ class tcp_acceptor:public acceptor, public std::enable_shared_from_this<tcp_acce
 };
 
 /**
-  Registring the connection and acceptor child classes. Used type is "tcp".
+  Registers the connection and acceptor implementations with type "tcp".
   @see connection::register_connection_type
   @see acceptor::register_connection_type
   Initialising asio io_service and work objects. New thread is created and io_service.run() called in it.
