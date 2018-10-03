@@ -101,7 +101,7 @@ class connection {
   virtual ~connection() {}
 
   /**
-    Initialise the connection.
+    Initialises the connection.
 
     @return true if no errors occured and initialisation was successful, false, otherwise
   */
@@ -185,7 +185,7 @@ class connection {
       (*factory_function)(connection_id id, const std::string& address, connection_handler* handler);
 
   /**
-    Function registring child classes.
+    Registers connection implementation.
 
     @param[in] type shows how the class will be referenced (e.g. "tcp"). If such type name exists in the
     registry, the factory_function pointer will be overriden

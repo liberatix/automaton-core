@@ -59,8 +59,8 @@ class tcp_connection: public connection, public std::enable_shared_from_this<tcp
   /**
     Constructor that should be used **ONLY** from the acceptor. It is used when there is a connection request and
       the user has accepted it.
-      @see acceptor_handler::on_requested
-      @see acceptor_handler::on_connected
+      @see acceptor::acceptor_handler::on_requested
+      @see acceptor::acceptor_handler::on_connected
 
     @param[in] id identifier given by the user. It is used in connection_handler's functions to specify the connection
       invoked the function.

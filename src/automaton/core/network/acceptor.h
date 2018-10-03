@@ -25,8 +25,8 @@ class acceptor {
   /**
     Handler class used to inform the client for events.
       - on_requested will be invoked when a peer wants to connect; it passes the address of the remote peer.
-      - on_connected will be invoked if the connection was accepted by the peer and connection was made; it passes the
-        resulting connection or nullptr/empty connection pointer if no connection was made;
+      - on_connected will be invoked if the connection was accepted by the user and new connection was made; it passes a
+        shared pointer of the resulting connection
       - on_error will be invoked when an error happens while listening or accepting.
   */
   class acceptor_handler {
@@ -35,9 +35,8 @@ class acceptor {
     // IDEA(kari): return string (schema message with connection params) instead of bool
 
     /**
-      Will be invoked when a peer wants to connect to notify the user about this event. If this function returns true,
-      new connection will be created and passed later with on_connected or on_acceptor_error will be called if an
-      error occures.
+      Will be invoked when a peer sends a connection request. If this function returns true, new connection will be
+      created and passed later with on_connected or on_acceptor_error will be called if an error occures.
 
       @param[in] a the id of the acceptor that caused the event
       @param[in] address the address of the peer requesting the connection
@@ -58,7 +57,8 @@ class acceptor {
     virtual void on_connected(acceptor_id a, std::shared_ptr<connection> c, const std::string& address) = 0;
 
     /**
-      Will be invoked when error occure while listening for or accepting connection to notify the user about the event.
+      Will be invoked when an error occurred while listening for or accepting connection to notify the user about the
+      event.
 
       @param[in] a the id of the acceptor
       @param[in] s status containing the error type and a description
@@ -69,7 +69,7 @@ class acceptor {
   virtual ~acceptor() {}
 
   /**
-    Initialise the acceptor.
+    Initialises the acceptor.
 
     @return true if no errors occured and initialisation was successful, false, otherwise
   */
@@ -94,6 +94,7 @@ class acceptor {
     @returns the acceptor's id
   */
   acceptor_id get_id();
+
   /**
     Function that is used to create objects from a specified child class.
 
@@ -120,7 +121,7 @@ class acceptor {
       acceptor_handler* handler_, connection::connection_handler* connections_handler);
 
   /**
-    Function registring child classes.
+    Registers acceptor implementation.
 
     @param[in] type shows how the class will be referenced (e.g. "tcp"). If such type name exists in the
     registry, the factory_function pointer will be overriden
