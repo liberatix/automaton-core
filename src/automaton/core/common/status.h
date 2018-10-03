@@ -43,6 +43,10 @@ struct status {
     return status(CANCELLED, msg);
   }
 
+  static status invalid_argument(std::string msg) {
+    return status(INVALID_ARGUMENT, msg);
+  }
+
   static status unknown(std::string msg) {
     return status(UNKNOWN, msg);
   }
