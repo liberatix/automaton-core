@@ -106,6 +106,7 @@ bool tcp_connection::init() {
         return true;
       }
     } catch (...) {
+      LOG(ERROR) << address << " -> " << "Exception";
       return false;
     }
   } else {
@@ -181,6 +182,10 @@ void tcp_connection::async_send(const std::string& msg, uint32_t message_id) {
     LOG(ERROR) << address << " -> " <<  "Not initialized";
     handler->on_message_sent(id, message_id, status::internal("Not initialized"));
     // TODO(kari): what to do here? needs to be connected
+  } else if (msg.size() <= 0) {
+    LOG(ERROR) << address << " -> " <<  "Message too short";
+    handler->on_message_sent(id, message_id, status::invalid_argument("Message too short"));
+    // TODO(kari): what to do here? needs to be connected
   } else {
     LOG(ERROR) << address << " -> " <<  "Socket closed or not yet connected";
     handler->on_message_sent(id, message_id, status::internal("Socket closed or not yet connected"));
@@ -200,9 +205,12 @@ void tcp_connection::async_read(char* buffer, uint32_t buffer_size,
           size_t bytes_transferred) {
         if (boost_error_code) {
           if (boost_error_code == boost::asio::error::eof) {
+            LOG(ERROR) << addr << " -> " <<  "Peer has closed the connection";
+            c_handler->on_connection_error(cid, status::aborted("Peer has closed the connection"));
             self->disconnect();
             return;
           } else if (boost_error_code == boost::asio::error::operation_aborted) {
+            c_handler->on_connection_error(cid, status::aborted("Operation cancelled!"));
             return;
           } else {
             LOG(ERROR) << addr << " -> " <<  boost_error_code.message();

@@ -49,11 +49,25 @@ class tcp_connection: public connection, public std::enable_shared_from_this<tcp
  public:
   /**
     Constructor that will be used when this class is registered.
+
+    @see connection::create
+
+    @param[in] address_ string representing the address of the connection - ip:port
   */
   tcp_connection(connection_id id, const std::string& address_, connection_handler* handler_);
 
   /**
-    Constructor that will be used from the acceptor.
+    Constructor that should be used **ONLY** from the acceptor. It is used when there is a connection request and
+      the user has accepted it.
+      @see acceptor_handler::on_requested
+      @see acceptor_handler::on_connected
+
+    @param[in] id identifier given by the user. It is used in connection_handler's functions to specify the connection
+      invoked the function.
+    @param[in] address_ string representing the address of the connection - ip:port
+    @param[in] handler pointer to an connection_handler.
+
+    @param[in] socket_ the boost::asio::ip::tcp::socket on which the new connection was accepted.
   */
   tcp_connection(connection_id id, const std::string& address_, const boost::asio::ip::tcp::socket& socket_,
       connection_handler* handler_);
@@ -63,41 +77,68 @@ class tcp_connection: public connection, public std::enable_shared_from_this<tcp
   */
   ~tcp_connection();
 
+  /**
+    @brief Initialises the connection.
+
+    @pre tcp_init() to has been called before, error will happen, otherwise
+
+    Parses the address and tries to create an endpoint. If it succeeds, connection state will be set to disconnected,
+    error will be logged, otherwise.
+
+    @returns true if the initialisation is successful, false if an error occures. If there was an error while
+      initialisation, it will be logged.
+  */
   bool init();
 
+
   /**
-    This function is used in the constructor. It is used to start async_connect with
-    the peer. It can be used outside the constructor if the connection didn't happen
-    or was closed or if disconnect() was first used. If a successful connection was
-    made, start_listening() and handler's on_connected() will be called.
+    Asynchronous connect. If an error occures, disconnect will be called and also handler's on_connection_error with
+    status::unknown and a message containing the error. Status is changed to connecting. If a connection is successfully
+    made, handler's on_connected will be called and the state is set to connected.
   */
   void connect();
 
   /**
-    This function is used for sending messages to the peer. It is asynchronous and
-    the handler's function on_message_sent() will be called after the message was
-    successfully sent or if an error occurred.
+    @see connection::async_send
+
+    @pre tcp_initialized == true meaning tcp_init() to be called
+    @pre socket to be open. Socket opens on connection construction or when connect() is called and didn't fail. If
+      disconnect() has been called, connect() should be called before this function.
+    @pre msg.size() > 0
+
+    If any of the preconditions is not met on_message_sent() will be called with status, containing an error
+    @see common::status
+
+    If an error occures during sending, on_message_sent() will be called with status, containing the error. If the error
+    is *broken pipe*, disconnect() will be called too.
   */
   void async_send(const std::string& msg, uint32_t id);
 
   /**
-    If you call this function more than once, events form a queue, no read is
-    cancelled
+    @see connection::async_read
+
+    @pre tcp_initialized == true meaning tcp_init() to be called
+    @pre socket to be open. Socket opens on connection construction or when connect() is called and didn't fail. If
+      disconnect() has been called, connect() should be called before this function.
+
+    If any of the preconditions is not met on_connection_error() will be called with status::internal, containing an
+    error. @see common::status
+
+    If you call this function more than once, events form a queue, no read is cancelled.
+    If an error occures during sending, on_connection_error() will be called with status, containing the error.
+    If the error is boost::asio::error::eof (meaning the other peer has disconnected), disconnect() will be called too.
   */
-  void async_read(char* buffer, uint32_t buffer_size,
-      uint32_t num_bytes, uint32_t id);
+  void async_read(char* buffer, uint32_t buffer_size, uint32_t num_bytes, uint32_t id);
 
   /**
-    This function can be called to disconnect peer. To reconnect connect() shoul be
-    called. Handler's on_disconnected() is called on successful disconnect,
-    on_error(), otherwise.
+    This function can be called to disconnect peer. To reconnect, connect() should be called. Handler's
+    on_disconnected() will be called on successful disconnect, on_connection_error(), otherwise.
   */
   void disconnect();
 
   /**
-    This function is used to change the handler. It may be necessary when a
-    connection is created from the acceptor and the default handler (the one
-    passed to the acceptor) needs to be changed.
+    This function is used to change the handler. It may be necessary when a connection is created from the acceptor
+    and the default handler (the one passed to the acceptor) needs to be changed.
   */
   void add_handler(connection_handler* handler_);
 
@@ -119,9 +160,8 @@ class tcp_connection: public connection, public std::enable_shared_from_this<tcp
 class tcp_acceptor:public acceptor, public std::enable_shared_from_this<tcp_acceptor> {
  public:
   /**
-    Constructor. Connections_handler will be passed to the connection
-    constructor when new connection is accepted and created. It will also be
-    used to call its on_connected() method.
+    @see acceptor::create
+    @see acceptor::factory_function
   */
   tcp_acceptor(acceptor_id id, const std::string& address, acceptor_handler* handler_,
       connection::connection_handler* connections_handler);
@@ -131,17 +171,38 @@ class tcp_acceptor:public acceptor, public std::enable_shared_from_this<tcp_acce
   */
   ~tcp_acceptor();
 
-  bool init();
 
   /**
-    This function is called from the constructor to start asynchronous
-    accepting. When a remote peer request to make a connection, handler's
-    on_requested() method will be called, passing peer's address and waiting for
-    confirmaton to accept or not. If on_requested() returns true, then a
-    connection is created and its handler's on_connected() called. Acceptor's
-    handler's on_connected will also be called and a pointer to the created
-    connection passed. If an error occured while accepting, handler's on_error()
-    will be called. TODO(kari): Decide what to do on error.
+    @brief Initialises the acceptor.
+
+    @pre tcp_init() to has been called, error will happen, otherwise
+
+    Parses the address and tries to open an acceptor and bind it to the specified address. If port 0 is given in the
+    address, random port will be assigned and the address of the acceptor will be updated to include the new port. If
+    the initialisation is successful, the acceptor will start to listen for new connections, but none will be accepted
+    until start_accepting is called.
+
+    @returns true if the initialisation is successful, false if an error occures. If there was an error while
+      initialisation, it will be logged.
+  */
+  bool init();
+
+  // TODO(kari): Decide what to do on error.
+  /**
+    @brief The acceptor starts to listen for incoming connections. Asynchronous.
+
+    This function is called from the constructor to start asynchronous accepting. When a remote peer request to make a
+    connection, handler's on_requested() method will be called, passing peer's address and waiting for confirmaton to
+    accept or not. If on_requested() returns true, then a connection is created and its handler's on_connected() called.
+    Acceptor's handler's on_connected will also be called and a pointer to the created connection passed. If an error
+    occured while accepting, handler's on_acceptor_error() will be called.
+
+    @pre tcp_initialized == true meaning tcp_init() to be called
+    @pre socket to be open. Socket opens on connection construction or when connect() is called and didn't fail. If
+      disconnect() has been called, connect() should be called before this function.
+
+    If any of the preconditions is not met on_acceptor_error() will be called with status::internal, containing an
+    error. @see common::status
   */
   void start_accepting();
 
@@ -160,15 +221,21 @@ class tcp_acceptor:public acceptor, public std::enable_shared_from_this<tcp_acce
 };
 
 /**
-  For now initializing asio io_service and work objects. New thread is created
-  and io_service.run() called in it.
+  Registring the connection and acceptor child classes. Used type is "tcp".
+  @see connection::register_connection_type
+  @see acceptor::register_connection_type
+  Initialising asio io_service and work objects. New thread is created and io_service.run() called in it.
+  If a known exception happens while running the asio io_service, it will be logged.
 */
 void tcp_init();
 
+/**
+  Stops the worker thread meaning all async operations will be cancelled. If this function is not called, segmentation
+  fault will happen on program exit because of still running threads.
+*/
 void tcp_release();
 
-void parse_address(const std::string&, std::string* result_addr, std::string*
-    result_port);
+void parse_address(const std::string&, std::string* result_addr, std::string* result_port);
 
 }  // namespace network
 }  // namespace core
