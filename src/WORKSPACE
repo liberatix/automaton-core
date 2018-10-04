@@ -30,64 +30,64 @@ new_local_repository(
   build_file = "third_party/sol2.BUILD",
 )
 
+new_local_repository(
+  name = "easyloggingpp",
+  path = "local_third_party/easyloggingpp/src",
+  build_file = "third_party/easyloggingpp.BUILD",
+)
+
 # LOCAL REPOSITORIES
 
 new_local_repository(
   name = "ed25519_orlp",
-  path = "third_party/ed25519-7fa6712ef5d581a6981ec2b08ee623314cd1d1c4/src",
+  path = "local_third_party/ed25519/src",
   build_file = "third_party/ed25519_orlp.BUILD",
 )
 
 new_local_repository(
   name = "gtest",
-  path = "third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
+  path = "local_third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
   build_file = "third_party/gtest.BUILD",
 )
 
 local_repository(
   name = "com_google_protobuf",
-  path = "third_party/protobuf-3.5.1",
+  path = "local_third_party/protobuf",
 )
 
 new_local_repository(
   name = "cryptopp",
-  path = "third_party/cryptopp-CRYPTOPP_7_0_0",
+  path = "local_third_party/cryptopp",
   build_file = "third_party/cryptopp.BUILD",
 )
 
 new_local_repository(
-  name = "easyloggingpp",
-  path = "third_party/easyloggingpp-9.96.4/src",
-  build_file = "third_party/easyloggingpp.BUILD",
-)
-
-new_local_repository(
   name = "bitcoin",
-  path = "third_party/bitcoin-0.16.0",
+  path = "local_third_party/bitcoin-0.16.0",
   build_file = "third_party/bitcoin.BUILD",
 )
 
 new_local_repository(
   name = "lua",
-  path = "third_party/lua-5.3.4",
+  path = "local_third_party/lua-5.3.4",
   build_file = "third_party/lua.BUILD",
 )
 
 new_local_repository(
   name = "com_github_glog_glog",
-  path = "third_party/glog-0.3.5",
+  path = "local_third_party/glog-0.3.5",
   build_file = "third_party/glog.BUILD",
 )
 
 new_local_repository(
   name = "di",
-  path = "third_party/di-1.0.2/include",
+  path = "local_third_party/di-1.0.2/include",
   build_file = "third_party/di.BUILD",
 )
 
 new_local_repository(
   name = "json",
-  path = "third_party/json-3.1.2",
+  path = "local_third_party/json-3.1.2",
   build_file = "third_party/json.BUILD",
 )
 
@@ -95,7 +95,7 @@ new_local_repository(
 
 local_repository(
   name = "com_github_gflags_gflags",
-  path = "third_party/gflags-2.2.1",
+  path = "local_third_party/gflags-2.2.1",
 )
 
 #new_local_repository(
@@ -106,7 +106,7 @@ local_repository(
 
 new_local_repository(
   name = "localboost",
-  path = "third_party/localboost-s-x64-1_67",
+  path = "local_third_party/localboost-s-x64-1_67",
   build_file = "third_party/localboost.BUILD",
 )
 
