@@ -42,6 +42,10 @@ class node: public network::connection::connection_handler,
        std::vector<std::string> lua_scripts,
        std::vector<std::string> wire_msgs,
        data::factory& factory); // NOLINT
+
+  /** There must be init.json */
+  node(const std::string& id, const std::string& path, data::factory& factory);  // NOLINT
+
   ~node();
 
   peer_info get_peer_info(peer_id id);

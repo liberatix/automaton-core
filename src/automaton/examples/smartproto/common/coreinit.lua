@@ -143,18 +143,7 @@ function blockchain_node(id)
 end
 
 function chat_node(id)
-  local n = node(
-    id,
-    10,
-    {
-      "automaton/examples/smartproto/chat/chat.proto"
-    },
-    {
-      "automaton/examples/smartproto/chat/messages.lua",
-      "automaton/examples/smartproto/chat/connections.lua",
-      "automaton/examples/smartproto/chat/chat.lua"},
-    {"Hello", "Msg"}
-  )
+  local n = node(id, "automaton/examples/smartproto/chat/")
 
   _G[id] = {
     node_type = "chat",

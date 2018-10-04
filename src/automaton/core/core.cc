@@ -90,6 +90,12 @@ int main(int argc, char* argv[]) {
       factories.push_back(std::move(core_factory));
       return make_unique<node>(
           id, update_time_slice, schemas_content, script_contents, msgs, *core_ptr);
+    },
+    [&factories](const std::string& id, const std::string& path) -> unique_ptr<node> {
+      auto core_factory = make_unique<protobuf_factory>();
+      auto core_ptr = core_factory.get();
+      factories.push_back(std::move(core_factory));
+      return make_unique<node>(id, path, *core_ptr);
     }));
 
   // Bind this node to its own Lua state.
