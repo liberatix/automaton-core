@@ -1,17 +1,17 @@
 {
   "update_time_slice": 10,
 
-  "schemas":[
+  "schemas": [
     "automaton/examples/smartproto/chat/chat.proto"
   ],
 
-  "lua_scripts":[
+  "lua_scripts": [
     "automaton/examples/smartproto/chat/messages.lua",
     "automaton/examples/smartproto/chat/connections.lua",
     "automaton/examples/smartproto/chat/chat.lua"
   ],
-  
-  "wire_msgs":[
+
+  "wire_msgs": [
     "Hello", "Msg"
   ]
 }

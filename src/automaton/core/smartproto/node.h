@@ -48,6 +48,12 @@ class node: public network::connection::connection_handler,
 
   ~node();
 
+  void init_bindings(std::vector<std::string> schemas,
+                     std::vector<std::string> lua_scripts,
+                     std::vector<std::string> wire_msgs);
+
+  void init_worker();
+
   peer_info get_peer_info(peer_id id);
 
   bool set_peer_info(peer_id id, const peer_info& info);

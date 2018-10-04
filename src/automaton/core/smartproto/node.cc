@@ -95,7 +95,13 @@ node::node(std::string id,
     , update_time_slice(update_time_slice)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
+  init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
+  init_worker();
+}
 
+void node::init_bindings(vector<string> schemas,
+                         vector<string> lua_scripts,
+                         vector<string> wire_msgs) {
   engine.bind_core();
 
   for (auto schema_content : schemas) {
@@ -141,6 +147,20 @@ node::node(std::string id,
   script_on_msg_sent = engine["sent"];
   script_on_debug_html = engine["debug_html"];
 
+  // Map wire msg IDs to factory msg IDs and vice versa.
+  uint32_t wire_id = 0;
+  for (auto wire_msg : wire_msgs) {
+    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
+    factory_to_wire[factory_id] = wire_id;
+    wire_to_factory[wire_id] = factory_id;
+    string function_name = "on_" + wire_msg;
+    LOG(DEBUG) << wire_id << ": " << function_name;
+    script_on_msg[wire_id] = engine[function_name];
+    wire_id++;
+  }
+}
+
+void node::init_worker() {
   lock_guard<mutex> lock(worker_mutex);
   worker_stop_signal = false;
   worker = new std::thread([this]() {
@@ -193,18 +213,6 @@ node::node(std::string id,
       }
     }
   });
-
-  // Map wire msg IDs to factory msg IDs and vice versa.
-  uint32_t wire_id = 0;
-  for (auto wire_msg : wire_msgs) {
-    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
-    factory_to_wire[factory_id] = wire_id;
-    wire_to_factory[wire_id] = factory_id;
-    string function_name = "on_" + wire_msg;
-    LOG(DEBUG) << wire_id << ": " << function_name;
-    script_on_msg[wire_id] = engine[function_name];
-    wire_id++;
-  }
 }
 
 node::node(const std::string& id,
@@ -236,117 +244,8 @@ node::node(const std::string& id,
     lua_scripts.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
   }
 
-  LOG(DEBUG) << "Node constructor called 2";
-
-  engine.bind_core();
-
-  for (auto schema_content : schemas) {
-    schema* pb_schema = new protobuf_schema(schema_content);
-    engine.import_schema(pb_schema);
-  }
-
-  // Bind node methods.
-  engine.set_function("send",
-    [this](uint32_t peer_id, msg& m, uint32_t msg_id) {
-      send_message(peer_id, m, msg_id);
-    });
-
-  engine.set_function("log",
-    [this](string logger, string msg) {
-      // LOG(TRACE) << "[" << logger << "] " << msg;
-      log(logger, msg);
-    });
-
-  engine.set_function("connect",
-    [this](uint32_t peer_id) {
-      log("connect_", "CONNECTED " + std::to_string(peer_id));
-      connect(peer_id);
-    });
-
-  engine.set_function("disconnect",
-    [this](uint32_t peer_id) {
-      log("disconnect_", "DISCONNECTED " + std::to_string(peer_id));
-      disconnect(peer_id);
-    });
-
-  engine["nodeid"] = nodeid;
-
-  uint32_t script_id = 0;
-  for (string lua_script : lua_scripts) {
-    script_id++;
-    fresult("script " + std::to_string(script_id), engine.safe_script(lua_script));
-  }
-
-  script_on_update = engine["update"];
-  script_on_connected = engine["connected"];
-  script_on_disconnected = engine["disconnected"];
-  script_on_msg_sent = engine["sent"];
-  script_on_debug_html = engine["debug_html"];
-
-  lock_guard<mutex> lock(worker_mutex);
-  worker_stop_signal = false;
-  worker = new std::thread([this]() {
-    // LOG(DEBUG) << "Worker thread starting in " << nodeid;
-    while (!worker_stop_signal) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(this->update_time_slice));
-      auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-         std::chrono::system_clock::now().time_since_epoch()).count();
-
-      // Call update function only if a valid definition for it exists.
-      if (script_on_update.valid()) {
-        // LOG(DEBUG) << "Calling update in " << nodeid;
-        fresult("update", script_on_update(current_time));
-      }
-
-      // TODO(asen): custom break condition, e.g. max number of tasks per update.
-      // Process tasks pending in the queue.
-      // LOG(DEBUG) << "Executing tasks in " << nodeid;
-      while (!tasks.empty()) {
-        // Check to see if we should stop the thread execution.
-        worker_mutex.lock();
-        if (worker_stop_signal) {
-          break;
-        }
-        worker_mutex.unlock();
-
-        // Pop a task from the front of the queue.
-        tasks_mutex.lock();
-        auto task = tasks.front();
-        tasks.pop_front();
-        tasks_mutex.unlock();
-
-        // Execute task.
-        // LOG(DEBUG) << "  - Executing a task in " << nodeid;
-        worker_mutex.lock();
-        try {
-          string result = task();
-          if (result.size() > 0) {
-            engine.script("for k,v in pairs(_G) do print(k .. ' = ' .. tostring(v)) end");
-            LOG(FATAL) << "TASK FAILED: " << result;
-          }
-        } catch (const std::exception& ex) {
-          LOG(FATAL) << "TASK FAILED: EXCEPTION1: " << ex.what();
-        } catch (std::string s) {
-          LOG(FATAL) << "TASK FAILED: EXCEPTION2: " << s;
-        } catch (...) {
-          LOG(FATAL) << "TASK FAILED: EXCEPTION DURING TASK EXECUTION!";
-        }
-        worker_mutex.unlock();
-      }
-    }
-  });
-
-  // Map wire msg IDs to factory msg IDs and vice versa.
-  uint32_t wire_id = 0;
-  for (auto wire_msg : wire_msgs) {
-    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
-    factory_to_wire[factory_id] = wire_id;
-    wire_to_factory[wire_id] = factory_id;
-    string function_name = "on_" + wire_msg;
-    LOG(DEBUG) << wire_id << ": " << function_name;
-    script_on_msg[wire_id] = engine[function_name];
-    wire_id++;
-  }
+  init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
+  init_worker();
 }
 
 node::~node() {
