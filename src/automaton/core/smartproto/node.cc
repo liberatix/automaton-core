@@ -11,10 +11,12 @@
 #include <utility>
 
 #include <boost/algorithm/string/replace.hpp>
+#include <json.hpp>
 
 #include "automaton/core/io/io.h"
 #include "automaton/core/data/protobuf/protobuf_factory.h"
 #include "automaton/core/data/protobuf/protobuf_schema.h"
+
 
 using automaton::core::common::status;
 
@@ -93,11 +95,18 @@ node::node(std::string id,
     , update_time_slice(update_time_slice)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
+  init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
+  init_worker();
+}
+
+void node::init_bindings(vector<string> schemas,
+                         vector<string> lua_scripts,
+                         vector<string> wire_msgs) {
+  engine.bind_core();
 
   for (auto schema_content : schemas) {
     schema* pb_schema = new protobuf_schema(schema_content);
     engine.import_schema(pb_schema);
-    engine.bind_core();
   }
 
   // Bind node methods.
@@ -138,6 +147,20 @@ node::node(std::string id,
   script_on_msg_sent = engine["sent"];
   script_on_debug_html = engine["debug_html"];
 
+  // Map wire msg IDs to factory msg IDs and vice versa.
+  uint32_t wire_id = 0;
+  for (auto wire_msg : wire_msgs) {
+    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
+    factory_to_wire[factory_id] = wire_id;
+    wire_to_factory[wire_id] = factory_id;
+    string function_name = "on_" + wire_msg;
+    LOG(DEBUG) << wire_id << ": " << function_name;
+    script_on_msg[wire_id] = engine[function_name];
+    wire_id++;
+  }
+}
+
+void node::init_worker() {
   lock_guard<mutex> lock(worker_mutex);
   worker_stop_signal = false;
   worker = new std::thread([this]() {
@@ -190,18 +213,39 @@ node::node(std::string id,
       }
     }
   });
+}
 
-  // Map wire msg IDs to factory msg IDs and vice versa.
-  uint32_t wire_id = 0;
-  for (auto wire_msg : wire_msgs) {
-    auto factory_id = engine.get_factory().get_schema_id(wire_msg);
-    factory_to_wire[factory_id] = wire_id;
-    wire_to_factory[wire_id] = factory_id;
-    string function_name = "on_" + wire_msg;
-    LOG(DEBUG) << wire_id << ": " << function_name;
-    script_on_msg[wire_id] = engine[function_name];
-    wire_id++;
+node::node(const std::string& id,
+           const std::string& path,
+           data::factory& factory):
+      peer_ids(0)
+    , engine(factory)
+    , acceptor_(nullptr) {
+  LOG(DEBUG) << "Node constructor called";
+
+  std::ifstream i(path + "init.json");
+  nlohmann::json j;
+  i >> j;
+  nodeid = id;
+  update_time_slice = j["update_time_slice"];
+  std::vector<std::string> schemas_filenames = j["schemas"];
+  std::vector<std::string> lua_scripts_filenames = j["lua_scripts"];
+  std::vector<std::string> wire_msgs = j["wire_msgs"];
+
+  std::vector<std::string> schemas;
+  std::vector<std::string> lua_scripts;
+
+  for (uint32_t i = 0; i < schemas_filenames.size(); ++i) {
+    std::ifstream ifs(schemas_filenames[i]);
+    schemas.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
   }
+  for (uint32_t i = 0; i < lua_scripts_filenames.size(); ++i) {
+    std::ifstream ifs(lua_scripts_filenames[i]);
+    lua_scripts.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
+  }
+
+  init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
+  init_worker();
 }
 
 node::~node() {
@@ -725,8 +769,7 @@ bool node::on_requested(acceptor_id a, const string& address, peer_id* id) {
   return true;
 }
 
-void node::on_connected(acceptor_id a, std::shared_ptr<network::connection> c,
-    const string& address) {
+void node::on_connected(acceptor_id a, std::shared_ptr<network::connection> c, const string& address) {
   peer_id id = c->get_id();
   LOG(DEBUG) << "Connected in acceptor " << acceptor_->get_address() << " peer with id " <<
       id << " (" << address << ')';
