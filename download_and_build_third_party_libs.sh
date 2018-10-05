@@ -111,6 +111,17 @@ print_separator "=" 80
 echo "  BUILDING LuaJIT"
 print_separator "=" 80
 
+# Create hpp file
+cd lua
+cat > lua.hpp << EOL
+extern "C" {
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+}
+EOL
+cd ..
+
 cd LuaJIT
 make
 cd ..
