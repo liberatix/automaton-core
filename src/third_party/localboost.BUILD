@@ -1,26 +1,68 @@
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library (
+cc_library(
   name = "config",
   srcs = glob([
-    "config.hpp"
+    "boost/config.hpp",
   ]),
   hdrs = glob([
-    "boost/**/*.hpp"
+    "boost/*.hpp",
+    "boost/config/**/*.hpp",
   ]),
   includes = ["."],
   #linkstatic = True,
   defines = ["BOOST_ALL_NO_LIB"],
 )
 
-cc_library (
-  name = "system",
+cc_library(
+  name = "algorithm",
   srcs = glob([
-    "libboost_system-vc141-mt-x64-1_67.lib"
+    "boost/algorithm/algorithm.hpp",
   ]),
   hdrs = glob([
-    "boost/**/*.hpp"
+    "boost/**/*.h",
+    "boost/**/*.hpp",
+    "boost/**/*.ipp",
+  ]),
+  includes = ["."],
+  #linkstatic = True,
+  defines = ["BOOST_ALL_NO_LIB"],
+  deps=[
+    ":config",
+  ],
+)
+
+cc_library(
+  name = "asio",
+  srcs = glob([
+    "boost/asio/error.hpp",
+  ]),
+  hdrs = glob([
+    "boost/asio/**/*.ipp",
+    "boost/asio/**/*.h*",
+  ]),
+  includes = ["."],
+  #linkstatic = True,
+  defines = ["BOOST_ALL_NO_LIB"],
+  deps=[
+    ":config",
+    ":system",
+  ],
+)
+
+cc_library (
+  name = "system",
+  srcs = select({
+    "//conditions:windows":
+      ["libboost_system-vc141-mt-x64-1_67.lib"],
+    "//conditions:default":
+      ["stage/lib/libboost_system.a"]
+  }),
+  hdrs = glob([
+    "boost/**/*.h",
+    "boost/**/*.hpp",
+    "boost/**/*.ipp",
   ]),
   includes = ["."],
   deps = [
@@ -32,9 +74,12 @@ cc_library (
 
 cc_library (
   name = "filesystem",
-  srcs = glob([
-    "libboost_filesystem-vc141-mt-x64-1_67.lib"
-  ]),
+  srcs = select({
+    "//conditions:windows":
+      ["libboost_filesystem-vc141-mt-x64-1_67.lib"],
+    "//conditions:default":
+      ["stage/lib/libboost_filesystem.a",],
+  }),
   hdrs = glob([
     "boost/**/*.hpp"
   ]),
@@ -43,22 +88,26 @@ cc_library (
     ":config",
     ":system",
   ],
-  #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  linkstatic = True,
+  # defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
   name = "iostreams",
-  srcs = [
-    "libboost_iostreams-vc141-mt-x64-1_67.lib",
-  ],
+  srcs = select({
+    "//conditions:windows":
+      ["libboost_iostreams-vc141-mt-x64-1_67.lib",],
+    "//conditions:default":
+      ["stage/lib/libboost_iostreams.a",],
+  }),
   hdrs = glob([
+    "boost/**/*.h",
     "boost/**/*.hpp",
   ]),
   includes = ["."],
   deps = [
     ":config",
   ],
-  #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  linkstatic = True,
+  # defines = ["BOOST_ALL_NO_LIB"],
 )

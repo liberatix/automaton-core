@@ -44,10 +44,10 @@ new_local_repository(
   build_file = "third_party/ed25519_orlp.BUILD",
 )
 
-new_local_repository(
+local_repository(
   name = "gtest",
-  path = "local_third_party/googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
-  build_file = "third_party/gtest.BUILD",
+  path = "local_third_party/googletest",
+  # build_file = "local_third_party/gtest.BUILD",
 )
 
 local_repository(
@@ -106,7 +106,7 @@ local_repository(
 
 new_local_repository(
   name = "localboost",
-  path = "local_third_party/localboost-s-x64-1_67",
+  path = "local_third_party/boost_1_68_0",
   build_file = "third_party/localboost.BUILD",
 )
 
@@ -114,10 +114,10 @@ new_local_repository(
 
 
 # BOOST
-local_repository(
-  name = "com_github_nelhage_rules_boost",
-  path = "third_party/com_github_nelhage_rules_boost",
-)
+#local_repository(
+#  name = "com_github_nelhage_rules_boost",
+#  path = "third_party/com_github_nelhage_rules_boost",
+#)
 
 #git_repository(
 #  name = "com_github_nelhage_rules_boost",
@@ -126,8 +126,8 @@ local_repository(
 #  remote = "https://github.com/nelhage/rules_boost",
 #)
 
-load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
-boost_deps()
+#load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+#boost_deps()
 
 # GTEST_LABEL = "ec44c6c1675c25b9827aacd08c02433cccde7780"
 # CRYPTOPP_LABEL = "7_0_0"

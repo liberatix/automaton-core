@@ -25,7 +25,7 @@ cc_library(
     "tcp_implementation.cc",
   ],
   deps = [
-    "@boost//:asio",
+    "@localboost//:asio",
     ":network",
     "//automaton/core/io",
   ],
