@@ -68,7 +68,8 @@ cc_library (
   deps = [
     ":config",
   ],
-  #linkstatic = True,
+  linkopts = ["-pthread"],
+  linkstatic = True,
   defines = ["BOOST_ALL_NO_LIB"],
 )
 
@@ -107,6 +108,7 @@ cc_library (
   includes = ["."],
   deps = [
     ":config",
+    ":system",
   ],
   linkstatic = True,
   # defines = ["BOOST_ALL_NO_LIB"],
