@@ -1,6 +1,10 @@
 <img align="right" title="Automaton Logo" width="128" height="128" src="media/automaton-avatar-64x64.svg">
 
-# **Automaton** - Smart Protocols at Scale
+# Automaton
+
+* Smart Protocols at Scale
+* Pool Resistant Mining
+* Decentralized Collaboration
 
 ## Contact
 
