@@ -2,8 +2,8 @@
 
 # Automaton
 
-* Scalable Decentralized Application
-* Smart Protocols
+* Decentralized Applications Platform
+* Smart Protocols at Scale
 * Pool Resistant Mining
 * Decentralized Collaboration
 
