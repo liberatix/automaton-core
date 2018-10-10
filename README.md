@@ -2,6 +2,10 @@
 
 # **Automaton** - Smart Protocols at Scale
 
+## Contact
+
+Telegram: https://t.me/automaton_network
+
 ## Building Automaton
 
 ### Prerequisites
