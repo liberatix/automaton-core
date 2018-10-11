@@ -1,0 +1,74 @@
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<script type="text/javascript" src="../js/vis.min.js"></script>
+<link href="../js/vis.min.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+  #mynetwork {
+    width: 1000px;
+    height: 600px;
+    border: 1px solid lightgray;
+  }
+
+  pre {
+    border: 1px solid black;
+    padding: 8px;
+    overflow:auto;
+    font-size: 16px;
+    font-family: 'Inconsolata', monospace;
+  }
+
+  .button {
+    font: bold 11px Play;
+    text-decoration: none;
+    background-color: #aad8f3;
+    color: #333;
+    padding: 2px 6px 2px 6px;
+    border-top: 1px solid #CCCCCC;
+    border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    border-left: 1px solid #CCCCCC;
+    margin: 4px;
+    line-height: 24px;
+  }
+</style>
+</head>
+<body>
+<br/>
+<a class='button' href='#IGNORED'>IGNORED
+</a>
+<a class='button' href='#connections'>connections
+</a>
+<a class='button' href='#sending'>sending
+</a>
+<a class='button' href='#on_Hello'>on_Hello
+</a>
+<a class='button' href='#CHAT'>CHAT
+</a>
+<hr />
+Invalid or missing debug_html() in script.<hr />
+<br/><span class='button' id='IGNORED'>IGNORED</span><pre>[2018-10-11 08:41:13.457] [Already received] &lt;Charlie&gt;: Hello (1) [FROM Alice] [31DE813F5ADFECAED73634051D61BCCDAC91DBE806DE2D06073AA556A303C128]
+[2018-10-11 08:41:13.457] [Already received] &lt;Bob&gt;: Hello (1) [FROM Dave] [823E005095996707BA20721B0C5F1536AC63DA64EBD9868405BE4C0244CD0290]
+</pre>
+<br/><span class='button' id='connections'>connections</span><pre>[2018-10-11 08:41:07.316] CONNECTED TO 2
+[2018-10-11 08:41:07.316] CONNECTED TO 1
+</pre>
+<br/><span class='button' id='sending'>sending</span><pre>[2018-10-11 08:41:13.436] ME! -&gt; Hello (1)
+[2018-10-11 08:41:13.437] ME! -&gt; Hello (1)
+[2018-10-11 08:41:13.437] Alice -&gt; Hello (1)
+[2018-10-11 08:41:13.437] Dave -&gt; Hello (1)
+[2018-10-11 08:41:13.447] Alice -&gt; Hello (1)
+[2018-10-11 08:41:13.447] Dave -&gt; Hello (1)
+</pre>
+<br/><span class='button' id='on_Hello'>on_Hello</span><pre>[2018-10-11 08:41:07.316] Hello from Dave
+[2018-10-11 08:41:07.326] Hello from Alice
+</pre>
+<br/><span class='button' id='CHAT'>CHAT</span><pre>[2018-10-11 08:41:13.436] &lt;Emily&gt;: Hello (1) [FROM ME!] [F5D87705689419709FED84CF3831093F61A9DA083AADF6AF890FE13AC041FC1B]
+[2018-10-11 08:41:13.437] &lt;Alice&gt;: Hello (1) [FROM Alice] [8783E25C8346E4016FAFE39A9EF11F32F3F5EAA0E29B3332C4D7BC54CA06319F]
+[2018-10-11 08:41:13.437] &lt;Dave&gt;: Hello (1) [FROM Dave] [4AC3E4678EDEE49AA90D6B893C9D638A984590B37BCC3FB0A2F63455297019B8]
+[2018-10-11 08:41:13.447] &lt;Bob&gt;: Hello (1) [FROM Alice] [823E005095996707BA20721B0C5F1536AC63DA64EBD9868405BE4C0244CD0290]
+[2018-10-11 08:41:13.447] &lt;Charlie&gt;: Hello (1) [FROM Dave] [31DE813F5ADFECAED73634051D61BCCDAC91DBE806DE2D06073AA556A303C128]
+</pre>
+</body></html>

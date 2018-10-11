@@ -1,6 +1,6 @@
 -- show_states.lua
 
-function collect_states()
+function collect_states(nodes)
   local states = {}
   for i in pairs(nodes) do
     local name = names[i]
