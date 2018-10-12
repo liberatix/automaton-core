@@ -239,11 +239,11 @@ node::node(const std::string& id,
     std::vector<std::string> lua_scripts;
 
     for (uint32_t i = 0; i < schemas_filenames.size(); ++i) {
-      std::ifstream ifs(schemas_filenames[i]);
+      std::ifstream ifs(path + schemas_filenames[i]);
       schemas.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
     }
     for (uint32_t i = 0; i < lua_scripts_filenames.size(); ++i) {
-      std::ifstream ifs(lua_scripts_filenames[i]);
+      std::ifstream ifs(path + lua_scripts_filenames[i]);
       lua_scripts.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
     }
 

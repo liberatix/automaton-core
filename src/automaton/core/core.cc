@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
   } else {
     nlohmann::json j;
     i >> j;
-    std::vector<std::string> paths = j["paths"];
+    std::vector<std::string> paths = j["protocols"];
     for (auto p : paths) {
       script.safe_script(get_file_contents((p + "init.lua").c_str()));
     }

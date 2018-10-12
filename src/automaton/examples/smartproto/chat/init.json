@@ -2,13 +2,13 @@
   "update_time_slice": 10,
 
   "schemas": [
-    "automaton/examples/smartproto/chat/chat.proto"
+    "chat.proto"
   ],
 
   "lua_scripts": [
-    "automaton/examples/smartproto/chat/messages.lua",
-    "automaton/examples/smartproto/chat/connections.lua",
-    "automaton/examples/smartproto/chat/chat.lua"
+    "messages.lua",
+    "connections.lua",
+    "chat.lua"
   ],
 
   "wire_msgs": [

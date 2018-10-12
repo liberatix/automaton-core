@@ -159,3 +159,19 @@ function add_peer(nodes, node_id, address, pid, graph)
   end
   return peer_id
 end
+
+function set_lag(min_lag, max_lag)
+  for i in pairs(nodes) do
+    nodes[i]:call(
+      "MIN_LAG=" .. tostring(min_lag) ..
+      "; MAX_LAG=" .. tostring(max_lag))
+  end
+end
+
+function get_nodes(path)
+  if networks[path] ~= nil then
+    return networks[path]["nodes"]
+  end
+  print("NO NODES @ PATH " .. path)
+  return nil
+end

@@ -1,5 +1,7 @@
 {
-  "paths" : [
-    "automaton/examples/smartproto/chat/"
+  "protocols" : [
+    "automaton/examples/smartproto/chat/",
+    "automaton/examples/smartproto/blockchain/",
+    "automaton/examples/smartproto/reservationsystem/"
   ]
 }

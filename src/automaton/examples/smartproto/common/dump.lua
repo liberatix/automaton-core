@@ -16,7 +16,10 @@ function dump_connections_graph(path)
   if networks[path]["graph"] == nil then
     return
   end
-  file = io.open(path .. "logs/connections_graph.html", "w+")
+  file = io.open(path .. "connections_graph.html", "w+")
+  if file == nil then
+    print("Could not open " .. path .. "connections_graph.html")
+  end
   file:write(create_graph_html(networks[path]["graph"]))
   file:close()
 end
