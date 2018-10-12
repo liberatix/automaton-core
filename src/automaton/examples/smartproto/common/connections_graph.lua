@@ -1,6 +1,6 @@
 -- connections_graph.lua
 
-function create_graph_html()
+function create_graph_html(graph)
   local html = [[
 <html>
 <head>
@@ -35,7 +35,7 @@ function create_graph_html()
   var nodes = new vis.DataSet([
   ]]
   ..
-    table.concat(connections_graph_nodes, ",\n")
+    table.concat(graph["nodes"], ",\n")
 
   ..
   [[
@@ -44,7 +44,7 @@ function create_graph_html()
     var edges = new vis.DataSet([
   ]]
   ..
-    table.concat(connections_graph_edges, ",\n")
+    table.concat(graph["edges"], ",\n")
   ..
   [[
     ]);

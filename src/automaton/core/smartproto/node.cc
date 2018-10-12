@@ -224,28 +224,32 @@ node::node(const std::string& id,
   LOG(DEBUG) << "Node constructor called";
 
   std::ifstream i(path + "init.json");
-  nlohmann::json j;
-  i >> j;
-  nodeid = id;
-  update_time_slice = j["update_time_slice"];
-  std::vector<std::string> schemas_filenames = j["schemas"];
-  std::vector<std::string> lua_scripts_filenames = j["lua_scripts"];
-  std::vector<std::string> wire_msgs = j["wire_msgs"];
+  if (!i.is_open()) {
+    LOG(ERROR) << "Error while opening " << path << "init.json";
+  } else {
+    nlohmann::json j;
+    i >> j;
+    nodeid = id;
+    update_time_slice = j["update_time_slice"];
+    std::vector<std::string> schemas_filenames = j["schemas"];
+    std::vector<std::string> lua_scripts_filenames = j["lua_scripts"];
+    std::vector<std::string> wire_msgs = j["wire_msgs"];
 
-  std::vector<std::string> schemas;
-  std::vector<std::string> lua_scripts;
+    std::vector<std::string> schemas;
+    std::vector<std::string> lua_scripts;
 
-  for (uint32_t i = 0; i < schemas_filenames.size(); ++i) {
-    std::ifstream ifs(schemas_filenames[i]);
-    schemas.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
+    for (uint32_t i = 0; i < schemas_filenames.size(); ++i) {
+      std::ifstream ifs(path + schemas_filenames[i]);
+      schemas.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
+    }
+    for (uint32_t i = 0; i < lua_scripts_filenames.size(); ++i) {
+      std::ifstream ifs(path + lua_scripts_filenames[i]);
+      lua_scripts.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
+    }
+
+    init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
+    init_worker();
   }
-  for (uint32_t i = 0; i < lua_scripts_filenames.size(); ++i) {
-    std::ifstream ifs(lua_scripts_filenames[i]);
-    lua_scripts.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
-  }
-
-  init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
-  init_worker();
 }
 
 node::~node() {
@@ -301,7 +305,10 @@ void node::dump_logs(string html_file) {
   add_task([this, html_file](){
     ofstream f;
     f.open(html_file, ios_base::trunc);
-
+    if (!f.is_open()) {
+      LOG(ERROR) << "Error while opening " << html_file;
+      return "";
+    }
     f << R"(
 <html>
 <head>
