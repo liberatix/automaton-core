@@ -1,6 +1,11 @@
 -- show_states.lua
 
-function collect_states(nodes)
+function collect_states(path)
+  if not networks[path] then
+    -- log error
+    return
+  end
+  local nodes = networks[path]["nodes"]
   local states = {}
   for i in pairs(nodes) do
     local name = names[i]
@@ -14,7 +19,7 @@ function collect_states(nodes)
     end
   end
   if #states > 0 then
-    dump_node_states(states)
+    dump_node_states(states, path)
   end
 end
 
@@ -25,8 +30,8 @@ function fmt_node(hash, names)
   return string.format(fmt, hash, hash:sub(-8), #names)
 end
 
-function dump_node_states(n)
-  local file = io.open("logs/node_states.html", "w+")
+function dump_node_states(n, path)
+  local file = io.open(path .. "logs/node_states.html", "w+")
 
   local node_blocks = {}
   local edges = {}

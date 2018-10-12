@@ -9,7 +9,7 @@ function dump_logs(path)
   for i in pairs(networks[path]["nodes"]) do
     networks[path]["nodes"][i]:dump_logs(string.format("%slogs/N%03d-%s.html", path, i, names[i]))
   end
-  collect_states(networks[path]["nodes"])
+  collect_states(path)
 end
 
 function dump_connections_graph(path)
