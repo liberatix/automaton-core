@@ -12,7 +12,6 @@ namespace automaton {
 namespace core {
 namespace network {
 
-// TODO(kari): add state as a member and get_state
 // TODO(kari): think about `send and disconnect`
 
 typedef uint32_t connection_id;
@@ -25,7 +24,7 @@ typedef uint32_t connection_id;
 class connection {
  public:
   /**
-    TODO(kari)
+    TODO(kari) documentation
   */
   enum state {
     invalid_state = 0,
