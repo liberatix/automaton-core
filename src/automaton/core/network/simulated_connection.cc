@@ -179,8 +179,7 @@ void simulation::handle_event(const event& e) {
       }
       if (!acceptor_ || acceptor_->get_state() != acceptor::state::accepting) {
         LOG(ERROR) << "No such peer: " << e.destination;
-        // TODO(kari): error no such peer /
-        // new_event.type_ = event::type::error;
+        // TODO(kari): Add task error - no such peer.
         break;
       }
       std::string source_address = source->get_address();

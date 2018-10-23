@@ -36,7 +36,7 @@ struct blob {
   }
 
   std::string tostring() {
-    io::bin2hex(std::string(reinterpret_cast<const char*>(buffer.data()), buffer.size()));
+    return io::bin2hex(std::string(reinterpret_cast<const char*>(buffer.data()), buffer.size()));
   }
 
   std::vector<uint8_t> buffer;
