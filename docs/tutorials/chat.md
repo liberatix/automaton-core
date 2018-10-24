@@ -1,5 +1,7 @@
 ## Chat protocol description:
 
+![Automaton Smart Protocol High Level Overview](smart_proto_overview.svg)
+
 When two nodes connect to each other they exchange Hello message containing their names. Each of them saves the new
 contact in a table of contacts mapping peer id with name. [...]
 
