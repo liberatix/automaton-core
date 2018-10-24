@@ -1,12 +1,12 @@
 -- connections_graph.lua
 
-function create_graph_html()
+function create_graph_html(graph)
   local html = [[
 <html>
 <head>
 
-<script type="text/javascript" src="../js/vis.min.js"></script>
-<link href="../js/vis.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
 
 <style type="text/css">
   #mynetwork {
@@ -35,7 +35,7 @@ function create_graph_html()
   var nodes = new vis.DataSet([
   ]]
   ..
-    table.concat(connections_graph_nodes, ",\n")
+    table.concat(graph["nodes"], ",\n")
 
   ..
   [[
@@ -44,7 +44,7 @@ function create_graph_html()
     var edges = new vis.DataSet([
   ]]
   ..
-    table.concat(connections_graph_edges, ",\n")
+    table.concat(graph["edges"], ",\n")
   ..
   [[
     ]);

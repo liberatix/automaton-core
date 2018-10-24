@@ -148,12 +148,26 @@ int main(int argc, char* argv[]) {
   automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(100);
   cli.print(automaton_ascii_logo.c_str());
+
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/names.lua"));
-  script.safe_script(get_file_contents("automaton/examples/smartproto/common/coreinit.lua"));
+  script.safe_script(get_file_contents("automaton/examples/smartproto/common/dump.lua"));
+  script.safe_script(get_file_contents("automaton/examples/smartproto/common/network.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/show_states.lua"));
 
-  // Start dump_logs thread.
+  std::ifstream i("automaton/core/coreinit.json");
+  if (!i.is_open()) {
+    LOG(ERROR) << "coreinit.json could not be opened";
+  } else {
+    nlohmann::json j;
+    i >> j;
+    std::vector<std::string> paths = j["protocols"];
+    for (auto p : paths) {
+      script.safe_script(get_file_contents((p + "init.lua").c_str()));
+    }
+  }
+
+// Start dump_logs thread.
   std::mutex logger_mutex;
   bool stop_logger = false;
   std::thread logger([&]() {
@@ -163,7 +177,11 @@ int main(int argc, char* argv[]) {
       logger_mutex.lock();
       try {
         sol::protected_function_result pfr;
-        pfr = script.safe_script("dump_logs()");
+        pfr = script.safe_script(
+          R"(for k,v in pairs(networks) do
+              dump_logs(k)
+            end
+          )");
         if (!pfr.valid()) {
           sol::error err = pfr;
           std::cout << "\n" << err.what() << "\n";
