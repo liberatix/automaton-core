@@ -1,6 +1,25 @@
 <img align="right" title="Automaton Logo" width="128" height="128" src="media/automaton-avatar-64x64.svg">
 
-# **Automaton** - Smart Protocols at Scale
+# Automaton
+
+* Decentralized Applications Platform
+* Smart Protocols at Scale
+* Pool Resistant Mining
+* Decentralized Collaboration
+
+**HIGHLY EXPERIMENTAL! USE AT YOUR OWN RISK!**
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+## Contact
+
+Telegram: https://t.me/automaton_network
 
 ## Building Automaton
 
