@@ -55,7 +55,7 @@ cc_library (
   name = "system",
   srcs = select({
     "//conditions:windows":
-      ["libboost_system-vc141-mt-x64-1_67.lib"],
+      ["stage/lib/libboost_system-vc141-mt-x64-1_68.lib"],
     "//conditions:default":
       ["stage/lib/libboost_system.a"]
   }),
@@ -77,7 +77,7 @@ cc_library (
   name = "filesystem",
   srcs = select({
     "//conditions:windows":
-      ["libboost_filesystem-vc141-mt-x64-1_67.lib"],
+      ["stage/lib/libboost_filesystem-vc141-mt-x64-1_68.lib"],
     "//conditions:default":
       ["stage/lib/libboost_filesystem.a",],
   }),
@@ -97,7 +97,7 @@ cc_library (
   name = "iostreams",
   srcs = select({
     "//conditions:windows":
-      ["libboost_iostreams-vc141-mt-x64-1_67.lib",],
+      ["stage/lib/libboost_iostreams-vc141-mt-x64-1_68.lib",],
     "//conditions:default":
       ["stage/lib/libboost_iostreams.a",],
   }),

@@ -168,8 +168,10 @@ cd build
 if (!(Test-Path .\CMakeCache.txt)) {
     cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=Release ..
 }
-msbuild.exe replxx.sln
+msbuild.exe replxx.sln /p:configuration=Release
 cd ..\..
+
+
 
 
 #  ====== Building boost ======
