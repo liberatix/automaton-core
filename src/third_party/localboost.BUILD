@@ -90,7 +90,7 @@ cc_library (
     ":system",
   ],
   linkstatic = True,
-  # defines = ["BOOST_ALL_NO_LIB"],
+  defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
@@ -111,5 +111,5 @@ cc_library (
     ":system",
   ],
   linkstatic = True,
-  # defines = ["BOOST_ALL_NO_LIB"],
+  defines = ["BOOST_ALL_NO_LIB"],
 )

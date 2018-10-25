@@ -181,7 +181,7 @@ echo ("="*80)
 
 cd boost_1_68_0
 bootstrap.bat
-b2 cxxstd=14 link=static runtime-link=static stage
+b2 cxxstd=14 link=static stage
 cd ..
 
 cd D:\GitHub\automaton-core\ # Remove this line before commit 
