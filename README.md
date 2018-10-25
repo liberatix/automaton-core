@@ -54,10 +54,11 @@ First you need to run a script to download and build some required third party l
 
 Once you have bazel you can run the following to build and run Automaton Core
 
-```
-.\build-and-run-automaton-core.ps1
-```
-or
+**Linux & Mac OS**
 ```
 ./build-and-run-automaton-core.sh
+```
+**Windows**
+```
+.\build-and-run-automaton-core.ps1
 ```
