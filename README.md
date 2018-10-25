@@ -43,13 +43,15 @@ First you need to run a script to download and build some required third party l
 ```
 
 **Windows**
-```
+
 1. Start [Developer Command Prompt for Visual Studio 2017](https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs)
 2. Enter powershell
 3. Move to the root directory of the project
+
+```
 4. Run .\download_and_build_third_party_libs_windows.ps1
 ```
-[Build and run with Bazel](#Bazel-Build-&-Run)
+5. [Build and run with Bazel](#Bazel-Build-&-Run)
 
 ### Bazel Build & Run
 
