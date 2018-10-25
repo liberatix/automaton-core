@@ -12,7 +12,7 @@ cc_library(
   ]),
   includes = ["."],
   #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library(
@@ -27,7 +27,7 @@ cc_library(
   ]),
   includes = ["."],
   #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
   deps=[
     ":config",
   ],
@@ -44,7 +44,7 @@ cc_library(
   ]),
   includes = ["."],
   #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
   deps=[
     ":config",
     ":system",
@@ -70,7 +70,7 @@ cc_library (
   ],
   linkopts = ["-pthread"],
   linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
@@ -90,7 +90,7 @@ cc_library (
     ":system",
   ],
   linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
@@ -111,5 +111,5 @@ cc_library (
     ":system",
   ],
   linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )

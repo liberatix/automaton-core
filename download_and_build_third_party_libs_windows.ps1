@@ -1,15 +1,7 @@
 ﻿# To run this script: 
 # 1. Stat Developer Command Prompt for VS 
 # 2. Type powershell
-# 3. Enter the script directory and run it
-
-cd D:\GitHub\automaton-core\ # Remove this line before commit 
-
-# Get path to VS, remember to start powershell if using command prompt
-#$key = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\SxS\VS7"
-#$value = "15.0"
-#$vs_path = (Get-ItemProperty -Path $key -Name $value).$value
-
+# 3. Run the script from its directory
 
 
 $LOCAL_3P="local_third_party"
@@ -184,4 +176,3 @@ bootstrap.bat
 b2 cxxstd=14 link=static stage
 cd ..
 
-cd D:\GitHub\automaton-core\ # Remove this line before commit 
