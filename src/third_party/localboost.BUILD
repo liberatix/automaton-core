@@ -12,7 +12,7 @@ cc_library(
   ]),
   includes = ["."],
   #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library(
@@ -27,7 +27,7 @@ cc_library(
   ]),
   includes = ["."],
   #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
   deps=[
     ":config",
   ],
@@ -44,7 +44,7 @@ cc_library(
   ]),
   includes = ["."],
   #linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
   deps=[
     ":config",
     ":system",
@@ -55,7 +55,7 @@ cc_library (
   name = "system",
   srcs = select({
     "//conditions:windows":
-      ["libboost_system-vc141-mt-x64-1_67.lib"],
+      ["stage/lib/libboost_system-vc141-mt-x64-1_68.lib"],
     "//conditions:default":
       ["stage/lib/libboost_system.a"]
   }),
@@ -70,14 +70,14 @@ cc_library (
   ],
   linkopts = ["-pthread"],
   linkstatic = True,
-  defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
   name = "filesystem",
   srcs = select({
     "//conditions:windows":
-      ["libboost_filesystem-vc141-mt-x64-1_67.lib"],
+      ["stage/lib/libboost_filesystem-vc141-mt-x64-1_68.lib"],
     "//conditions:default":
       ["stage/lib/libboost_filesystem.a",],
   }),
@@ -90,14 +90,14 @@ cc_library (
     ":system",
   ],
   linkstatic = True,
-  # defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )
 
 cc_library (
   name = "iostreams",
   srcs = select({
     "//conditions:windows":
-      ["libboost_iostreams-vc141-mt-x64-1_67.lib",],
+      ["stage/lib/libboost_iostreams-vc141-mt-x64-1_68.lib",],
     "//conditions:default":
       ["stage/lib/libboost_iostreams.a",],
   }),
@@ -111,5 +111,5 @@ cc_library (
     ":system",
   ],
   linkstatic = True,
-  # defines = ["BOOST_ALL_NO_LIB"],
+  #defines = ["BOOST_ALL_NO_LIB"],
 )

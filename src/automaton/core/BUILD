@@ -19,4 +19,5 @@ cc_binary(
     "//automaton/core/state",
     "@json//:json",
   ],
+  linkstatic = True,
 )
