@@ -45,13 +45,10 @@ First you need to run a script to download and build some required third party l
 **Windows**
 
 1. Start [Developer Command Prompt for Visual Studio 2017](https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs)
-2. Enter powershell
-3. Move to the root directory of the project
-
-```
-4. Run .\download_and_build_third_party_libs_windows.ps1
-```
-5. [Build and run with Bazel](#Bazel-Build-&-Run)
+2. In the started command prompt type in ``powershell``
+3. Move to the project's directory ``cd "<path_to_project>"``
+4. Run ``.\download_and_build_third_party_libs_windows.ps1``
+6. [Build and run with Bazel](#Bazel-Build-&-Run)
 
 ### Bazel Build & Run
 
@@ -59,6 +56,8 @@ Once you have bazel you can run the following to build and run Automaton Core
 
 ```
 bazel build //automaton/core:core
+```
 or
+```
 ./build-and-run-automaton-core.sh
 ```

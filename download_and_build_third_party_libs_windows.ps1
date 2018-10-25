@@ -1,15 +1,13 @@
 ﻿# To run this script: 
 # 1. Stat Developer Command Prompt for VS 
 # 2. Type powershell
-# 3. Run the script from its directory
-
+# 3. Run the script from its directoryit
 
 $LOCAL_3P="local_third_party"
 cd .\src\
 New-Item -ItemType Directory -Path .\$LOCAL_3P
 cd .\$LOCAL_3P
 [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11"
-
 
 function Get-GitRepo($repo, $dir, $commit) {
   echo ("="*80)
@@ -49,7 +47,6 @@ function Get-Archive($url, $filename, $sha) {
   }
 }
 
-
 #  ========  Download all libraries ========
 Get-GitRepo "https://github.com/LuaJIT/LuaJIT.git" "LuaJIT" "0bf80b07b0672ce874feedcc777afe1b791ccb5a"
 Get-GitRepo "https://github.com/zeromq/libzmq.git" "libzmq" "d062edd8c142384792955796329baf1e5a3377cd"
@@ -67,15 +64,11 @@ Get-GitRepo "https://github.com/nelhage/rules_boost.git" "com_github_nelhage_rul
 Get-GitRepo "https://github.com/protocolbuffers/protobuf.git" "protobuf" "48cb18e5c419ddd23d9badcfe4e9df7bde1979b2"
 Get-GitRepo "https://github.com/svaarala/duktape.git" "duktape" "d7fdb67f18561a50e06bafd196c6b423af9ad6fe"
 
-
-
 #  ====== Check if missing and download using wget ======
 
 if(!(Test-Path -Path .\json-3.1.2) -and (New-Item -ItemType Directory -Path .\json-3.1.2)) {
   wget -URI https://github.com/nlohmann/json/releases/download/v3.2.0/json.hpp -OutFile json-3.1.2/json.hpp
 }
-
-
 
 if(!(Test-Path -Path .\boost_1_68_0)) {
     Get-Archive "https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip" `
@@ -96,8 +89,6 @@ if(!(Test-Path -Path .\bzip2-1.0.6)) {
 #    Get-Archive "http://phoenixnap.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz" `
 #  "xz-5.2.3.tar.gz" "71928b357d0a09a12a4b4c5fafca8c31c19b0e7d3b8ebb19622e96f26dbf28cb"
 #}
-
-
 
 #  ======== Build libs ========
 
@@ -162,9 +153,6 @@ if (!(Test-Path .\CMakeCache.txt)) {
 }
 msbuild.exe replxx.sln /p:configuration=Release
 cd ..\..
-
-
-
 
 #  ====== Building boost ======
 echo ("="*80)
