@@ -18,15 +18,10 @@ coreinit.json:
 ```
 * It is not necessary the protocol folder to be in the project tree, could be anywhere.
 
-#### 2. Create files:
+#### 2. Create these files in the protocol folder:
 
 ##### chat.proto
-Contains proto messages definitions. *Hello* message is the one that is exchanged when two nodes connect. It contains only the node *name*. *Msg* is created randomly by every peer in update function and sent to everybody else. It contains TODO:
-* the node id
-* sequence number (...)
-* message from predefined sequence of messages (see *messages.lua*)
-
-This file must be included in the json configuration file under "schemas". "Hello" and "Msg", as message types that **will be sent over the network**, must be included in the json configuration file under "wire_msgs".
+Defines the proto messages available in this protocol.
 
 ```
 syntax = "proto3";
@@ -42,16 +37,18 @@ message Msg {
 }
 ```
 
-##### init.json
-Protocol configuration file containing:
+- ``Hello`` Exchanged when two nodes connect. It contains only a string - sender's *name*.
 
-*update_time_slice* -> how often update is called in milliseconds
+- ``Msg`` Created randomly by every peer in the update function and sent to everybody else. It contains TODO:
 
-*schemas* -> .proto files containing used message schemas
+  * the node id/author
+  * sequence number (...)
+  * message from predefined sequence of messages (see *messages.lua*)
 
-*lua_scripts* -> lua files containing protocol source code
 
-*wire_msgs* -> all messages which are sent over the network; must be present in schemas files
+
+##### config.json
+The main configuration file
 
 ```Json
 {
@@ -73,8 +70,17 @@ Protocol configuration file containing:
 }
 ```
 
+``update_time_slice`` How often update is called in milliseconds.
+
+``schemas``  The *.proto files where all used messages are defined.
+
+``lua_scripts`` *.lua files containing protocol source code
+
+``wire_msgs`` All messages that will be sent over the network must be declared here.
+
+
 ##### init.lua
-Protocol configuration files containing source code. In this example this file has only the protocol node constructor.
+Protocol configuration file containing source code. In this example this file has only the protocol node constructor.
 
 This file must exist even if it is empty and should NOT be included in the json configuration file.
 
@@ -99,43 +105,31 @@ function chat_node(id)
   return n
 end
 ```
+
+##### *.lua files
+Files containing protocol source code and the implemented mandatory functions. These files must be included in the json configuration file under "lua_scripts".
+
+The following are the mandatory functions that need to be defined in any of the *.lua files:
+
+* ``update(update_time_slice)`` Called every 10 milliseconds (*update_time_slice* defined in config.json).
+
+* ``connected(peer_id)`` Called when a peer connects.
+
+* ``disconnected(peer_id)`` Called when a peer disconnects.
+
+* ``sent(peer_id, msg_id, success)`` Confirmation if a sent message has been received by the peer.
+
+* ``on_<message_type>(peer_id, message)`` Called when <message_type> is received. The peer id and the received message will be passed.
 ---
-There are some mandatory functions that need to be implemented (even if left empty) in order TODO **WHAT(protocol, simulation, testnet??)** to work:
-
-* *on_<message_type>(peer_id, m)* -> this will be called when <message_type> message is received. The peer id and the received message will be passed
-
-* *update* -> this will be called every 10 milliseconds (*update_time_slice* in init.json)
-
-* *connected/disconnected(peer_id)* -> this will be called when a peer connects/disconnects
-
-* *sent(peer_id, msg_id, success)* -> this will be called when a message is sent showing if the operation was successful or not
----
-
-Next are lua files containing protocol source code and the implemented mandatory functions. These files must be included in the json configuration file under "lua_scripts".
-
-##### messages.lua
-Contains only the predefined messages that are sent between nodes.
-
-```Lua
--- Messages used in the chat example
-
-msg_contents = {
-  "Hello",
-  "How are you?",
-  "I'm doing fine. Thanks!",
-  "I've got something interesting to tell you",
-  "Once upon a time, I requested to join a chat",
-  "However the chat group didn't receive my request",
-  "So, I was wondering if you could tell me what happened.",
-  "I'm really upset and can't believe it",
-  "Let's help each other out.",
-  "And sure, I'll do the same for you",
-  "Ok, talk to you soon."
-}
-```
 
 ##### connections.lua
-Contains network related functions and data structures. When a peer connects, it's added to a table of connected peers peers and *Hello* message containing node id is sent. When the peer disconnects, it is removed from the table with connected peers. When *Hello* message is received from a peer, its id(name) is saved in the connected peers table.
+Contains network related functions and data structures.
+
+ When a peer connects, it's added to a table of connected peers and *Hello* message containing nodeid(name) is sent.
+
+ After *Hello* message is received from a peer, its nodeid(name) is saved
+
+ If the peer disconnects, *disconnected* is called and the node is removed from the table.
 
 ```Lua
 -- Keeps track of the currently connected peers
@@ -165,7 +159,9 @@ end
 
 ##### chat.lua
 
-We define the update function that will be called around every 10 milliseconds. Every *wait* (random number between 200 and 1000) calls of this function the node generates a message *Msg*. On_Msg is called with peer_id = 0 meaning the node got the message from itself. On_Msg function is called when *Msg* is received from a peer. If the node doesn't have that message yet (haven't received it), the message is saved and send to every peer except the one from whom it was received (*gossip* function).
+We define the update function that will be called every 10 milliseconds. Every 200 to 1000 calls, node generates a message *Msg* and calls on_Msg.
+
+ On_Msg is called with peer_id = 0 meaning the node got the message from itself. On_Msg function is called when *Msg* is received from a peer. If the node doesn't have that message yet (haven't received it), the message is saved and send to every peer except the one from whom it was received (*gossip* function).
 
 ```Lua
 -- chat.lua
@@ -222,7 +218,28 @@ function update(timestamp)
     on_Msg(0, m)
   end
 end
+```
 
+
+##### messages.lua
+Contains predefined strings that are sent between nodes.
+
+```Lua
+-- Messages used in the chat example
+
+msg_contents = {
+  "Hello",
+  "How are you?",
+  "I'm doing fine. Thanks!",
+  "I've got something interesting to tell you",
+  "Once upon a time, I requested to join a chat",
+  "However the chat group didn't receive my request",
+  "So, I was wondering if you could tell me what happened.",
+  "I'm really upset and can't believe it",
+  "Let's help each other out.",
+  "And sure, I'll do the same for you",
+  "Ok, talk to you soon."
+}
 ```
 ---
 
