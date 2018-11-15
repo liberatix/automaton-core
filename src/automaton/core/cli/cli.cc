@@ -32,7 +32,6 @@ std::vector<std::string> examples {
   "Dave",
   "Emily",
   "random_topology()",
-  "start_mining()",
   "start_random_reservations()",
   "stop_random_reservations()",
 };
