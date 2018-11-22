@@ -223,9 +223,9 @@ node::node(const std::string& id,
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
 
-  std::ifstream i(path + "init.json");
+  std::ifstream i(path + "config.json");
   if (!i.is_open()) {
-    LOG(ERROR) << "Error while opening " << path << "init.json";
+    LOG(ERROR) << "Error while opening " << path << "config.json";
   } else {
     nlohmann::json j;
     i >> j;
