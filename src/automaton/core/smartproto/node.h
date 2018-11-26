@@ -43,7 +43,7 @@ class node: public network::connection::connection_handler,
        std::vector<std::string> wire_msgs,
        data::factory& factory); // NOLINT
 
-  /** There must be init.json */
+  /** There must be config.json */
   node(const std::string& id, const std::string& path, data::factory& factory);  // NOLINT
 
   ~node();
