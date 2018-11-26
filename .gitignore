@@ -3,6 +3,7 @@
 /bazel-*
 /src/bazel-*
 /src/=*
+/src/logs*
 /src/third_party/localboost-s-x64-1_67*
 # Mac OS
 .DS_Store
