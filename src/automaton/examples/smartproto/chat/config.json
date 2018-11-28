@@ -13,5 +13,10 @@
 
   "wire_msgs": [
     "Hello", "Msg"
+  ],
+
+  "commands": [
+    ["get_messages", [], ["Messages"]],
+    ["get_peers", [], ["Peers"]]
   ]
 }

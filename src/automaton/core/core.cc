@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-// Start dump_logs thread.
+  // Start dump_logs thread.
   std::mutex logger_mutex;
   bool stop_logger = false;
   std::thread logger([&]() {
