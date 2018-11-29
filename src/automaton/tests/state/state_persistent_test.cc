@@ -2,6 +2,7 @@
 #include <vector>
 #include <utility>
 #include <stack>
+#include <stdio.h>
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/io/io.h"
 #include "automaton/core/state/state_persistent.h"
@@ -33,6 +34,8 @@ TEST(state_persistent, set_and_get) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_set_and_get");
+  remove("mapped_vector_set_and_get");
   bs->map_file("mapped_file_set_and_get");
   pv->map_file("mapped_vector_set_and_get");
   state_persistent state(hasher, bs, pv);
@@ -64,6 +67,8 @@ TEST(state_persistent, set_delete_and_get) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_set_delete_and_get");
+  remove("mapped_vector_set_delete_and_get");
   bs->map_file("mapped_file_set_delete_and_get");
   pv->map_file("mapped_vector_set_delete_and_get");
   state_persistent state(hasher, bs, pv);
@@ -98,6 +103,8 @@ TEST(state_persistent, node_hash_add_erase) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_node_hash_add_erase");
+  remove("mapped_vector_node_hash_add_erase");
   bs->map_file("mapped_file_node_hash_add_erase");
   pv->map_file("mapped_vector_node_hash_add_erase");
   state_persistent state(hasher, bs, pv);
@@ -190,6 +197,8 @@ TEST(state_persistent, get_node_hash) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_get_node_hash");
+  remove("mapped_vector_get_node_hash");
   bs->map_file("mapped_file_get_node_hash");
   pv->map_file("mapped_vector_get_node_hash");
   state_persistent state(hasher, bs, pv);
@@ -200,6 +209,8 @@ TEST(state_persistent, commit_changes) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_commit_changes");
+  remove("mapped_vector_commit_changes");
   bs->map_file("mapped_file_commit_changes");
   pv->map_file("mapped_vector_commit_changes");
   state_persistent state(hasher, bs, pv);
@@ -216,6 +227,8 @@ TEST(state_persistent, discard_changes) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_discard_changes");
+  remove("mapped_vector_discard_changes");
   bs->map_file("mapped_file_discard_changes");
   pv->map_file("mapped_vector_discard_changes");
   state_persistent state(hasher, bs, pv);
@@ -231,6 +244,8 @@ TEST(state_persistent, delete_node_tree) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_delete_node_tree");
+  remove("mapped_vector_delete_node_tree");
   bs->map_file("mapped_file_delete_node_tree");
   pv->map_file("mapped_vector_delete_node_tree");
   state_persistent state(hasher, bs, pv);
@@ -250,6 +265,8 @@ TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_delete_node_tree_plus_commit_discard_free_backup_add_node");
+  remove("mapped_vector_delete_node_tree_plus_commit_discard_free_backup_add_node");
   bs->map_file("mapped_file_delete_node_tree_plus_commit_discard_free_backup_add_node");
   pv->map_file("mapped_vector_delete_node_tree_plus_commit_discard_free_backup_add_node");
   state_persistent state(hasher, bs, pv);
@@ -297,6 +314,8 @@ TEST(dummy_state, using_deleted_locations) {
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_using_deleted_locations");
+  remove("mapped_vector_using_deleted_locations");
   bs->map_file("mapped_file_using_deleted_locations");
   pv->map_file("mapped_vector_using_deleted_locations");
   state_persistent state(hasher, bs, pv);
