@@ -51,3 +51,21 @@ cc_library(
     #copts = ["-MT"],
     defines = ["BOOST_ALL_NO_LIB"],
 )
+
+cc_library(
+    name = "persistent_vector",
+    srcs = [
+      "persistent_vector.h",
+    ],
+    hdrs = [
+      "persistent_vector.h",
+    ],
+    deps = [
+      "@localboost//:iostreams",
+      "@localboost//:filesystem",
+      "//automaton/core/storage:persistent_storage",
+    ],
+    #linkstatic = True,
+    #copts = ["-MT"],
+    defines = ["BOOST_ALL_NO_LIB"],
+)

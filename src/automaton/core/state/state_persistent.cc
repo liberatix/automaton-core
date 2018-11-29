@@ -14,10 +14,17 @@ namespace automaton {
 namespace core {
 namespace state {
 
+#define nodes (*p_nodes)
 typedef std::basic_string<unsigned char> ustring;
 
-state_persistent::state_persistent(crypto::hash_transformation* hasher, storage::blobstore* bs)
-  :bs(bs) {
+
+state_persistent::state_persistent(crypto::hash_transformation* hasher,
+                                   storage::blobstore* bs,
+                                   storage::persistent_vector<node>* p_nodes
+                                  )
+  :bs(bs),
+  p_nodes(p_nodes) { // TODO(Samir): Create p_nodes member variable and
+                            // either define nodes to be dereferenced p_nodes or create reference to it
   bs->store(0, nullptr);
   nodes.push_back(state_persistent::node());
   this->hasher = hasher;
@@ -34,8 +41,8 @@ std::string state_persistent::get(const std::string& key) {
 
 void state_persistent::set(const std::string& key, const std::string& value) {
   if (value == "") {
-    erase(key);
     return;
+    erase(key);
   }
   uint32_t cur_node = 0;
   uint32_t cur_prefix_index = 0;

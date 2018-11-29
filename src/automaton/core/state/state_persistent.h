@@ -9,6 +9,7 @@
 #include "automaton/core/state/state.h"
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/storage/persistent_blobstore.h"
+#include "automaton/core/storage/persistent_vector.h"
 
 namespace automaton {
 namespace core {
@@ -16,7 +17,10 @@ namespace state {
 
 class state_persistent : public state {
  public:
-  state_persistent(crypto::hash_transformation* hasher, storage::blobstore* bs);
+  class node;
+  state_persistent(crypto::hash_transformation* hasher,
+                  storage::blobstore* bs,
+                  storage::persistent_vector<node>* p_nodes);
 
   // Get the value at given path. Empty string if no value is set or
   // there is no node at the given path
@@ -53,7 +57,7 @@ class state_persistent : public state {
 
   uint32_t size();
 
- private:
+
   class node {
    public:
      uint32_t get_parent(storage::blobstore* bs);
@@ -83,9 +87,12 @@ class state_persistent : public state {
     uint64_t value_ = 0;
     uint32_t children_[256] = {};
   };
+ private:
   storage::blobstore* bs;
 
-  std::vector<node> nodes;
+  storage::persistent_vector<node>* p_nodes;
+  //std::vector<node> nodes;
+
   std::map<uint32_t, node> backup;
   std::set<uint32_t> free_locations;
   crypto::hash_transformation* hasher;

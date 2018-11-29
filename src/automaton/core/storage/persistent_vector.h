@@ -18,7 +18,9 @@ class persistent_vector : protected persistent_storage {
   void push_back(const T& val);
   bool map_file(std::string path);
   size_t size() const;
+  void resize(size_t n);
  private:
+  // header[8] is used to store next_free in the mapped file;
   size_t next_free;
 };
 
@@ -51,6 +53,12 @@ inline bool persistent_vector<T>::map_file(std::string path) {
 template<typename T>
 size_t persistent_vector<T>::size() const {
   return next_free;
+}
+
+template<typename T>
+void persistent_vector<T>::resize(size_t n) {
+  next_free = n;
+  header[8] = n;
 }
 
 }  // namespace storage
