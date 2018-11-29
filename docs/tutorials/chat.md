@@ -2,8 +2,12 @@
 
 ![Automaton Smart Protocol High Level Overview](smart_proto_overview.png)
 
-When two nodes connect to each other they exchange Hello message containing their names. Each of them saves the new
-contact in a table of contacts mapping peer id with name. [...]
+The way this protocol works is: 2 nodes connect to each other and each of them sends his name to the other.
+When a node receives that "Hello", adds the new peer in a contacts list	and starts messaging with him.
+The messages that are sent between nodes are predefined, menaing no actual chatting is happening but more like
+a predefined dialogue. All received messages are resent to all the peers in a node's contact list. Example of this:
+Alice and Bob communicate. Bob has Alice but also Charlie in his contacts list. Alice sends Bob a message and Bob sees
+something like "Alice said that Alice said something". Bob resends the message to Charlie so Charlie sees "Bob said that Alice said something".
 
 #### 1. Create a protocol folder
 Create a folder named chat under src/automaton/examples/smartproto/. Add the path to the newly created protocol folder in coreinit.json file (.../automaton-core/src/automaton/core/coreinit.json). This file contains the protocols that will be loaded when core is started.
@@ -92,14 +96,6 @@ function chat_node(id)
 
   _G[id] = {
     node_type = "chat",
-
-    disconnect_all = function()
-      n:call("disconnect_all()")
-    end,
-
-    connect = function(peer_id)
-      n:call("connect("..tostring(peer_id)..")")
-    end,
   }
 
   return n
