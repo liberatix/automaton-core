@@ -94,104 +94,105 @@ std::string hash_key(int i) {
   return std::string(reinterpret_cast<char*>(digest32), 16 + i % 16);
 }
 
-TEST(state_persistent, node_hash_add_erase) {
-  std::stack<std::string> root_hashes;
-  std::stack<std::string> keys;
-  int32_t key_count = 1000;
-
-
-  hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore* bs = new persistent_blobstore();
-  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
-  remove("mapped_file_node_hash_add_erase");
-  remove("mapped_vector_node_hash_add_erase");
-  bs->map_file("mapped_file_node_hash_add_erase");
-  pv->map_file("mapped_vector_node_hash_add_erase");
-  state_persistent state(hasher, bs, pv);
-
-  // Add keys/values to the state and add the root hash into a stack.
-  for (int32_t i = 0; i < key_count; ++i) {
-    root_hashes.push(state.get_node_hash(""));
-    std::string key = hash_key(i);
-    std::string data = std::to_string(i);
-    keys.push(key);
-
-    state.set(keys.top(), data);
-    EXPECT_EQ(data, state.get(keys.top()));
-
-    if (i % (key_count/10)) {
-     continue;
-    }
-    // Integrity check for all prior key/values.
-    std::cout << i << std::endl;
-    for (int32_t j = 0; j <= i; j++) {
-      std::string data = std::to_string(j);
-      std::string key = hash_key(j);
-
-      if (data != state.get(key)) {
-        std::cout << "Setting " << i << " fails at " << j << std::endl;
-        std::cout << "Setting key " << bin2hex(keys.top())
-          << " fails " << bin2hex(key) << std::endl;
-        throw "!!!";
-      }
-    }
-  }
-
-  // Erase the keys in reverse order and check if root hash is the saved one
-  // for the same trie state
-
-  for (int32_t i = 0; i < key_count; i++) {
-    state.erase(keys.top());
-    // Integrity check for all prior key/values.
-    if (i % (key_count/10) == 0) {
-      std::cout << i << std::endl;
-      for (int32_t j = 0; j < key_count - i - 1; j++) {
-        std::string data = std::to_string(j);
-        std::string key = hash_key(j);
-
-        if (data != state.get(key)) {
-          std::cout << "Deleting " << (key_count - i) << " fails at "
-              << j << std::endl;
-          std::cout << "Deleting key " << bin2hex(keys.top())
-            << " fails " << bin2hex(key) << std::endl;
-          throw std::domain_error("!!!");
-        }
-      }
-    }
-
-    keys.pop();
-
-    if (i % 1000 == 0) {
-      std::cout << "Passed " << i << " deletions in reverse order.\n";
-    }
-    EXPECT_EQ(state.get_node_hash(""), root_hashes.top());
-    if (state.get_node_hash("") != root_hashes.top()) {
-      // throw std::domain_error("BAD " + std::to_string(i));
-    }
-    root_hashes.pop();
-  }
-}
-
-TEST(state_persistent, insert_and_delete_expect_blank) {
-
-  hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore* bs = new persistent_blobstore();
-  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
-  bs->map_file("mapped_file_insert_and_delete_expect_blank");
-  pv->map_file("mapped_vector_insert_and_delete_expect_blank");
-  state_persistent state(hasher, bs, pv);
-
-  state.set("a", "1");
-  state.set("b", "2");
-  state.set("c", "3");
-  state.commit_changes();
-  state.set("a", "");
-  state.set("b", "");
-  state.set("c", "");
-  state.commit_changes();
-  EXPECT_EQ(state.get(""), "");
-}
-
+// TEST(state_persistent, node_hash_add_erase) {
+//   std::stack<std::string> root_hashes;
+//   std::stack<std::string> keys;
+//   int32_t key_count = 1000;
+//
+//
+//   hash_transformation* hasher = new SHA256_cryptopp();
+//   persistent_blobstore* bs = new persistent_blobstore();
+//   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+//   remove("mapped_file_node_hash_add_erase");
+//   remove("mapped_vector_node_hash_add_erase");
+//   bs->map_file("mapped_file_node_hash_add_erase");
+//   pv->map_file("mapped_vector_node_hash_add_erase");
+//   state_persistent state(hasher, bs, pv);
+//
+//   // Add keys/values to the state and add the root hash into a stack.
+//   for (int32_t i = 0; i < key_count; ++i) {
+//     root_hashes.push(state.get_node_hash(""));
+//     std::string key = hash_key(i);
+//     std::string data = std::to_string(i);
+//     keys.push(key);
+//
+//     state.set(keys.top(), data);
+//     EXPECT_EQ(data, state.get(keys.top()));
+//
+//     if (i % (key_count/10)) {
+//      continue;
+//     }
+//     // Integrity check for all prior key/values.
+//     std::cout << i << std::endl;
+//     for (int32_t j = 0; j <= i; j++) {
+//       std::string data = std::to_string(j);
+//       std::string key = hash_key(j);
+//
+//       if (data != state.get(key)) {
+//         std::cout << "Setting " << i << " fails at " << j << std::endl;
+//         std::cout << "Setting key " << bin2hex(keys.top())
+//           << " fails " << bin2hex(key) << std::endl;
+//         throw "!!!";
+//       }
+//     }
+//   }
+//
+//   // Erase the keys in reverse order and check if root hash is the saved one
+//   // for the same trie state
+//
+//   for (int32_t i = 0; i < key_count; i++) {
+//     state.erase(keys.top());
+//     // Integrity check for all prior key/values.
+//     if (i % (key_count/10) == 0) {
+//       std::cout << i << std::endl;
+//       for (int32_t j = 0; j < key_count - i - 1; j++) {
+//         std::string data = std::to_string(j);
+//         std::string key = hash_key(j);
+//
+//         if (data != state.get(key)) {
+//           std::cout << "Deleting " << (key_count - i) << " fails at "
+//               << j << std::endl;
+//           std::cout << "Deleting key " << bin2hex(keys.top())
+//             << " fails " << bin2hex(key) << std::endl;
+//           throw std::domain_error("!!!");
+//         }
+//       }
+//     }
+//
+//     keys.pop();
+//
+//     if (i % 1000 == 0) {
+//       std::cout << "Passed " << i << " deletions in reverse order.\n";
+//     }
+//     EXPECT_EQ(state.get_node_hash(""), root_hashes.top());
+//     if (state.get_node_hash("") != root_hashes.top()) {
+//       // throw std::domain_error("BAD " + std::to_string(i));
+//     }
+//     root_hashes.pop();
+//   }
+// }
+//
+// TEST(state_persistent, insert_and_delete_expect_blank) {
+//
+//   hash_transformation* hasher = new SHA256_cryptopp();
+//   persistent_blobstore* bs = new persistent_blobstore();
+//   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+//   remove("mapped_file_insert_and_delete_expect_blank");
+//   remove("mapped_vector_insert_and_delete_expect_blank");
+//   bs->map_file("mapped_file_insert_and_delete_expect_blank");
+//   pv->map_file("mapped_vector_insert_and_delete_expect_blank");
+//   state_persistent state(hasher, bs, pv);
+//
+//   state.set("a", "1");
+//   state.set("b", "2");
+//   state.set("c", "3");
+//   state.commit_changes();
+//   state.set("a", "");
+//   state.set("b", "");
+//   state.set("c", "");
+//   state.commit_changes();
+//   EXPECT_EQ(state.get(""), "");
+// }
 
 TEST(state_persistent, get_node_hash) {
   hash_transformation* hasher = new SHA256_cryptopp();
