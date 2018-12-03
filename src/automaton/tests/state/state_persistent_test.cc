@@ -76,11 +76,14 @@ TEST(state_persistent, set_delete_and_get) {
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
   }
+  for (unsigned int i = 0; i < tests.size(); i++) {
+    std::cout << "state.get(tests[" << i << "].first): " << state.get(tests[i].first) << "  tests[" << i << "].second: " << tests[i].second << endl;
+  }
   // delete one and check if remaining nodes are correct
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.erase(tests[i].first);
     for (unsigned int j = i+1; j < tests.size(); j++) {
-      std::cout << "state.get(tests[j].first: " << state.get(tests[j].first) << "  tests[j].second: " << tests[j].second;
+      std::cout << "state.get(tests[" << j << "].first): " << state.get(tests[j].first) << "  tests[" << j << "].second: " << tests[j].second << endl;
       EXPECT_EQ(state.get(tests[j].first), tests[j].second);
     }
   }
