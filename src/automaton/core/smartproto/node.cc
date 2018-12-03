@@ -432,19 +432,20 @@ std::string node::process_cmd(std::string cmd, std::string msg) {
     LOG(FATAL) << "Invalid command!";
     return "";
   }
-  // sol::protected_function_result pfr;
-  // if (msg != "") {
-  //   pfr = script_on_cmd[cmd](msg);
-  // } else {
-  //   pfr = script_on_cmd[cmd]();
-  // }
-  // if (!pfr.valid()) {
-  //   sol::error err = pfr;
-  //   string what = err.what();
-  //   LOG(ERROR) << "*** SCRIPT ERROR IN " << cmd << "***\n" << what;
-  //   return what;
-  // }
-  return script_on_cmd[cmd](msg);
+  sol::protected_function_result pfr;
+  if (msg != "") {
+    pfr = script_on_cmd[cmd](msg);
+  } else {
+    pfr = script_on_cmd[cmd]();
+  }
+  if (!pfr.valid()) {
+    sol::error err = pfr;
+    string what = err.what();
+    LOG(ERROR) << "*** SCRIPT ERROR IN " << cmd << "***\n" << what;
+    return what;
+  }
+  std::string result = pfr;
+  return result;
 }
 
 void node::send_blob(peer_id p_id, const string& blob, uint32_t msg_id) {
