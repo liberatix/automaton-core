@@ -41,6 +41,7 @@ class node: public network::connection::connection_handler,
        std::vector<std::string> schemas,
        std::vector<std::string> lua_scripts,
        std::vector<std::string> wire_msgs,
+       std::vector<std::string> commands,
        data::factory& factory); // NOLINT
 
   /** There must be config.json */
@@ -50,7 +51,8 @@ class node: public network::connection::connection_handler,
 
   void init_bindings(std::vector<std::string> schemas,
                      std::vector<std::string> lua_scripts,
-                     std::vector<std::string> wire_msgs);
+                     std::vector<std::string> wire_msgs,
+                     std::vector<std::string> commands);
 
   void init_worker();
 
@@ -101,6 +103,8 @@ class node: public network::connection::connection_handler,
 
   void dump_logs(std::string html_file);
 
+  std::string process_cmd(std::string cmd, std::string);
+
  private:
   std::string nodeid;
   peer_id peer_ids;
@@ -113,6 +117,7 @@ class node: public network::connection::connection_handler,
   sol::protected_function script_on_update;
   sol::protected_function script_on_msg_sent;
   std::unordered_map<uint32_t, sol::protected_function> script_on_msg;
+  std::unordered_map<std::string, sol::protected_function> script_on_cmd;
   sol::protected_function script_on_debug_html;
 
   uint32_t update_time_slice;
