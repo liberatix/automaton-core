@@ -161,7 +161,7 @@ void state_persistent::delete_node_tree(const std::string& path) {
   // TODO(Samir): Implement delete subtrie ( subtrie of node with value only? )
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].get_value(bs) == "") {
-    throw std::out_of_range("No set node at path: " + io::bin2hex(path));
+    throw std::out_of_range("In delete_node_tree: No set node at path: " + io::bin2hex(path));
   }
   backup_nodes(nodes[cur_node].get_parent(bs));
   subtrie_mark_free(cur_node);
@@ -215,7 +215,7 @@ void state_persistent::delete_node_tree(const std::string& path) {
 void state_persistent::erase(const std::string& path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].get_value(bs) == "") {
-    throw std::out_of_range("No set node at path: " + io::bin2hex(path));
+    throw std::out_of_range("In erase: No set node at path: " + io::bin2hex(path));
   }
 
   backup_nodes(cur_node);

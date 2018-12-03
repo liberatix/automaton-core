@@ -76,10 +76,11 @@ TEST(state_persistent, set_delete_and_get) {
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
   }
-  // delete one and check if remaining nodes are currect
+  // delete one and check if remaining nodes are correct
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.erase(tests[i].first);
     for (unsigned int j = i+1; j < tests.size(); j++) {
+      std::cout << "state.get(tests[j].first: " << state.get(tests[j].first) << "  tests[j].second: " << tests[j].second;
       EXPECT_EQ(state.get(tests[j].first), tests[j].second);
     }
   }
