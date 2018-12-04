@@ -87,11 +87,11 @@ class state_persistent : public state {
     uint64_t value_ = 0;
     uint32_t children_[256] = {};
   };
+
  private:
   storage::blobstore* bs;
 
   storage::persistent_vector<node>* p_nodes;
-  //std::vector<node> nodes;
 
   std::map<uint32_t, node> backup;
   std::set<uint32_t> free_locations;

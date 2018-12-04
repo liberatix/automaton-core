@@ -1,6 +1,6 @@
 #include "automaton/core/state/state_persistent.h"
-#include <stack>
 #include <stdio.h>
+#include <stack>
 #include <string>
 #include <utility>
 #include <vector>
