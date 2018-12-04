@@ -73,7 +73,8 @@ int main(int argc, char* argv[]) {
        uint32_t update_time_slice,
        vector<string> schema_file_names,
        vector<string> script_file_names,
-       vector<string> msgs) -> unique_ptr<node> {
+       vector<string> msgs,
+       vector<string> commands) -> unique_ptr<node> {
       vector<string> schemas_content;
       for (auto schema_file_name : schema_file_names) {
         schemas_content.push_back(get_file_contents(schema_file_name.c_str()));
@@ -89,7 +90,7 @@ int main(int argc, char* argv[]) {
       auto core_ptr = core_factory.get();
       factories.push_back(std::move(core_factory));
       return make_unique<node>(
-          id, update_time_slice, schemas_content, script_contents, msgs, *core_ptr);
+          id, update_time_slice, schemas_content, script_contents, msgs, commands, *core_ptr);
     },
     [&factories](const std::string& id, const std::string& path) -> unique_ptr<node> {
       auto core_factory = make_unique<protobuf_factory>();
@@ -120,6 +121,8 @@ int main(int argc, char* argv[]) {
     std::string result = fut.get();
     return result;
   });
+
+  node_type.set("process_cmd", &node::process_cmd);
 
   node_type.set("call", [](node& n, std::string command) {
     n.script(command, nullptr);
