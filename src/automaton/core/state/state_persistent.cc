@@ -1,12 +1,12 @@
 #include "automaton/core/state/state_persistent.h"
-#include <map>
 #include <algorithm>
 #include <iomanip>
-#include <string>
-#include <sstream>
-#include <vector>
+#include <map>
 #include <set>
+#include <sstream>
+#include <string>
 #include <utility>
+#include <vector>
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/io/io.h"
 
@@ -23,8 +23,7 @@ state_persistent::state_persistent(crypto::hash_transformation* hasher,
                                    storage::persistent_vector<node>* p_nodes
                                   )
   :bs(bs),
-  p_nodes(p_nodes) { // TODO(Samir): Create p_nodes member variable and
-                            // either define nodes to be dereferenced p_nodes or create reference to it
+  p_nodes(p_nodes) {
   bs->store(0, nullptr);
   nodes.push_back(state_persistent::node());
   this->hasher = hasher;
@@ -547,7 +546,9 @@ void state_persistent::node::set_value(const std::string value, storage::blobsto
     reinterpret_cast<const uint8_t*>(value.data()));
 }
 
-void state_persistent::node::set_child(const uint8_t child, const uint32_t value, storage::blobstore * bs) {
+void state_persistent::node::set_child(const uint8_t child,
+                                       const uint32_t value,
+                                       storage::blobstore * bs) {
   children_[child] = value;
 }
 

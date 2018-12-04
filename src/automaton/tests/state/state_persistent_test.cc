@@ -1,11 +1,11 @@
-#include <string>
-#include <vector>
-#include <utility>
+#include "automaton/core/state/state_persistent.h"
 #include <stack>
 #include <stdio.h>
+#include <string>
+#include <utility>
+#include <vector>
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/state/state_persistent.h"
 #include "automaton/core/storage/persistent_blobstore.h"
 #include "automaton/core/storage/persistent_vector.h"
 #include "gtest/gtest.h"
@@ -44,8 +44,6 @@ TEST(state_persistent, set_and_get) {
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
     for (unsigned int j = 0; j <= i; j++) {
-      //std::cout << state.get(tests[j].first) << std::endl;
-      //std::cout << tests[j].second << std::endl;
       EXPECT_EQ(state.get(tests[j].first), tests[j].second);
     }
   }
@@ -76,14 +74,10 @@ TEST(state_persistent, set_delete_and_get) {
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
   }
-  for (unsigned int i = 0; i < tests.size(); i++) {
-    std::cout << "state.get(tests[" << i << "].first): " << state.get(tests[i].first) << "  tests[" << i << "].second: " << tests[i].second << std::endl;
-  }
   // delete one and check if remaining nodes are correct
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.erase(tests[i].first);
     for (unsigned int j = i+1; j < tests.size(); j++) {
-      std::cout << "state.get(tests[" << j << "].first): " << state.get(tests[j].first) << "  tests[" << j << "].second: " << tests[j].second << std::endl;
       EXPECT_EQ(state.get(tests[j].first), tests[j].second);
     }
   }
@@ -177,7 +171,6 @@ TEST(state_persistent, node_hash_add_erase) {
 }
 
 TEST(state_persistent, insert_and_delete_expect_blank) {
-
   hash_transformation* hasher = new SHA256_cryptopp();
   persistent_blobstore* bs = new persistent_blobstore();
   persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
