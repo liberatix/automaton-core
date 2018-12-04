@@ -18,8 +18,8 @@ class persistent_storage {
 
   /**
     Stores the object pointed by data
-    
-    @returns   bool      false if the operation was not successful 
+
+    @returns   bool      false if the operation was not successful
     @param[in] at        The location at which to store the object, should be <= size()+1
     @param[in] data      Pointer to the data
   */
@@ -29,7 +29,7 @@ class persistent_storage {
     Used to get access to previously allocated object.
 
     @returns    uint8_t*  pointer to the object or nullptr if id>=capacity
-    @param[in]  at        The ID returned by store
+    @param[in]  at        The ID used to store
   */
   uint8_t* get(const uint64_t at);
 

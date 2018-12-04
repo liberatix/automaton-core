@@ -68,7 +68,7 @@ bool persistent_storage::map_file(std::string path, size_t object_sz) {
     boost::iostreams::mapped_file_params new_mmf(file_path);
     new_mmf.flags = boost::iostreams::mapped_file::mapmode::readwrite;
     // The starting size is MB by default, we should add a option set the starting size
-    new_mmf.new_file_size = 1ULL << 10;
+    new_mmf.new_file_size = 1ULL << 20;
     capacity = new_mmf.new_file_size;
     mmf.open(new_mmf);
     // write the version to the header of the new file
@@ -98,6 +98,8 @@ void persistent_storage::open_mapped_file() {
   storage = reinterpret_cast<uint8_t*>(mmf.data());
   capacity = mmf.size();
   is_mapped = true;
+  header = reinterpret_cast<uint64_t*>(storage);
+  header_version = header[0];
 }
 
 }  //  namespace storage

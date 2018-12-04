@@ -21,3 +21,16 @@ cc_test(
     #linkstatic = True,
     #copts = ["-MT"],
 )
+
+#cc_test(
+#    name = "persistent_storage",
+#    srcs = ["persistent_storage_test.cc"],
+#    size = "small",
+#    deps = [
+#      "//automaton/core/storage:persistent_storage",
+#      "//automaton/core/io",
+#      "@gtest//:gtest_main",
+#    ],
+#    #linkstatic = True,
+#    #copts = ["-MT"],
+#)

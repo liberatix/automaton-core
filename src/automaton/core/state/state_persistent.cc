@@ -1,12 +1,12 @@
 #include "automaton/core/state/state_persistent.h"
-#include <map>
 #include <algorithm>
 #include <iomanip>
-#include <string>
-#include <sstream>
-#include <vector>
+#include <map>
 #include <set>
+#include <sstream>
+#include <string>
 #include <utility>
+#include <vector>
 #include "automaton/core/crypto/hash_transformation.h"
 #include "automaton/core/io/io.h"
 
@@ -14,10 +14,16 @@ namespace automaton {
 namespace core {
 namespace state {
 
+#define nodes (*p_nodes)
 typedef std::basic_string<unsigned char> ustring;
 
-state_persistent::state_persistent(crypto::hash_transformation* hasher, storage::blobstore* bs)
-  :bs(bs) {
+
+state_persistent::state_persistent(crypto::hash_transformation* hasher,
+                                   storage::blobstore* bs,
+                                   storage::persistent_vector<node>* p_nodes
+                                  )
+  :bs(bs),
+  p_nodes(p_nodes) {
   bs->store(0, nullptr);
   nodes.push_back(state_persistent::node());
   this->hasher = hasher;
@@ -34,8 +40,8 @@ std::string state_persistent::get(const std::string& key) {
 
 void state_persistent::set(const std::string& key, const std::string& value) {
   if (value == "") {
-    erase(key);
     return;
+    erase(key);
   }
   uint32_t cur_node = 0;
   uint32_t cur_prefix_index = 0;
@@ -154,7 +160,7 @@ void state_persistent::delete_node_tree(const std::string& path) {
   // TODO(Samir): Implement delete subtrie ( subtrie of node with value only? )
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].get_value(bs) == "") {
-    throw std::out_of_range("No set node at path: " + io::bin2hex(path));
+    throw std::out_of_range("In delete_node_tree: No set node at path: " + io::bin2hex(path));
   }
   backup_nodes(nodes[cur_node].get_parent(bs));
   subtrie_mark_free(cur_node);
@@ -208,7 +214,7 @@ void state_persistent::delete_node_tree(const std::string& path) {
 void state_persistent::erase(const std::string& path) {
   int32_t cur_node = get_node_index(path);
   if (cur_node == -1 || nodes[cur_node].get_value(bs) == "") {
-    throw std::out_of_range("No set node at path: " + io::bin2hex(path));
+    throw std::out_of_range("In erase: No set node at path: " + io::bin2hex(path));
   }
 
   backup_nodes(cur_node);
@@ -540,7 +546,9 @@ void state_persistent::node::set_value(const std::string value, storage::blobsto
     reinterpret_cast<const uint8_t*>(value.data()));
 }
 
-void state_persistent::node::set_child(const uint8_t child, const uint32_t value, storage::blobstore * bs) {
+void state_persistent::node::set_child(const uint8_t child,
+                                       const uint32_t value,
+                                       storage::blobstore * bs) {
   children_[child] = value;
 }
 

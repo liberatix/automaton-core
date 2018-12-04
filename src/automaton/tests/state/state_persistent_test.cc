@@ -1,11 +1,13 @@
-#include <string>
-#include <vector>
-#include <utility>
+#include "automaton/core/state/state_persistent.h"
+#include <stdio.h>
 #include <stack>
+#include <string>
+#include <utility>
+#include <vector>
 #include "automaton/core/crypto/cryptopp/SHA256_cryptopp.h"
 #include "automaton/core/io/io.h"
-#include "automaton/core/state/state_persistent.h"
 #include "automaton/core/storage/persistent_blobstore.h"
+#include "automaton/core/storage/persistent_vector.h"
 #include "gtest/gtest.h"
 
 using automaton::core::crypto::cryptopp::SHA256_cryptopp;
@@ -14,6 +16,7 @@ using automaton::core::io::bin2hex;
 using automaton::core::state::state_persistent;
 using automaton::core::storage::blobstore;
 using automaton::core::storage::persistent_blobstore;
+using automaton::core::storage::persistent_vector;
 
 TEST(state_persistent, set_and_get) {
   std::vector<std::pair<std::string, std::string> > tests;
@@ -29,16 +32,18 @@ TEST(state_persistent, set_and_get) {
   tests.push_back(std::make_pair("tramva", "7"));
 
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  bs.map_file("mapped_file.txt");
-  state_persistent state(hasher, &bs);
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_set_and_get");
+  remove("mapped_vector_set_and_get");
+  bs->map_file("mapped_file_set_and_get");
+  pv->map_file("mapped_vector_set_and_get");
+  state_persistent state(hasher, bs, pv);
 
   // For each node added, check if the previous nodes are still correct
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
     for (unsigned int j = 0; j <= i; j++) {
-      std::cout << state.get(tests[j].first) << std::endl;
-      std::cout << tests[j].second << std::endl;
       EXPECT_EQ(state.get(tests[j].first), tests[j].second);
     }
   }
@@ -58,14 +63,18 @@ TEST(state_persistent, set_delete_and_get) {
   tests.push_back(std::make_pair("tramva", "7"));
 
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-
-  state_persistent state(hasher, &bs);
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_set_delete_and_get");
+  remove("mapped_vector_set_delete_and_get");
+  bs->map_file("mapped_file_set_delete_and_get");
+  pv->map_file("mapped_vector_set_delete_and_get");
+  state_persistent state(hasher, bs, pv);
   // add all nodes
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.set(tests[i].first, tests[i].second);
   }
-  // delete one and check if remaining nodes are currect
+  // delete one and check if remaining nodes are correct
   for (unsigned int i = 0; i < tests.size(); i++) {
     state.erase(tests[i].first);
     for (unsigned int j = i+1; j < tests.size(); j++) {
@@ -90,8 +99,13 @@ TEST(state_persistent, node_hash_add_erase) {
 
 
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent state(hasher, &bs);
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_node_hash_add_erase");
+  remove("mapped_vector_node_hash_add_erase");
+  bs->map_file("mapped_file_node_hash_add_erase");
+  pv->map_file("mapped_vector_node_hash_add_erase");
+  state_persistent state(hasher, bs, pv);
 
   // Add keys/values to the state and add the root hash into a stack.
   for (int32_t i = 0; i < key_count; ++i) {
@@ -158,8 +172,13 @@ TEST(state_persistent, node_hash_add_erase) {
 
 TEST(state_persistent, insert_and_delete_expect_blank) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent state(hasher, &bs);
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_insert_and_delete_expect_blank");
+  remove("mapped_vector_insert_and_delete_expect_blank");
+  bs->map_file("mapped_file_insert_and_delete_expect_blank");
+  pv->map_file("mapped_vector_insert_and_delete_expect_blank");
+  state_persistent state(hasher, bs, pv);
 
   state.set("a", "1");
   state.set("b", "2");
@@ -172,143 +191,173 @@ TEST(state_persistent, insert_and_delete_expect_blank) {
   EXPECT_EQ(state.get(""), "");
 }
 
-
 TEST(state_persistent, get_node_hash) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent s(hasher, &bs);
-  EXPECT_EQ(s.get_node_hash(""), "");
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_get_node_hash");
+  remove("mapped_vector_get_node_hash");
+  bs->map_file("mapped_file_get_node_hash");
+  pv->map_file("mapped_vector_get_node_hash");
+  state_persistent state(hasher, bs, pv);
+  EXPECT_EQ(state.get_node_hash(""), "");
 }
 
 TEST(state_persistent, commit_changes) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent s(hasher, &bs);
-  s.set("a", "1");
-  s.set("b", "2");
-  s.set("c", "3");
-  std::string root_hash = s.get_node_hash("");
-  s.commit_changes();
-  EXPECT_EQ(s.get_node_hash(""), root_hash);
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_commit_changes");
+  remove("mapped_vector_commit_changes");
+  bs->map_file("mapped_file_commit_changes");
+  pv->map_file("mapped_vector_commit_changes");
+  state_persistent state(hasher, bs, pv);
+
+  state.set("a", "1");
+  state.set("b", "2");
+  state.set("c", "3");
+  std::string root_hash = state.get_node_hash("");
+  state.commit_changes();
+  EXPECT_EQ(state.get_node_hash(""), root_hash);
 }
 
 TEST(state_persistent, discard_changes) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent s(hasher, &bs);
-  s.set("a", "1");
-  s.set("b", "2");
-  s.set("c", "3");
-  s.discard_changes();
-  EXPECT_EQ(s.get_node_hash(""), "");
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_discard_changes");
+  remove("mapped_vector_discard_changes");
+  bs->map_file("mapped_file_discard_changes");
+  pv->map_file("mapped_vector_discard_changes");
+  state_persistent state(hasher, bs, pv);
+  state.set("a", "1");
+  state.set("b", "2");
+  state.set("c", "3");
+  state.discard_changes();
+  EXPECT_EQ(state.get_node_hash(""), "");
 }
 
 
 TEST(state_persistent, delete_node_tree) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent s(hasher, &bs);
-  s.set("aa", "1");
-  s.set("aaa", "2");
-  s.set("abc", "3");
-  s.set("a2z", "4");
-  s.set("a", "test");
-  s.delete_node_tree("a");
-  EXPECT_EQ(s.get_node_hash(""), "");
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_delete_node_tree");
+  remove("mapped_vector_delete_node_tree");
+  bs->map_file("mapped_file_delete_node_tree");
+  pv->map_file("mapped_vector_delete_node_tree");
+  state_persistent state(hasher, bs, pv);
+  state.set("aa", "1");
+  state.set("aaa", "2");
+  state.set("abc", "3");
+  state.set("a2z", "4");
+  state.set("a", "test");
+  state.delete_node_tree("a");
+  EXPECT_EQ(state.get_node_hash(""), "");
 }
 // This function tests if free locations are used correclty when combined
-// with delete_node_tree, commit_changes, discard_changes.
+// with delete_node_tree, commit_changes, discard_changestate.
 // Deleted nodes should be backed up only when we create new node at
 // their location.
 TEST(state_persistent, delete_node_tree_plus_commit_discard_free_backup_add_node) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent s(hasher, &bs);
-  s.set("aa", "1");
-  s.set("aaa", "2");
-  s.set("abc", "3");
-  s.set("a2z", "4");
-  s.set("a", "test");
-  s.set("not_a_path", "lets have few more paths");
-  s.set("unrelated_path", "just few more paths unrelated to 1");
-  s.set("branch_two", "other branch to play with");
-  s.set("branch_mewtwo", "branch to play with");
-  s.set("branch_mew", "to play with");
-  s.set("branch_arrow", "play with");
-  s.set("branch_two_but_longer", "with");
-  s.set("branch", "Oh no, branches to paly with are gone");
-  s.commit_changes();
-  std::string hash_before_discard = s.get_node_hash("");
-  s.delete_node_tree("a");
-  s.discard_changes();
-  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_delete_node_tree_plus_commit_discard_free_backup_add_node");
+  remove("mapped_vector_delete_node_tree_plus_commit_discard_free_backup_add_node");
+  bs->map_file("mapped_file_delete_node_tree_plus_commit_discard_free_backup_add_node");
+  pv->map_file("mapped_vector_delete_node_tree_plus_commit_discard_free_backup_add_node");
+  state_persistent state(hasher, bs, pv);
+  state.set("aa", "1");
+  state.set("aaa", "2");
+  state.set("abc", "3");
+  state.set("a2z", "4");
+  state.set("a", "test");
+  state.set("not_a_path", "lets have few more paths");
+  state.set("unrelated_path", "just few more paths unrelated to 1");
+  state.set("branch_two", "other branch to play with");
+  state.set("branch_mewtwo", "branch to play with");
+  state.set("branch_mew", "to play with");
+  state.set("branch_arrow", "play with");
+  state.set("branch_two_but_longer", "with");
+  state.set("branch", "Oh no, branches to paly with are gone");
+  state.commit_changes();
+  std::string hash_before_discard = state.get_node_hash("");
+  state.delete_node_tree("a");
+  state.discard_changes();
+  EXPECT_EQ(state.get_node_hash(""), hash_before_discard);
 
-  s.delete_node_tree("a");
-  s.set("evil_node", "lets overwrite empty locations");
-  s.set("a_starting_node", "lets overwrite empty locations");
-  s.set("aaa", "I will act like I am legit node to avoid getting discarded");
-  s.discard_changes();
-  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+  state.delete_node_tree("a");
+  state.set("evil_node", "lets overwrite empty locations");
+  state.set("a_starting_node", "lets overwrite empty locations");
+  state.set("aaa", "I will act like I am legit node to avoid getting discarded");
+  state.discard_changes();
+  EXPECT_EQ(state.get_node_hash(""), hash_before_discard);
 
-  s.set("branch", "I replace the original");
-  s.delete_node_tree("branch");
-  s.discard_changes();
-  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+  state.set("branch", "I replace the original");
+  state.delete_node_tree("branch");
+  state.discard_changes();
+  EXPECT_EQ(state.get_node_hash(""), hash_before_discard);
 
-  s.set("brach_mew", "ancestor to be deleted");
-  s.erase("branch_mewtwo");
-  s.set("branch_mewtwo", "I'm back, but different");
-  s.delete_node_tree("branch");
-  s.discard_changes();
-  EXPECT_EQ(s.get_node_hash(""), hash_before_discard);
+  state.set("brach_mew", "ancestor to be deleted");
+  state.erase("branch_mewtwo");
+  state.set("branch_mewtwo", "I'm back, but different");
+  state.delete_node_tree("branch");
+  state.discard_changes();
+  EXPECT_EQ(state.get_node_hash(""), hash_before_discard);
 }
 
 
 TEST(dummy_state, using_deleted_locations) {
   hash_transformation* hasher = new SHA256_cryptopp();
-  persistent_blobstore bs;
-  state_persistent s(hasher, &bs);
+  persistent_blobstore* bs = new persistent_blobstore();
+  persistent_vector<state_persistent::node>* pv = new persistent_vector<state_persistent::node>();
+  remove("mapped_file_using_deleted_locations");
+  remove("mapped_vector_using_deleted_locations");
+  bs->map_file("mapped_file_using_deleted_locations");
+  pv->map_file("mapped_vector_using_deleted_locations");
+  state_persistent state(hasher, bs, pv);
 
-  s.set("a", "1");
-  s.set("b", "2");
-  s.set("c", "3");
-  s.set("d", "4");
-  EXPECT_EQ(s.size(), 5);
-  s.commit_changes();
-  EXPECT_EQ(s.size(), 5);
+  state.set("a", "1");
+  state.set("b", "2");
+  state.set("c", "3");
+  state.set("d", "4");
+  EXPECT_EQ(state.size(), 5);
+  state.commit_changes();
+  EXPECT_EQ(state.size(), 5);
 
-  s.erase("a");
-  EXPECT_EQ(s.size(), 5);
-  s.commit_changes();
-  EXPECT_EQ(s.size(), 4);
+  state.erase("a");
+  EXPECT_EQ(state.size(), 5);
+  state.commit_changes();
+  EXPECT_EQ(state.size(), 4);
 
-  s.erase("b");
-  s.discard_changes();
-  EXPECT_EQ(s.size(), 4);
+  state.erase("b");
+  state.discard_changes();
+  EXPECT_EQ(state.size(), 4);
 
-  s.set("a", "1");
-  s.erase("b");
-  EXPECT_EQ(s.size(), 5);
-  s.discard_changes();
-  EXPECT_EQ(s.size(), 4);
+  state.set("a", "1");
+  state.erase("b");
+  EXPECT_EQ(state.size(), 5);
+  state.discard_changes();
+  EXPECT_EQ(state.size(), 4);
 
-  s.erase("b");
-  s.set("a", "1");
-  EXPECT_EQ(s.size(), 4);
-  s.discard_changes();
-  EXPECT_EQ(s.size(), 4);
+  state.erase("b");
+  state.set("a", "1");
+  EXPECT_EQ(state.size(), 4);
+  state.discard_changes();
+  EXPECT_EQ(state.size(), 4);
 
-  s.set("a", "1");
-  EXPECT_EQ(s.size(), 5);
-  s.erase("b");
-  s.set("x", "2");
-  EXPECT_EQ(s.size(), 5);
-  s.discard_changes();
-  EXPECT_EQ(s.size(), 4);
+  state.set("a", "1");
+  EXPECT_EQ(state.size(), 5);
+  state.erase("b");
+  state.set("x", "2");
+  EXPECT_EQ(state.size(), 5);
+  state.discard_changes();
+  EXPECT_EQ(state.size(), 4);
 
-  s.erase("b");
-  s.commit_changes();
-  EXPECT_EQ(s.size(), 3);
-  s.set("e", "1");
-  EXPECT_EQ(s.size(), 4);
+  state.erase("b");
+  state.commit_changes();
+  EXPECT_EQ(state.size(), 3);
+  state.set("e", "1");
+  EXPECT_EQ(state.size(), 4);
 }
