@@ -88,6 +88,7 @@ node::node(std::string id,
            vector<string> schemas,
            vector<string> lua_scripts,
            vector<string> wire_msgs,
+           vector<string> commands,
            data::factory& factory)
     : nodeid(id)
     , peer_ids(0)
@@ -95,13 +96,14 @@ node::node(std::string id,
     , update_time_slice(update_time_slice)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
-  init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
+  init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs), std::move(commands));
   init_worker();
 }
 
 void node::init_bindings(vector<string> schemas,
                          vector<string> lua_scripts,
-                         vector<string> wire_msgs) {
+                         vector<string> wire_msgs,
+                         vector<string> commands) {
   engine.bind_core();
 
   for (auto schema_content : schemas) {
@@ -157,6 +159,11 @@ void node::init_bindings(vector<string> schemas,
     LOG(DEBUG) << wire_id << ": " << function_name;
     script_on_msg[wire_id] = engine[function_name];
     wire_id++;
+  }
+
+  for (auto cmd : commands) {
+    LOG(DEBUG) << "command: " << cmd;
+    script_on_cmd[cmd] = engine[cmd];
   }
 }
 
@@ -223,9 +230,9 @@ node::node(const std::string& id,
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
 
-  std::ifstream i(path + "init.json");
+  std::ifstream i(path + "config.json");
   if (!i.is_open()) {
-    LOG(ERROR) << "Error while opening " << path << "init.json";
+    LOG(ERROR) << "Error while opening " << path << "config.json";
   } else {
     nlohmann::json j;
     i >> j;
@@ -234,6 +241,10 @@ node::node(const std::string& id,
     std::vector<std::string> schemas_filenames = j["schemas"];
     std::vector<std::string> lua_scripts_filenames = j["lua_scripts"];
     std::vector<std::string> wire_msgs = j["wire_msgs"];
+    std::vector<std::string> commands;
+    for (auto cmd : j["commands"]) {
+      commands.push_back(cmd[0]);
+    }
 
     std::vector<std::string> schemas;
     std::vector<std::string> lua_scripts;
@@ -247,7 +258,7 @@ node::node(const std::string& id,
       lua_scripts.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
     }
 
-    init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs));
+    init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs), std::move(commands));
     init_worker();
   }
 }
@@ -269,6 +280,7 @@ node::~node() {
   delete worker;
 }
 
+// TODO(kari): move to io?
 static string get_date_string(system_clock::time_point t) {
   auto as_time_t = std::chrono::system_clock::to_time_t(t);
   struct tm* tm;
@@ -281,6 +293,7 @@ static string get_date_string(system_clock::time_point t) {
   throw std::runtime_error("Failed to get current date as string");
 }
 
+// TODO(kari): move to io?
 string zero_padded(int num, int width) {
   std::ostringstream ss;
   ss << std::setw(width) << std::setfill('0') << num;
@@ -412,6 +425,27 @@ void node::s_on_blob_received(peer_id p_id, const string& blob) {
     // delete m;
     return r;
   });
+}
+
+std::string node::process_cmd(std::string cmd, std::string msg) {
+  if (script_on_cmd.count(cmd) != 1) {
+    LOG(FATAL) << "Invalid command!";
+    return "";
+  }
+  sol::protected_function_result pfr;
+  if (msg != "") {
+    pfr = script_on_cmd[cmd](msg);
+  } else {
+    pfr = script_on_cmd[cmd]();
+  }
+  if (!pfr.valid()) {
+    sol::error err = pfr;
+    string what = err.what();
+    LOG(ERROR) << "*** SCRIPT ERROR IN " << cmd << "***\n" << what;
+    return what;
+  }
+  std::string result = pfr;
+  return result;
 }
 
 void node::send_blob(peer_id p_id, const string& blob, uint32_t msg_id) {

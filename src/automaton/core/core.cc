@@ -73,7 +73,8 @@ int main(int argc, char* argv[]) {
        uint32_t update_time_slice,
        vector<string> schema_file_names,
        vector<string> script_file_names,
-       vector<string> msgs) -> unique_ptr<node> {
+       vector<string> msgs,
+       vector<string> commands) -> unique_ptr<node> {
       vector<string> schemas_content;
       for (auto schema_file_name : schema_file_names) {
         schemas_content.push_back(get_file_contents(schema_file_name.c_str()));
@@ -89,7 +90,7 @@ int main(int argc, char* argv[]) {
       auto core_ptr = core_factory.get();
       factories.push_back(std::move(core_factory));
       return make_unique<node>(
-          id, update_time_slice, schemas_content, script_contents, msgs, *core_ptr);
+          id, update_time_slice, schemas_content, script_contents, msgs, commands, *core_ptr);
     },
     [&factories](const std::string& id, const std::string& path) -> unique_ptr<node> {
       auto core_factory = make_unique<protobuf_factory>();
@@ -121,6 +122,8 @@ int main(int argc, char* argv[]) {
     return result;
   });
 
+  node_type.set("process_cmd", &node::process_cmd);
+
   node_type.set("call", [](node& n, std::string command) {
     n.script(command, nullptr);
   });
@@ -145,7 +148,7 @@ int main(int argc, char* argv[]) {
 
   automaton::core::network::tcp_init();
 
-  automaton::core::network::simulation* sim = automaton::core::network::simulation::get_simulator();
+  std::shared_ptr<automaton::core::network::simulation> sim = automaton::core::network::simulation::get_simulator();
   sim->simulation_start(100);
   cli.print(automaton_ascii_logo.c_str());
 
@@ -167,7 +170,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-// Start dump_logs thread.
+  // Start dump_logs thread.
   std::mutex logger_mutex;
   bool stop_logger = false;
   std::thread logger([&]() {
@@ -223,7 +226,6 @@ int main(int argc, char* argv[]) {
   LOG(DEBUG) << "Destroying lua state & objects";
 
   sim->simulation_stop();
-  delete sim;
 }
 
   LOG(DEBUG) << "tcp_release";

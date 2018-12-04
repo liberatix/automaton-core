@@ -52,3 +52,22 @@ function update(timestamp)
     on_Msg(0, m)
   end
 end
+
+function get_peers()
+  response = Peers()
+  for k,v in pairs(peers) do
+    response:set_repeated_blob(1, v.name, -1)
+  end
+  return response:serialize()
+end
+
+function get_messages()
+  response = Messages()
+  for k,v in pairs(msgs) do
+    m = ReceivedMsg()
+    m.hash = k
+    m.data = v
+    response:set_repeated_msg(1, m, -1)
+  end
+  return response:serialize()
+end

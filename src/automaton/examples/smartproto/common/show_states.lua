@@ -31,7 +31,7 @@ function fmt_node(hash, names)
 end
 
 function dump_node_states(n, path)
-  local file = io.open(path .. "logs/node_states.html", "w+")
+  local file = io.open(path .. "node_states.html", "w+")
 
   local node_blocks = {}
   local edges = {}
