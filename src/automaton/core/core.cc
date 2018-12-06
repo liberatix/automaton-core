@@ -152,6 +152,10 @@ int main(int argc, char* argv[]) {
   sim->simulation_start(100);
   cli.print(automaton_ascii_logo.c_str());
 
+  script.safe_script(get_file_contents("automaton/core/core.lua"));
+  schema* rpc_schema = new protobuf_schema(get_file_contents("automaton/core/rpc.proto"));
+  script.import_schema(rpc_schema);
+
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/names.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/dump.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/network.lua"));
@@ -167,6 +171,11 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> paths = j["protocols"];
     for (auto p : paths) {
       script.safe_script(get_file_contents((p + "init.lua").c_str()));
+    }
+    // std::vector<json::object> cmds = j["commands"];
+    for (auto c : j["commands"]) {
+      // TODO(kari): save these in a variable?
+      std::cout << "loaded rpc command: " << c["cmd"] << std::endl;
     }
   }
 

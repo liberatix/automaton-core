@@ -3,5 +3,8 @@
     "automaton/examples/smartproto/chat/",
     "automaton/examples/smartproto/blockchain/",
     "automaton/examples/smartproto/reservationsystem/"
+  ],
+  "commands" : [
+    {"cmd":"testprint", "input_message":"PrintRequest", "output_message":""}
   ]
 }
