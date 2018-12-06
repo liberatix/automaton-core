@@ -1,12 +1,9 @@
 <img align="right" title="Automaton Logo" width="128" height="128" src="media/automaton-avatar-64x64.svg">
 
 # Automaton
-*a peer-to-peer operating system*
-
-Automaton is a peer-to-peer operating system\
+**a peer-to-peer operating system**\
 for running scalable decentralized applications\
-and connecting networks through its\
-standardized protocols.
+and connecting networks through its standardized protocols.
 
 ## License
 
