@@ -36,8 +36,6 @@ new_local_repository(
   build_file = "third_party/easyloggingpp.BUILD",
 )
 
-# LOCAL REPOSITORIES
-
 new_local_repository(
   name = "ed25519_orlp",
   path = "local_third_party/ed25519/src",
@@ -97,12 +95,6 @@ local_repository(
   name = "com_github_gflags_gflags",
   path = "local_third_party/gflags-2.2.1",
 )
-
-#new_local_repository(
-#  name = "luajit",
-#  path = "LuaJIT-2.0.5",
-#  build_file = "luajit.BUILD",
-#)
 
 new_local_repository(
   name = "localboost",
