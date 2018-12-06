@@ -3,9 +3,9 @@
 # Automaton
 *a peer-to-peer operating system*
 
-Automaton is a peer-to-peer operating system
-for running scalable decentralized applications
-and connecting networks through its
+Automaton is a peer-to-peer operating system\
+for running scalable decentralized applications\
+and connecting networks through its\
 standardized protocols.
 
 ## License
