@@ -158,6 +158,8 @@ int main(int argc, char* argv[]) {
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/show_states.lua"));
 
+  std::unordered_map<std::string, std::pair<std::string, std::string>> rpc_commands;
+
   std::ifstream i("automaton/core/coreinit.json");
   if (!i.is_open()) {
     LOG(ERROR) << "coreinit.json could not be opened";
@@ -168,7 +170,21 @@ int main(int argc, char* argv[]) {
     for (auto p : paths) {
       script.safe_script(get_file_contents((p + "init.lua").c_str()));
     }
+    std::vector<std::string> rpc_protos = j["command_definitions"];
+    for (auto p : rpc_protos) {
+      schema* rpc_schema = new protobuf_schema(get_file_contents(p.c_str()));
+      script.import_schema(rpc_schema);
+    }
+    std::vector<std::string> rpc_luas = j["command_implementations"];
+    for (auto p : rpc_luas) {
+      script.safe_script(get_file_contents(p.c_str()));
+    }
+    for (auto c : j["commands"]) {
+      std::cout << "loaded rpc command: " << c["cmd"] << std::endl;
+      rpc_commands[c["cmd"]] = std::make_pair(c["input_message"], c["output_message"]);
+    }
   }
+  i.close();
 
   // Start dump_logs thread.
   std::mutex logger_mutex;
