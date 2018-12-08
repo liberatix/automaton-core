@@ -1,13 +1,11 @@
 <img align="right" title="Automaton Logo" width="128" height="128" src="media/automaton-avatar-64x64.svg">
 
-# Automaton
-**a peer-to-peer operating system**\
-for running scalable decentralized applications\
-and connecting networks through its standardized protocols.
+# Automaton Core
 
 ## License
 
-#### Everything in this repo is licensed under MIT. See [LICENSE](LICENSE) file.
+#### Everything in this repo is licensed under MIT License
+Check the [LICENSE](LICENSE) file.
 
 #### 🚨  HIGHLY EXPERIMENTAL! USE AT YOUR OWN RISK!
 
@@ -46,7 +44,7 @@ First you need to run a script to download and build some required third party l
 2. In the started command prompt type in ``powershell``
 3. Move to the project's directory ``cd "<path_to_project>"``
 4. Run ``.\download_and_build_third_party_libs_windows.ps1``
-6. [Build and run with Bazel](#Bazel-Build-&-Run)
+5. Build and run with Bazel
 
 ### Bazel Build & Run
 
