@@ -2,6 +2,10 @@
 
 # Automaton Core
 
+## Getting Started
+
+We're getting our step-by-step tutorials ready.
+
 ## License
 
 #### Everything in this repo is licensed under MIT License
