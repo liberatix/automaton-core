@@ -2,6 +2,13 @@
 
 # Automaton Core
 
+Table of Contents
+=================
+
+  * [Getting Started](#getting-started)
+  * [License](#license)
+  * [Building Automaton](#building-automaton)
+
 ## Getting Started
 
 We're getting our step-by-step tutorials ready.
