@@ -11,6 +11,7 @@ Table of Contents
 
 ## Getting Started
 
+*COMING SOON!*
 We're getting our step-by-step tutorials ready.
 
 ## License
