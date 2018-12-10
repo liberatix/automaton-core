@@ -158,7 +158,8 @@ int main(int argc, char* argv[]) {
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/show_states.lua"));
 
-  std::unordered_map<std::string, std::pair<std::string, std::string>> rpc_commands;
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string> >  supported_protocols;
+  std::unordered_map<std::string, std::pair<std::string, std::string> > rpc_commands;
 
   std::ifstream i("automaton/core/coreinit.json");
   if (!i.is_open()) {
@@ -169,7 +170,24 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> paths = j["protocols"];
     for (auto p : paths) {
       script.safe_script(get_file_contents((p + "init.lua").c_str()));
+      std::ifstream ifs(p + "config.json");
+      if (!ifs.is_open()) {
+        LOG(ERROR) << "Error while opening " << p << "config.json";
+        continue;
+      } else {
+        nlohmann::json jobj;
+        ifs >> jobj;
+        std::vector<std::string> schemas_filenames = jobj["schemas"];
+        for (auto proto : schemas_filenames) {
+          supported_protocols[p][proto] = get_file_contents((p + proto).c_str());
+        }
+        script.set_function("get_core_supported_protocols", [&](){
+          return sol::as_table(supported_protocols);
+        });
+      }
+      ifs.close();
     }
+
     std::vector<std::string> rpc_protos = j["command_definitions"];
     for (auto p : rpc_protos) {
       schema* rpc_schema = new protobuf_schema(get_file_contents(p.c_str()));
@@ -181,7 +199,7 @@ int main(int argc, char* argv[]) {
     }
     for (auto c : j["commands"]) {
       std::cout << "loaded rpc command: " << c["cmd"] << std::endl;
-      rpc_commands[c["cmd"]] = std::make_pair(c["input_message"], c["output_message"]);
+      rpc_commands[c["cmd"]] = std::make_pair(c["input"], c["output"]);
     }
   }
   i.close();

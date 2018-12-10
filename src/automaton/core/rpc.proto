@@ -8,39 +8,15 @@ message PrintRequest {
 
 message Protocol {
   bytes protocol_id = 1;
-  // filenames and files?
-  repeated bytes definition = 2;
+  repeated bytes file_names = 2;
+  repeated bytes files = 3;
 }
 
-// Supported smart protocols
-
-message ListSupportedProtocolsResponse {
+message ProtocolIDsList {
   repeated bytes protocol_ids = 1;
 }
 
-message GetSupportedProtocolsRequest {
-  repeated bytes protocol_ids = 1;
-}
-
-message GetSupportedProtocolsResponse {
-  repeated Protocol protocols = 1;
-}
-
-// Running smart protocols
-
-message ListRunningProtocolsResponse {
-  repeated bytes protocol_ids = 1;
-}
-
-message GetRunningProtocolsRequest {
-  repeated bytes protocol_ids = 1;
-}
-
-message GetRunningProtocolsResponse {
-  repeated Protocol protocols = 1;
-}
-
-message LoadProtocolsRequest {
+message ProtocolsList {
   repeated Protocol protocols = 1;
 }
 
@@ -51,11 +27,11 @@ message Node {
 }
 
 message GetNodesRequest {
-
+  repeated bytes node_ids = 1;
 }
 
 message GetNodesResponse {
-
+  repeated Node nodes = 1;
 }
 
 message StartNodeRequest {
@@ -67,11 +43,13 @@ message ListNodesResponse {
 }
 
 message NodeCmdRequest {
-
+  bytes node_id = 1;
+  bytes cmd = 2;
+  bytes params = 3;
 }
 
 message NodeCmdResponse {
-
+  bytes response = 1;
 }
 
 
