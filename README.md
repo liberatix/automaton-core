@@ -5,15 +5,9 @@
 Table of Contents
 =================
 
-  * [Getting Started](#getting-started)
   * [License](#license)
   * [Building Automaton](#building-automaton)
-
-## Getting Started
-
-*COMING SOON!*
-
-We're getting our step-by-step tutorials ready.
+  * [Getting Started](#getting-started)
 
 ## License
 
@@ -71,3 +65,9 @@ Once you have bazel you can run the following to build and run Automaton Core
 ```
 .\build-and-run-automaton-core.ps1
 ```
+
+## Getting Started
+
+*COMING SOON!*
+
+We're getting our step-by-step tutorials ready.
