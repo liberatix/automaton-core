@@ -11,8 +11,9 @@ Table of Contents
 
 ## License
 
-#### Everything in this repo is licensed under MIT License
-Check the [LICENSE](LICENSE) file.
+#### Everything in this repo is licensed under the MIT License.
+
+Check the [LICENSE](LICENSE) file for more details.
 
 #### 🚨  HIGHLY EXPERIMENTAL! USE AT YOUR OWN RISK!
 
