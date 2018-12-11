@@ -14,6 +14,7 @@
 #include "automaton/core/network/simulated_connection.h"
 #include "automaton/core/script/engine.h"
 #include "automaton/core/smartproto/node.h"
+#include "automaton/core/smartproto/smart_protocol.h"
 
 using automaton::core::data::factory;
 using automaton::core::data::protobuf::protobuf_factory;
@@ -22,6 +23,7 @@ using automaton::core::data::schema;
 using automaton::core::io::get_file_contents;
 using automaton::core::script::engine;
 using automaton::core::smartproto::node;
+using automaton::core::smartproto::smart_protocol;
 
 using json = nlohmann::json;
 
@@ -158,7 +160,7 @@ int main(int argc, char* argv[]) {
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/show_states.lua"));
 
-  std::unordered_map<std::string, std::unordered_map<std::string, std::string> >  supported_protocols;
+  std::unordered_map<std::string, smart_protocol*>  supported_protocols;
   std::unordered_map<std::string, std::pair<std::string, std::string> > rpc_commands;
 
   std::ifstream i("automaton/core/coreinit.json");
@@ -167,25 +169,20 @@ int main(int argc, char* argv[]) {
   } else {
     nlohmann::json j;
     i >> j;
+    i.close();
     std::vector<std::string> paths = j["protocols"];
     for (auto p : paths) {
       script.safe_script(get_file_contents((p + "init.lua").c_str()));
-      std::ifstream ifs(p + "config.json");
-      if (!ifs.is_open()) {
-        LOG(ERROR) << "Error while opening " << p << "config.json";
-        continue;
-      } else {
-        nlohmann::json jobj;
-        ifs >> jobj;
-        std::vector<std::string> schemas_filenames = jobj["schemas"];
-        for (auto proto : schemas_filenames) {
-          supported_protocols[p][proto] = get_file_contents((p + proto).c_str());
+      smart_protocol* protocol = new smart_protocol();
+      protocol -> load(p);
+      supported_protocols[p] = protocol;
+      script.set_function("get_core_supported_protocols", [&](){
+        std::unordered_map<std::string, std::unordered_map<std::string, std::string> > protocols;
+        for (auto proto : supported_protocols) {
+          protocols[proto.first] = proto.second->get_proto_definitions();
         }
-        script.set_function("get_core_supported_protocols", [&](){
-          return sol::as_table(supported_protocols);
-        });
-      }
-      ifs.close();
+        return sol::as_table(protocols);
+      });
     }
 
     std::vector<std::string> rpc_protos = j["command_definitions"];

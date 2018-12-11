@@ -3,7 +3,22 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "smartproto",
+  name = "smartprotocol",
+  srcs = [
+    "smart_protocol.cc",
+  ],
+  hdrs = [
+    "smart_protocol.h",
+  ],
+  deps = [
+    "//automaton/core/data/protobuf",
+    "//automaton/core/io",
+    "@json//:json",
+  ],
+)
+
+cc_library(
+  name = "node",
   srcs = [
     "node.cc",
   ],
@@ -17,6 +32,7 @@ cc_library(
     "//automaton/core/io",
     "//automaton/core/network",
     "//automaton/core/script",
+    "//automaton/core/smartproto:smartprotocol",
     "@json//:json",
   ],
   linkstatic=True,
