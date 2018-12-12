@@ -13,7 +13,7 @@
 #include "automaton/core/io/io.h"
 #include "automaton/core/network/simulated_connection.h"
 #include "automaton/core/script/engine.h"
-#include "automaton/core/smartproto/node.h"
+#include "automaton/core/node/node.h"
 #include "automaton/core/smartproto/smart_protocol.h"
 
 using automaton::core::data::factory;
@@ -73,32 +73,21 @@ int main(int argc, char* argv[]) {
     sol::factories(
     [&factories](string id,
        uint32_t update_time_slice,
-       vector<string> schema_file_names,
-       vector<string> script_file_names,
+       vector<schema*> schemas,
+       vector<string> scripts,
        vector<string> msgs,
        vector<string> commands) -> unique_ptr<node> {
-      vector<string> schemas_content;
-      for (auto schema_file_name : schema_file_names) {
-        schemas_content.push_back(get_file_contents(schema_file_name.c_str()));
-      }
-
-      vector<string> script_contents;
-      for (auto script_file_name : script_file_names) {
-        LOG(DEBUG) << "LOAD FILE " << script_file_name;
-        script_contents.push_back(get_file_contents(script_file_name.c_str()));
-      }
-
       auto core_factory = make_unique<protobuf_factory>();
       auto core_ptr = core_factory.get();
       factories.push_back(std::move(core_factory));
       return make_unique<node>(
-          id, update_time_slice, schemas_content, script_contents, msgs, commands, *core_ptr);
+          id, update_time_slice, schemas, scripts, msgs, commands, *core_ptr);
     },
-    [&factories](const std::string& id, const std::string& path) -> unique_ptr<node> {
+    [&factories](const std::string& id, std::string proto) -> unique_ptr<node> {
       auto core_factory = make_unique<protobuf_factory>();
       auto core_ptr = core_factory.get();
       factories.push_back(std::move(core_factory));
-      return make_unique<node>(id, path, *core_ptr);
+      return make_unique<node>(id, proto, *core_ptr);
     }));
 
   // Bind this node to its own Lua state.
@@ -160,7 +149,6 @@ int main(int argc, char* argv[]) {
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/connections_graph.lua"));
   script.safe_script(get_file_contents("automaton/examples/smartproto/common/show_states.lua"));
 
-  std::unordered_map<std::string, smart_protocol*>  supported_protocols;
   std::unordered_map<std::string, std::pair<std::string, std::string> > rpc_commands;
 
   std::ifstream i("automaton/core/coreinit.json");
@@ -174,16 +162,15 @@ int main(int argc, char* argv[]) {
     for (auto p : paths) {
       script.safe_script(get_file_contents((p + "init.lua").c_str()));
       smart_protocol* protocol = new smart_protocol();
-      protocol -> load(p);
-      supported_protocols[p] = protocol;
-      script.set_function("get_core_supported_protocols", [&](){
-        std::unordered_map<std::string, std::unordered_map<std::string, std::string> > protocols;
-        for (auto proto : supported_protocols) {
-          protocols[proto.first] = proto.second->get_proto_definitions();
-        }
-        return sol::as_table(protocols);
-      });
+      protocol->load(p);
     }
+    script.set_function("get_core_supported_protocols", [&](){
+      std::unordered_map<std::string, std::unordered_map<std::string, std::string> > protocols;
+      for (std::string proto : smart_protocol::list_protocols()) {
+        protocols[proto] = smart_protocol::get_protocol(proto)->get_msgs_definitions();
+      }
+      return sol::as_table(protocols);
+    });
 
     std::vector<std::string> rpc_protos = j["command_definitions"];
     for (auto p : rpc_protos) {

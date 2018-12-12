@@ -18,6 +18,7 @@
 #include "automaton/core/network/acceptor.h"
 #include "automaton/core/network/connection.h"
 #include "automaton/core/script/engine.h"
+#include "automaton/core/smartproto/smart_protocol.h"
 
 namespace automaton {
 namespace core {
@@ -38,18 +39,17 @@ class node: public network::connection::connection_handler,
  public:
   node(std::string id,
        uint32_t update_time_slice,
-       std::vector<std::string> schemas,
+       std::vector<automaton::core::data::schema*> schemas,
        std::vector<std::string> lua_scripts,
        std::vector<std::string> wire_msgs,
        std::vector<std::string> commands,
        data::factory& factory); // NOLINT
 
-  /** There must be config.json */
-  node(const std::string& id, const std::string& path, data::factory& factory);  // NOLINT
+  node(const std::string& id, std::string proto_id, data::factory& factory);  // NOLINT
 
   ~node();
 
-  void init_bindings(std::vector<std::string> schemas,
+  void init_bindings(std::vector<automaton::core::data::schema*> schemas,
                      std::vector<std::string> lua_scripts,
                      std::vector<std::string> wire_msgs,
                      std::vector<std::string> commands);

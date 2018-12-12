@@ -1,4 +1,4 @@
-#include "automaton/core/smartproto/node.h"
+#include "automaton/core/node/node.h"
 
 #include <chrono>
 #include <fstream>
@@ -85,7 +85,7 @@ std::string node::debug_html() {
 
 node::node(std::string id,
            uint32_t update_time_slice,
-           vector<string> schemas,
+           vector<schema*> schemas,
            vector<string> lua_scripts,
            vector<string> wire_msgs,
            vector<string> commands,
@@ -100,15 +100,14 @@ node::node(std::string id,
   init_worker();
 }
 
-void node::init_bindings(vector<string> schemas,
+void node::init_bindings(vector<schema*> schemas,
                          vector<string> lua_scripts,
                          vector<string> wire_msgs,
                          vector<string> commands) {
   engine.bind_core();
 
-  for (auto schema_content : schemas) {
-    schema* pb_schema = new protobuf_schema(schema_content);
-    engine.import_schema(pb_schema);
+  for (auto schema : schemas) {
+    engine.import_schema(schema);
   }
 
   // Bind node methods.
@@ -223,44 +222,15 @@ void node::init_worker() {
 }
 
 node::node(const std::string& id,
-           const std::string& path,
+           std::string proto_id,
            data::factory& factory):
       peer_ids(0)
     , engine(factory)
     , acceptor_(nullptr) {
   LOG(DEBUG) << "Node constructor called";
-
-  std::ifstream i(path + "config.json");
-  if (!i.is_open()) {
-    LOG(ERROR) << "Error while opening " << path << "config.json";
-  } else {
-    nlohmann::json j;
-    i >> j;
-    nodeid = id;
-    update_time_slice = j["update_time_slice"];
-    std::vector<std::string> schemas_filenames = j["schemas"];
-    std::vector<std::string> lua_scripts_filenames = j["lua_scripts"];
-    std::vector<std::string> wire_msgs = j["wire_msgs"];
-    std::vector<std::string> commands;
-    for (auto cmd : j["commands"]) {
-      commands.push_back(cmd[0]);
-    }
-
-    std::vector<std::string> schemas;
-    std::vector<std::string> lua_scripts;
-
-    for (uint32_t i = 0; i < schemas_filenames.size(); ++i) {
-      std::ifstream ifs(path + schemas_filenames[i]);
-      schemas.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
-    }
-    for (uint32_t i = 0; i < lua_scripts_filenames.size(); ++i) {
-      std::ifstream ifs(path + lua_scripts_filenames[i]);
-      lua_scripts.push_back(std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())));
-    }
-
-    init_bindings(std::move(schemas), std::move(lua_scripts), std::move(wire_msgs), std::move(commands));
-    init_worker();
-  }
+  smart_protocol* proto = smart_protocol::get_protocol(proto_id);
+  init_bindings(proto->get_schemas(), proto->get_scripts(), proto->get_wire_msgs(), proto->get_commands());
+  init_worker();
 }
 
 node::~node() {

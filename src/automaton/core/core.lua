@@ -1,7 +1,11 @@
 -- core.lua
 
-history_add("get_protocols({\"automaton/examples/smartproto/chat/\",\"automaton/examples/smartproto/blockchain/\",\"automaton/examples/smartproto/reservationsystem/\"})")
-history_add("list_supported_protocols()")
+history_add("m = get_protocols({\"automaton/examples/smartproto/chat/\",\"automaton/examples/smartproto/blockchain/\",\"automaton/examples/smartproto/reservationsystem/\"})")
+history_add("m = list_supported_protocols()")
+history_add("msg = ProtocolsList()")
+history_add("msg = ProtocolIDsList()")
+history_add("msg:deserialize(m)")
+history_add("print(msg:to_string())")
 
 -- for test purposes message serialisation and deserialisation is included
 function testprint(text)
