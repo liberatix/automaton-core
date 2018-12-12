@@ -3,7 +3,7 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "smartprotocol",
+  name = "smartproto",
   srcs = [
     "smart_protocol.cc",
   ],
@@ -11,33 +11,9 @@ cc_library(
     "smart_protocol.h",
   ],
   deps = [
-    "//automaton/core/data/protobuf",
-    "//automaton/core/io",
-    "@json//:json",
-  ],
-)
-
-cc_library(
-  name = "node",
-  srcs = [
-    "node.cc",
-  ],
-  hdrs = [
-    "node.h",
-  ],
-  deps = [
-    "@localboost//:algorithm",
     "//automaton/core/data",
     "//automaton/core/data/protobuf",
     "//automaton/core/io",
-    "//automaton/core/network",
-    "//automaton/core/script",
-    "//automaton/core/smartproto:smartprotocol",
     "@json//:json",
   ],
-  linkstatic=True,
-  defines = select({
-      "//conditions:windows": ["BOOST_ALL_NO_LIB"],
-      "//conditions:default": [],
-  }),
 )
