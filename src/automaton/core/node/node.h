@@ -1,5 +1,5 @@
-#ifndef AUTOMATON_CORE_SMARTPROTO_NODE_H_
-#define AUTOMATON_CORE_SMARTPROTO_NODE_H_
+#ifndef AUTOMATON_CORE_NODE_NODE_H_
+#define AUTOMATON_CORE_NODE_NODE_H_
 
 #include <deque>
 #include <functional>
@@ -184,4 +184,4 @@ class node: public network::connection::connection_handler,
 }  // namespace core
 }  // namespace automaton
 
-#endif  // AUTOMATON_CORE_SMARTPROTO_NODE_H_
+#endif  // AUTOMATON_CORE_NODE_NODE_H_
